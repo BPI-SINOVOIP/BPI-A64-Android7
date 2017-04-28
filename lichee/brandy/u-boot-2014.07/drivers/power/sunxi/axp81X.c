@@ -48,13 +48,29 @@ extern int axp81_probe_supply_status_byname(char *vol_name);
 */
 int axp81_probe(void)
 {
-	u8    pmu_type;
+	u8 pmu_type;
+	u8 acin_path;
 
     axp_i2c_config(SUNXI_AXP_81X, AXP81X_ADDR);
+
+	/* bpi, set VBUS current limit from 1500mA to 3500mA */
+	if(axp_i2c_read(AXP81X_ADDR, BOOT_POWER81X_ACIN_PATH, &acin_path))
+	{
+		printf("axp read error\n");
+		return -1;
+	}
+	
+	acin_path &= 0xf8;
+	acin_path |= 0x04;
+	if(axp_i2c_write(AXP81X_ADDR, BOOT_POWER81X_ACIN_PATH, acin_path))
+	{
+		printf("axp read error\n");
+		return -1;
+	}
+	
 	if(axp_i2c_read(AXP81X_ADDR, BOOT_POWER81X_VERSION, &pmu_type))
 	{
 		printf("axp read error\n");
-
 		return -1;
 	}
 

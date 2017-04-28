@@ -75,6 +75,7 @@
 #define   BOOT_POWER81X_CHARGE1             			(0x33)
 #define   BOOT_POWER81X_CHARGE2             			(0x34)
 #define   BOOT_POWER81X_CHARGE3             			(0x35)
+#define	  BOOT_POWER81X_ACIN_PATH						(0x3A)
 
 #define   BOOT_POWER81X_BAT_AVERVOL_H8                  (0x50)//----------
 #define   BOOT_POWER81X_BAT_AVERVOL_L4                  (0x51)//-----------
