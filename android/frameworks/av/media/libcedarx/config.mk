@@ -30,7 +30,7 @@ endif
 ########## configure CONFIG_TARGET_PRODUCT ##########
 LIB_CEDARM_PATH := $(TOP)/frameworks/av/media/libcedarx
 
-CONF_AC_PRODUCT = $(shell echo $(TARGET_PRODUCT) | cut -d '_' -f 1)
+CONF_AC_PRODUCT = $(TARGET_BOARD_PLATFORM)
 include $(LIB_CEDARM_PATH)/config/$(CONF_AC_PRODUCT)_config.mk
 
 ###################################end define####################################

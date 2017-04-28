@@ -1,7 +1,7 @@
 
 MODULE_TOP = $(TOP)/frameworks/av/media/libcedarc
 
-product = $(shell echo $(TARGET_PRODUCT) | cut -d '_' -f 1)
+product = $(TARGET_BOARD_PLATFORM)
 
 ########## configure CONF_ANDROID_VERSION ##########
 android_version = $(shell echo $(PLATFORM_VERSION) | cut -c 1)
