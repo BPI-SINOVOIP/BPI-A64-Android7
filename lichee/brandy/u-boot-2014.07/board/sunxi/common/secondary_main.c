@@ -245,12 +245,21 @@ extern void sunxi_usb_main_loop(int mode);
 int sunxi_secendary_cpu_task(void)
 {
 	int next_mode;
+	int batt_used;
 
 	printf("secondary entry\n");
 
 	sunxi_pmu_treatment();
 
 	next_mode = sunxi_probe_power_state();
+
+	/* bpi, normal boot when battery not used */
+	script_parser_fetch(PMU_SCRIPT_NAME, "pmu_batt_used", &batt_used, 1);
+	printf("batt_used:%d\n",batt_used);
+	if (0 == batt_used) {
+		printf("battery not used, enter normal boot\n");
+		next_mode = SUNXI_STATE_NORMAL_BOOT;
+	}
 
 	if (next_mode == SUNXI_STATE_NORMAL_BOOT) {
 		ready_to_decode_buf = (unsigned char *)(SUNXI_LOGO_COMPRESSED_LOGO_BUFF);
