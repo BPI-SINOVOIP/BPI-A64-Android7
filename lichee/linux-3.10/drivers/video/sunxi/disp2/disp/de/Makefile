@@ -1,18 +1,15 @@
 ifeq ($(CONFIG_ARCH_SUN50IW1P1),y)
-sub_dir = lowlevel_sun50iw1
+-include $(obj)/de/lowlevel_sun50iw1/Makefile
 endif
 
 ifeq ($(CONFIG_ARCH_SUN8IW10),y)
-sub_dir = lowlevel_sun8iw10
+-include $(obj)/de/lowlevel_sun8iw10/Makefile
 endif
 
 ifeq ($(CONFIG_ARCH_SUN8IW11),y)
-sub_dir = lowlevel_v2x
+-include $(obj)/de/lowlevel_v2x/Makefile
 endif
 
 ifeq ($(CONFIG_ARCH_SUN50IW2),y)
-sub_dir = lowlevel_v2x
+-include $(obj)/de/lowlevel_v2x/Makefile
 endif
-
--include $(obj)/de/$(sub_dir)/Makefile
-
