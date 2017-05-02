@@ -387,7 +387,7 @@ rtp_exchange_x_y_flag = 0
 [ctp]
 compatible	    = "allwinner,sun50i-ctp-para"
 ctp_used            = 1
-ctp_name	    = "gt9xxnew_ts"
+ctp_name	    = "gt9147_bpi"
 ctp_twi_id          = 0
 ctp_twi_addr        = 0x5d
 ctp_screen_max_x    = 720
@@ -1442,7 +1442,7 @@ regulator19     = "axp81x_fldo1 none vcc-hsic-12"
 regulator20     = "axp81x_fldo2 none vdd-cpus";
 regulator21     = "axp81x_gpio0ldo none vcc-ctp"
 regulator22     = "axp81x_gpio1ldo none "
-regulator23     = "axp81x_dc1sw none vcc-wifi-8089 vcc-pd"
+regulator23     = "axp81x_dc1sw none vcc-wifi-8089 vcc-gmac-33 vcc-pd"
 
 ;----------------------------------------------------------------------------------
 ;recovery and fastboot key

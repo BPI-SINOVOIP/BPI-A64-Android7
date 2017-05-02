@@ -49,7 +49,7 @@ PRODUCT_COPY_FILES += \
     device/softwinner/bpi-m64-lcd5/modules/modules/disp.ko:root/disp.ko \
     device/softwinner/bpi-m64-lcd5/modules/modules/sunxi-keyboard.ko:recovery/root/sunxi-keyboard.ko \
     device/softwinner/bpi-m64-lcd5/modules/modules/sw-device.ko:recovery/root/sw-device.ko \
-    device/softwinner/bpi-m64-lcd5/modules/modules/gslX680new.ko:recovery/root/gslX680new.ko \
+    device/softwinner/bpi-m64-lcd5/modules/modules/gt9xxnew_ts.ko:recovery/root/gt9xxnew_ts.ko \
 
 PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/android.hardware.camera.xml:system/etc/permissions/android.hardware.camera.xml \
@@ -63,6 +63,8 @@ PRODUCT_COPY_FILES += \
     device/softwinner/bpi-m64-lcd5/configs/gsensor.cfg:system/usr/gsensor.cfg \
     device/softwinner/bpi-m64-lcd5/configs/media_profiles.xml:system/etc/media_profiles.xml \
     device/softwinner/bpi-m64-lcd5/configs/sunxi-keyboard.kl:system/usr/keylayout/sunxi-keyboard.kl \
+    device/softwinner/bpi-m64-lcd5/configs/gt9xxnew_ts.kl:system/usr/keylayout/gt9xxnew_ts.kl \
+    device/softwinner/bpi-m64-lcd5/configs/axp81x-supplyer.kl:system/usr/keylayout/axp81x-supplyer.kl \
     device/softwinner/bpi-m64-lcd5/configs/tp.idc:system/usr/idc/tp.idc
 
 PRODUCT_COPY_FILES += \

@@ -160,7 +160,7 @@ static int revert_y_flag = 0;
 static int exchange_x_y_flag = 0;
 static __u32 twi_id = 0;
 static char irq_pin_name[8];
-static u32 debug_mask = 0;
+static u32 debug_mask = 1;
 enum{	
 	DEBUG_INIT = 1U << 0,	
 	DEBUG_SUSPEND = 1U << 1,
@@ -171,7 +171,7 @@ enum{
 	DEBUG_OTHERS_INFO = 1U << 6,
 };
 #define dprintk(level_mask,fmt,arg...)    if(unlikely(debug_mask & level_mask)) \
-        printk("***CTP***"fmt, ## arg)
+        pr_info("***CTP***"fmt, ## arg)
 module_param_named(debug_mask,debug_mask,int,S_IRUGO | S_IWUSR | S_IWGRP);
 static const unsigned short normal_i2c[2] = {0x5d, I2C_CLIENT_END};
 struct ctp_config_info config_info = {
@@ -306,16 +306,16 @@ void gtp_io_init(int ms)
         
         ctp_wakeup(1, 0);
         msleep(6);       
-	gpio_direction_output(config_info.wakeup_gpio.gpio,1); 
-	gtp_int_sync(50);
+		gpio_direction_output(config_info.wakeup_gpio.gpio,1); 
+		gtp_int_sync(50);
 }
 /*******************************************************************************/
 static ssize_t gtp_gesture_enable_store(struct device *dev,struct device_attribute *attr,const char *buf, size_t count)
 {
         unsigned long data;
         int error;
-	struct input_dev *input=dev_get_drvdata(dev);
-	struct goodix_ts_data *ts = container_of(&input, struct goodix_ts_data, input_dev);
+		struct input_dev *input=dev_get_drvdata(dev);
+	
         error = strict_strtoul(buf, 10, &data);
         if (error) {
                 printk("%s strict_strtoul error\n", __FUNCTION__);
@@ -1767,7 +1767,7 @@ static s32 gtp_init_panel(struct goodix_ts_data *ts)
             sensor_id = 3;
             dprintk(DEBUG_INIT,"gt9xx:sensor_id = %d\n",sensor_id);
 			
-		} else if (!strcmp(config_info.name,"gt911_mb783q6")){
+		} else if (!strcmp(config_info.name,"gt9147_bpi")){
             sensor_id = 4;
             dprintk(DEBUG_INIT,"gt9xx:sensor_id = %d\n",sensor_id);
 		} else if (!strcmp(config_info.name,"gt9271_p2")){
@@ -2831,23 +2831,11 @@ static int goodix_ts_remove(struct i2c_client *client)
     return 0;
 }
 
-#ifdef CONFIG_HAS_EARLYSUSPEND
-/*******************************************************
-Function:
-    Early suspend function.
-Input:
-    h: early_suspend struct.
-Output:
-    None.
-*******************************************************/
-static void goodix_ts_early_suspend(struct early_suspend *h)
+static void goodix_ts_suspend(struct goodix_ts_data *ts)
 {
-    struct goodix_ts_data *ts;
-    s8 ret = -1;    
-    ts = container_of(h, struct goodix_ts_data, early_suspend);
-    
-    GTP_DEBUG_FUNC();
-    
+	s8 ret = -1;
+	
+	GTP_DEBUG_FUNC();
     GTP_INFO("System suspend.");
 
     ts->gtp_is_suspend = 1;
@@ -2858,9 +2846,9 @@ static void goodix_ts_early_suspend(struct early_suspend *h)
 #endif
 
 //#if GTP_GESTURE_WAKEUP
-if(gtp_gesture_wakeup)
-    ret = gtp_enter_doze(ts);
-else {
+	if(gtp_gesture_wakeup)
+   		ret = gtp_enter_doze(ts);
+	else {
 //#else
     if (ts->use_irq)
     {
@@ -2881,29 +2869,19 @@ else {
     //  delay 48 + 10ms to ensure reliability    
     msleep(58);   
 //#if (!GTP_GESTURE_WAKEUP)
-if(!gtp_gesture_wakeup){
-    printk("ctp power off in early suspend!!!\n");
-    input_set_power_enable(&(config_info.input_type), 0);
-    __gpio_set_value(config_info.wakeup_gpio.gpio, 0);
-//#endif 
-}
+	if(!gtp_gesture_wakeup){
+    	printk("ctp power off in early suspend!!!\n");
+    	input_set_power_enable(&(config_info.input_type), 0);
+    	__gpio_set_value(config_info.wakeup_gpio.gpio, 0);
+//#endif
+	}
 }
 
-/*******************************************************
-Function:
-    Late resume function.
-Input:
-    h: early_suspend struct.
-Output:
-    None.
-*******************************************************/
-static void goodix_ts_late_resume(struct early_suspend *h)
+static void goodix_ts_resume(struct goodix_ts_data *ts)
 {
-    struct goodix_ts_data *ts;
-    s8 ret = -1;
-    ts = container_of(h, struct goodix_ts_data, early_suspend);
-    
-    GTP_DEBUG_FUNC();
+	s8 ret = -1;
+	
+	GTP_DEBUG_FUNC();
     
     GTP_INFO("System resume.");
 //#if (!GTP_GESTURE_WAKEUP)
@@ -2952,6 +2930,67 @@ if(gtp_gesture_wakeup)
 #if GTP_ESD_PROTECT
     gtp_esd_switch(ts->client, SWITCH_ON);
 #endif
+}
+
+#ifdef CONFIG_PM
+static int goodix_pm_suspend(struct i2c_client *client, pm_message_t mesg)
+{
+	struct goodix_ts_data *ts = i2c_get_clientdata(client);
+	if(ts) {
+		GTP_INFO("suspend enter");
+		goodix_ts_suspend(ts);
+	}
+
+	return 0;
+}
+
+static int goodix_pm_resume(struct i2c_client *client)
+{
+	struct goodix_ts_data *ts = i2c_get_clientdata(client);
+	if(ts) {
+		GTP_INFO("resume enter");
+		goodix_ts_resume(ts);
+	}
+
+	return 0;
+}
+#endif
+
+#ifdef CONFIG_HAS_EARLYSUSPEND
+/*******************************************************
+Function:
+    Early suspend function.
+Input:
+    h: early_suspend struct.
+Output:
+    None.
+*******************************************************/
+static void goodix_ts_early_suspend(struct early_suspend *h)
+{
+    struct goodix_ts_data *ts = container_of(h, struct goodix_ts_data, early_suspend);  
+    
+    if(ts) {
+		GTP_INFO("early suspend enter");
+		goodix_ts_suspend(ts);
+	}
+}
+
+/*******************************************************
+Function:
+    Late resume function.
+Input:
+    h: early_suspend struct.
+Output:
+    None.
+*******************************************************/
+static void goodix_ts_late_resume(struct early_suspend *h)
+{
+    struct goodix_ts_data *ts = = container_of(h, struct goodix_ts_data, early_suspend);
+
+	if(ts) {
+		GTP_INFO("late resume enter");
+		goodix_ts_resume(ts);
+	}
 }
 #endif
 
@@ -3205,8 +3244,8 @@ static struct i2c_driver goodix_ts_driver = {
     .remove     = goodix_ts_remove,
 #ifndef CONFIG_HAS_EARLYSUSPEND
 #ifdef CONFIG_PM
-        .suspend        = goodix_ts_suspend,
-        .resume         = goodix_ts_resume,
+    .suspend    = goodix_pm_suspend,
+    .resume     = goodix_pm_resume,
 #endif
 #endif
     .id_table   = goodix_ts_id,
@@ -3241,7 +3280,7 @@ Input:
 Output:
     Executive Outcomes. 0---succeed.
 ********************************************************/
-static int __devinit goodix_ts_init(void)
+static int __init goodix_ts_init(void)
 {
     s32 ret = -1;
     script_item_u   val;
@@ -3262,19 +3301,22 @@ static int __devinit goodix_ts_init(void)
         printk("*** if use ctp,please put the sys_config.fex ctp_used set to 1. \n");
         return 0;
 	}
+
+#if 0
     type = script_get_item("ctp_para", "ctp_gesture_wakeup", &val);
     if (SCIRPT_ITEM_VALUE_TYPE_INT != type) {
-                printk("%s: ctp_gesture_wakeup script_get_item  err. \n", __func__);
-        	return 0;
+            printk("%s: ctp_gesture_wakeup script_get_item  err. \n", __func__);
+        	//return 0;
         }
-	
+
     if (val.val == 1){
-	gtp_gesture_wakeup = 1;
+		gtp_gesture_wakeup = 1;
         dprintk(DEBUG_INIT,"GTP driver gesture wakeup is used!\n");
        }
-	
+#endif
+
     if(!gtp_gesture_wakeup)
-	gtp_power_ctrl_sleep = 1;	
+		gtp_power_ctrl_sleep = 1;	
 
     input_set_power_enable(&(config_info.input_type), 1);
     msleep(10);

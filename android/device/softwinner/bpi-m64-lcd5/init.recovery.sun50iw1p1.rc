@@ -4,7 +4,7 @@ on init
     insmod /sunxi-keyboard.ko
     insmod /disp.ko
     insmod /lcd.ko
-    insmod /gslX680new.ko
+    insmod /gt9xxnew_ts.ko
 	
     mkdir /usbhost
     mkdir /extsd
