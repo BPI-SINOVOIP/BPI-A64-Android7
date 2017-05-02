@@ -36,4 +36,12 @@
 		bt_hostwake = <&r_pio PL 5 6 0 0 0>;
 		status = "okay";
 	};
+
+	soc@01c00000 {
+
+		keyboard0:keyboard{
+			status = "disabled";		
+		};
+
+	};
 };
