@@ -19,7 +19,7 @@
 <resources>
     <!-- CAPTIVE_PORTAL_SERVER -->
     <string name="def_captive_portal_server">connectivitycheck.gstatic.com</string>
-	<bool name="def_wifi_on">true</bool>
+    <bool name="def_wifi_on">false</bool>
 
     <!-- ethernet default state -->
     <bool name="def_ethernet_on">false</bool>

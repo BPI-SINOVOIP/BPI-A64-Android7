@@ -981,7 +981,7 @@ mir3da                    = 1
 [wlan]
 wlan_used           = 1
 wlan_busnum         = 1
-clocks              =
+;clocks              =
 wlan_power          = "vcc-wifi"
 wlan_io_regulator   = "vcc-wifi-io"
 wlan_regon          = port:PL02<1><default><default><0>
@@ -997,7 +997,7 @@ wlan_hostwake       = port:PL03<6><default><default><0>
 ;--------------------------------------------------------------------------------
 [bt]
 bt_used             = 1
-clocks              =
+;clocks              =
 bt_power            = "vcc-wifi"
 bt_io_regulator     = "vcc-wifi-io"
 bt_rst_n            = port:PL04<1><default><default><0>

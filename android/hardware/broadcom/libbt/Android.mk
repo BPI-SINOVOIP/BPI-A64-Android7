@@ -65,5 +65,8 @@ endif
 ifeq ($(TARGET_PRODUCT), gce_x86_phone)
     include $(LOCAL_PATH)/conf/google/gce_x86/Android.mk
 endif
+ifeq ($(TARGET_PRODUCT), bpi_m64_lcd5)
+    include $(LOCAL_PATH)/conf/bpi/m64_lcd5/Android.mk
+endif
 
 endif # BOARD_HAVE_BLUETOOTH_BCM

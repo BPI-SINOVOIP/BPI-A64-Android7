@@ -34,7 +34,7 @@ TARGET_RECOVERY_UI_LIB := librecovery_ui_bpi_m64_lcd5
 # 1.1 realtek wifi support 
 # 1.1  realtek wifi configuration
 # BOARD_USR_WIFI: rtl8188eu/rtl8723bs/rtl8723bs_vq0/rtl8723cs
-BOARD_WIFI_VENDOR := realtek
+#BOARD_WIFI_VENDOR := realtek
 ifeq ($(BOARD_WIFI_VENDOR), realtek)
     WPA_SUPPLICANT_VERSION := VER_0_8_X
     BOARD_WPA_SUPPLICANT_DRIVER := NL80211
@@ -47,7 +47,7 @@ endif
 
 # 1.2 broadcom wifi support
 # BOARD_USR_WIFI:ap6181/ap6210/ap6212/ap6330/ap6335
-#BOARD_WIFI_VENDOR := broadcom
+BOARD_WIFI_VENDOR := broadcom
 ifeq ($(BOARD_WIFI_VENDOR), broadcom)
     BOARD_WPA_SUPPLICANT_DRIVER := NL80211
     WPA_SUPPLICANT_VERSION      := VER_0_8_X
@@ -56,7 +56,7 @@ ifeq ($(BOARD_WIFI_VENDOR), broadcom)
     BOARD_HOSTAPD_PRIVATE_LIB   := lib_driver_cmd_bcmdhd
     BOARD_WLAN_DEVICE           := bcmdhd
     WIFI_DRIVER_FW_PATH_PARAM   := "/sys/module/bcmdhd/parameters/firmware_path"
-    BOARD_USR_WIFI := ap6330
+    BOARD_USR_WIFI := ap6212
     include hardware/broadcom/wlan/bcmdhd/firmware/$(BOARD_USR_WIFI)/device-bcm.mk
 endif
 
@@ -78,8 +78,8 @@ endif
 # make sure BOARD_HAVE_BLUETOOTH is true for every bt vendor
 # BOARD_HAVE_BLUETOOTH_NAME:rtl8723bs/rtl8723bs_vq0/rtl8723cs/ap6210/ap6212/ap6330/ap6335/
 BOARD_HAVE_BLUETOOTH := true
-#BOARD_HAVE_BLUETOOTH_BCM := true
-BOARD_HAVE_BLUETOOTH_RTK := true
-BOARD_HAVE_BLUETOOTH_NAME := rtl8723bs_vq0
+BOARD_HAVE_BLUETOOTH_BCM := true
+#BOARD_HAVE_BLUETOOTH_RTK := true
+BOARD_HAVE_BLUETOOTH_NAME := ap6212
 BOARD_BLUETOOTH_BDROID_BUILDCFG_INCLUDE_DIR := $(TOP_DIR)device/softwinner/$(basename $(TARGET_DEVICE))/configs/bluetooth/
 TARGET_USE_BOOSTUP_OPZ := true

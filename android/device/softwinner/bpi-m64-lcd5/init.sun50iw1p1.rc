@@ -1,8 +1,8 @@
 import init.common.rc
 import init.sun50iw1p1.usb.rc
 import init.${ro.zygote}.rc
-#import init.wireless.broadcom.rc
-import init.wireless.realtek.rc
+import init.wireless.broadcom.rc
+#import init.wireless.realtek.rc
 
 on early-init
     mount debugfs debugfs /sys/kernel/debug/ mode=755

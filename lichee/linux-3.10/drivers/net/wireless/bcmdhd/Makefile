@@ -54,7 +54,7 @@ endif
 obj-$(CONFIG_BCMDHD) += bcmdhd.o
 bcmdhd-objs += $(DHDOFILES)
 
-#ifeq ($(CONFIG_MACH_PLATFORM),y)
+#ifeq ($(CONFIG_ARCH_SUNXI),y)
 DHDOFILES += dhd_gpio.o
 DHDCFLAGS += -DCUSTOMER_HW -DDHD_OF_SUPPORT -DCUSTOMER_HW_ALLWINNER
 DHDCFLAGS += -Iarch/arm/mach-sunxi/include
