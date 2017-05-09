@@ -124,6 +124,7 @@ import com.android.settings.wifi.WifiAPITest;
 import com.android.settings.wifi.WifiInfo;
 import com.android.settings.wifi.WifiSettings;
 import com.android.settings.wifi.p2p.WifiP2pSettings;
+import com.android.settings.ethernet.EthernetSettings;
 import com.android.settingslib.drawer.DashboardCategory;
 import com.android.settingslib.drawer.SettingsDrawerActivity;
 import com.android.settingslib.drawer.Tile;
@@ -229,6 +230,7 @@ public class SettingsActivity extends SettingsDrawerActivity
             //wireless_section
             WifiSettingsActivity.class.getName(),
             Settings.BluetoothSettingsActivity.class.getName(),
+	    	Settings.EthernetSettingsActivity.class.getName(),
             Settings.DataUsageSummaryActivity.class.getName(),
             Settings.SimSettingsActivity.class.getName(),
             Settings.WirelessSettingsActivity.class.getName(),
@@ -259,6 +261,7 @@ public class SettingsActivity extends SettingsDrawerActivity
             AdvancedWifiSettings.class.getName(),
             SavedAccessPointsWifiSettings.class.getName(),
             BluetoothSettings.class.getName(),
+	    EthernetSettings.class.getName(),
             SimSettings.class.getName(),
             TetherSettings.class.getName(),
             WifiP2pSettings.class.getName(),
@@ -1052,6 +1055,8 @@ public class SettingsActivity extends SettingsDrawerActivity
         final UserManager um = UserManager.get(this);
         final boolean isAdmin = um.isAdminUser();
 
+		Log.d(LOG_TAG, "doUpdateTilesList()");
+
         String packageName = getPackageName();
         setTileEnabled(new ComponentName(packageName, WifiSettingsActivity.class.getName()),
                 pm.hasSystemFeature(PackageManager.FEATURE_WIFI), isAdmin, pm);
@@ -1059,6 +1064,10 @@ public class SettingsActivity extends SettingsDrawerActivity
         setTileEnabled(new ComponentName(packageName,
                 Settings.BluetoothSettingsActivity.class.getName()),
                 pm.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH), isAdmin, pm);
+
+		setTileEnabled(new ComponentName(packageName,
+                Settings.EthernetSettingsActivity.class.getName()),
+                pm.hasSystemFeature(PackageManager.FEATURE_ETHERNET), isAdmin, pm);
 
         setTileEnabled(new ComponentName(packageName,
                 Settings.DataUsageSummaryActivity.class.getName()),
@@ -1119,6 +1128,9 @@ public class SettingsActivity extends SettingsDrawerActivity
                 && !ArrayUtils.contains(SETTINGS_FOR_RESTRICTED, component.getClassName())) {
             enabled = false;
         }
+
+		Log.d(LOG_TAG, "setTileEnabled for: " + getComponentName().toString() + "enabled = " + enabled);
+		
         setTileEnabled(component, enabled);
     }
 

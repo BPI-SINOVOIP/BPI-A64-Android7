@@ -1428,6 +1428,35 @@
     <!-- Bluetooth settings.  Dock Setting Dialog - Remember setting and don't ask user again -->
     <string name="bluetooth_dock_settings_remember">Remember settings</string>
 
+    <!--Used as title on second screen after selecting Bluetooth settings -->
+    <string name="ethernet_settings">Ethernet</string>
+    <!--Wireless controls screen, settings title for the item to take you to the ethernet settings screen -->
+    <string name="ethernet_settings_title">Ethernet</string>
+    <!--Wireless controls screen, settings summary for the item tot ake you to the bluetooth settings screen -->
+    <string name="ethernet_settings_summary">Manage connections</string>
+
+    <!-- Ethernet configuration dialog -->
+    <string name="eth_config_title">Configure Ethernet device</string>
+    <string name="eth_setting">Ethernet</string>
+    <string name="eth_dev_list">Ethernet Devices:</string>
+    <string name="eth_con_type">Connection Type</string>
+    <string name="eth_con_type_dhcp">DHCP</string>
+    <string name="eth_con_type_manual">Static IP</string>
+    <string name="eth_dns">DNS address</string>
+    <string name="eth_gw">Gateway address</string>
+    <string name="eth_ipaddr">IP address</string>
+    <string name="eth_quick_toggle_title">Ethernet</string>
+    <string name="eth_quick_toggle_summary">Turn on Ethernet</string>
+    <string name="eth_conf_perf_title">Ethernet configuration</string>
+    <string name="eth_conf_summary">Configure Ethernet devices</string>
+    <string name="eth_mask">Netmask</string>
+    <string name="eth_toggle_summary_off">Turn off Ethernet</string>
+    <string name="eth_toggle_summary_on">Turn on Ethernet</string>
+    <string name="eth_settings_error">Failed to set: Please enter the valid characters 0~255</string>
+    <string name="eth_settings_empty">can\'t be empty</string>
+    <!-- Label for the Network prefix of the network [CHAR LIMIT=25]-->
+    <string name="eth_network_prefix_length">Network prefix length</string>
+
     <!-- Wifi Assistant title.  [CHAR LIMIT=40] -->
     <string name="wifi_assistant_title">Wi\u2011Fi Assistant</string>
 

@@ -452,6 +452,29 @@
             </intent-filter>
         </activity>
 
+        <activity android:name="Settings$EthernetSettingsActivity"
+                android:label="@string/ethernet_settings_title"
+                android:icon="@drawable/ic_settings_ethernet"
+                android:taskAffinity="">
+            <intent-filter android:priority="1">
+                <action android:name="android.settings.ETHERNET_SETTINGS" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.VOICE_LAUNCH" />
+                <category android:name="com.android.settings.SHORTCUT" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <intent-filter android:priority="3">
+                <action android:name="com.android.settings.action.SETTINGS" />
+            </intent-filter>
+            <meta-data android:name="com.android.settings.category"
+                android:value="com.android.settings.category.wireless" />
+            <meta-data android:name="com.android.settings.FRAGMENT_CLASS"
+                android:value="com.android.settings.ethernet.EthernetSettings" />
+        </activity>
+
         <service android:name=".TetherService"
             android:exported="true"
             android:permission="android.permission.TETHER_PRIVILEGED" />

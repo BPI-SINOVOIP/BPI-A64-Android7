@@ -29,6 +29,7 @@ import android.os.HandlerThread;
 import android.os.RemoteCallbackList;
 import android.os.RemoteException;
 import android.provider.Settings;
+import android.os.Looper;
 import android.util.Log;
 import android.util.PrintWriterPrinter;
 
@@ -189,5 +190,32 @@ public class EthernetServiceImpl extends IEthernetManager.Stub {
         pw.increaseIndent();
         mHandler.dump(new PrintWriterPrinter(pw), "EthernetServiceImpl");
         pw.decreaseIndent();
+    }
+
+    class TstartThread extends Thread {
+	public void run() {
+	    Looper.prepare();
+	    mTracker.start(mContext, mHandler);
+	    mStarted.set(true);
+	    Looper.loop();
+	}
+    }
+
+    public void Trackstart() {
+	new TstartThread().start();
+    }
+
+    public void Trackstop() {
+	Log.i(TAG, "Stop Ethernet Service");
+	Thread tstopthread = new Thread(new Runnable() {
+	    public void run() {
+		Looper.prepare();
+		mTracker.stop();
+		mStarted.set(false);
+		Looper.loop();
+	    }
+	});
+	
+	tstopthread.start();
     }
 }

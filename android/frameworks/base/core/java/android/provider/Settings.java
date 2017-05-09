@@ -383,6 +383,20 @@ public final class Settings {
     public static final String ACTION_BLUETOOTH_SETTINGS =
             "android.settings.BLUETOOTH_SETTINGS";
 
+	 /**
+     * Activity Action: Show settings to allow configuration of Ethernet.
+     * <p>
+     * In some cases, a matching Activity may not exist, so ensure you
+     * safeguard against this.
+     * <p>
+     * Input: Nothing.
+     * <p>
+     * Output: Nothing.
+     */
+    @SdkConstant(SdkConstantType.ACTIVITY_INTENT_ACTION)
+    public static final String ACTION_ETHERNET_SETTINGS =
+            "android.settings.ETHERNET_SETTINGS";
+
     /**
      * Activity Action: Show settings to allow configuration of cast endpoints.
      * <p>
@@ -1790,6 +1804,7 @@ public final class Settings {
             // so are duplicated in the Secure.* namespace
             MOVED_TO_SECURE_THEN_GLOBAL.add(Global.ADB_ENABLED);
             MOVED_TO_SECURE_THEN_GLOBAL.add(Global.BLUETOOTH_ON);
+	    	MOVED_TO_SECURE_THEN_GLOBAL.add(Global.ETHERNET_ON);
             MOVED_TO_SECURE_THEN_GLOBAL.add(Global.DATA_ROAMING);
             MOVED_TO_SECURE_THEN_GLOBAL.add(Global.DEVICE_PROVISIONED);
             MOVED_TO_SECURE_THEN_GLOBAL.add(Global.USB_MASS_STORAGE_ENABLED);
@@ -3865,6 +3880,12 @@ public final class Settings {
         @Deprecated
         public static final String BLUETOOTH_ON = Global.BLUETOOTH_ON;
 
+	/**
+         * @deprecated Use {@link android.provider.Settings.Global#ETHERNET_ON} instead
+         */
+        @Deprecated
+        public static final String ETHERNET_ON = Global.ETHERNET_ON;
+
         /**
          * @deprecated Use {@link android.provider.Settings.Global#DATA_ROAMING} instead
          */
@@ -4127,6 +4148,7 @@ public final class Settings {
             MOVED_TO_GLOBAL.add(Settings.Global.ADB_ENABLED);
             MOVED_TO_GLOBAL.add(Settings.Global.ASSISTED_GPS_ENABLED);
             MOVED_TO_GLOBAL.add(Settings.Global.BLUETOOTH_ON);
+	    	MOVED_TO_GLOBAL.add(Settings.Global.ETHERNET_ON);
             MOVED_TO_GLOBAL.add(Settings.Global.BUGREPORT_IN_POWER_MENU);
             MOVED_TO_GLOBAL.add(Settings.Global.CDMA_CELL_BROADCAST_SMS);
             MOVED_TO_GLOBAL.add(Settings.Global.CDMA_ROAMING_MODE);
@@ -4661,6 +4683,12 @@ public final class Settings {
          */
         @Deprecated
         public static final String BLUETOOTH_ON = Global.BLUETOOTH_ON;
+
+		/**
+         * @deprecated Use {@link android.provider.Settings.Global#ETHERNET_ON} instead
+         */
+        @Deprecated
+        public static final String ETHERNET_ON = Global.ETHERNET_ON;
 
         /**
          * @deprecated Use {@link android.provider.Settings.Global#DATA_ROAMING} instead
@@ -6818,6 +6846,12 @@ public final class Settings {
          * 0=disabled. 1=enabled.
          */
         public static final String BLUETOOTH_ON = "bluetooth_on";
+
+		/**
+         * Whether ethernet is enabled/disabled
+         * 0=disabled. 1=enabled.
+         */
+        public static final String ETHERNET_ON = "ethernet_on";
 
         /**
          * CDMA Cell Broadcast SMS

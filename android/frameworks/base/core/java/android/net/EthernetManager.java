@@ -35,9 +35,14 @@ public class EthernetManager {
     private static final String TAG = "EthernetManager";
     private static final int MSG_AVAILABILITY_CHANGED = 1000;
 
+	public static final int ETH_STATE_UNKNOWN = 0;
+    public static final int ETH_STATE_DISABLED = 1;
+    public static final int ETH_STATE_ENABLED = 2;
+
     private final Context mContext;
     private final IEthernetManager mService;
     private final Handler mHandler = new Handler() {
+
         @Override
         public void handleMessage(Message msg) {
             if (msg.what == MSG_AVAILABILITY_CHANGED) {
@@ -57,6 +62,24 @@ public class EthernetManager {
                             MSG_AVAILABILITY_CHANGED, isAvailable ? 1 : 0, 0, null).sendToTarget();
                 }
             };
+
+    /* ethernet enabled */
+    public void start() {
+	try {
+	    mService.Trackstart();
+	} catch (NullPointerException | RemoteException e) {
+
+	}
+    }
+
+    /* ethernet disabled */
+    public void stop() {
+        try {
+            mService.Trackstop();
+        } catch (NullPointerException | RemoteException e) {
+    
+        }
+    }
 
     /**
      * A listener interface to receive notification on changes in Ethernet.

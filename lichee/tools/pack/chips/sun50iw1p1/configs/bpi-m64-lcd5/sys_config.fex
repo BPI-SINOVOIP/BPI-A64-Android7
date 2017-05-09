@@ -162,46 +162,43 @@ dram_tpr13      = 0x04000000
 ;------------------------------------------------------------------------------;
 ;   配置选项：                                                                 ;
 ;   gmac_used  ---  1: gmac used, 0: not used                                  ;
+;   gmac_powerx --  A[:B] A: axp channel, B: voltage value                     ;
+;   phy-mode    --  rgmii, rmii, mii                                           ;
+;   tx-delay    --  transmit clock delay: 0~7                                  ;
+;   rx-delay    --  receive clock delay:  0~31                                 ;
 ;------------------------------------------------------------------------------;
-;         MII  GMII  RGMII        MII  GMII  RGMII        MII  GMII  RGMII     ;
-;PA00~03  *     *      *    PA10        *      *    PA20   *    *      *       ;
-;   PA04        *         PA11~14  *    *      *    PA21   *    *              ;
-;   PA05        *           PA15        *           PA22   *    *              ;
-;   PA06        *           PA16        *           PA23   *    *              ;
-;   PA07        *           PA17        *           PA24   *    *              ;
-;   PA08  *     *           PA18        *           PA25        *      *       ;
-;   PA09  *     *      *    PA19   *    *      *  PA26~27  *    *      *       ;
+;         MII        RGMII        MII        RGMII        MII        RGMII     ;
+;PD02~05  *            *    PD15   *                PD22   *           *       ;
+;   PD06  *            *    PD16                    PD23   *           *       ;
+;   PD07  *            *    PD17                    PD24                       ;
+;   PD08                    PD18   *           *    PD25                       ;
+;   PD09                    PD19   *           *    PD26                       ;
+;   PD10  *                 PD20   *                PD26                       ;
+;PD11~14  *            *    PD21   *           *    PD28                       ;
 ;------------------------------------------------------------------------------;
-[gmac_para]
-gmac_used          = 0
-gmac_txd0          = port:PA00<2><default><default><default>
-gmac_txd1          = port:PA01<2><default><default><default>
-gmac_txd2          = port:PA02<2><default><default><default>
-gmac_txd3          = port:PA03<2><default><default><default>
-gmac_txd4          = port:PA04<2><default><default><default>
-gmac_txd5          = port:PA05<2><default><default><default>
-gmac_txd6          = port:PA06<2><default><default><default>
-gmac_txd7          = port:PA07<2><default><default><default>
-gmac_txclk         = port:PA08<2><default><default><default>
-gmac_txen          = port:PA09<2><default><default><default>
-gmac_gtxclk        = port:PA10<2><default><default><default>
-gmac_rxd0          = port:PA11<2><default><default><default>
-gmac_rxd1          = port:PA12<2><default><default><default>
-gmac_rxd2          = port:PA13<2><default><default><default>
-gmac_rxd3          = port:PA14<2><default><default><default>
-gmac_rxd4          = port:PA15<2><default><default><default>
-gmac_rxd5          = port:PA16<2><default><default><default>
-gmac_rxd6          = port:PA17<2><default><default><default>
-gmac_rxd7          = port:PA18<2><default><default><default>
-gmac_rxdv          = port:PA19<2><default><default><default>
-gmac_rxclk         = port:PA20<2><default><default><default>
-gmac_txerr         = port:PA21<2><default><default><default>
-gmac_rxerr         = port:PA22<2><default><default><default>
-gmac_col           = port:PA23<2><default><default><default>
-gmac_crs           = port:PA24<2><default><default><default>
-gmac_clkin         = port:PA25<2><default><default><default>
-gmac_mdc           = port:PA26<2><default><default><default>
-gmac_mdio          = port:PA27<2><default><default><default>
+[gmac0]
+gmac0_used         = 1
+phy-mode           = "rgmii"
+gmac_rxd3          = port:PD08<4><default><3><default>
+gmac_rxd2          = port:PD09<4><default><3><default>
+gmac_rxd1          = port:PD10<4><default><3><default>
+gmac_rxd0          = port:PD11<4><default><3><default>
+gmac_rxclk         = port:PD12<4><default><3><default>
+gmac_rxdv          = port:PD13<4><default><3><default>
+gmac_rxerr         = port:PD14<4><default><3><default>
+gmac_txd3          = port:PD15<4><default><3><default>
+gmac_txd2          = port:PD16<4><default><3><default>
+gmac_txd1          = port:PD17<4><default><3><default>
+gmac_txd0          = port:PD18<4><default><3><default>
+gmac_txclk         = port:PD19<4><default><3><default>
+gmac_txen          = port:PD20<4><default><3><default>
+gmac_clkin         = port:PD21<4><default><3><default>
+gmac_mdc           = port:PD22<4><default><3><default>
+gmac_mdio          = port:PD23<4><default><3><default>
+gmac-power1        = "vcc-gmac-33"
+gmac-power2        = 
+tx-delay           = 0
+rx-delay           = 0
 
 ;----------------------------------------------------------------------------------
 ;i2c configuration
