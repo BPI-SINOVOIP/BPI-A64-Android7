@@ -5,6 +5,7 @@ cd $PACKAGE
 chip=sun50iw1p1
 platform=android
 board=bpi-m64-lcd5
+board1=bpi-m64-hso-lcd7
 debug=uart0
 sigmode=none
 securemode=none
@@ -54,3 +55,4 @@ do
 done
 
 ./pack -c $chip -p $platform -b $board -d $debug -s $sigmode -v $securemode
+./pack -c $chip -p $platform -b $board1 -d $debug -s $sigmode -v $securemode
