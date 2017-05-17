@@ -1430,8 +1430,8 @@ pmu_usbpc_vol              = 4400
 pmu_usbpc_cur              = 500
 pmu_battery_warning_level1 = 15
 pmu_battery_warning_level2 = 0
-pmu_chgled_func            = 0
-pmu_chgled_type            = 0
+pmu_chgled_func            = 1
+pmu_chgled_type            = 1
 
 pmu_bat_para1              = 0
 pmu_bat_para2              = 0
@@ -1494,7 +1494,7 @@ pmu_powkey_off_en          = 1
 pmu_powkey_long_time       = 1500
 pmu_powkey_on_time         = 1000
 power_start                = 0
-pmu_batt_used		   = 0
+pmu_batt_used		   = 1
 
 ;--------------------------------------------------------------------------------------------------------
 ;pmu0 is axp81x
