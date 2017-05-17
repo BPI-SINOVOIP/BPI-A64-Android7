@@ -102,6 +102,7 @@ struct regulator {
 };
 
 static int _regulator_is_enabled(struct regulator_dev *rdev);
+static int _regulator_enable(struct regulator_dev *rdev);
 static int _regulator_disable(struct regulator_dev *rdev);
 static int _regulator_get_voltage(struct regulator_dev *rdev);
 static int _regulator_get_current_limit(struct regulator_dev *rdev);
@@ -365,6 +366,52 @@ static ssize_t regulator_print_state(char *buf, int state)
 		return sprintf(buf, "unknown\n");
 }
 
+static ssize_t regulator_state_store(struct device *dev,
+					struct device_attribute *attr, const char *buf, size_t count)
+{
+	struct regulator_dev *rdev = dev_get_drvdata(dev);
+	int ret = 0;
+
+	if (sysfs_streq(buf, "enable")) {
+		if (_regulator_is_enabled(rdev) <= 0) {
+			pr_info("enable regulator %s\n", rdev_get_name(rdev));
+
+			mutex_lock(&rdev->mutex);
+			ret = _regulator_enable(rdev);
+			mutex_unlock(&rdev->mutex);
+
+			if (ret != 0 && rdev->supply) {
+				regulator_disable(rdev->supply);
+				pr_err("enable failed\n");
+				return ret;
+			}
+		}
+		else {
+			pr_info("regulator already enabled");
+		}
+	}
+	else if(sysfs_streq(buf, "disable")) {
+		if (_regulator_is_enabled(rdev) > 0) {
+			pr_info("disable regulator %s\n", rdev_get_name(rdev));
+
+			mutex_lock(&rdev->mutex);
+			ret = _regulator_disable(rdev);
+			mutex_unlock(&rdev->mutex);
+
+			if (ret == 0 && rdev->supply) {
+				regulator_disable(rdev->supply);
+				pr_err("disable failed\n");
+				return ret;
+			}
+		}
+		else {
+			pr_info("regulator already disabled");
+		}
+	}
+
+	return count;
+}
+
 static ssize_t regulator_state_show(struct device *dev,
 				   struct device_attribute *attr, char *buf)
 {
@@ -377,7 +424,7 @@ static ssize_t regulator_state_show(struct device *dev,
 
 	return ret;
 }
-static DEVICE_ATTR(state, 0444, regulator_state_show, NULL);
+static DEVICE_ATTR(state, 0664, regulator_state_show, regulator_state_store);
 
 static ssize_t regulator_status_show(struct device *dev,
 				   struct device_attribute *attr, char *buf)
