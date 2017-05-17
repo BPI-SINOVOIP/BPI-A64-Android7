@@ -38,8 +38,7 @@
 #define DRV_VERSION      	"1.00"
 
 #define MAX_ADDR_NUM     	(18)
-
-#define MAX_ADDR_NUM     (18)
+#define MAX_KEYCODE_NUM (100)
 
 #define RC_MAP_SUNXI "rc_map_sunxi"
 
@@ -75,6 +74,11 @@ enum {
 	IR_SUPLY_ENABLE,
 };
 
+struct ir_key_table {
+	u32 ir_key_addr;
+	u32 ir_key_code;
+};
+
 struct sunxi_ir_data{
 	void __iomem 	*reg_base;
 	struct platform_device	*pdev;
@@ -84,11 +88,12 @@ struct sunxi_ir_data{
 	struct regulator *suply;
 	u32 suply_vol;
 	int irq_num;
-	u32 ir_addr_cnt;
-	u32 ir_addr[MAX_ADDR_NUM];
+	u32 ir_keycount;
+	struct ir_key_table ir_keycode[MAX_KEYCODE_NUM];
 };
 
-int init_rc_map_sunxi(u32 *addr, u32 addr_num);
+int init_rc_map_sunxi(void);
+int init_rc_addr(struct ir_key_table *addr_key, u32 ir_keycount);
 void exit_rc_map_sunxi(void);
 
 #endif /* SUNXI_IR_RX_H */

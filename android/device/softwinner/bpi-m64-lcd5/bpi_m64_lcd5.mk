@@ -65,6 +65,7 @@ PRODUCT_COPY_FILES += \
     device/softwinner/bpi-m64-lcd5/configs/sunxi-keyboard.kl:system/usr/keylayout/sunxi-keyboard.kl \
     device/softwinner/bpi-m64-lcd5/configs/gt9xxnew_ts.kl:system/usr/keylayout/gt9xxnew_ts.kl \
     device/softwinner/bpi-m64-lcd5/configs/axp81x-supplyer.kl:system/usr/keylayout/axp81x-supplyer.kl \
+    device/softwinner/bpi-m64-lcd5/configs/sunxi_ir_recv.kl:system/usr/keylayout/sunxi_ir_recv.kl \
     device/softwinner/bpi-m64-lcd5/configs/tp.idc:system/usr/idc/tp.idc
 
 PRODUCT_COPY_FILES += \

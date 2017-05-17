@@ -13,25 +13,49 @@
 #include <media/rc-map.h>
 #include "sunxi-ir-rx.h"
 
-#define MAX_ADDR_NUM (18)
+static u32 match_num = 0;
+static struct ir_key_table match_addr[MAX_ADDR_NUM];
 
-static u32 match_addr[MAX_ADDR_NUM];
-static u32 match_num;
-
+/* bpi, define keycode here and using scan in rc_map_list */
 static struct rc_map_table sunxi_nec_scan[] = {
-	{ KEY_ESC, KEY_ESC },
+	{ 0x17c601, KEY_UP},
+	{ 0x17c619, KEY_LEFT },
+	{ 0x17c611, KEY_RIGHT },
+	{ 0x17c609, KEY_DOWN },
+	{ 0x17c60f, KEY_HOME },
+	{ 0x17c60d, KEY_BACK },
+	{ 0x17c61c, KEY_PAUSE },
+	{ 0x17c67f, KEY_MENU },
+	{ 0x17c640, KEY_ENTER },
+	{ 0x17c612, KEY_POWER },
 };
 
+/* bpi, define keycode in sys_cofig and using mapping 
+ * instead of scan in rc_map_list 
+ */
 static u32 sunxi_key_mapping(u32 code)
 {
-	u32 i,temp;
-	temp = (code >> 8)&0xffff;
-	for(i = 0; i < match_num; i++){
-		if(match_addr[i] == temp)
-			return code;
+	u32 keycode;
+	int mid;
+	int start = 0;
+	int end = match_num - 1;
+	
+	while (start <= end) {
+		mid = (start + end) / 2;
+		if (match_addr[mid].ir_key_addr < code)
+			start = mid + 1;
+		else if (match_addr[mid].ir_key_addr > code)
+			end = mid - 1;
+		else
+			break;
+			
 	}
 
-	return KEY_RESERVED;
+	keycode = mid < match_num ? match_addr[mid].ir_key_code : KEY_RESERVED;
+
+	pr_info("%s, ir code = %x, mapping keycode = %d\n", __func__, code, keycode);
+
+	return keycode;
 }
 
 static struct rc_map_list sunxi_map = {
@@ -44,21 +68,39 @@ static struct rc_map_list sunxi_map = {
 	}
 };
 
-static void init_addr(u32 *addr, u32 addr_num)
+int init_rc_addr(struct ir_key_table *addr_key, u32 ir_keycount)
 {
-	u32 *temp_addr = match_addr;
-	if(addr_num > MAX_ADDR_NUM)
-		addr_num = MAX_ADDR_NUM;
-	match_num = addr_num;
-	while(addr_num--){
-		*temp_addr++ = (*addr++)&0xffff;
+	int i, j;
+	struct ir_key_table temp_key_table;
+
+	if(!addr_key){
+		pr_err("addr_key is null\n");
+		return 0;
 	}
-	return;
+
+	for(i = 0; i < ir_keycount; i++){
+		match_addr[i].ir_key_addr = addr_key[i].ir_key_addr;
+		match_addr[i].ir_key_code = addr_key[i].ir_key_code;
+	}
+	match_num = ir_keycount;
+
+	/* sort */
+	for(i = 0; i < ir_keycount-1; i++) {
+		for(j = 0; j < ir_keycount-i-1; j++) {
+			if(match_addr[j].ir_key_addr > match_addr[j+1].ir_key_addr)
+			{
+				temp_key_table = match_addr[j];
+				match_addr[j] = match_addr[j+1];
+				match_addr[j+1] = temp_key_table;
+			}
+		}
+	}
+
+	return 0;
 }
 
-int init_rc_map_sunxi(u32 *addr, u32 addr_num)
+int init_rc_map_sunxi(void)
 {
-	init_addr(addr,addr_num);
 	return rc_map_register(&sunxi_map);
 }
 

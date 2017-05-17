@@ -38,7 +38,8 @@ static char ir_dev_name[] = "s_cir_rx";
 
 static int debug_mask = 0;
 #define dprintk(level_mask, fmt, arg...)	if (unlikely(debug_mask & level_mask)) \
-	printk(fmt , ## arg)
+				pr_info(fmt , ## arg)
+				
 #define IR_BASE 			(ir_data->reg_base)
 
 static inline u8 ir_get_data(void)
@@ -326,7 +327,8 @@ static int sunxi_ir_startup(struct platform_device *pdev)
 {
 	struct device_node *np =NULL;
 	int i, ret = 0;
-	char addr_name[32];
+	char key_addr_name[32], key_code_name[32];
+	u32 key_count;
 	const char *name = NULL;
 	
 	ir_data = kzalloc(sizeof(*ir_data), GFP_KERNEL);
@@ -356,20 +358,42 @@ static int sunxi_ir_startup(struct platform_device *pdev)
 		pr_err("%s:Failed to get clk.\n", __func__);
 		ret = -EBUSY;
 	}
-	if (of_property_read_u32(np, "ir_addr_cnt", &ir_data->ir_addr_cnt)) {
-		pr_err("%s: get cir addr cnt failed", __func__);
+	
+	if (of_property_read_u32(np, "ir_keycount", &key_count)) {
+		pr_err("%s: get keycount failed", __func__);
 		ret =  -EBUSY;
 	}
-	if(ir_data->ir_addr_cnt > MAX_ADDR_NUM)
-		ir_data->ir_addr_cnt = MAX_ADDR_NUM;
-	for(i = 0; i < ir_data->ir_addr_cnt; i++){
-		sprintf(addr_name, "ir_addr_code%d", i);
-		if (of_property_read_u32(np, (const char *)&addr_name,
-					&ir_data->ir_addr[i])) {
+
+	if(key_count > MAX_KEYCODE_NUM)
+		key_count = MAX_KEYCODE_NUM;
+		
+	ir_data->ir_keycount = key_count;
+	pr_info("%s, got keycount %d\n", __func__, ir_data->ir_keycount);
+	
+	for(i = 0; i < ir_data->ir_keycount; i++){
+		sprintf(key_addr_name, "ir_key_addr%d", i);
+		sprintf(key_code_name, "ir_key_code%d", i);
+		
+		if (of_property_read_u32(np, (const char *)&key_addr_name, 
+			&ir_data->ir_keycode[i].ir_key_addr)) {
 			pr_err("node %s get failed!\n", name);
 			ret = -EBUSY;
 		}
+
+		if (of_property_read_u32(np, (const char *)&key_code_name, 
+			&ir_data->ir_keycode[i].ir_key_code)) {
+			pr_err("node %s get failed!\n", name);
+			ret = -EBUSY;
+		}
+				
+		dprintk(DEBUG_INT, "%s, got %s = %x\n", __func__, key_addr_name, 
+						ir_data->ir_keycode[i].ir_key_addr);
+		dprintk(DEBUG_INT, "%s, got %s = %x\n", __func__, key_code_name, 
+						ir_data->ir_keycode[i].ir_key_code);
+
+		
 	}
+	
 	if (of_property_read_u32(np, "supply_vol", &ir_data->suply_vol)) {
 		pr_err("%s: get cir supply_vol failed", __func__);
 	}
@@ -423,7 +447,10 @@ static int sunxi_ir_recv_probe(struct platform_device *pdev)
 	sunxi_rcdev->allowed_protos = (u64)RC_BIT_NEC;
 	sunxi_rcdev->map_name = RC_MAP_SUNXI;
 
-	init_rc_map_sunxi(ir_data->ir_addr, ir_data->ir_addr_cnt);
+	/* Create ir keymap table for each ir_addr */
+	init_rc_addr(ir_data->ir_keycode, ir_data->ir_keycount);
+	
+	init_rc_map_sunxi();
 	rc = rc_register_device(sunxi_rcdev);
 	if (rc < 0) {
 		dev_err(&pdev->dev, "failed to register rc device\n");
