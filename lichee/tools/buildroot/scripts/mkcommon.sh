@@ -1,0 +1,1 @@
+../../build/mkcommon.sh
