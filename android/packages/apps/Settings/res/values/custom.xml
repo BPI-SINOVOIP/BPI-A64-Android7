@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- display settings -->
+    <!-- screen off timeout -->
+    <string name="screen_off_never_sleep_summary">Never</string>
+
+    <!-- hdmi -->
+    <string name="hdmi_setting">hdmi setting</string>
+    <string name="hdmi_output_mode">hdmi output mode</string>
+    <string name="hdmi_output_mode_summary">Set the default HDMI output standard.</string>
+    <string name="hdmi_full_screen">hdmi full screen mode</string>
+    <string name="hdmi_full_screen_summary">Set true to show HDMI in full screen mode.</string>
+    <string name="screen_scrap_edge">Screen scrap edge</string>
+    <string name="screen_scrap_edge_summary">Zooming edging with HDMI output</string>
+    <string name="screen_scrap_edge_height">Height</string>
+    <string name="screen_scrap_edge_width">Width</string>
+    <!-- hdmi array -->
+    <string-array name="hdmi_output_mode_720p_entries">
+        <item>HDMI 720P 50HZ</item>
+        <item>HDMI 720P 60HZ</item>
+    </string-array>
+    <string-array name="hdmi_output_mode_720p_values" translatable="false">
+        <!-- Do not translate. -->
+        <item>4</item>
+        <!-- Do not translate. -->
+        <item>5</item>
+    </string-array>
+    <string-array name="hdmi_output_mode_entries">
+        <item>HDMI 720P 60HZ</item>
+        <item>HDMI 1080P 60HZ</item>
+    </string-array>
+    <string-array name="hdmi_output_mode_values" translatable="false">
+        <!-- Do not translate. -->
+        <item>5</item>
+        <!-- Do not translate. -->
+        <item>10</item>
+    </string-array>
+    <string name="boot_music_enable_title">Boot music</string>
+    <!-- bright system -->
+    <string name="bright_system">Smart color</string>
+    <string name="bright_system_summary">It is better for playing games and video and picture.</string>
+    <string name="brightness_light">Intelligent backlight</string>
+    <string name="demo_mode">Demo mode</string>
+    <string name="demo_mode_summary">Only half of the screen is effective, in order to show the effect easily.</string>
+	<!-- display settings end -->
+
+    <!-- 3D audio switch -->
+    <string name="audio_3d_surround_title">3D sound effect</string>
+
+    <!-- Sound settings -->
+    <string name="boot_music_enable_title">Boot music</string>
+
+
+    <!-- gesture screenshot -->
+    <string name="title_gesture_screenshot">Gesture screenshot</string>
+    <string name="title_gesture_screenshot_summary">Sliding from the right side of the screen with two fingers.</string>
+    <!-- gesture screenrecord -->
+    <string name="title_gesture_screenrecord">Gesture screenrecord</string>
+    <string name="title_gesture_screenrecord_summary">Sliding from the right side of the screen with three fingers, and stop with the same gesture.</string>
+
+    <!-- reboot recovery -->
+    <string name="reboot_recovery_title">Recovery mode</string>
+    <string name="reboot_recovery_desc">This will reboot your device to recovery mode</string>
+    <string name="reboot_recovery_confirm_title">Reboot?</string>
+    <string name="reboot_recovery_button_text">REBOOT RECOVERY</string>
+    <string name="reboot_recovery_final_desc">Reboot to recovery mode now?</string>
+    <string name="reboot_recovery_final_button_text">REBOOT RECOVERY NOW</string>
+    <string name="keywords_reboot_recovery">"reboot recovery wipe update restore"</string>
+	
+    <!-- kill background services -->
+    <string name="background_cleanup_list">Background cleanup list</string>
+    <string name="background_cleanup_select_all">Select All</string>
+    <string name="background_cleanup_select_inverse">Select Inverse</string>
+    
+    <!-- cpu type & firmware verison-->
+    <string name="cpu_type">Processor type</string>
+    <string name="software_version">Firmware version</string>
+	
+</resources>

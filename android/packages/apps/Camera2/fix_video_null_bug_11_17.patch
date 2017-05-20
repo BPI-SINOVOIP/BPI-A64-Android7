@@ -1,0 +1,23 @@
+diff --git a/src/com/android/camera/VideoModule.java b/src/com/android/camera/VideoModule.java
+old mode 100644
+new mode 100755
+index 3465953..2c1d803
+--- a/src/com/android/camera/VideoModule.java
++++ b/src/com/android/camera/VideoModule.java
+@@ -1955,7 +1955,15 @@ public class VideoModule extends CameraModule
+     }
+ 
+     private void storeImage(final byte[] data, Location loc) {
+-        long dateTaken = System.currentTimeMillis();
++
++         long dateTaken;
++	 do{
++		dateTaken=System.currentTimeMillis();
++		Log.e(TAG, "17  dateTaken : " +dateTaken);
++	 }while(dateTaken == 0);
++			
++		    
++
+         String title = CameraUtil.instance().createJpegName(dateTaken);
+         ExifInterface exif = Exif.getExif(data);
+         int orientation = Exif.getOrientation(exif);

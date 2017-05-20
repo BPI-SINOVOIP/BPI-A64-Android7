@@ -1,0 +1,472 @@
+diff --git a/src/com/android/camera/CaptureModule.java b/src/com/android/camera/CaptureModule.java
+old mode 100644
+new mode 100755
+index 640da4f..574a969
+--- a/src/com/android/camera/CaptureModule.java
++++ b/src/com/android/camera/CaptureModule.java
+@@ -280,6 +280,7 @@ public class CaptureModule extends CameraModule implements
+                     mMainThread.execute(new Runnable() {
+                         @Override
+                         public void run() {
++                            Log.e(TAG, "PictureSaverCallback mPictureSaverCallback");
+                             mAppController.getServices().getRemoteShutterListener()
+                                     .onPictureTaken(jpegImage);
+                         }
+@@ -493,12 +494,14 @@ public class CaptureModule extends CameraModule implements
+                 .getInteger(SettingsManager.SCOPE_GLOBAL, Keys.KEY_COUNTDOWN_DURATION);
+         if (countDownDuration > 0) {
+             // Start count down.
++            Log.e(TAG, "Start count down. " );
+             mAppController.getCameraAppUI().transitionToCancel();
+             mAppController.getCameraAppUI().hideModeOptions();
+             mUI.setCountdownFinishedListener(this);
+             mUI.startCountdown(countDownDuration);
+             // Will take picture later via listener callback.
+         } else {
++             Log.e(TAG, "takePictureNow() " );
+             takePictureNow();
+         }
+     }
+@@ -532,11 +535,12 @@ public class CaptureModule extends CameraModule implements
+             Log.i(TAG, "Not taking picture since Camera is closed.");
+             return;
+         }
+-
++        
+         CaptureSession session = createAndStartCaptureSession();
+         int orientation = mAppController.getOrientationManager().getDeviceOrientation()
+                 .getDegrees();
+-
++           Log.e(TAG, "takePictureNow   orientation" + orientation);
++        new Exception("takePictureNow").printStackTrace();
+         // TODO: This should really not use getExternalCacheDir and instead use
+         // the SessionStorage API. Need to sync with gcam if that's OK.
+         PhotoCaptureParameters params = new PhotoCaptureParameters(
+@@ -544,6 +548,7 @@ public class CaptureModule extends CameraModule implements
+                 mContext.getExternalCacheDir(), this, mPictureSaverCallback,
+                 mHeadingSensor.getCurrentHeading(), mZoomValue, 0);
+         decorateSessionAtCaptureTime(session);
++	Log.e(TAG, " new PhotoCaptureParameters");
+         mCamera.takePicture(params, session);
+     }
+ 
+@@ -1029,6 +1034,7 @@ public class CaptureModule extends CameraModule implements
+ 
+     @Override
+     public void onPictureTaken(CaptureSession session) {
++        Log.d(TAG, "onPictureTaken");
+         mAppController.getCameraAppUI().enableModeOptions();
+     }
+ 
+diff --git a/src/com/android/camera/PhotoModule.java b/src/com/android/camera/PhotoModule.java
+old mode 100644
+new mode 100755
+index c08e900..431730e
+--- a/src/com/android/camera/PhotoModule.java
++++ b/src/com/android/camera/PhotoModule.java
+@@ -791,7 +791,7 @@ public class PhotoModule
+         @Override
+         public void onPictureTaken(byte[] data, CameraProxy camera) {
+             mPostViewPictureCallbackTime = System.currentTimeMillis();
+-            Log.v(TAG, "mShutterToPostViewCallbackTime = "
++            Log.e(TAG, "mShutterToPostViewCallbackTime = "
+                     + (mPostViewPictureCallbackTime - mShutterCallbackTime)
+                     + "ms");
+         }
+@@ -802,7 +802,7 @@ public class PhotoModule
+         @Override
+         public void onPictureTaken(byte[] rawData, CameraProxy camera) {
+             mRawPictureCallbackTime = System.currentTimeMillis();
+-            Log.v(TAG, "mShutterToRawCallbackTime = "
++            Log.e(TAG, "mShutterToRawCallbackTime = "
+                     + (mRawPictureCallbackTime - mShutterCallbackTime) + "ms");
+         }
+     }
+@@ -864,7 +864,7 @@ public class PhotoModule
+ 
+         @Override
+         public void onPictureTaken(final byte[] originalJpegData, final CameraProxy camera) {
+-            Log.i(TAG, "onPictureTaken");
++            Log.e(TAG, "onPictureTaken");
+             mAppController.setShutterEnabled(true);
+             if (mPaused) {
+                 return;
+@@ -891,7 +891,7 @@ public class PhotoModule
+                 mPictureDisplayedToJpegCallbackTime =
+                         mJpegPictureCallbackTime - mRawPictureCallbackTime;
+             }
+-            Log.v(TAG, "mPictureDisplayedToJpegCallbackTime = "
++            Log.e(TAG, "mPictureDisplayedToJpegCallbackTime = "
+                     + mPictureDisplayedToJpegCallbackTime + "ms");
+ 
+             if (!mIsImageCaptureIntent) {
+@@ -900,12 +900,13 @@ public class PhotoModule
+ 
+             long now = System.currentTimeMillis();
+             mJpegCallbackFinishTime = now - mJpegPictureCallbackTime;
+-            Log.v(TAG, "mJpegCallbackFinishTime = " + mJpegCallbackFinishTime + "ms");
++            Log.e(TAG, "mJpegCallbackFinishTime = " + mJpegCallbackFinishTime + "ms");
+             mJpegPictureCallbackTime = 0;
+ 
+             final ExifInterface exif = Exif.getExif(originalJpegData);
+             final NamedEntity name = mNamedImages.getNextNameEntity();
+             if (mShouldResizeTo16x9) {
++		Log.e(TAG, "mShouldResizeTo16x9");
+                 final ResizeBundle dataBundle = new ResizeBundle();
+                 dataBundle.jpegData = originalJpegData;
+                 dataBundle.targetAspectRatio = ResolutionUtil.NEXUS_5_LARGE_16_BY_9_ASPECT_RATIO;
+@@ -924,6 +925,7 @@ public class PhotoModule
+                 }.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, dataBundle);
+ 
+             } else {
++                Log.e(TAG, "saveFinalPhoto");
+                 saveFinalPhoto(originalJpegData, name, exif, camera);
+             }
+         }
+@@ -954,20 +956,25 @@ public class PhotoModule
+                 // Calculate the width and the height of the jpeg.
+                 Integer exifWidth = exif.getTagIntValue(ExifInterface.TAG_PIXEL_X_DIMENSION);
+                 Integer exifHeight = exif.getTagIntValue(ExifInterface.TAG_PIXEL_Y_DIMENSION);
++		Log.e(TAG, "exifWidth = " + exifWidth + "exifHeight = "+ exifHeight);		
+                 int width, height;
+                 if (mShouldResizeTo16x9 && exifWidth != null && exifHeight != null) {
+                     width = exifWidth;
+                     height = exifHeight;
+                 } else {
+                     Size s = new Size(mCameraSettings.getCurrentPhotoSize());
++		    Log.e(TAG, "966 s.width() = " + s.width() + "s.height() = "+ s.height());
+                     if ((mJpegRotation + orientation) % 180 == 0) {
+                         width = s.width();
+                         height = s.height();
++		        Log.e(TAG, "970  width = " + width + "height = "+ height);
+                     } else {
+                         width = s.height();
+                         height = s.width();
++			Log.e(TAG, "974  width = " + width + "height = "+ height);
+                     }
+                 }
++		Log.e(TAG, "976  width = " + width + "height = "+ height);			
+                 String title = (name == null) ? null : name.title;
+                 long date = (name == null) ? -1 : name.date;
+ 
+diff --git a/src/com/android/camera/VideoModule.java b/src/com/android/camera/VideoModule.java
+old mode 100644
+new mode 100755
+index 3465953..d7a0cb9
+--- a/src/com/android/camera/VideoModule.java
++++ b/src/com/android/camera/VideoModule.java
+@@ -692,7 +692,8 @@ public class VideoModule extends CameraModule
+             return;
+         }
+         boolean stop = mMediaRecorderRecording;
+-
++	 Log.i(TAG, "17  onShutterButtonClick stop= " + stop);
++	
+         if (stop) {
+             // CameraAppUI mishandles mode option enable/disable
+             // for video, override that
+@@ -1098,10 +1099,10 @@ public class VideoModule extends CameraModule
+ 
+     // Prepares media recorder.
+     private void initializeRecorder() {
+-        Log.i(TAG, "initializeRecorder: " + Thread.currentThread());
++        Log.i(TAG, "initializeRecorder 10:58: " + Thread.currentThread());
+         // If the mCameraDevice is null, then this activity is going to finish
+         if (mCameraDevice == null) {
+-            Log.w(TAG, "null camera proxy, not recording");
++            Log.i(TAG, "null camera proxy, not recording");
+             return;
+         }
+         Intent intent = mActivity.getIntent();
+@@ -1119,7 +1120,7 @@ public class VideoModule extends CameraModule
+                     mCurrentVideoUri = saveUri;
+                 } catch (java.io.FileNotFoundException ex) {
+                     // invalid uri
+-                    Log.e(TAG, ex.toString());
++                    Log.i(TAG, ex.toString());
+                 }
+             }
+             requestedSizeLimit = myExtras.getLong(MediaStore.EXTRA_SIZE_LIMIT);
+@@ -1135,7 +1136,7 @@ public class VideoModule extends CameraModule
+         // If the camera device is null, the camera proxy is stale and recording
+         // should be ignored.
+         if (camera == null) {
+-            Log.w(TAG, "null camera within proxy, not recording");
++            Log.i(TAG, "null camera within proxy, not recording");
+             return;
+         }
+ 
+@@ -1184,7 +1185,7 @@ public class VideoModule extends CameraModule
+         try {
+             mMediaRecorder.prepare();
+         } catch (IOException e) {
+-            Log.e(TAG, "prepare failed for " + mVideoFilename, e);
++            Log.i(TAG, "prepare failed for " + mVideoFilename, e);
+             releaseMediaRecorder();
+             throw new RuntimeException(e);
+         }
+@@ -1286,7 +1287,7 @@ public class VideoModule extends CameraModule
+     // from MediaRecorder.OnErrorListener
+     @Override
+     public void onError(MediaRecorder mr, int what, int extra) {
+-        Log.e(TAG, "MediaRecorder error. what=" + what + ". extra=" + extra);
++        Log.e(TAG, "15:19  MediaRecorder error. what=" + what + ". extra=" + extra);
+         if (what == MediaRecorder.MEDIA_RECORDER_ERROR_UNKNOWN) {
+             // We may have run out of space on the sdcard.
+             stopVideoRecording();
+@@ -1351,7 +1352,7 @@ public class VideoModule extends CameraModule
+     }
+ 
+     private void startVideoRecording() {
+-        Log.i(TAG, "startVideoRecording: " + Thread.currentThread());
++        Log.i(TAG, "17  startVideoRecording: " + Thread.currentThread());
+         mUI.cancelAnimations();
+         mUI.setSwipingEnabled(false);
+         mUI.hidePassiveFocusIndicator();
+@@ -1362,14 +1363,14 @@ public class VideoModule extends CameraModule
+             @Override
+             public void onStorageUpdateDone(long bytes) {
+                 if (bytes <= Storage.LOW_STORAGE_THRESHOLD_BYTES) {
+-                    Log.w(TAG, "Storage issue, ignore the start request");
++                    Log.i(TAG, "Storage issue, ignore the start request");
+                 } else {
+                     if (mCameraDevice == null) {
+                         Log.v(TAG, "in storage callback after camera closed");
+                         return;
+                     }
+                     if (mPaused == true) {
+-                        Log.v(TAG, "in storage callback after module paused");
++                        Log.i(TAG, "in storage callback after module paused");
+                         return;
+                     }
+ 
+@@ -1377,7 +1378,7 @@ public class VideoModule extends CameraModule
+                     // app crash (b/17313985), do nothing here for the second storage-checking
+                     // callback because recording is already started.
+                     if (mMediaRecorderRecording) {
+-                        Log.v(TAG, "in storage callback after recording started");
++                        Log.i(TAG, "in storage callback after recording started");
+                         return;
+                     }
+ 
+@@ -1947,7 +1948,7 @@ public class VideoModule extends CameraModule
+ 
+         @Override
+         public void onPictureTaken(byte [] jpegData, CameraProxy camera) {
+-            Log.i(TAG, "Video snapshot taken.");
++            Log.e(TAG, "Video snapshot taken.");
+             mSnapshotInProgress = false;
+             showVideoSnapshotUI(false);
+             storeImage(jpegData, mLocation);
+diff --git a/src/com/android/camera/debug/Log.java b/src/com/android/camera/debug/Log.java
+old mode 100644
+new mode 100755
+diff --git a/src/com/android/camera/one/v2/OneCameraImpl.java b/src/com/android/camera/one/v2/OneCameraImpl.java
+old mode 100644
+new mode 100755
+index d4c7cba..a5124d0
+--- a/src/com/android/camera/one/v2/OneCameraImpl.java
++++ b/src/com/android/camera/one/v2/OneCameraImpl.java
+@@ -776,6 +776,7 @@ public class OneCameraImpl extends AbstractOneCamera {
+         } else {
+             // Since this is not an HDR+ session, we will just save the
+             // result.
++            Log.e(TAG, "onCaptureCompleted");
+             byte[] imageBytes = acquireJpegBytesAndClose(capture.image);
+             saveJpegPicture(imageBytes, capture.parameters, capture.session,
+                     capture.totalCaptureResult);
+@@ -827,7 +828,7 @@ public class OneCameraImpl extends AbstractOneCamera {
+         } else if (image.getFormat() == ImageFormat.YUV_420_888) {
+             buffer = ByteBuffer.allocateDirect(image.getWidth() * image.getHeight() * 3);
+ 
+-            Log.v(TAG, "Compressing JPEG with software encoder.");
++            Log.e(TAG, "Compressing JPEG with software encoder.");
+             int numBytes = JpegUtilNative.compressJpegFromYUV420Image(
+                     new AndroidImageProxy(image), buffer, JPEG_QUALITY);
+ 
+diff --git a/src/com/android/camera/one/v2/OneCameraZslImpl.java b/src/com/android/camera/one/v2/OneCameraZslImpl.java
+old mode 100644
+new mode 100755
+index 6bdad44..f6cdbda
+--- a/src/com/android/camera/one/v2/OneCameraZslImpl.java
++++ b/src/com/android/camera/one/v2/OneCameraZslImpl.java
+@@ -279,7 +279,7 @@ public class OneCameraZslImpl extends AbstractOneCamera {
+ 
+             savePicture(image, mParams, mSession, captureResult);
+             mParams.callback.onPictureTaken(mSession);
+-            Log.v(TAG, "Image saved.  Frame number = " + captureResult.getFrameNumber());
++            Log.e(TAG, "Image saved.  Frame number = " + captureResult.getFrameNumber());
+         }
+     }
+ 
+diff --git a/src/com/android/camera/one/v2/photo/PictureCallbackAdapter.java b/src/com/android/camera/one/v2/photo/PictureCallbackAdapter.java
+old mode 100644
+new mode 100755
+diff --git a/src/com/android/camera/one/v2/photo/PictureTakerImpl.java b/src/com/android/camera/one/v2/photo/PictureTakerImpl.java
+old mode 100644
+new mode 100755
+index 13498c7..f679c80
+--- a/src/com/android/camera/one/v2/photo/PictureTakerImpl.java
++++ b/src/com/android/camera/one/v2/photo/PictureTakerImpl.java
+@@ -79,7 +79,8 @@ class PictureTakerImpl implements PictureTaker {
+     @Override
+     public void takePicture(OneCamera.PhotoCaptureParameters params, final CaptureSession session) {
+         OneCamera.PictureCallback pictureCallback = params.callback;
+-
++	//Log.e("lch", "takePicture");
++	new Exception("takePicture").printStackTrace();
+         // Wrap the pictureCallback with a thread-safe adapter which guarantees
+         // that they are always invoked on the main thread.
+         PictureCallbackAdapter pictureCallbackAdapter =
+diff --git a/src/com/android/camera/processing/imagebackend/ImageBackend.java b/src/com/android/camera/processing/imagebackend/ImageBackend.java
+old mode 100644
+new mode 100755
+index fdfeea5..ae9f2dc
+--- a/src/com/android/camera/processing/imagebackend/ImageBackend.java
++++ b/src/com/android/camera/processing/imagebackend/ImageBackend.java
+@@ -705,7 +705,7 @@ public class ImageBackend implements ImageConsumer, ImageTaskManager {
+                         "ERROR: Rewriting of Semaphore Lock."
+                                 + "  Image references may not freed properly");
+             }
+-
++             new Exception("setSemaphoreReferenceCount").printStackTrace();
+             // Create the new booking-keeping object.
+             ImageReleaseProtocol protocol = new ImageReleaseProtocol(blockUntilRelease,
+                     closeOnRelease);
+diff --git a/src/com/android/camera/processing/imagebackend/TaskCompressImageToJpeg.java b/src/com/android/camera/processing/imagebackend/TaskCompressImageToJpeg.java
+old mode 100644
+new mode 100755
+index 2e5976c..c936b3d
+--- a/src/com/android/camera/processing/imagebackend/TaskCompressImageToJpeg.java
++++ b/src/com/android/camera/processing/imagebackend/TaskCompressImageToJpeg.java
+@@ -165,12 +165,15 @@ public class TaskCompressImageToJpeg extends TaskJpegEncode {
+                     if (exifOrientation == null) {
+                         // No existing rotation value is assumed to be 0
+                         // rotation.
++                        //
+                         exifDerivedRotation = DeviceOrientation.CLOCKWISE_0;
++			Log.w(TAG,"0  exifDerivedRotation = "+exifDerivedRotation);
+                     } else {
+                         exifDerivedRotation = DeviceOrientation
+                                 .from(exifOrientation);
++		       Log.w(TAG,"1  exifDerivedRotation = "+exifDerivedRotation);
+                     }
+-
++                   Log.w(TAG,"2   exifDerivedRotation = "+ exifDerivedRotation);
+                     final int imageWidth;
+                     final int imageHeight;
+                     // Crop coordinate space is in original sensor coordinates.  We need
+@@ -181,7 +184,7 @@ public class TaskCompressImageToJpeg extends TaskJpegEncode {
+ 
+                     if (exifPixelXDimension == null || exifPixelYDimension == null) {
+                         Log.w(TAG,
+-                                "Cannot parse EXIF for image dimensions, passing 0x0 dimensions");
++                                "21:16   Cannot parse EXIF for image dimensions, passing 0x0 dimensions");
+                         imageHeight = 0;
+                         imageWidth = 0;
+                         // calculate crop from exif info with image proxy width/height
+@@ -190,11 +193,13 @@ public class TaskCompressImageToJpeg extends TaskJpegEncode {
+                     } else {
+                         imageWidth = exifPixelXDimension;
+                         imageHeight = exifPixelYDimension;
++                        Log.w(TAG,"0  imageWidth = "+imageWidth);
++			Log.w(TAG,"0 imageHeight = "+imageHeight);	
+                         // calculate crop from exif info with combined rotation
+                         safeCrop = guaranteedSafeCrop(imageWidth, imageHeight,
+                                 rotateBoundingBox(img.crop, combinedRotationFromSensorToJpeg));
+                     }
+-
++		
+                     // Ignore the device rotation on ImageToProcess and use the EXIF from
+                     // byte[] payload
+                     inputImage = new TaskImage(
+@@ -202,7 +207,8 @@ public class TaskCompressImageToJpeg extends TaskJpegEncode {
+                             imageWidth,
+                             imageHeight,
+                             img.proxy.getFormat(), safeCrop);
+-
++                        Log.w(TAG,"1 imageWidth = "+imageWidth);
++			Log.w(TAG,"1 imageHeight = "+imageHeight);	
+                     if(requiresCropOperation(img.proxy, safeCrop)) {
+                         // Crop the image
+                         resultImage = new TaskImage(
+@@ -210,7 +216,9 @@ public class TaskCompressImageToJpeg extends TaskJpegEncode {
+                                 safeCrop.width(),
+                                 safeCrop.height(),
+                                 img.proxy.getFormat(), null);
+-
++                        Log.w(TAG,"safeCrop.width() = "+safeCrop.width());
++			Log.w(TAG,"safeCrop.height() = "+safeCrop.height());	
++			new Exception("safeCrop.height").printStackTrace();
+                         byte[] croppedResult = decompressCropAndRecompressJpegData(
+                                 compressedData.array(), safeCrop,
+                                 getJpegCompressionQuality());
+diff --git a/src/com/android/camera/processing/imagebackend/TaskImageContainer.java b/src/com/android/camera/processing/imagebackend/TaskImageContainer.java
+old mode 100644
+new mode 100755
+index 0937d64..4aa5694
+--- a/src/com/android/camera/processing/imagebackend/TaskImageContainer.java
++++ b/src/com/android/camera/processing/imagebackend/TaskImageContainer.java
+@@ -80,6 +80,8 @@ public abstract class TaskImageContainer implements Runnable {
+             orientation = anOrientation;
+             height = aHeight;
+             width = aWidth;
++                        Log.w(TAG,"height = "+height);
++			Log.w(TAG,"width = "+width);				
+             format = aFormat;
+             cropApplied = crop;
+         }
+@@ -194,13 +196,22 @@ public abstract class TaskImageContainer implements Runnable {
+      *
+      */
+     protected Rect rotateBoundingBox(Rect box, OrientationManager.DeviceOrientation orientation) {
++	return new Rect(box);
++	   /*
+         if(orientation == OrientationManager.DeviceOrientation.CLOCKWISE_0 ||
+                 orientation == OrientationManager.DeviceOrientation.CLOCKWISE_180) {
++            Log.e(TAG,"rotateBoundingBox   orientation  0    180 ");
+             return new Rect(box);
+         } else {
+             // Switch x/y coordinates.
++            Log.e(TAG,"rotateBoundingBox   new Rect ");
++	        Log.e(TAG,"box.top = " + box.top);
++		 Log.e(TAG,"box.left  = " + box.left );
++		 Log.e(TAG,"box.bottom = " + box.bottom);
++		  Log.e(TAG,"box.right = " + box.right);		
+             return new Rect(box.top, box.left, box.bottom, box.right);
+         }
++        */
+     }
+ 
+     protected OrientationManager.DeviceOrientation addOrientation(
+@@ -248,18 +259,28 @@ public abstract class TaskImageContainer implements Runnable {
+         Rect safeCrop = new Rect(crop);
+         if (crop.top > crop.bottom || crop.left > crop.right || crop.width() <= 0
+                 || crop.height() <= 0) {
++                Log.e(TAG,"0  Rect(0, 0, 0, 0) ");
+             return new Rect(0, 0, 0, 0);
+         }
+-
++        Log.e(TAG,"safeCrop.left = " + safeCrop.left);
++	Log.e(TAG,"safeCrop.top  = " + safeCrop.top );
+         safeCrop.left = Math.max(safeCrop.left, 0);
+         safeCrop.top = Math.max(safeCrop.top, 0);
++	Log.e(TAG,"width = " + width);	
++	Log.e(TAG,"safeCrop.right = " + safeCrop.right);	
+         safeCrop.right = Math.max(Math.min(safeCrop.right, width), safeCrop.left);
++	Log.e(TAG,"height = " + height);	
++	Log.e(TAG,"safeCrop.bottom = " + safeCrop.bottom);		
+         safeCrop.bottom = Math.max(Math.min(safeCrop.bottom, height), safeCrop.top);
+ 
+         if (safeCrop.width() <= 0 || safeCrop.height() <= 0) {
++	     Log.e(TAG,"1 Rect(0, 0, 0, 0) ");
+             return new Rect(0, 0, 0, 0);
+         }
+-
++        Log.e(TAG,"safeCrop.left = " + safeCrop.left);
++		 Log.e(TAG,"safeCrop.top  = " + safeCrop.top );
++		 Log.e(TAG,"safeCrop.right = " + safeCrop.right);
++		  Log.e(TAG,"safeCrop.bottom = " + safeCrop.bottom);
+         return safeCrop;
+     }
+ 

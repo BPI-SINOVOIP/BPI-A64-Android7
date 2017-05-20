@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- display settings -->
+    <!-- screen off timeout -->
+    <string name="screen_off_never_sleep_summary">"永不"</string>
+	<!-- hdmi -->
+    <string name="hdmi_setting">HDMI设置</string>
+    <string name="hdmi_output_mode">HDMI输出模式</string>
+    <string name="hdmi_output_mode_summary">设置默认的HDMI输出制式</string>
+    <string name="hdmi_full_screen">HDMI全屏显示</string>
+    <string name="hdmi_full_screen_summary">设置HDMI输出是否全屏显示</string>
+    <string name="screen_scrap_edge">屏幕切边</string>
+    <string name="screen_scrap_edge_summary">HDMI输出屏幕边框缩放</string>
+    <string name="screen_scrap_edge_height">高</string>
+    <string name="screen_scrap_edge_width">宽</string>
+    <!-- hdmi array -->
+    <string-array name="hdmi_output_mode_720p_entries">
+        <item>HDMI 720P 50HZ</item>
+        <item>HDMI 720P 60HZ</item>
+    </string-array>
+    <string-array name="hdmi_output_mode_entries">
+        <item>HDMI 720P 60HZ</item>
+        <item>HDMI 1080P 60HZ</item>
+    </string-array>
+    <!-- bright system -->
+    <string name="bright_system">丽色系统</string>
+    <string name="bright_system_summary">丽色系统用于玩游戏,观看视频图片,效果更佳</string>
+    <string name="brightness_light">智能背光</string>
+    <string name="demo_mode">演示模式</string>
+    <string name="demo_mode_summary">只对半个屏幕有效,便于看出效果</string>
+
+    <!-- Sound settings -->
+    <string name="boot_music_enable_title">开机音乐</string>
+
+    <!-- 3D audio switch -->
+    <string name="audio_3d_surround_title">3D音效</string>
+
+    <!-- gesture screenshot -->
+    <string name="title_gesture_screenshot">手势截屏</string>
+    <string name="title_gesture_screenshot_summary">用两根手指从屏幕右侧最边缘向内滑动一段距离触发截屏功能</string>
+    <!-- gesture screenrecord -->
+    <string name="title_gesture_screenrecord">手势录像</string>
+    <string name="title_gesture_screenrecord_summary">用三根手指从屏幕右侧最边缘向内滑动一段距离触发屏幕录制功能，再次滑动停止录制</string>
+
+    <!-- reboot recovery -->
+    <string name="reboot_recovery_title">Recovery模式</string>
+    <string name="reboot_recovery_desc">这会重启平板进入recovery模式</string>
+    <string name="reboot_recovery_confirm_title">重启？</string>
+    <string name="reboot_recovery_button_text">重启进入RECOVERY</string>
+    <string name="reboot_recovery_final_desc">现在重启进入recovery?</string>
+    <string name="reboot_recovery_final_button_text">立即重启进入RECOVERY</string>
+    <string name="keywords_reboot_recovery">"重启 清除 升级 恢复"</string>
+	
+    <!-- kill background services -->
+    <string name="background_cleanup_list">后台清理列表</string>
+    <string name="background_cleanup_select_all">全选</string>
+    <string name="background_cleanup_select_inverse">反选</string>
+    
+    <!-- cpu type & firmware verison-->
+    <string name="cpu_type">"处理器类型"</string>
+    <string name="software_version">"固件版本号"</string>
+	
+</resources>
