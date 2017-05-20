@@ -1,0 +1,20 @@
+service  powerscense  /system/bin/powerscense  28800
+    user  root
+    group root
+    oneshot
+
+on property:sys.boot_completed=1
+    start powerscense
+
+on boot
+    chown system system /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
+    chmod 0660 /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
+
+    chown system system /sys/devices/platform/sunxi-budget-cooling/roomage
+    chmod 0660 /sys/devices/platform/sunxi-budget-cooling/roomage
+
+    chown system system /sys/class/devfreq/sunxi-ddrfreq/dsm/scene
+    chmod 0660 /sys/class/devfreq/sunxi-ddrfreq/dsm/scene
+
+    chown system system /sys/devices/platform/pvrsrvkm/dvfs/android
+    chmod 0660 /sys/devices/platform/pvrsrvkm/dvfs/android

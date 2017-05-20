@@ -1,0 +1,8 @@
+service nand_trim /system/bin/nand_trim 28800
+    user root
+	group root
+	disabled
+
+on property:sys.boot_completed=1
+	start nand_trim
+

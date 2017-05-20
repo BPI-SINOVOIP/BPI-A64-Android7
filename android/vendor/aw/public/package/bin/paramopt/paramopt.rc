@@ -1,0 +1,5 @@
+on load_system_props_action
+    start paramopt
+
+service paramopt /system/bin/paramopt
+    oneshot
