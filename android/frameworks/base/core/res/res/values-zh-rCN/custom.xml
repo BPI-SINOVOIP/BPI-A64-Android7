@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+
+    <!-- add for reboot global action -->
+    <string name="reboot_title">"重新启动"</string>
+    <string name="reboot_confirm">"您要重新启动吗？这样会停用您已安装的所有第三方应用。"</string>
+    <string name="global_action_reboot">"重启"</string>
+
+    <string name="background_cleanup_notification_title">系统可用内存较低</string>
+    <string name="background_cleanup_notification_message">触摸可进行后台清理设置</string>
+</resources>

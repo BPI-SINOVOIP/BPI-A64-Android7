@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+
+    <!--for reboot global action -->
+    <java-symbol type="string" name="reboot_confirm" />
+    <java-symbol type="string" name="reboot_title" />
+    <java-symbol type="string" name="global_action_reboot" />
+    <string name="reboot_title">Reboot System</string>
+    <string name="reboot_confirm">Do you want to reboot the system?
+         This will disable all third party applications you have installed.</string>
+    <string name="global_action_reboot">Reboot</string>
+    <!-- @hide -->
+    <public type="drawable" name="ic_lock_reboot" id="0x0108009e" />
+
+    <!-- shutdown animation time of millisecond-->
+    <java-symbol type="integer" name="config_shutdownAnimationDuration" />
+    <integer name="config_shutdownAnimationDuration">0</integer>
+    <!-- who can receive boot completed broadcast -->
+    <java-symbol type="array" name="boot_completed_broadcast_whitelist" />
+    <string-array name="boot_completed_broadcast_whitelist">
+    </string-array>
+    <!-- packages who's name in the array will not be killed by -->
+    <java-symbol type="array" name="background_services_whitelist" />
+    <string-array name="background_services_whitelist">
+        <item>android</item>
+        <item>com.android</item>
+        <item>com.google</item>
+        <item>com.softwinner</item>
+        <item>google</item>
+    </string-array>
+    <java-symbol type="bool" name="kill_all_background_services" />
+    <bool name="kill_all_background_services">false</bool>
+    <java-symbol type="string" name="background_cleanup_notification_title" />
+    <string name="background_cleanup_notification_title">Memery not enough</string>
+    <java-symbol type="string" name="background_cleanup_notification_message" />
+    <string name="background_cleanup_notification_message">Touch to set up background cleanup.</string>
+    <java-symbol type="drawable" name="stat_background_cleanup" />
+</resources>

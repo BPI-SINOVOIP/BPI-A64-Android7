@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <!-- Default gesture screenshot enable -->
+    <integer name="def_gesture_screenshot_enable" translatable="false">0</integer>
+
+    <!-- Default gesture screenrecord enable -->
+    <integer name="def_gesture_screenrecord_enable" translatable="false">0</integer>
+    <!-- Default kill background services -->
+    <bool name="def_kill_background_services" translatable="false">false</bool>
+</resources>
