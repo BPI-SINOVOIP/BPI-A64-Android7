@@ -1,0 +1,1 @@
+allow cameraserver cedar_device:chr_file {read write open ioctl};

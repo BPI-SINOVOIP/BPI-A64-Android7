@@ -1,0 +1,1649 @@
+
+C:\Users\Administrator>adb shell logcat
+adb server is out of date.  killing...
+* daemon started successfully *
+--------- beginning of main
+09-05 22:18:00.286   133   133 W auditd  : type=2000 audit(0.0:1): initialized
+09-05 22:18:00.880   133   133 I auditd  : type=1403 audit(0.0:2): policy loaded auid=4294967295 ses=4294967295
+09-05 22:18:00.880   133   133 W auditd  : type=1404 audit(0.0:3): enforcing=1 old_enforcing=0 auid=4294967295 ses=4294967295
+09-05 22:18:06.797   143   143 I /system/bin/tzdatacheck: tzdata file /data/misc/zoneinfo/current/tzdata does not exist. No action required.
+--------- beginning of system
+09-05 22:18:06.848   135   135 I vold    : Vold 3.0 (the awakening) firing up
+09-05 22:18:06.848   135   135 V vold    : Detected support for: ext4 vfat
+09-05 22:18:06.942   151   151 I Sayeye  : Sayeye 1.1
+09-05 22:18:06.943   151   151 E Sayeye  : failed to open /sayeye.sun8i
+09-05 22:18:06.955   148   148 I lowmemorykiller: Using in-kernel low memory killer interface
+09-05 22:18:06.978   155   155 I         : debuggerd: starting
+09-05 22:18:07.059   161   161 I installd: installd firing up
+09-05 22:18:07.094   167   167 E         : loggger
+09-05 22:18:07.094   167   167 E         : handlerPrivateLog
+09-05 22:18:07.095   167   167 E         : handlerPrivateLog private_flag=-1, app_flag=-1, save_log_flag=0, save_log_state=0
+09-05 22:18:07.099   168   168 I gatekeeperd: Starting gatekeeperd...
+09-05 22:18:07.106   168   168 W gatekeeperd: falling back to software GateKeeper
+09-05 22:18:07.171   154   154 I Netd    : Netd 1.0 starting
+09-05 22:18:07.172   154   154 D TetherController: Setting IP forward enable = 0
+09-05 22:18:07.308   166   166 I keystore: Found keymaster0 module Keymaster AllSoftwinnertech HAL, version 2
+09-05 22:18:07.308   166   166 I SoftKeymaster: system/keymaster/soft_keymaster_device.cpp, Line 122: Creating device
+09-05 22:18:07.308   166   166 D SoftKeymaster: system/keymaster/soft_keymaster_device.cpp, Line 123: Device address: 0xb6ba4000
+09-05 22:18:07.317   166   166 D         : *AW-DBG*----:(AWSCHW_load_init-1326):----Enter
+09-05 22:18:07.317   166   166 D         : *AW-DBG*----:(AWSCHW_load_init-1331):----Test Buf Aw keymaster module get the app init!
+09-05 22:18:07.317   166   166 D         : *AW-DBG*----:(AWSCHW_load_init-1332):----Exit:ret0
+09-05 22:18:07.317   166   166 E         : int aw_device_open(const hw_module_t*, const char*, hw_device_t**):AW keymaster open sucessfully!
+09-05 22:18:07.317   166   166 E keystore: Wrapping keymaster0 module Keymaster AllSoftwinnertech HAL with SoftKeymasterDevice
+09-05 22:18:07.317   166   166 D SoftKeymaster: system/keymaster/soft_keymaster_device.cpp, Line 145: Reinitializing SoftKeymasterDevice to use HW keymaster0
+09-05 22:18:07.364   166   166 I SoftKeymaster: system/keymaster/soft_keymaster_device.cpp, Line 122: Creating device
+09-05 22:18:07.365   166   166 D SoftKeymaster: system/keymaster/soft_keymaster_device.cpp, Line 123: Device address: 0xb6ba4180
+09-05 22:18:07.810    75    75 W kworker/u:2: type=1400 audit(0.0:4): avc: denied { write } for name="/" dev="tmpfs" ino=5374 scontext=u:r:kernel:s0 tcontext=u:object_r:tmpfs:s0 tclass=dir permissive=0
+09-05 22:18:08.044   150   150 I SurfaceFlinger: SurfaceFlinger is starting
+09-05 22:18:08.044   150   150 I SurfaceFlinger: SurfaceFlinger's main thread ready to run. Initializing graphics H/W...
+09-05 22:18:08.068   150   150 D libEGL  : loaded /system/lib/egl/libGLES_mali.so
+09-05 22:18:08.314   150   150 I [Gralloc]: Dram size is 1002 MB
+09-05 22:18:08.314   150   150 I [Gralloc]: Secure level is 3
+09-05 22:18:08.314   150   150 I [Gralloc]: ION flush Cache range: Yes
+09-05 22:18:08.319   150   150 I SurfaceFlinger: Using composer version 1.1
+09-05 22:18:08.319   150   150 E hwcomposer: unknown display attribute 6
+09-05 22:18:08.319   150   150 I SurfaceFlinger: EGL information:
+09-05 22:18:08.319   150   150 I SurfaceFlinger: vendor    : Android
+09-05 22:18:08.319   150   150 I SurfaceFlinger: version   : 1.4 Android META-EGL
+09-05 22:18:08.319   150   150 I SurfaceFlinger: extensions: EGL_KHR_get_all_proc_addresses EGL_ANDROID_presentation_time EGL_KHR_swap_buffers_with_damage EGL_KHR_image EGL_KHR_image_base EGL_KHR_image_pixmap EGL_KHR_gl_texture_2D_image EGL_KHR_gl_texture_cubemap_image EGL_KHR_gl_renderbuffer_image EGL_KHR_fence_sync EGL_KHR_create_context EGL_EXT_create_context_robustness EGL_ANDROID_image_native_buffer EGL_ANDROID_recordable EGL_KHR_partial_update
+09-05 22:18:08.320   150   150 I SurfaceFlinger: Client API: OpenGL_ES
+09-05 22:18:08.320   150   150 I SurfaceFlinger: EGLSurface: 8-8-8-8, config=0x60000016
+09-05 22:18:08.330   150   150 I SurfaceFlinger: OpenGL ES informations:
+09-05 22:18:08.330   150   150 I SurfaceFlinger: vendor    : ARM
+09-05 22:18:08.330   150   150 I SurfaceFlinger: renderer  : Mali-400 MP
+09-05 22:18:08.330   150   150 I SurfaceFlinger: version   : OpenGL ES 2.0
+09-05 22:18:08.330   150   150 I SurfaceFlinger: extensions: GL_EXT_debug_marker GL_OES_texture_npot GL_OES_vertex_array_object GL_OES_compressed_ETC1_RGB8_texture GL_EXT_compressed_ETC1_RGB8_sub_texture GL_OES_standard_derivatives GL_OES_EGL_image GL_OES_depth24 GL_ARM_rgba8 GL_ARM_mali_shader_binary GL_OES_depth_texture GL_OES_packed_depth_stencil GL_EXT_texture_format_BGRA8888 GL_OES_vertex_half_float GL_EXT_blend_minmax GL_OES_EGL_image_external GL_OES_EGL_sync GL_OES_rgb8_rgba8 GL_EXT_multisampled_render_to_texture GL_EXT_discard_framebuffer GL_OES_get_program_binary GL_ARM_mali_program_b
+inary GL_EXT_shader_texture_lod GL_EXT_robustness GL_OES_depth_texture_cube_map GL_KHR_debug GL_ARM_shader_framebuffer_fetch GL_ARM_shader_framebuffer_fetch_depth_stencil GL_OES_mapbuffer
+09-05 22:18:08.330   150   150 I SurfaceFlinger: GL_MAX_TEXTURE_SIZE = 4096
+09-05 22:18:08.330   150   150 I SurfaceFlinger: GL_MAX_VIEWPORT_DIMS = 4096
+09-05 22:18:08.333   150   150 I [Gralloc]: Dram size is 1002 MB
+09-05 22:18:08.333   150   150 I [Gralloc]: Secure level is 3
+09-05 22:18:08.333   150   150 I [Gralloc]: ION flush Cache range: Yes
+09-05 22:18:08.342   150   150 I [Gralloc]: ion_alloc from ion_client:18 via heap type DMA(mask:16) for 3686400 Bytes uncached buffer successfully, usage = 0x00001e02
+09-05 22:18:08.352   150   150 D SurfaceFlinger: Set power mode=2, type=0 flinger=0xb6b24000
+09-05 22:18:08.397   150   150 D hwcomposer: int hwc_prepare(hwc_composer_device_1_t*, size_t, hwc_display_contents_1_t**): display[0] FRAMEBUFFER_TARGET layer failed to be assigned to pipe
+09-05 22:18:08.497   150   150 D SurfaceFlinger: shader cache generated - 24 shaders in 100.076492 ms
+09-05 22:18:08.887   337   396 D libEGL  : loaded /system/lib/egl/libGLES_mali.so
+09-05 22:18:08.909   150   150 I [Gralloc]: ion_alloc from ion_client:18 via heap type DMA(mask:16) for 3686400 Bytes uncached buffer successfully, usage = 0x00001e02
+09-05 22:18:08.974   150   287 I [Gralloc]: ion_alloc from ion_client:18 via heap type DMA(mask:16) for 3686400 Bytes uncached buffer successfully, usage = 0x00000f02
+09-05 22:18:08.997   337   396 D BootAnimation: nobootmusic: 0
+09-05 22:18:08.998   337   396 D BootAnim_AudioPlayer: card=0
+09-05 22:18:08.998   337   396 D BootAnim_AudioPlayer: device=0
+09-05 22:18:08.998   337   396 D BootAnim_AudioPlayer: period_size=2048
+09-05 22:18:08.998   337   396 D BootAnim_AudioPlayer: period_count=2
+09-05 22:18:08.998   337   396 D BootAnim_AudioPlayer: name: "Speaker Function" = spk
+09-05 22:18:09.118   150   291 I [Gralloc]: ion_alloc from ion_client:18 via heap type DMA(mask:16) for 3686400 Bytes uncached buffer successfully, usage = 0x00000f02
+09-05 22:18:09.168   150   287 I [Gralloc]: ion_alloc from ion_client:18 via heap type DMA(mask:16) for 3686400 Bytes uncached buffer successfully, usage = 0x00000f02
+09-05 22:18:09.281   160   160 D awplayer: <VersionInfo_AWPL:89>: -------library tag: AWPL-------
+09-05 22:18:09.281   160   160 D awplayer: <LogVersionInfo:24>:
+09-05 22:18:09.281   160   160 D awplayer: >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> CedarX <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+09-05 22:18:09.281   160   160 D awplayer: tag   : CedarX-2.5-rc2.0
+09-05 22:18:09.281   160   160 D awplayer: branch: master
+09-05 22:18:09.281   160   160 D awplayer: commit: xxx
+09-05 22:18:09.281   160   160 D awplayer: date  : Fri Jan 15 08:52:32 2016 +0800
+09-05 22:18:09.281   160   160 D awplayer: author: xxx
+09-05 22:18:09.281   160   160 D awplayer: ----------------------------------------------------------------------
+09-05 22:18:09.281   160   160 W awplayer: <AddVDPluginSingle:1163>: Invalid plugin, CedarPluginVDInit not found.
+09-05 22:18:09.282   160   160 W awplayer: <AddVDPluginSingle:1163>: Invalid plugin, CedarPluginVDInit not found.
+09-05 22:18:09.287   160   160 D awplayer: <AddVDPluginSingle:1166>: vdecoder open lib: /system/lib/libawavs.so
+09-05 22:18:09.287   160   160 W awplayer: <VDecoderRegister:89>: register codec: '117:avs' success.
+09-05 22:18:09.299   160   160 D awplayer: <AddVDPluginSingle:1166>: vdecoder open lib: /system/lib/libawh264.so
+09-05 22:18:09.300   160   160 W awplayer: <VDecoderRegister:89>: register codec: '115:h264' success.
+09-05 22:18:09.309   160   160 D awplayer: <AddVDPluginSingle:1166>: vdecoder open lib: /system/lib/libawh265.so
+09-05 22:18:09.309   160   160 W awplayer: <VDecoderRegister:89>: register codec: '116:h265' success.
+09-05 22:18:09.323   160   160 D awplayer: <AddVDPluginSingle:1166>: vdecoder open lib: /system/lib/libawh265soft.so
+09-05 22:18:09.324   160   160 W awplayer: <VDecoderRegister:89>: register codec: '116:h265soft' success.
+09-05 22:18:09.341   160   160 D awplayer: <AwStreamInit:66>: aw stream init...
+09-05 22:18:09.341   160   160 D awplayer: <AwStreamInit:94>: stream list size:19
+09-05 22:18:09.353   160   160 D awplayer: <AwParserInit:395>: aw parser size:32
+09-05 22:18:09.354   160   160 W awplayer: <AddVDPluginSingle:1163>: Invalid plugin, CedarPluginVDInit not found.
+09-05 22:18:09.358   160   160 D awplayer: <AddVDPluginSingle:1166>: vdecoder open lib: /system/lib/libawmjpeg.so
+09-05 22:18:09.358   160   160 W awplayer: <VDecoderRegister:89>: register codec: '101:mjpeg' success.
+09-05 22:18:09.364   160   160 D awplayer: <AddVDPluginSingle:1166>: vdecoder open lib: /system/lib/libawmjpegplus.so
+09-05 22:18:09.364   160   160 W awplayer: <VDecoderRegister:89>: register codec: '101:mjpegplus' success.
+09-05 22:18:09.369   160   160 D awplayer: <AddVDPluginSingle:1166>: vdecoder open lib: /system/lib/libawmpeg2.so
+09-05 22:18:09.369   160   160 W awplayer: <VDecoderRegister:89>: register codec: '102:mpeg2' success.
+09-05 22:18:09.369   160   160 W awplayer: <VDecoderRegister:89>: register codec: '103:mpeg2' success.
+09-05 22:18:09.377   160   160 W awplayer: <AddVDPluginSingle:1163>: Invalid plugin, CedarPluginVDInit not found.
+09-05 22:18:09.383   160   160 D awplayer: <AddVDPluginSingle:1166>: vdecoder open lib: /system/lib/libawmpeg4dx.so
+09-05 22:18:09.383   160   160 W awplayer: <VDecoderRegister:89>: register codec: '105:mpeg4dx' success.
+09-05 22:18:09.383   160   160 W awplayer: <VDecoderRegister:89>: register codec: '106:mpeg4dx' success.
+09-05 22:18:09.383   160   160 W awplayer: <VDecoderRegister:89>: register codec: '107:mpeg4dx' success.
+09-05 22:18:09.383   160   160 W awplayer: <VDecoderRegister:89>: register codec: '10e:mpeg4dx' success.
+09-05 22:18:09.383   160   160 W awplayer: <VDecoderRegister:89>: register codec: '10f:mpeg4dx' success.
+09-05 22:18:09.398   160   160 D awplayer: <AddVDPluginSingle:1166>: vdecoder open lib: /system/lib/libawmpeg4h263.so
+09-05 22:18:09.398   160   160 W awplayer: <VDecoderRegister:89>: register codec: '104:mpeg4H263' success.
+09-05 22:18:09.398   160   160 W awplayer: <VDecoderRegister:89>: register codec: '10b:mpeg4H263' success.
+09-05 22:18:09.398   160   160 W awplayer: <VDecoderRegister:89>: register codec: '10d:mpeg4H263' success.
+09-05 22:18:09.406   160   160 D awplayer: <AddVDPluginSingle:1166>: vdecoder open lib: /system/lib/libawmpeg4normal.so
+09-05 22:18:09.407   160   160 W awplayer: <VDecoderRegister:89>: register codec: '10a:mpeg4Normal' success.
+09-05 22:18:09.407   160   160 W awplayer: <VDecoderRegister:89>: register codec: '10c:mpeg4Normal' success.
+09-05 22:18:09.408   160   160 W awplayer: <VDecoderRegister:89>: register codec: '108:mpeg4Normal' success.
+09-05 22:18:09.408   160   160 W awplayer: <VDecoderRegister:89>: register codec: '109:mpeg4Normal' success.
+09-05 22:18:09.413   160   160 D awplayer: <AddVDPluginSingle:1166>: vdecoder open lib: /system/lib/libawmpeg4vp6.so
+09-05 22:18:09.413   160   160 W awplayer: <VDecoderRegister:89>: register codec: '111:Mpeg4Vp6' success.
+09-05 22:18:09.413   160   160 W awplayer: <AddVDPluginSingle:1163>: Invalid plugin, CedarPluginVDInit not found.
+09-05 22:18:09.419   160   160 D awplayer: <AddVDPluginSingle:1166>: vdecoder open lib: /system/lib/libawvp6soft.so
+09-05 22:18:09.419   160   160 W awplayer: <VDecoderRegister:89>: register codec: '111:vp6Soft' success.
+09-05 22:18:09.423   160   160 D awplayer: <AddVDPluginSingle:1166>: vdecoder open lib: /system/lib/libawvp8.so
+09-05 22:18:09.423   160   160 W awplayer: <VDecoderRegister:89>: register codec: '112:vp8' success.
+09-05 22:18:09.438   160   160 D awplayer: <AddVDPluginSingle:1166>: vdecoder open lib: /system/lib/libawvp9soft.so
+09-05 22:18:09.438   160   160 W awplayer: <VDecoderRegister:89>: register codec: '113:vp9Soft' success.
+09-05 22:18:09.453   160   160 D awplayer: <AddVDPluginSingle:1166>: vdecoder open lib: /system/lib/libawwmv12soft.so
+09-05 22:18:09.453   160   160 W awplayer: <VDecoderRegister:89>: register codec: '10e:Wmv12Soft' success.
+09-05 22:18:09.453   160   160 W awplayer: <VDecoderRegister:89>: register codec: '10f:Wmv12Soft' success.
+09-05 22:18:09.461   160   160 D awplayer: <AddVDPluginSingle:1166>: vdecoder open lib: /system/lib/libawwmv3.so
+09-05 22:18:09.461   160   160 W awplayer: <VDecoderRegister:89>: register codec: '110:vc1' success.
+09-05 22:18:09.467   160   160 V MediaUtils: physMem: 1051619328
+09-05 22:18:09.467   160   160 V MediaUtils: requested limit: 683552545
+09-05 22:18:09.467   160   160 V MediaUtils: actual limit: 683552545
+09-05 22:18:09.467   160   160 V MediaUtils: original limits: 4294967295/4294967295
+09-05 22:18:09.467   160   160 V MediaUtils: new limits: 683552545/4294967295
+09-05 22:18:09.542   160   160 I mediaserver: ServiceManager: 0xb5a8e900
+09-05 22:18:09.542   160   160 I AudioFlinger: Using default 3000 mSec as standby time.
+09-05 22:18:09.544   160   160 E         : batterystats service unavailable!
+09-05 22:18:09.544   160   160 E         : batterystats service unavailable!
+09-05 22:18:09.544   160   160 D MediaPlayerService: wfd_value: 0
+09-05 22:18:09.545   160   160 I CameraService: CameraService started (pid=160)
+09-05 22:18:09.545   160   160 I CameraService: CameraService process starting
+09-05 22:18:09.546   160   160 E         : batterystats service unavailable!
+09-05 22:18:09.546   160   160 E         : batterystats service unavailable!
+09-05 22:18:10.652   160   160 D HALCameraFactory: camera hal version: 3000130327_V1.0
+09-05 22:18:10.671   152   152 D AndroidRuntime: >>>>>> START com.android.internal.os.ZygoteInit uid 0 <<<<<<
+09-05 22:18:10.675   160   160 D HALCameraFactory: There is 2 attached cameras and 0 removable cameras
+09-05 22:18:10.675   160   160 I CameraService: Loaded "V4L2Camera Module" camera module
+09-05 22:18:10.675   160   160 D HALCameraFactory: There is 2 attached cameras and 0 removable cameras
+09-05 22:18:10.675   160   160 D HALCameraFactory: There is 2 attached cameras and 0 removable cameras
+09-05 22:18:10.676   160   160 I CameraFlashlight: Opening camera 0
+09-05 22:18:10.815   152   152 D AndroidRuntime: CheckJNI is OFF
+09-05 22:18:10.891   152   152 I art     : option[0]=-Xzygote
+09-05 22:18:10.891   152   152 I art     : option[1]=-Xstacktracefile:/data/anr/traces.txt
+09-05 22:18:10.891   152   152 I art     : option[2]=exit
+09-05 22:18:10.891   152   152 I art     : option[3]=vfprintf
+09-05 22:18:10.891   152   152 I art     : option[4]=sensitiveThread
+09-05 22:18:10.891   152   152 I art     : option[5]=-verbose:gc
+09-05 22:18:10.891   152   152 I art     : option[6]=-Xms8m
+09-05 22:18:10.891   152   152 I art     : option[7]=-Xmx384m
+09-05 22:18:10.891   152   152 I art     : option[8]=-XX:HeapGrowthLimit=80m
+09-05 22:18:10.891   152   152 I art     : option[9]=-XX:HeapMinFree=512k
+09-05 22:18:10.891   152   152 I art     : option[10]=-XX:HeapMaxFree=8m
+09-05 22:18:10.891   152   152 I art     : option[11]=-XX:HeapTargetUtilization=0.75
+09-05 22:18:10.891   152   152 I art     : option[12]=-agentlib:jdwp=transport=dt_android_adb,suspend=n,server=y
+09-05 22:18:10.892   152   152 I art     : option[13]=-Ximage-compiler-option
+09-05 22:18:10.892   152   152 I art     : option[14]=--runtime-arg
+09-05 22:18:10.892   152   152 I art     : option[15]=-Ximage-compiler-option
+09-05 22:18:10.892   152   152 I art     : option[16]=-Xms64m
+09-05 22:18:10.892   152   152 I art     : option[17]=-Ximage-compiler-option
+09-05 22:18:10.892   152   152 I art     : option[18]=--runtime-arg
+09-05 22:18:10.892   152   152 I art     : option[19]=-Ximage-compiler-option
+09-05 22:18:10.892   152   152 I art     : option[20]=-Xmx64m
+09-05 22:18:10.892   152   152 I art     : option[21]=-Ximage-compiler-option
+09-05 22:18:10.892   152   152 I art     : option[22]=--image-classes=/system/etc/preloaded-classes
+09-05 22:18:10.892   152   152 I art     : option[23]=-Xcompiler-option
+09-05 22:18:10.892   152   152 I art     : option[24]=--runtime-arg
+09-05 22:18:10.892   152   152 I art     : option[25]=-Xcompiler-option
+09-05 22:18:10.892   152   152 I art     : option[26]=-Xms64m
+09-05 22:18:10.892   152   152 I art     : option[27]=-Xcompiler-option
+09-05 22:18:10.892   152   152 I art     : option[28]=--runtime-arg
+09-05 22:18:10.892   152   152 I art     : option[29]=-Xcompiler-option
+09-05 22:18:10.892   152   152 I art     : option[30]=-Xmx512m
+09-05 22:18:10.892   152   152 I art     : option[31]=-Xcompiler-option
+09-05 22:18:10.892   152   152 I art     : option[32]=-j3
+09-05 22:18:10.892   152   152 I art     : option[33]=-Ximage-compiler-option
+09-05 22:18:10.892   152   152 I art     : option[34]=-j4
+09-05 22:18:10.893   152   152 I art     : option[35]=-Ximage-compiler-option
+09-05 22:18:10.893   152   152 I art     : option[36]=--instruction-set-variant=cortex-a7
+09-05 22:18:10.893   152   152 I art     : option[37]=-Xcompiler-option
+09-05 22:18:10.893   152   152 I art     : option[38]=--instruction-set-variant=cortex-a7
+09-05 22:18:10.893   152   152 I art     : option[39]=-Ximage-compiler-option
+09-05 22:18:10.893   152   152 I art     : option[40]=--instruction-set-features=default
+09-05 22:18:10.893   152   152 I art     : option[41]=-Xcompiler-option
+09-05 22:18:10.893   152   152 I art     : option[42]=--instruction-set-features=default
+09-05 22:18:10.893   152   152 I art     : option[43]=-Xcompiler-option
+09-05 22:18:10.893   152   152 I art     : option[44]=--no-watch-dog
+09-05 22:18:10.893   152   152 I art     : option[45]=-Duser.locale=zh-CN
+09-05 22:18:10.893   152   152 I art     : option[46]=--cpu-abilist=armeabi-v7a,armeabi
+09-05 22:18:10.893   152   152 I art     : option[47]=-Xfingerprint:Allwinner/astar_h7/astar-h7:6.0.1/MOB30R/20160803:user/test-keys
+09-05 22:18:11.318   160   160 D HALCameraFactory: Calling process is: /system/bin/mediaserver
+09-05 22:18:11.325   160   625 W CameraHardware: CMD_QUEUE_STOP_FACE_DETECTE failed, mFaceDetection not opened.
+09-05 22:18:11.449   160   160 I CameraFlashlight: Destroying camera 0
+09-05 22:18:11.449   160   721 D CallbackNotifier: savePictureThread exit, line: 1515
+09-05 22:18:11.550   160   160 I CameraFlashlight: Opening camera 1
+09-05 22:18:11.858   152   152 D ICU     : No timezone override file found: /data/misc/zoneinfo/current/icu/icu_tzdata.dat
+09-05 22:18:11.921   154   154 V NatController: runCmd(/system/bin/iptables -w -F natctrl_FORWARD) res=0
+09-05 22:18:11.943   154   154 V NatController: runCmd(/system/bin/iptables -w -A natctrl_FORWARD -j DROP) res=0
+09-05 22:18:11.968   154   154 V NatController: runCmd(/system/bin/iptables -w -t nat -F natctrl_nat_POSTROUTING) res=0
+09-05 22:18:11.993   154   154 V NatController: runCmd(/system/bin/iptables -w -F natctrl_tether_counters) res=1
+09-05 22:18:12.018   154   154 V NatController: runCmd(/system/bin/iptables -w -X natctrl_tether_counters) res=1
+09-05 22:18:12.038   154   154 V NatController: runCmd(/system/bin/iptables -w -N natctrl_tether_counters) res=0
+09-05 22:18:12.061   154   154 V NatController: runCmd(/system/bin/iptables -w -t mangle -A natctrl_mangle_FORWARD -p tcp --tcp-flags SYN SYN -j TCPMSS --clamp-mss-to-pmtu) res=1
+09-05 22:18:12.188   160   160 D HALCameraFactory: Calling process is: /system/bin/mediaserver
+09-05 22:18:12.189   160   160 E V4L2CameraDevice: getFullSize failed
+09-05 22:18:12.195   160   631 W CameraHardware: CMD_QUEUE_STOP_FACE_DETECTE failed, mFaceDetection not opened.
+09-05 22:18:12.319   160   160 I CameraFlashlight: Destroying camera 1
+09-05 22:18:12.319   160   844 D CallbackNotifier: savePictureThread exit, line: 1515
+09-05 22:18:12.420   160   160 I ServiceManager: Waiting for service media.camera.proxy...
+09-05 22:18:12.870    75    75 W kworker/u:2: type=1400 audit(0.0:5): avc: denied { write } for name="/" dev="tmpfs" ino=5374 scontext=u:r:kernel:s0 tcontext=u:object_r:tmpfs:s0 tclass=dir permissive=0
+09-05 22:18:12.911   152   152 E memtrack: Couldn't load memtrack module (No such file or directory)
+09-05 22:18:12.911   152   152 E android.os.Debug: failed to load memtrack module: -2
+09-05 22:18:12.939   152   152 I Radio-JNI: register_android_hardware_Radio DONE
+09-05 22:18:13.040   152   152 I SamplingProfilerIntegration: Profiling disabled.
+09-05 22:18:13.076   152   152 I art     : Starting a blocking GC Background
+09-05 22:18:13.164   152   152 I Zygote  : System server process 973 has been created
+09-05 22:18:13.216   152   152 I Zygote  : Accepting command socket connections
+09-05 22:18:13.217   152   989 D Zygote  : begin preload
+09-05 22:18:13.218   152   989 I Zygote  : Preloading classes...
+09-05 22:18:13.236   973   973 I InstallerConnection: connecting...
+09-05 22:18:13.253   161   161 I installd: new connection
+09-05 22:18:13.343   973   973 I InstallerConnection: disconnecting...
+09-05 22:18:13.346   161   161 E installd: eof
+09-05 22:18:13.346   161   161 E installd: failed to read size
+09-05 22:18:13.346   161   161 I installd: closing connection
+09-05 22:18:13.421   160   160 I ServiceManager: Waiting for service media.camera.proxy...
+09-05 22:18:13.448   154   154 E Netd    : cannot find interface dummy0
+09-05 22:18:13.491   154   154 D MDnsDS  : MDnsSdListener::Hander starting up
+09-05 22:18:13.495   154  1030 D MDnsDS  : MDnsSdListener starting to monitor
+09-05 22:18:13.495   154  1030 D MDnsDS  : Going to poll with pollCount 1
+09-05 22:18:13.762   973   973 I SystemServer: Entered the Android system server!
+09-05 22:18:14.421   160   160 I ServiceManager: Waiting for service media.camera.proxy...
+09-05 22:18:14.426  1053  1053 D idmap   : error: no read access to /vendor/overlay: No such file or directory
+09-05 22:18:15.049   973   973 I SystemServiceManager: Starting com.android.server.pm.Installer
+09-05 22:18:15.083   973   973 I Installer: Waiting for installd to be ready.
+09-05 22:18:15.083   973   973 I InstallerConnection: connecting...
+09-05 22:18:15.083   161   161 I installd: new connection
+09-05 22:18:15.084   973   973 I SystemServiceManager: Starting com.android.server.am.ActivityManagerService$Lifecycle
+09-05 22:18:15.365   973   973 I ActivityManager: Memory class: 80
+09-05 22:18:15.422   160   160 I ServiceManager: Waiting for service media.camera.proxy...
+09-05 22:18:15.531   152   989 E Minikin : addFont failed to create font /system/fonts/NanumGothic.ttf
+09-05 22:18:15.532   152   989 E Minikin : addFont failed to create font /system/fonts/DroidSansFallback.ttf
+09-05 22:18:15.532   152   989 E Minikin : addFont failed to create font /system/fonts/MTLmr3m.ttf
+09-05 22:18:15.747   973   973 D BatteryStatsImpl: Reading daily items from /data/system/batterystats-daily.xml
+09-05 22:18:15.748   152   989 V DngCreator_JNI: DngCreator_nativeClassInit:
+09-05 22:18:16.019   973   973 W ProcessCpuTracker: Skipping unknown process pid 1094
+09-05 22:18:16.021   973   973 W ProcessCpuTracker: Skipping unknown process pid 1096
+09-05 22:18:16.084   973   973 I IntentFirewall: Read new rules (A:0 B:0 S:0)
+09-05 22:18:16.177   973   973 D AppOps  : AppOpsService published
+09-05 22:18:16.178   973   973 I SystemServiceManager: Starting com.android.server.power.PowerManagerService
+09-05 22:18:16.246   973   973 I libsuspend: Selected early suspend
+09-05 22:18:16.247   973   973 I libsuspend: Starting early suspend unblocker thread
+09-05 22:18:16.272   973   973 I SystemServiceManager: Starting com.android.server.lights.LightsService
+09-05 22:18:16.291   973   973 E lights  : porbe_light_leds leds_exist=4278190080
+09-05 22:18:16.291   973   973 E lights  : porbe_light_leds path=/sys/class/leds/red_led/brightness
+09-05 22:18:16.291   973   973 E lights  : porbe_light_leds path=/sys/class/leds/green_led/brightness
+09-05 22:18:16.291   973   973 E lights  : porbe_light_leds path=/sys/class/leds/blue_led/brightness
+09-05 22:18:16.291   973   973 E lights  : porbe_light_leds leds_exist=4278190080
+09-05 22:18:16.292   973   973 I SystemServiceManager: Starting com.android.server.display.DisplayManagerService
+09-05 22:18:16.310   291   291 W Binder_2: type=1400 audit(0.0:6): avc: denied { ioctl } for path="socket:[6196]" dev="sockfs" ino=6196 ioctlcmd=7704 scontext=u:r:surfaceflinger:s0 tcontext=u:r:surfaceflinger:s0 tclass=unix_stream_socket permissive=0
+09-05 22:18:16.310   291   291 W Binder_2: type=1400 audit(0.0:7): avc: denied { ioctl } for path="socket:[6196]" dev="sockfs" ino=6196 ioctlcmd=7704 scontext=u:r:surfaceflinger:s0 tcontext=u:r:surfaceflinger:s0 tclass=unix_stream_socket permissive=0
+09-05 22:18:16.318   973   973 I SystemServiceManager: Starting phase 100
+09-05 22:18:16.361   152   989 I art     : Thread[6,tid=989,Native,Thread*=0xb4db7e00,peer=0x12c00220,"Thread-10"] recursive attempt to load library "/system/lib/libmedia_jni.so"
+09-05 22:18:16.361   152   989 D MtpDeviceJNI: register_android_mtp_MtpDevice
+09-05 22:18:16.362   152   989 I art     : Thread[6,tid=989,Native,Thread*=0xb4db7e00,peer=0x12c00220,"Thread-10"] recursive attempt to load library "/system/lib/libmedia_jni.so"
+09-05 22:18:16.363   152   989 I art     : Thread[6,tid=989,Native,Thread*=0xb4db7e00,peer=0x12c00220,"Thread-10"] recursive attempt to load library "/system/lib/libmedia_jni.so"
+09-05 22:18:16.376   973  1102 I DisplayManagerService: Display device added: DisplayDeviceInfo{"鍐呯疆灞忓箷": uniqueId="local:0", 720 x 1280, modeId 1, defaultModeId 1, supportedModes [{id=1, width=720, height=1280, fps=60.000004}], colorTransformId 1, defaultColorTransformId 1, supportedColorTransforms [{id=1, colorTransform=-22}], density 213, 210.206 x 209.754 dpi, appVsyncOff 0, presDeadline 17666666, touch INTERNAL, rotation 0, type BUILT_IN, state UNKNOWN, FLAG_DEFAULT_DISPLAY, FLAG_ROTATES_WITH_CONTENT, FLAG_SECURE, FLAG_SUPPORTS_PROTECTED_BUFFERS}
+09-05 22:18:16.378   150   150 D SurfaceFlinger: Set power mode=2, type=0 flinger=0xb6b24000
+09-05 22:18:16.378   150   150 D SurfaceFlinger: Screen type=0 is already mode=2
+09-05 22:18:16.379   973   973 I SystemServer: Package Manager
+09-05 22:18:16.380   973  1102 I DisplayManagerService: Display device changed state: "鍐呯疆灞忓箷", ON
+09-05 22:18:16.422   160   160 I ServiceManager: Waiting for service media.camera.proxy...
+09-05 22:18:16.542   152   989 E EmojiFactory_jni: Failed to load libemoji.so: dlopen failed: library "libemoji.so" not found
+09-05 22:18:16.740   973   988 I art     : Background sticky concurrent mark sweep GC freed 643(139KB) AllocSpace objects, 6(120KB) LOS objects, 15% free, 1535KB/1806KB, paused 8.178ms total 26.424ms
+09-05 22:18:16.865   973   973 D SELinuxMMAC: Using policy file /system/etc/security/mac_permissions.xml
+09-05 22:18:16.915   973   973 D PackageSettings: Read domain verification for package:com.google.android.youtube
+09-05 22:18:16.939   973   973 D PackageSettings: Read domain verification for package:com.android.vending
+09-05 22:18:16.965   973   973 D PackageSettings: Read domain verification for package:com.google.android.apps.docs
+09-05 22:18:16.975   152   989 I System  : Loaded time zone names for "" in 92ms (89ms in ICU)
+09-05 22:18:16.987   973   973 D PackageSettings: Read domain verification for package:com.google.android.apps.maps
+09-05 22:18:17.037   152   989 I System  : Loaded time zone names for "en_US" in 61ms (57ms in ICU)
+09-05 22:18:17.106   152   989 I System  : Loaded time zone names for "zh_CN" in 69ms (66ms in ICU)
+09-05 22:18:17.151   152   989 I Zygote  : ...preloaded 3831 classes in 3933ms.
+09-05 22:18:17.151   152   989 I art     : VMRuntime.preloadDexCaches starting
+09-05 22:18:17.289   973   973 E art     : DexFile_getDexOptNeeded file '/system/framework/org.apache.http.legacy.jar' does not exist
+09-05 22:18:17.289   973   973 W PackageManager: Library not found: /system/framework/org.apache.http.legacy.jar
+09-05 22:18:17.350   152   989 I art     : VMRuntime.preloadDexCaches strings total=244351 before=43937 after=43937
+09-05 22:18:17.350   152   989 I art     : VMRuntime.preloadDexCaches types total=20158 before=6883 after=6910
+09-05 22:18:17.350   152   989 I art     : VMRuntime.preloadDexCaches fields total=98497 before=35889 after=36098
+09-05 22:18:17.350   152   989 I art     : VMRuntime.preloadDexCaches methods total=170445 before=70874 after=71374
+09-05 22:18:17.350   152   989 I art     : VMRuntime.preloadDexCaches finished
+09-05 22:18:17.405  1127  1127 D idmap   : error: no read access to /vendor/overlay: No such file or directory
+09-05 22:18:17.413   152   989 I Zygote  : Preloading resources...
+09-05 22:18:17.426   160   160 I AudioPolicyService: AudioPolicyService CSTOR in new mode
+09-05 22:18:17.431   160   160 I APM::ConfigParsingUtils: loadAudioPolicyConfig() loaded /system/etc/audio_policy.conf
+09-05 22:18:17.459   160   160 V audio_hw_primary: normal mode , speaker,****LINE:664,FUNC:select_output_device
+09-05 22:18:17.459   160   160 D codec_audio: get ro.sw.audio.codec_plan_name =0
+09-05 22:18:17.459   160   160 D codec_audio: get index =0
+09-05 22:18:17.459   160   160 V codec_audio_pad: ****LINE:231,FUNC:pad_init
+09-05 22:18:17.459   160   160 E codec_audio: begain get mixer ......
+09-05 22:18:17.460   160  1131 V codec_audio_plan_record: record manager thread sleep
+09-05 22:18:17.464   160   160 D codec_audio: key_name:PHONE_EARPIECE
+09-05 22:18:17.464   160   160 D codec_audio: key_name:PHONE_HEADSET
+09-05 22:18:17.464   160   160 D codec_audio: key_name:PHONE_SPEAKER
+09-05 22:18:17.464   160   160 D codec_audio: key_name:BLUETOOTH_UP
+09-05 22:18:17.465   160   160 D codec_audio: key_name:FM_HEADSET
+09-05 22:18:17.465   160   160 D codec_audio: key_name:FM_SPEAKER
+09-05 22:18:17.465   160   160 D codec_audio: get_volume_config pcm_vol: 8
+09-05 22:18:17.465   160   160 D bp_audio: get ro.sw.audio.bp_device_name=0
+09-05 22:18:17.465   160   160 D bp_audio: bp_device_detect index=0
+09-05 22:18:17.465   160   160 D audio_hw_primary: g_no_output =1
+09-05 22:18:17.465   160   160 V audio_hw_primary: adev_get_master_volume, line: 2436
+09-05 22:18:17.465   160   160 V audio_hw_primary: adev_set_master_volume, line: 2430
+09-05 22:18:17.465   160   160 I AudioFlinger: loadHwModule() Loaded primary audio interface from sunxi audio HW HAL (audio) handle 1
+09-05 22:18:17.465   160   160 I AudioFlinger: openOutput(), module 1 Device 2, SamplingRate 44100, Format 0x000001, Channels 3, flags 2
+09-05 22:18:17.465   160   160 V audio_hw_primary: adev_open_output_stream, flags: 2
+09-05 22:18:17.465   160   160 V audio_hw_primary: +++++++++++++++ adev_open_output_stream: req_sample_rate: 44100, fmt: 1, channel_count: 3
+09-05 22:18:17.465   160   160 I AudioFlinger: AudioStreamOut::open(), mHalFormatIsLinearPcm = 1
+09-05 22:18:17.466   160   160 I AudioFlinger: HAL output buffer size 1024 frames, normal sink buffer size 1024 frames
+09-05 22:18:17.496   160   160 I BufferProvider: found effect "Multichannel Downmix To Stereo" from The Android Open Source Project
+09-05 22:18:17.497   160   160 I AudioFlinger: Using module 1 has the primary audio interface
+09-05 22:18:17.497   160  1132 I AudioFlinger: AudioFlinger's thread 0xb1b40000 ready to run
+09-05 22:18:17.497   160  1132 D audio_hw_primary: out_standby
+09-05 22:18:17.498   160  1132 V audio_hw_primary: out_set_parameters: routing=2
+09-05 22:18:17.498   160  1132 V audio_hw_primary: adev->out_device is: 2, val is : 2
+09-05 22:18:17.498   160  1132 E AudioFlinger: no wake lock to update!
+09-05 22:18:17.499   160  1129 V audio_hw_primary: adev_set_voice_volume, volume: 0.000000
+09-05 22:18:17.500   160   160 V audio_hw_primary: to malloc in-buffer: period_size: 1024, frame_size: 4
+09-05 22:18:17.501   160  1133 I AudioFlinger: AudioFlinger's thread 0xb1940000 ready to run
+09-05 22:18:17.502   160   160 V codec_audio_pad: normal record mode 4,****LINE:122,FUNC:set_normal_record_enable
+09-05 22:18:17.502   160   160 V codec_audio_pad: fm record mode 4,****LINE:217,FUNC:set_fm_record_enable
+09-05 22:18:17.502   160   160 D audio_hw_primary: adev_close_input_stream set voice record status
+09-05 22:18:17.504   973   973 D PackageManager: No files in app dir /vendor/overlay
+09-05 22:18:17.506   160   160 I bt_a2dp_hw: adev_open:  adev_open in A2dp_hw module
+09-05 22:18:17.506   160   160 I AudioFlinger: loadHwModule() Loaded a2dp audio interface from A2DP Audio HW HAL (audio) handle 4
+09-05 22:18:17.518   973   973 D PackageManager: No files in app dir /system/vendor/app
+09-05 22:18:17.518   973   973 D PackageManager: No files in app dir /oem/app
+09-05 22:18:17.522   160   160 I AudioFlinger: loadHwModule() Loaded usb audio interface from USB audio HW HAL (audio) handle 5
+09-05 22:18:17.528   160   160 I r_submix: adev_open(name=audio_hw_if)
+09-05 22:18:17.528   160   160 I r_submix: adev_init_check()
+09-05 22:18:17.528   160   160 I AudioFlinger: loadHwModule() Loaded r_submix audio interface from Wifi Display audio HAL (audio) handle 6
+09-05 22:18:17.528   160   160 D r_submix: adev_open_input_stream(addr=0)
+09-05 22:18:17.528   160   160 D r_submix: submix_audio_device_create_pipe_l(addr=0, idx=9)
+09-05 22:18:17.528   160   160 D r_submix:   now using address 0 for route 9
+09-05 22:18:17.529   160   160 E MonoPipe: Failed to fetch local time frequency when constructing a MonoPipe (res = -32).  getNextWriteTimestamp calls will be non-functional
+09-05 22:18:17.530   160  1135 I AudioFlinger: AudioFlinger's thread 0xb1940000 ready to run
+09-05 22:18:17.530   160   160 D r_submix: adev_close_input_stream()
+09-05 22:18:17.530   160   160 D r_submix: submix_audio_device_release_pipe_l(idx=9) addr=0
+09-05 22:18:17.530   160   160 D r_submix: submix_audio_device_destroy_pipe_l(): pipe destroyed
+09-05 22:18:17.532   160   160 E SoundTriggerHwService: couldn't load sound trigger module sound_trigger.primary (No such file or directory)
+09-05 22:18:17.533   160   160 I RadioService: RadioService
+09-05 22:18:17.533   160   160 I RadioService: onFirstRef
+09-05 22:18:17.533   160   160 E RadioService: couldn't load radio module radio.primary (No such file or directory)
+09-05 22:18:17.554   973  1134 W PackageManager: Failed to parse /system/framework/arm: Missing base APK in /system/framework/arm
+09-05 22:18:17.617   973  1134 W PackageManager: Failed to parse /system/framework/oat: Missing base APK in /system/framework/oat
+09-05 22:18:17.837   973  1134 W PackageParser: No actions in intent filter at /system/priv-app/Contacts/Contacts.apk Binary XML file line #388
+09-05 22:18:18.120   973   973 W PackageManager: Permission android.permission.DOWNLOAD_WITHOUT_NOTIFICATION from package com.android.providers.downloads in an unknown group android.permission-group.NETWORK
+09-05 22:18:18.966   152   989 I Zygote  : ...preloaded 342 resources in 1552ms.
+09-05 22:18:18.994   152   989 I Zygote  : ...preloaded 41 resources in 28ms.
+09-05 22:18:18.998   152   989 D libEGL  : loaded /system/lib/egl/libGLES_mali.so
+09-05 22:18:19.054   152   989 I Zygote  : Preloading shared libraries...
+09-05 22:18:19.106   152   989 D Zygote  : end preload
+09-05 22:18:19.106   152   989 I art     : Starting a blocking GC Explicit
+09-05 22:18:19.136   152   989 I art     : Explicit concurrent mark sweep GC freed 11094(444KB) AllocSpace objects, 0(0B) LOS objects, 40% free, 4MB/6MB, paused 501us total 23.778ms
+09-05 22:18:19.153   152   989 I art     : Starting a blocking GC Explicit
+09-05 22:18:19.170   152   989 I art     : Explicit concurrent mark sweep GC freed 2287(108KB) AllocSpace objects, 0(0B) LOS objects, 40% free, 4MB/6MB, paused 451us total 16.382ms
+09-05 22:18:19.273   973  1134 W PackageParser: Unknown element under <manifest>: uses-library at /system/priv-app/GoogleFeedback/GoogleFeedback.apk Binary XML file line #30
+09-05 22:18:19.507   973   973 W PackageManager: Permission com.google.android.gms.permission.ACTIVITY_RECOGNITION from package com.google.android.gms in an unknown group android.permission-group.PERSONAL_INFO
+09-05 22:18:19.554   973  1134 W PackageParser: Ignoring duplicate uses-permissions/uses-permissions-sdk-m: com.google.android.providers.gsf.permission.READ_GSERVICES in package: com.google.android.partnersetup at: Binary XML file line #32
+09-05 22:18:19.796   973   973 W PackageManager: Permission com.google.android.googleapps.permission.GOOGLE_AUTH from package com.google.android.gsf in an unknown group android.permission-group.ACCOUNTS
+09-05 22:18:19.796   973   973 W PackageManager: Permission com.google.android.googleapps.permission.GOOGLE_AUTH.ALL_SERVICES from package com.google.android.gsf in an unknown group android.permission-group.ACCOUNTS
+09-05 22:18:19.796   973   973 W PackageManager: Permission com.google.android.googleapps.permission.GOOGLE_AUTH.OTHER_SERVICES from package com.google.android.gsf in an unknown group android.permission-group.ACCOUNTS
+09-05 22:18:19.796   973   973 W PackageManager: Permission com.google.android.googleapps.permission.GOOGLE_AUTH.mail from package com.google.android.gsf in an unknown group android.permission-group.ACCOUNTS
+09-05 22:18:19.796   973   973 W PackageManager: Permission com.google.android.googleapps.permission.GOOGLE_AUTH.cl from package com.google.android.gsf in an unknown group android.permission-group.ACCOUNTS
+09-05 22:18:19.796   973   973 W PackageManager: Permission com.google.android.googleapps.permission.GOOGLE_AUTH.android from package com.google.android.gsf in an unknown group android.permission-group.ACCOUNTS
+09-05 22:18:19.796   973   973 W PackageManager: Permission com.google.android.googleapps.permission.GOOGLE_AUTH.androidsecure from package com.google.android.gsf in an unknown group android.permission-group.ACCOUNTS
+09-05 22:18:19.796   973   973 W PackageManager: Permission com.google.android.googleapps.permission.GOOGLE_AUTH.sierra from package com.google.android.gsf in an unknown group android.permission-group.ACCOUNTS
+09-05 22:18:19.796   973   973 W PackageManager: Permission com.google.android.googleapps.permission.GOOGLE_AUTH.sierraqa from package com.google.android.gsf in an unknown group android.permission-group.ACCOUNTS
+09-05 22:18:19.796   973   973 W PackageManager: Permission com.google.android.googleapps.permission.GOOGLE_AUTH.sierrasandbox from package com.google.android.gsf in an unknown group android.permission-group.ACCOUNTS
+09-05 22:18:19.796   973   973 W PackageManager: Permission com.google.android.googleapps.permission.GOOGLE_AUTH.youtube from package com.google.android.gsf in an unknown group android.permission-group.ACCOUNTS
+09-05 22:18:19.796   973   973 W PackageManager: Permission com.google.android.googleapps.permission.GOOGLE_AUTH.YouTubeUser from package com.google.android.gsf in an unknown group android.permission-group.ACCOUNTS
+09-05 22:18:19.796   973   973 W PackageManager: Permission com.google.android.googleapps.permission.GOOGLE_AUTH.talk from package com.google.android.gsf in an unknown group android.permission-group.ACCOUNTS
+09-05 22:18:19.797   973   973 W PackageManager: Permission com.google.android.googleapps.permission.GOOGLE_AUTH.ig from package com.google.android.gsf in an unknown group android.permission-group.ACCOUNTS
+09-05 22:18:19.797   973   973 W PackageManager: Permission com.google.android.googleapps.permission.GOOGLE_AUTH.lh2 from package com.google.android.gsf in an unknown group android.permission-group.ACCOUNTS
+09-05 22:18:19.797   973   973 W PackageManager: Permission com.google.android.googleapps.permission.GOOGLE_AUTH.mobile from package com.google.android.gsf in an unknown group android.permission-group.ACCOUNTS
+09-05 22:18:19.797   973   973 W PackageManager: Permission com.google.android.googleapps.permission.GOOGLE_AUTH.cp from package com.google.android.gsf in an unknown group android.permission-group.ACCOUNTS
+09-05 22:18:19.797   973   973 W PackageManager: Permission com.google.android.googleapps.permission.GOOGLE_AUTH.adsense from package com.google.android.gsf in an unknown group android.permission-group.ACCOUNTS
+09-05 22:18:19.797   973   973 W PackageManager: Permission com.google.android.googleapps.permission.GOOGLE_AUTH.adwords from package com.google.android.gsf in an unknown group android.permission-group.ACCOUNTS
+09-05 22:18:19.797   973   973 W PackageManager: Permission com.google.android.googleapps.permission.GOOGLE_AUTH.blogger from package com.google.android.gsf in an unknown group android.permission-group.ACCOUNTS
+09-05 22:18:19.797   973   973 W PackageManager: Permission com.google.android.googleapps.permission.GOOGLE_AUTH.dodgeball from package com.google.android.gsf in an unknown group android.permission-group.ACCOUNTS
+09-05 22:18:19.797   973   973 W PackageManager: Permission com.google.android.googleapps.permission.GOOGLE_AUTH.gbase from package com.google.android.gsf in an unknown group android.permission-group.ACCOUNTS
+09-05 22:18:19.797   973   973 W PackageManager: Permission com.google.android.googleapps.permission.GOOGLE_AUTH.groups2 from package com.google.android.gsf in an unknown group android.permission-group.ACCOUNTS
+09-05 22:18:19.797   973   973 W PackageManager: Permission com.google.android.googleapps.permission.GOOGLE_AUTH.health from package com.google.android.gsf in an unknown group android.permission-group.ACCOUNTS
+09-05 22:18:19.797   973   973 W PackageManager: Permission com.google.android.googleapps.permission.GOOGLE_AUTH.jotspot from package com.google.android.gsf in an unknown group android.permission-group.ACCOUNTS
+09-05 22:18:19.797   973   973 W PackageManager: Permission com.google.android.googleapps.permission.GOOGLE_AUTH.knol from package com.google.android.gsf in an unknown group android.permission-group.ACCOUNTS
+09-05 22:18:19.797   973   973 W PackageManager: Permission com.google.android.googleapps.permission.GOOGLE_AUTH.news from package com.google.android.gsf in an unknown group android.permission-group.ACCOUNTS
+09-05 22:18:19.797   973   973 W PackageManager: Permission com.google.android.googleapps.permission.GOOGLE_AUTH.orkut from package com.google.android.gsf in an unknown group android.permission-group.ACCOUNTS
+09-05 22:18:19.797   973   973 W PackageManager: Permission com.google.android.googleapps.permission.GOOGLE_AUTH.print from package com.google.android.gsf in an unknown group android.permission-group.ACCOUNTS
+09-05 22:18:19.797   973   973 W PackageManager: Permission com.google.android.googleapps.permission.GOOGLE_AUTH.sitemaps from package com.google.android.gsf in an unknown group android.permission-group.ACCOUNTS
+09-05 22:18:19.797   973   973 W PackageManager: Permission com.google.android.googleapps.permission.GOOGLE_AUTH.wifi from package com.google.android.gsf in an unknown group android.permission-group.ACCOUNTS
+09-05 22:18:19.797   973   973 W PackageManager: Permission com.google.android.googleapps.permission.GOOGLE_AUTH.finance from package com.google.android.gsf in an unknown group android.permission-group.ACCOUNTS
+09-05 22:18:19.797   973   973 W PackageManager: Permission com.google.android.googleapps.permission.GOOGLE_AUTH.local from package com.google.android.gsf in an unknown group android.permission-group.ACCOUNTS
+09-05 22:18:19.798   973   973 W PackageManager: Permission com.google.android.googleapps.permission.GOOGLE_AUTH.ah from package com.google.android.gsf in an unknown group android.permission-group.ACCOUNTS
+09-05 22:18:19.798   973   973 W PackageManager: Permission com.google.android.googleapps.permission.GOOGLE_AUTH.notebook from package com.google.android.gsf in an unknown group android.permission-group.ACCOUNTS
+09-05 22:18:19.798   973   973 W PackageManager: Permission com.google.android.googleapps.permission.GOOGLE_AUTH.writely from package com.google.android.gsf in an unknown group android.permission-group.ACCOUNTS
+09-05 22:18:19.798   973   973 W PackageManager: Permission com.google.android.googleapps.permission.GOOGLE_AUTH.wise from package com.google.android.gsf in an unknown group android.permission-group.ACCOUNTS
+09-05 22:18:19.798   973   973 W PackageManager: Permission com.google.android.googleapps.permission.GOOGLE_AUTH.grandcentral from package com.google.android.gsf in an unknown group android.permission-group.ACCOUNTS
+09-05 22:18:19.798   973   973 W PackageManager: Permission com.google.android.googleapps.permission.GOOGLE_AUTH.speechpersonalization from package com.google.android.gsf in an unknown group android.permission-group.ACCOUNTS
+09-05 22:18:19.798   973   973 W PackageManager: Permission com.google.android.googleapps.permission.GOOGLE_AUTH.speech from package com.google.android.gsf in an unknown group android.permission-group.ACCOUNTS
+09-05 22:18:19.798   973   973 W PackageManager: Permission com.google.android.providers.talk.permission.READ_ONLY from package com.google.android.gsf in an unknown group android.permission-group.MESSAGES
+09-05 22:18:19.798   973   973 W PackageManager: Permission com.google.android.providers.talk.permission.WRITE_ONLY from package com.google.android.gsf in an unknown group android.permission-group.MESSAGES
+09-05 22:18:19.798   973   973 W PackageManager: Permission com.google.android.gtalkservice.permission.GTALK_SERVICE from package com.google.android.gsf in an unknown group android.permission-group.MESSAGES
+09-05 22:18:19.798   973   973 W PackageManager: Permission com.google.android.gtalkservice.permission.SEND_HEARTBEAT from package com.google.android.gsf in an unknown group android.permission-group.NETWORK
+09-05 22:18:19.798   973   973 W PackageManager: Permission com.google.android.permission.BROADCAST_DATA_MESSAGE from package com.google.android.gsf in an unknown group android.permission-group.NETWORK
+09-05 22:18:19.798   973   973 W PackageManager: Permission com.google.android.c2dm.permission.SEND from package com.google.android.gsf in an unknown group android.permission-group.NETWORK
+09-05 22:18:19.798   973   973 W PackageManager: Permission com.google.android.c2dm.permission.RECEIVE from package com.google.android.gsf in an unknown group android.permission-group.NETWORK
+09-05 22:18:19.798   973   973 W PackageManager: Permission com.google.android.xmpp.permission.BROADCAST from package com.google.android.gsf in an unknown group android.permission-group.NETWORK
+09-05 22:18:19.799   973   973 W PackageManager: Permission com.google.android.xmpp.permission.SEND_RECEIVE from package com.google.android.gsf in an unknown group android.permission-group.NETWORK
+09-05 22:18:19.799   973   973 W PackageManager: Permission com.google.android.xmpp.permission.XMPP_ENDPOINT_BROADCAST from package com.google.android.gsf in an unknown group android.permission-group.NETWORK
+09-05 22:18:19.799   973   973 W PackageManager: Permission com.google.android.xmpp.permission.USE_XMPP_ENDPOINT from package com.google.android.gsf in an unknown group android.permission-group.NETWORK
+09-05 22:18:19.799   973   973 W PackageManager: Permission com.google.android.providers.gsf.permission.READ_GSERVICES from package com.google.android.gsf in an unknown group android.permission-group.ACCOUNTS
+09-05 22:18:19.832   973   973 W PackageManager: Permission com.android.launcher.permission.INSTALL_SHORTCUT from package com.android.launcher3 in an unknown group android.permission-group.SYSTEM_TOOLS
+09-05 22:18:19.832   973   973 W PackageManager: Permission com.android.launcher3.permission.READ_SETTINGS from package com.android.launcher3 in an unknown group android.permission-group.SYSTEM_TOOLS
+09-05 22:18:19.832   973   973 W PackageManager: Permission com.android.launcher3.permission.WRITE_SETTINGS from package com.android.launcher3 in an unknown group android.permission-group.SYSTEM_TOOLS
+09-05 22:18:20.304   973   973 W PackageManager: Permission com.android.vending.CHECK_LICENSE from package com.android.vending in an unknown group android.permission-group.NETWORK
+09-05 22:18:20.304   973   973 W PackageManager: Permission com.android.vending.BILLING from package com.android.vending in an unknown group android.permission-group.NETWORK
+09-05 22:18:20.671   973  1134 W PackageParser: Ignoring duplicate uses-permissions/uses-permissions-sdk-m: android.permission.USE_CREDENTIALS in package: com.android.settings at: Binary XML file line #55
+09-05 22:18:20.671   973  1134 W PackageParser: Ignoring duplicate uses-permissions/uses-permissions-sdk-m: android.permission.READ_SYNC_SETTINGS in package: com.android.settings at: Binary XML file line #60
+09-05 22:18:20.671   973  1134 W PackageParser: Ignoring duplicate uses-permissions/uses-permissions-sdk-m: android.permission.WRITE_SYNC_SETTINGS in package: com.android.settings at: Binary XML file line #61
+09-05 22:18:20.926   973  1134 W PackageParser: No actions in intent filter at /system/priv-app/SetupWizard/SetupWizard.apk Binary XML file line #184
+09-05 22:18:20.971   973  1134 W PackageParser: Ignoring duplicate uses-permissions/uses-permissions-sdk-m: android.permission.INSTALL_GRANT_RUNTIME_PERMISSIONS in package: com.android.shell at: Binary XML file line #101
+09-05 22:18:21.124   973  1134 W PackageParser: Ignoring duplicate uses-permissions/uses-permissions-sdk-m: android.permission.CONFIGURE_WIFI_DISPLAY in package: com.android.systemui at: Binary XML file line #120
+09-05 22:18:21.774   973  1134 W PackageParser: Ignoring duplicate uses-permissions/uses-permissions-sdk-m: android.permission.READ_PHONE_STATE in package: com.google.android.googlequicksearchbox at: Binary XML file line #891
+09-05 22:18:21.774   973  1134 W PackageParser: Ignoring duplicate uses-permissions/uses-permissions-sdk-m: android.permission.CAMERA in package: com.google.android.googlequicksearchbox at: Binary XML file line #892
+09-05 22:18:21.879   973  1134 W PackageParser: Ignoring duplicate uses-permissions/uses-permissions-sdk-m: android.permission.READ_CONTACTS in package: com.android.bluetooth at: Binary XML file line #58
+09-05 22:18:21.879   973   973 W PackageManager: Permission com.google.android.launcher.permission.READ_SETTINGS from package com.google.android.googlequicksearchbox in an unknown group android.permission-group.SYSTEM_TOOLS
+09-05 22:18:21.880   973   973 W PackageManager: Permission com.google.android.launcher.permission.WRITE_SETTINGS from package com.google.android.googlequicksearchbox in an unknown group android.permission-group.SYSTEM_TOOLS
+09-05 22:18:21.880   973   973 W PackageManager: Permission com.android.launcher.permission.INSTALL_SHORTCUT from package com.google.android.googlequicksearchbox in an unknown group android.permission-group.SYSTEM_TOOLS
+09-05 22:18:21.883   973  1134 W PackageParser: No actions in intent filter at /system/app/Bluetooth/Bluetooth.apk Binary XML file line #216
+09-05 22:18:22.458   973   973 W PackageManager: Permission com.android.chrome.permission.DEBUG from package com.android.chrome in an unknown group android.permission-group.DEVELOPMENT_TOOLS
+09-05 22:18:22.529   973  1134 W PackageParser: Unknown element under <manifest>: user-permission at /system/app/DragonAging/DragonAging.apk Binary XML file line #26
+09-05 22:18:22.562   973  1134 W PackageParser: Unknown element under <manifest>: user-permission at /system/app/DragonFire/DragonFire.apk Binary XML file line #27
+09-05 22:18:22.989   973   973 W PackageManager: Permission com.google.android.apps.docs.permission.READ_MY_DATA from package com.google.android.apps.docs in an unknown group android.permission-group.PERSONAL_INFO
+09-05 22:18:22.989   973   973 W PackageManager: Permission com.google.android.apps.docs.permission.SYNC_STATUS from package com.google.android.apps.docs in an unknown group android.permission-group.PERSONAL_INFO
+09-05 22:18:23.285   973  1134 W PackageParser: No actions in intent filter at /system/app/Gmail2/Gmail2.apk Binary XML file line #260
+09-05 22:18:23.366   973   973 W PackageManager: Permission com.google.android.gm.email.permission.READ_ATTACHMENT from package com.google.android.gm in an unknown group android.permission-group.MESSAGES
+09-05 22:18:23.366   973   973 W PackageManager: Permission com.google.android.gm.permission.READ_GMAIL from package com.google.android.gm in an unknown group android.permission-group.MESSAGES
+09-05 22:18:23.366   973   973 W PackageManager: Permission com.google.android.gm.permission.WRITE_GMAIL from package com.google.android.gm in an unknown group android.permission-group.MESSAGES
+09-05 22:18:23.366   973   973 W PackageManager: Permission com.google.android.gm.permission.AUTO_SEND from package com.google.android.gm in an unknown group android.permission-group.MESSAGES
+09-05 22:18:23.366   973   973 W PackageManager: Permission com.google.android.gm.permission.READ_CONTENT_PROVIDER from package com.google.android.gm in an unknown group android.permission-group.MESSAGES
+09-05 22:18:24.680   973  1134 W PackageParser: Ignoring duplicate uses-permissions/uses-permissions-sdk-m: android.permission.WAKE_LOCK in package: com.google.android.apps.maps at: Binary XML file line #108
+09-05 22:18:25.509   973  1134 W PackageParser: Problem in package /system/app/Photos/Photos.apk:
+09-05 22:18:25.509   973  1134 W PackageParser: Unknown element under <activity>: category at /system/app/Photos/Photos.apk Binary XML file line #1146
+09-05 22:18:26.356   973   973 D PackageManager: No files in app dir /data/app-private
+09-05 22:18:26.398   973  1209 W PackageParser: Unknown element under <manifest>: receiver at /data/app/zausan.zdevicetest-1/base.apk Binary XML file line #353
+09-05 22:18:26.434   973   973 I SELinux : SELinux: Loaded file_contexts contexts from /file_contexts.
+09-05 22:18:26.602   973   973 W PackageManager: Package com.google.android.gms desires unavailable shared library com.google.android.ble; ignoring!
+09-05 22:18:26.602   973   973 I PackageManager: Adjusting ABI for : com.google.android.backuptransport to armeabi-v7a
+09-05 22:18:26.612   973   973 I PackageManager: Adjusting ABI for : com.google.android.gsf to armeabi-v7a
+09-05 22:18:26.613   973   973 I PackageManager: Adjusting ABI for : com.google.android.gsf.login to armeabi-v7a
+09-05 22:18:26.614   973   973 I PackageManager: Adjusting ABI for : com.android.inputdevices to armeabi-v7a
+09-05 22:18:26.614   973   973 I PackageManager: Adjusting ABI for : com.android.location.fused to armeabi-v7a
+09-05 22:18:26.614   973   973 I PackageManager: Adjusting ABI for : com.android.server.telecom to armeabi-v7a
+09-05 22:18:26.615   973   973 I PackageManager: Adjusting ABI for : com.android.keychain to armeabi-v7a
+09-05 22:18:26.615   973   973 I PackageManager: Adjusting ABI for : com.softwinner.dragonphone to armeabi-v7a
+09-05 22:18:26.615   973   973 I PackageManager: Adjusting ABI for : com.android.settings to armeabi-v7a
+09-05 22:18:26.616   973   973 I PackageManager: Adjusting ABI for : com.android.providers.settings to armeabi-v7a
+09-05 22:18:26.620   973   973 I PackageManager: Time to scan packages: 9.421 seconds
+09-05 22:18:26.621   973   973 W PackageManager: Not granting permission android.permission.MANAGE_DOCUMENTS to package com.google.android.youtube (protectionLevel=2 flags=0x38583e45)
+09-05 22:18:26.622   973   973 W PackageManager: Unknown permission com.google.android.voicesearch.SHORTCUTS_ACCESS in package com.google.android.googlequicksearchbox
+09-05 22:18:26.623   973   973 W PackageManager: Unknown permission com.google.android.voicesearch.ACCESS_SETTINGS in package com.google.android.googlequicksearchbox
+09-05 22:18:26.623   973   973 W PackageManager: Unknown permission com.android.browser.permission.PRELOAD in package com.google.android.googlequicksearchbox
+09-05 22:18:26.623   973   973 W PackageManager: Unknown permission com.google.android.ears.permission.WRITE in package com.google.android.googlequicksearchbox
+09-05 22:18:26.623   973   973 W PackageManager: Unknown permission com.google.android.apps.googlevoice.permission.AUTO_SEND in package com.google.android.googlequicksearchbox
+09-05 22:18:26.623   973   973 W PackageManager: Unknown permission com.android.chrome.PRERENDER_URL in package com.google.android.googlequicksearchbox
+09-05 22:18:26.623   973   973 W PackageManager: Unknown permission com.google.android.launcher.permission.CONTENT_REDIRECT in package com.google.android.googlequicksearchbox
+09-05 22:18:26.624   973   973 W PackageManager: Not granting permission com.google.android.googleapps.permission.GOOGLE_AUTH to package com.android.providers.calendar (protectionLevel=2 flags=0x30083e45)
+09-05 22:18:26.624   973   973 W PackageManager: Not granting permission com.google.android.googleapps.permission.GOOGLE_AUTH.cl to package com.android.providers.calendar (protectionLevel=2 flags=0x30083e45)
+09-05 22:18:26.624   973   973 W PackageManager: Not granting permission android.permission.SEND_DOWNLOAD_COMPLETED_INTENTS to package com.android.vending (protectionLevel=2 flags=0x384abe45)
+09-05 22:18:26.624   973   973 W PackageManager: Unknown permission android.permission.SEND_SMS_NO_CONFIRMATION in package com.android.vending
+09-05 22:18:26.625   973   973 I PackageManager: Un-granting permission android.permission.INSTALL_GRANT_RUNTIME_PERMISSIONS from package com.android.vending (protectionLevel=770 flags=0x384abe45)
+09-05 22:18:26.625   973   973 I PackageManager: Un-granting permission android.permission.GRANT_RUNTIME_PERMISSIONS from package com.android.vending (protectionLevel=770 flags=0x384abe45)
+09-05 22:18:26.625   973   973 I PackageManager: Un-granting permission android.permission.REVOKE_RUNTIME_PERMISSIONS from package com.android.vending (protectionLevel=770 flags=0x384abe45)
+09-05 22:18:26.625   973   973 W PackageManager: Not granting permission android.permission.BIND_WALLPAPER to package com.android.camera2 (protectionLevel=18 flags=0x3058bc45)
+09-05 22:18:26.626   973   973 W PackageManager: Unknown permission com.android.launcher.permission.READ_SETTINGS in package com.android.launcher3
+09-05 22:18:26.626   973   973 W PackageManager: Unknown permission com.android.launcher.permission.WRITE_SETTINGS in package com.android.launcher3
+09-05 22:18:26.626   973   973 W PackageManager: Unknown permission com.google.android.calendar.permission.READ_OOBE in package com.google.android.gm
+09-05 22:18:26.626   973   973 W PackageManager: Unknown permission com.google.android.email.permission.ACCESS_PROVIDER in package com.google.android.gm
+09-05 22:18:26.626   973   973 W PackageManager: Unknown permission com.google.android.gm.exchange.BIND in package com.google.android.gm
+09-05 22:18:26.626   973   973 W PackageManager: Unknown permission com.android.email.partnerprovider.PARTNER_PROVIDER in package com.google.android.gm
+09-05 22:18:26.626   973   973 W PackageManager: Not granting permission com.google.android.googleapps.permission.GOOGLE_AUTH.mail to package com.android.calendar (protectionLevel=2 flags=0x3009be45)
+09-05 22:18:26.627   973   973 W PackageManager: Unknown permission android.permission.READ_OWNER_DATA in package com.google.android.setupwizard
+09-05 22:18:26.627   973   973 W PackageManager: Unknown permission android.permission.WRITE_OWNER_DATA in package com.google.android.setupwizard
+09-05 22:18:26.627   973   973 W PackageManager: Not granting permission android.permission.WRITE_MEDIA_STORAGE to package com.estrongs.android.pop (protectionLevel=18 flags=0x3848be44)
+09-05 22:18:26.627   973   973 W PackageManager: Unknown permission android.permission.ACCESS_SUPERUSER in package com.estrongs.android.pop
+09-05 22:18:26.627   973   973 W PackageManager: Unknown permission .PERMISSION in package com.estrongs.android.pop
+09-05 22:18:26.628   973   973 W PackageManager: Unknown permission android.permission.WRITE_SYNC_STATS in package com.google.android.apps.docs
+09-05 22:18:26.628   973   973 W PackageManager: Not granting permission android.permission.INTERACT_ACROSS_USERS to package com.google.android.syncadapters.contacts (protectionLevel=50 flags=0x38083e45)
+09-05 22:18:26.628   973   973 W PackageManager: Unknown permission com.chrome.permission.DEVICE_EXTRAS in package com.android.chrome
+09-05 22:18:26.628   973   973 W PackageManager: Unknown permission com.sec.enterprise.knox.MDM_CONTENT_PROVIDER in package com.android.chrome
+09-05 22:18:26.629   973   973 I PackageManager: Un-granting permission android.permission.CLEAR_APP_USER_DATA from package com.google.android.packageinstaller (protectionLevel=258 flags=0x38483e45)
+09-05 22:18:26.629   973   973 I PackageManager: Un-granting permission android.permission.GRANT_RUNTIME_PERMISSIONS from package com.google.android.packageinstaller (protectionLevel=770 flags=0x38483e45)
+09-05 22:18:26.629   973   973 I PackageManager: Un-granting permission android.permission.REVOKE_RUNTIME_PERMISSIONS from package com.google.android.packageinstaller (protectionLevel=770 flags=0x38483e45)
+09-05 22:18:26.629   973   973 I PackageManager: Un-granting permission android.permission.INSTALL_GRANT_RUNTIME_PERMISSIONS from package com.google.android.packageinstaller (protectionLevel=770 flags=0x38483e45)
+09-05 22:18:26.629   973   973 I PackageManager: Un-granting permission android.permission.INTERACT_ACROSS_USERS_FULL from package com.google.android.packageinstaller (protectionLevel=258 flags=0x38483e45)
+09-05 22:18:26.629   973   973 I PackageManager: Un-granting permission android.permission.KILL_UID from package com.google.android.packageinstaller (protectionLevel=258 flags=0x38483e45)
+09-05 22:18:26.630   973   973 W PackageManager: Unknown permission com.google.android.apps.enterprise.dmagent.permission.AutoSyncPermission in package com.google.android.gms
+09-05 22:18:26.630   973   973 W PackageManager: Unknown permission com.google.android.wearable.READ_SETTINGS in package com.google.android.gms
+09-05 22:18:26.631   973   973 W PackageManager: Unknown permission com.android.launcher.permission.PRELOAD_WORKSPACE in package com.google.android.partnersetup
+09-05 22:18:26.631   973   973 W PackageManager: Not granting permission com.google.android.googleapps.permission.GOOGLE_AUTH to package com.google.android.videos (protectionLevel=2 flags=0x3859be45)
+09-05 22:18:26.631   973   973 W PackageManager: Unknown permission com.google.android.gallery3d.permission.PICASA_STORE in package com.google.android.apps.photos
+09-05 22:18:26.631   973   973 W PackageManager: Not granting permission android.permission.WRITE_MEDIA_STORAGE to package com.google.android.apps.photos (protectionLevel=18 flags=0x3858be45)
+09-05 22:18:26.632   973   973 W PackageManager: Unknown permission com.google.android.gallery3d.permission.PICASA_STORE in package com.android.dreams.phototable
+09-05 22:18:26.632   973   973 W PackageManager: Not granting permission android.permission.CONTROL_KEYGUARD to package com.google.android.gsf.login (protectionLevel=2 flags=0x3048be45)
+09-05 22:18:26.632   973   973 W PackageManager: Unknown permission com.android.vending.billing.IBillingAccountService.BIND2 in package com.google.android.gsf.login
+09-05 22:18:26.632   973   973 W PackageManager: Not granting permission android.permission.READ_LOGS to package com.softwinner.fireplayer (protectionLevel=50 flags=0x3808be44)
+09-05 22:18:26.632   973   973 W PackageManager: Unknown permission com.android.launcher.permission.READ_SETTINGS in package com.android.settings
+09-05 22:18:26.633   973   973 W PackageManager: Unknown permission com.android.launcher.permission.WRITE_SETTINGS in package com.android.settings
+09-05 22:18:26.633   973   973 W PackageManager: Not granting permission android.permission.ACCESS_MOCK_LOCATION to package zausan.zdevicetest (protectionLevel=2 flags=0x1808be44)
+09-05 22:18:26.633   973   973 W PackageManager: Not granting permission android.permission.CONTROL_LOCATION_UPDATES to package zausan.zdevicetest (protectionLevel=18 flags=0x1808be44)
+09-05 22:18:26.633   973   973 W PackageManager: Unknown permission com.dsi.ant.permission.ANT in package zausan.zdevicetest
+09-05 22:18:26.633   973   973 W PackageManager: Unknown permission com.dsi.ant.permission.ANT_ADMIN in package zausan.zdevicetest
+09-05 22:18:26.634   973   973 W PackageManager: Not granting permission android.permission.REGISTER_CONNECTION_MANAGER to package com.google.android.talk (protectionLevel=18 flags=0x3849be45)
+09-05 22:18:26.635   973   973 W PackageManager: Unknown permission com.google.android.gallery3d.permission.GALLERY_PROVIDER in package com.android.bluetooth
+09-05 22:18:26.635   973   973 W PackageManager: Unknown permission com.android.gallery3d.permission.GALLERY_PROVIDER in package com.android.bluetooth
+09-05 22:18:26.748   973   973 I art     : Starting a blocking GC Explicit
+09-05 22:18:26.789   973   973 I art     : Explicit concurrent mark sweep GC freed 20831(1404KB) AllocSpace objects, 2(40KB) LOS objects, 33% free, 4MB/7MB, paused 664us total 41.031ms
+09-05 22:18:26.791   973   973 I SystemServer: User Service
+09-05 22:18:26.815   148   148 I lowmemorykiller: ActivityManager connected
+09-05 22:18:26.817   973   973 D SensorService: nuSensorService starting...
+09-05 22:18:26.929   973   973 E AccelSensors: AccelSensor : set EVIOCSCLOCKID = 7
+09-05 22:18:27.409   973   973 I SystemServer: first boot preinstall
+09-05 22:18:27.409   973  1212 D SensorService: new thread SensorEventAckReceiver
+09-05 22:18:27.409   973   973 I SystemServiceManager: Starting com.android.server.BatteryService
+09-05 22:18:27.410   973  1213 D SensorService: nuSensorService thread starting...
+09-05 22:18:27.428   973   973 I SystemServiceManager: Starting com.android.server.usage.UsageStatsService
+09-05 22:18:27.429   973  1076 E KernelUidCpuTimeReader: Failed to read uid_cputime: /proc/uid_cputime/show_uid_stat: open failed: ENOENT (No such file or directory)
+09-05 22:18:27.462   973   973 I SystemServiceManager: Starting com.android.server.webkit.WebViewUpdateService
+09-05 22:18:27.473   973   973 I SystemServer: Reading configuration...
+09-05 22:18:27.473   973   973 I SystemServer: Scheduling Policy
+09-05 22:18:27.475   973   973 I SystemServiceManager: Starting com.android.server.telecom.TelecomLoaderService
+09-05 22:18:27.482   973   973 I SystemServer: Telephony Registry
+09-05 22:18:27.503   973   973 I SystemServer: Entropy Mixer
+09-05 22:18:27.509   973   973 I EntropyMixer: Writing entropy...
+09-05 22:18:27.513   973   973 I SystemServer: Camera Service
+09-05 22:18:27.516   973   973 I SystemServiceManager: Starting com.android.server.camera.CameraService
+09-05 22:18:27.543   973   973 I SystemServer: Account Manager
+09-05 22:18:27.556   973   973 I SystemServer: Content Manager
+09-05 22:18:27.571   973   973 I SystemServer: System Content Providers
+09-05 22:18:27.579   973   973 W System  : ClassLoader referenced unknown path: /system/priv-app/SettingsProvider/lib/arm
+09-05 22:18:27.644   973   973 I SystemServer: Vibrator Service
+09-05 22:18:27.647   973  1217 I DynamicPManagerService: sayeye has connected
+09-05 22:18:27.649   973   973 I SystemServer: Consumer IR Service
+09-05 22:18:27.650   973   973 E ConsumerIrService: Can't open consumer IR HW Module, error: -2
+09-05 22:18:27.651   973   973 I SystemServiceManager: Starting com.android.server.AlarmManagerService
+09-05 22:18:27.663   973   973 D AlarmManagerService: Kernel timezone updated to -480 minutes west of GMT
+09-05 22:18:27.677   973   973 I SystemServer: Init Watchdog
+09-05 22:18:27.677   973   973 I SystemServer: Input Manager
+09-05 22:18:27.679   973   973 I InputManager: Initializing input manager, mUseDevInputEventForAudioJack=false
+09-05 22:18:27.691   973   973 I SystemServer: Window Manager
+09-05 22:18:27.740   287   287 W Binder_1: type=1400 audit(0.0:8): avc: denied { ioctl } for path="socket:[6271]" dev="sockfs" ino=6271 ioctlcmd=7704 scontext=u:r:surfaceflinger:s0 tcontext=u:r:surfaceflinger:s0 tclass=unix_stream_socket permissive=0
+09-05 22:18:27.740   287   287 W Binder_1: type=1400 audit(0.0:9): avc: denied { ioctl } for path="socket:[6271]" dev="sockfs" ino=6271 ioctlcmd=7704 scontext=u:r:surfaceflinger:s0 tcontext=u:r:surfaceflinger:s0 tclass=unix_stream_socket permissive=0
+09-05 22:18:27.759   973  1102 I WindowManager: No existing display settings /data/system/display_settings.xml; starting empty
+09-05 22:18:27.887   973   973 I InputManager: Starting input manager
+09-05 22:18:27.890   973   973 I InputManager-JNI: Setting show touches feature to enabled.
+09-05 22:18:27.891   973   973 I SystemServer: Bluetooth Service
+09-05 22:18:27.891   973   973 I SystemServiceManager: Starting com.android.server.BluetoothService
+09-05 22:18:27.894   973  1220 I EventHub: New device: id=1, fd=79, path='/dev/input/event5', name='gt9xxf_ts', classes=0x14, configuration='/system/usr/idc/tp.idc', keyLayout='', keyCharacterMap='', builtinKeyboard=false, wakeMechanism=EVIOCSSUSPENDBLOCK, usingClockIoctl=true
+09-05 22:18:27.894   973  1220 D EventHub: No input device configuration file found for device 'lis3dh_acc'.
+09-05 22:18:27.912   973   973 D BluetoothService: onStart: publishing BluetoothManagerService
+09-05 22:18:27.914   973   973 I SystemServer: Input Method Service
+09-05 22:18:27.957   973  1220 D EventHub: No input device configuration file found for device 'sunxi-keyboard'.
+09-05 22:18:27.968   973  1220 W EventHub: Unable to disable kernel key repeat for /dev/input/event3: Function not implemented
+09-05 22:18:27.969   973  1220 I EventHub: New device: id=3, fd=81, path='/dev/input/event3', name='sunxi-keyboard', classes=0x1, configuration='', keyLayout='/system/usr/keylayout/sunxi-keyboard.kl', keyCharacterMap='/system/usr/keychars/Generic.kcm', builtinKeyboard=false, wakeMechanism=EVIOCSSUSPENDBLOCK, usingClockIoctl=true
+09-05 22:18:27.970   973  1220 D EventHub: No input device configuration file found for device 'axp22-supplyer'.
+09-05 22:18:27.980   973  1220 W EventHub: Unable to disable kernel key repeat for /dev/input/event0: Function not implemented
+09-05 22:18:27.980   973  1220 I EventHub: New device: id=4, fd=83, path='/dev/input/event0', name='axp22-supplyer', classes=0x1, configuration='', keyLayout='/system/usr/keylayout/Generic.kl', keyCharacterMap='/system/usr/keychars/Generic.kcm', builtinKeyboard=false, wakeMechanism=EVIOCSSUSPENDBLOCK, usingClockIoctl=true
+09-05 22:18:27.981   973  1220 D EventHub: No input device configuration file found for device 'sunxi-ths'.
+09-05 22:18:27.990   973   973 I SystemServer: Accessibility Manager
+09-05 22:18:28.013   973   973 I ActivityManager: Config changes=1df8 {1.0 ?mcc?mnc zh_CN ldltr sw540dp w540dp h961dp 213dpi lrg long port ?uimode ?night -touch -keyb/v/h -nav/h s.2}
+09-05 22:18:28.037   973   973 I ActivityManager: Config changes=400 {1.0 ?mcc?mnc zh_CN ldltr sw540dp w540dp h889dp 213dpi lrg long port ?uimode ?night -touch -keyb/v/h -nav/h s.3}
+09-05 22:18:28.040   973   973 I SystemServiceManager: Starting com.android.server.MountService$Lifecycle
+09-05 22:18:28.052   973  1221 D MountService: Thinking about reset, mSystemReady=false, mDaemonConnected=true
+09-05 22:18:28.052   973  1221 D MountService: Thinking about reset, mSystemReady=false, mDaemonConnected=true
+09-05 22:18:28.053   973  1221 D CryptdConnector: SND -> {1 cryptfs getfield SystemLocale}
+09-05 22:18:28.055   973   973 I SystemServiceManager: Starting com.android.server.UiModeManagerService
+09-05 22:18:28.057   973  1220 D EventHub: No input device configuration file found for device 'headset'.
+09-05 22:18:28.057   135   157 I Ext4Crypt: ext4 crypto complete called on /data
+09-05 22:18:28.057   135   157 I Ext4Crypt: No master key, so not ext4enc
+09-05 22:18:28.059   973  1223 D CryptdConnector: RCV <- {200 1 -1}
+09-05 22:18:28.060   973   973 I ActivityManager: Config changes=200 {1.0 ?mcc?mnc zh_CN ldltr sw540dp w540dp h889dp 213dpi lrg long port -touch -keyb/v/h -nav/h s.4}
+09-05 22:18:28.062   973  1221 W MountService: No primary storage mounted!
+09-05 22:18:28.062   973  1221 D VoldConnector: SND -> {1 asec list}
+09-05 22:18:28.065   973  1222 D VoldConnector: RCV <- {200 1 asec operation succeeded}
+09-05 22:18:28.066   973  1220 W EventHub: Unable to disable kernel key repeat for /dev/input/event1: Function not implemented
+09-05 22:18:28.066   973  1220 I EventHub: New device: id=6, fd=90, path='/dev/input/event1', name='headset', classes=0x1, configuration='', keyLayout='/system/usr/keylayout/Generic.kl', keyCharacterMap='/system/usr/keychars/Generic.kcm', builtinKeyboard=false, wakeMechanism=EVIOCSSUSPENDBLOCK, usingClockIoctl=true
+09-05 22:18:28.067   973  1220 E EventHub: could not get driver version for /dev/input/mice, Not a typewriter
+09-05 22:18:28.070   973  1221 I PackageManager: No secure containers found
+09-05 22:18:28.070   973  1221 W PackageManager: Not granting permission android.permission.MANAGE_DOCUMENTS to package com.google.android.youtube (protectionLevel=2 flags=0x38583e45)
+09-05 22:18:28.071   973  1221 W PackageManager: Unknown permission com.google.android.voicesearch.SHORTCUTS_ACCESS in package com.google.android.googlequicksearchbox
+09-05 22:18:28.071   973  1221 W PackageManager: Unknown permission com.google.android.voicesearch.ACCESS_SETTINGS in package com.google.android.googlequicksearchbox
+09-05 22:18:28.071   973  1221 W PackageManager: Unknown permission com.android.browser.permission.PRELOAD in package com.google.android.googlequicksearchbox
+09-05 22:18:28.071   973  1221 W PackageManager: Unknown permission com.google.android.ears.permission.WRITE in package com.google.android.googlequicksearchbox
+09-05 22:18:28.071   973  1221 W PackageManager: Unknown permission com.google.android.apps.googlevoice.permission.AUTO_SEND in package com.google.android.googlequicksearchbox
+09-05 22:18:28.071   973  1221 W PackageManager: Unknown permission com.android.chrome.PRERENDER_URL in package com.google.android.googlequicksearchbox
+09-05 22:18:28.071   973  1221 W PackageManager: Unknown permission com.google.android.launcher.permission.CONTENT_REDIRECT in package com.google.android.googlequicksearchbox
+09-05 22:18:28.072   973  1221 W PackageManager: Not granting permission com.google.android.googleapps.permission.GOOGLE_AUTH to package com.android.providers.calendar (protectionLevel=2 flags=0x30083e45)
+09-05 22:18:28.072   973  1221 W PackageManager: Not granting permission com.google.android.googleapps.permission.GOOGLE_AUTH.cl to package com.android.providers.calendar (protectionLevel=2 flags=0x30083e45)
+09-05 22:18:28.072   973  1221 W PackageManager: Not granting permission android.permission.SEND_DOWNLOAD_COMPLETED_INTENTS to package com.android.vending (protectionLevel=2 flags=0x384abe45)
+09-05 22:18:28.073   973  1221 W PackageManager: Unknown permission android.permission.SEND_SMS_NO_CONFIRMATION in package com.android.vending
+09-05 22:18:28.073   973  1221 W PackageManager: Not granting permission android.permission.BIND_WALLPAPER to package com.android.camera2 (protectionLevel=18 flags=0x3058bc45)
+09-05 22:18:28.074   973  1221 W PackageManager: Unknown permission com.android.launcher.permission.READ_SETTINGS in package com.android.launcher3
+09-05 22:18:28.074   973  1221 W PackageManager: Unknown permission com.android.launcher.permission.WRITE_SETTINGS in package com.android.launcher3
+09-05 22:18:28.074   973  1221 W PackageManager: Unknown permission com.google.android.calendar.permission.READ_OOBE in package com.google.android.gm
+09-05 22:18:28.074   973  1221 W PackageManager: Unknown permission com.google.android.email.permission.ACCESS_PROVIDER in package com.google.android.gm
+09-05 22:18:28.074   973  1221 W PackageManager: Unknown permission com.google.android.gm.exchange.BIND in package com.google.android.gm
+09-05 22:18:28.074   973  1221 W PackageManager: Unknown permission com.android.email.partnerprovider.PARTNER_PROVIDER in package com.google.android.gm
+09-05 22:18:28.074   973  1221 W PackageManager: Not granting permission com.google.android.googleapps.permission.GOOGLE_AUTH.mail to package com.android.calendar (protectionLevel=2 flags=0x3009be45)
+09-05 22:18:28.075   973  1221 W PackageManager: Unknown permission android.permission.READ_OWNER_DATA in package com.google.android.setupwizard
+09-05 22:18:28.075   973  1221 W PackageManager: Unknown permission android.permission.WRITE_OWNER_DATA in package com.google.android.setupwizard
+09-05 22:18:28.075   973  1221 W PackageManager: Not granting permission android.permission.WRITE_MEDIA_STORAGE to package com.estrongs.android.pop (protectionLevel=18 flags=0x3848be44)
+09-05 22:18:28.075   973  1221 W PackageManager: Unknown permission android.permission.ACCESS_SUPERUSER in package com.estrongs.android.pop
+09-05 22:18:28.075   973  1221 W PackageManager: Unknown permission .PERMISSION in package com.estrongs.android.pop
+09-05 22:18:28.075   973  1221 W PackageManager: Unknown permission android.permission.WRITE_SYNC_STATS in package com.google.android.apps.docs
+09-05 22:18:28.076   973   973 W PackageManager: No disk maintenance in 259956076; running immediately
+09-05 22:18:28.076   973  1221 W PackageManager: Not granting permission android.permission.INTERACT_ACROSS_USERS to package com.google.android.syncadapters.contacts (protectionLevel=50 flags=0x38883e45)
+09-05 22:18:28.076   973  1221 W PackageManager: Unknown permission com.chrome.permission.DEVICE_EXTRAS in package com.android.chrome
+09-05 22:18:28.077   973  1221 W PackageManager: Unknown permission com.sec.enterprise.knox.MDM_CONTENT_PROVIDER in package com.android.chrome
+09-05 22:18:28.078   973  1221 W PackageManager: Unknown permission com.google.android.apps.enterprise.dmagent.permission.AutoSyncPermission in package com.google.android.gms
+09-05 22:18:28.079   973  1221 W PackageManager: Unknown permission com.google.android.wearable.READ_SETTINGS in package com.google.android.gms
+09-05 22:18:28.081   973  1221 W PackageManager: Unknown permission com.android.launcher.permission.PRELOAD_WORKSPACE in package com.google.android.partnersetup
+09-05 22:18:28.082   973  1221 W PackageManager: Not granting permission com.google.android.googleapps.permission.GOOGLE_AUTH to package com.google.android.videos (protectionLevel=2 flags=0x3859be45)
+09-05 22:18:28.083   973  1221 W PackageManager: Unknown permission com.google.android.gallery3d.permission.PICASA_STORE in package com.google.android.apps.photos
+09-05 22:18:28.083   973  1221 W PackageManager: Not granting permission android.permission.WRITE_MEDIA_STORAGE to package com.google.android.apps.photos (protectionLevel=18 flags=0x3858be45)
+09-05 22:18:28.084   973  1221 W PackageManager: Unknown permission com.google.android.gallery3d.permission.PICASA_STORE in package com.android.dreams.phototable
+09-05 22:18:28.085   973  1221 W PackageManager: Not granting permission android.permission.CONTROL_KEYGUARD to package com.google.android.gsf.login (protectionLevel=2 flags=0x3048be45)
+09-05 22:18:28.086   973  1221 W PackageManager: Unknown permission com.android.vending.billing.IBillingAccountService.BIND2 in package com.google.android.gsf.login
+09-05 22:18:28.086   973  1221 W PackageManager: Not granting permission android.permission.READ_LOGS to package com.softwinner.fireplayer (protectionLevel=50 flags=0x3808be44)
+09-05 22:18:28.088   973  1221 W PackageManager: Unknown permission com.android.launcher.permission.READ_SETTINGS in package com.android.settings
+09-05 22:18:28.088   973  1221 W PackageManager: Unknown permission com.android.launcher.permission.WRITE_SETTINGS in package com.android.settings
+09-05 22:18:28.089   973  1221 W PackageManager: Not granting permission android.permission.ACCESS_MOCK_LOCATION to package zausan.zdevicetest (protectionLevel=2 flags=0x1808be44)
+09-05 22:18:28.089   973  1221 W PackageManager: Not granting permission android.permission.CONTROL_LOCATION_UPDATES to package zausan.zdevicetest (protectionLevel=18 flags=0x1808be44)
+09-05 22:18:28.089   973  1221 W PackageManager: Unknown permission com.dsi.ant.permission.ANT in package zausan.zdevicetest
+09-05 22:18:28.089   973  1221 W PackageManager: Unknown permission com.dsi.ant.permission.ANT_ADMIN in package zausan.zdevicetest
+09-05 22:18:28.090   973  1221 W PackageManager: Not granting permission android.permission.REGISTER_CONNECTION_MANAGER to package com.google.android.talk (protectionLevel=18 flags=0x3849be45)
+09-05 22:18:28.092   973  1075 I UsageStatsService: User[0] Rollover scheduled @ 2016-09-06 08:00:00(1473120000000)
+09-05 22:18:28.096   973  1221 W PackageManager: Unknown permission com.google.android.gallery3d.permission.GALLERY_PROVIDER in package com.android.bluetooth
+09-05 22:18:28.096   973  1221 W PackageManager: Unknown permission com.android.gallery3d.permission.GALLERY_PROVIDER in package com.android.bluetooth
+09-05 22:18:28.129   973  1220 I InputReader: Device added: id=-1, name='Virtual', sources=0x00000301
+09-05 22:18:28.129   973  1220 I InputReader: Device added: id=6, name='headset', sources=0x00000101
+09-05 22:18:28.129   973  1220 I InputReader: Device added: id=4, name='axp22-supplyer', sources=0x00000101
+09-05 22:18:28.129   973  1220 I InputReader: Device added: id=3, name='sunxi-keyboard', sources=0x00000101
+09-05 22:18:28.132   973  1220 I InputReader:   Touch device 'gt9xxf_ts' could not query the properties of its associated display.  The device will be inoperable until the display size becomes available.
+09-05 22:18:28.132   973  1220 I InputReader: Device added: id=1, name='gt9xxf_ts', sources=0x00001002
+09-05 22:18:28.133   973  1220 I InputReader: Reconfiguring input devices.  changes=0x0000000c
+09-05 22:18:28.178   973  1220 I InputReader: Device reconfigured: id=1, name='gt9xxf_ts', size 720x1280, orientation 0, mode 1, display id 0
+09-05 22:18:28.188   973  1219 I ActivityManager: Config changes=8 {1.0 ?mcc?mnc zh_CN ldltr sw540dp w540dp h889dp 213dpi lrg long port finger -keyb/v/h -nav/h s.5}
+09-05 22:18:28.218   973  1221 W MountService: No primary storage defined yet; hacking together a stub
+09-05 22:18:28.221   973  1221 W MountService: No primary storage defined yet; hacking together a stub
+09-05 22:18:28.223   973   973 I SystemServer: LockSettingsService
+09-05 22:18:28.224   973  1221 W MountService: No primary storage mounted!
+09-05 22:18:28.224   973  1221 D VoldConnector: SND -> {2 asec list}
+09-05 22:18:28.225   973  1222 D VoldConnector: RCV <- {200 2 asec operation succeeded}
+09-05 22:18:28.226   973  1221 I MountService: Running fstrim idle maintenance
+09-05 22:18:28.228   973  1221 D VoldConnector: SND -> {3 fstrim dotrim}
+09-05 22:18:28.230   973  1222 D VoldConnector: RCV <- {200 3 Command succeeded}
+09-05 22:18:28.233   135  1224 D vold    : Starting trim of /cache
+09-05 22:18:28.233   135  1224 W vold    : Trim failed on /cache: Operation not supported on transport endpoint
+09-05 22:18:28.233   973  1222 D VoldConnector: RCV <- {662 /cache -1 -1}
+09-05 22:18:28.233   973   973 I SystemServiceManager: Starting com.android.server.PersistentDataBlockService
+09-05 22:18:28.234   135  1224 D vold    : Starting trim of /logger
+09-05 22:18:28.235   135  1224 W vold    : Trim failed on /logger: Operation not supported on transport endpoint
+09-05 22:18:28.235   973  1222 D VoldConnector: RCV <- {662 /logger -1 -1}
+09-05 22:18:28.236   135  1224 D vold    : Starting trim of /data
+09-05 22:18:28.236   135  1224 W vold    : Trim failed on /data: Operation not supported on transport endpoint
+09-05 22:18:28.236   135  1224 D vold    : Starting trim of none
+09-05 22:18:28.236   135  1224 W vold    : Failed to open none: No such file or directory
+09-05 22:18:28.236   973  1222 D VoldConnector: RCV <- {662 /data -1 -1}
+09-05 22:18:28.236   973  1078 E VoldConnector: Error handling '662 /cache -1 -1': java.lang.NullPointerException: Attempt to invoke virtual method 'void android.os.DropBoxManager.addText(java.lang.String, java.lang.String)' on a null object reference
+09-05 22:18:28.238   973  1078 E VoldConnector: Error handling '662 /logger -1 -1': java.lang.NullPointerException: Attempt to invoke virtual method 'void android.os.DropBoxManager.addText(java.lang.String, java.lang.String)' on a null object reference
+09-05 22:18:28.239   973  1078 E VoldConnector: Error handling '662 /data -1 -1': java.lang.NullPointerException: Attempt to invoke virtual method 'void android.os.DropBoxManager.addText(java.lang.String, java.lang.String)' on a null object reference
+09-05 22:18:28.303   973  1077 D TypefaceImpl: makeFontCollection adding /system/fonts/Roboto-Regular.ttf
+09-05 22:18:28.354   973   973 I SystemServiceManager: Starting com.android.server.DeviceIdleController
+09-05 22:18:28.363   973   973 I SystemServiceManager: Starting com.android.server.devicepolicy.DevicePolicyManagerService$Lifecycle
+09-05 22:18:28.373   973   973 I SystemServer: Status Bar
+09-05 22:18:28.379   973   973 I SystemServer: Clipboard Service
+09-05 22:18:28.383   973   973 I SystemServer: NetworkManagement Service
+09-05 22:18:28.393   973   973 I SystemServer: Text Service Manager Service
+09-05 22:18:28.405   973   973 I SystemServer: Network Score Service
+09-05 22:18:28.411   973   973 I SystemServer: NetworkStats Service
+09-05 22:18:28.427   973  1077 E Minikin : addFont failed to create font /system/fonts/NanumGothic.ttf
+09-05 22:18:28.427   973  1077 E Minikin : addFont failed to create font /system/fonts/DroidSansFallback.ttf
+09-05 22:18:28.427   973  1077 E Minikin : addFont failed to create font /system/fonts/MTLmr3m.ttf
+09-05 22:18:28.444   973   973 I SystemServer: NetworkPolicy Service
+09-05 22:18:28.561   973   973 I SystemServiceManager: Starting com.android.server.wifi.p2p.WifiP2pService
+09-05 22:18:28.630  1107  1107 W Binder_3: type=1400 audit(0.0:10): avc: denied { ioctl } for path="socket:[6278]" dev="sockfs" ino=6278 ioctlcmd=7704 scontext=u:r:surfaceflinger:s0 tcontext=u:r:surfaceflinger:s0 tclass=unix_stream_socket permissive=0
+09-05 22:18:28.630  1107  1107 W Binder_3: type=1400 audit(0.0:11): avc: denied { ioctl } for path="socket:[6278]" dev="sockfs" ino=6278 ioctlcmd=7704 scontext=u:r:surfaceflinger:s0 tcontext=u:r:surfaceflinger:s0 tclass=unix_stream_socket permissive=0
+09-05 22:18:28.630   291   291 W Binder_2: type=1400 audit(0.0:12): avc: denied { ioctl } for path="socket:[6284]" dev="sockfs" ino=6284 ioctlcmd=7704 scontext=u:r:surfaceflinger:s0 tcontext=u:r:surfaceflinger:s0 tclass=unix_stream_socket permissive=0
+09-05 22:18:28.630   291   291 W Binder_2: type=1400 audit(0.0:13): avc: denied { ioctl } for path="socket:[6284]" dev="sockfs" ino=6284 ioctlcmd=7704 scontext=u:r:surfaceflinger:s0 tcontext=u:r:surfaceflinger:s0 tclass=unix_stream_socket permissive=0
+09-05 22:18:28.644   973  1229 D OpenGLRenderer: Use EGL_SWAP_BEHAVIOR_PRESERVED: false
+09-05 22:18:28.679   973  1077 E EmojiFactory_jni: Failed to load libemoji.so: dlopen failed: library "libemoji.so" not found
+09-05 22:18:28.726   973   973 I WifiP2pService: Registering wifip2p
+09-05 22:18:28.729   973   973 I SystemServiceManager: Starting com.android.server.wifi.WifiService
+09-05 22:18:28.806   973  1229 D libEGL  : loaded /system/lib/egl/libGLES_mali.so
+09-05 22:18:28.861   973  1229 I OpenGLRenderer: Initialized EGL, version 1.4
+09-05 22:18:28.878   150   291 I [Gralloc]: ion_alloc from ion_client:18 via heap type DMA(mask:16) for 809088 Bytes uncached buffer successfully, usage = 0x00000f02
+09-05 22:18:28.890   150  1107 I [Gralloc]: ion_alloc from ion_client:18 via heap type DMA(mask:16) for 809088 Bytes uncached buffer successfully, usage = 0x00000f02
+09-05 22:18:28.897   150  1107 I [Gralloc]: ion_alloc from ion_client:18 via heap type DMA(mask:16) for 809088 Bytes uncached buffer successfully, usage = 0x00000f02
+09-05 22:18:28.905   150  1107 I [Gralloc]: ion_alloc from ion_client:18 via heap type DMA(mask:16) for 809088 Bytes uncached buffer successfully, usage = 0x00000f02
+09-05 22:18:29.013   150   287 I SurfaceFlinger: Boot is finished (20969 ms)
+09-05 22:18:29.142   973   973 D HS20    : Passpoint is disabled
+09-05 22:18:29.160   973  1236 D WifiHW  : Enter wifi_unload_driver Function.
+09-05 22:18:29.173   973   973 D WifiController: isAirplaneModeOn = false, isWifiEnabled = true, isScanningAvailable = true
+09-05 22:18:29.176   973   973 I WifiService: Registering wifi
+09-05 22:18:29.180   973   973 I SystemServiceManager: Starting com.android.server.wifi.WifiScanningService
+09-05 22:18:29.180   973   973 I WifiScanningService: Creating wifiscanner
+09-05 22:18:29.182   973   973 I WifiScanningService: Starting wifiscanner
+09-05 22:18:29.186   973   973 I SystemServiceManager: Starting com.android.server.wifi.RttService
+09-05 22:18:29.187   973   973 I RttService: Creating rttmanager
+09-05 22:18:29.188   973   973 I RttService: Starting rttmanager
+09-05 22:18:29.191   973   973 I SystemServiceManager: Starting com.android.server.ethernet.EthernetService
+09-05 22:18:29.195   973   973 I EthernetServiceImpl: Creating EthernetConfigStore
+09-05 22:18:29.201   973   973 E IpConfigStore: Error parsing configuration: java.io.FileNotFoundException: /data/misc/ethernet/ipconfig.txt: open failed: ENOENT (No such file or directory)
+09-05 22:18:29.201   973   973 W EthernetConfigStore: No Ethernet configuration found. Using default.
+09-05 22:18:29.202   973   973 I EthernetServiceImpl: Read stored IP configuration: IP assignment: DHCP
+09-05 22:18:29.202   973   973 I EthernetServiceImpl: Proxy settings: NONE
+09-05 22:18:29.202   973   973 I EthernetService: Registering service ethernet
+09-05 22:18:29.204   973   973 I SystemServer: Connectivity Service
+09-05 22:18:29.210   973   973 D ConnectivityService: ConnectivityService starting up
+09-05 22:18:29.225   973   973 D ConnectivityService: wifiOnly=false
+09-05 22:18:29.226   973   973 E ConnectivityService: Ignoring protectedNetwork 10
+09-05 22:18:29.226   973   973 E ConnectivityService: Ignoring protectedNetwork 11
+09-05 22:18:29.226   973   973 E ConnectivityService: Ignoring protectedNetwork 12
+09-05 22:18:29.226   973   973 E ConnectivityService: Ignoring protectedNetwork 14
+09-05 22:18:29.226   973   973 E ConnectivityService: Ignoring protectedNetwork 15
+09-05 22:18:29.247   973   973 I SystemServer: Network Service Discovery Service
+09-05 22:18:29.255   973   973 D NsdService: Network service discovery enabled true
+09-05 22:18:29.259   973   973 I SystemServer: UpdateLock Service
+09-05 22:18:29.262   973   973 I SystemServiceManager: Starting com.android.server.notification.NotificationManagerService
+09-05 22:18:29.341   973   973 I SystemServiceManager: Starting com.android.server.storage.DeviceStorageMonitorService
+09-05 22:18:29.354   973   973 I SystemServer: Location Manager
+09-05 22:18:29.362   973   973 I SystemServer: Country Detector
+09-05 22:18:29.364   973  1236 D WifiApConfigStore: 2G band allowed channels are:1,6,11
+09-05 22:18:29.370   973   973 I SystemServer: Search Service
+09-05 22:18:29.378   973   973 I SystemServer: DropBox Service
+09-05 22:18:29.384   973   973 I SystemServer: Wallpaper Service
+09-05 22:18:29.398   973   973 I SystemServer: Audio Service
+09-05 22:18:29.426   973   988 W art     : Suspending all threads took: 11.138ms
+09-05 22:18:29.445   973   988 I art     : Background sticky concurrent mark sweep GC freed 7844(623KB) AllocSpace objects, 3(60KB) LOS objects, 11% free, 6MB/7MB, paused 21.433ms total 70.848ms
+09-05 22:18:29.454   973   973 W TelecomManager: Telecom Service not found.
+09-05 22:18:29.455   160  1136 D PermissionCache: checking android.permission.MODIFY_AUDIO_SETTINGS for uid=1000 => granted (1422 us)
+09-05 22:18:29.459   160  1132 E AudioFlinger: no wake lock to update!
+09-05 22:18:29.477   160  1129 V audio_hw_primary: adev_set_voice_volume, volume: 0.800000
+09-05 22:18:29.497   973   973 I SystemServiceManager: Starting com.android.server.DockObserver
+09-05 22:18:29.499   973   973 W DockObserver: This kernel does not have dock station support
+09-05 22:18:29.504   973   973 I SystemServer: Wired Accessory Manager
+09-05 22:18:29.510   973   973 W WiredAccessoryManager: This kernel does not have usb audio support
+09-05 22:18:29.510   973   973 W WiredAccessoryManager: This kernel does not have HDMI audio support
+09-05 22:18:29.511   973   973 I SystemServiceManager: Starting com.android.server.midi.MidiService$Lifecycle
+09-05 22:18:29.525   973   973 I SystemServiceManager: Starting com.android.server.usb.UsbService$Lifecycle
+09-05 22:18:29.574   973   973 I SystemServer: Serial Service
+09-05 22:18:29.576   973   973 I SystemServiceManager: Starting com.android.server.twilight.TwilightService
+09-05 22:18:29.582   973   973 I SystemServiceManager: Starting com.android.server.job.JobSchedulerService
+09-05 22:18:29.603   973   973 I SystemServiceManager: Starting com.android.server.backup.BackupManagerService$Lifecycle
+09-05 22:18:29.609   973   973 I SystemServiceManager: Starting com.android.server.appwidget.AppWidgetService
+09-05 22:18:29.617   973   973 I SystemServiceManager: Starting com.android.server.voiceinteraction.VoiceInteractionManagerService
+09-05 22:18:29.622   160  1136 D PermissionCache: checking android.permission.CAPTURE_AUDIO_HOTWORD for uid=1000 => granted (365 us)
+09-05 22:18:29.624   973   973 W SoundTriggerHelper: listModules status=0, # of modules=0
+09-05 22:18:29.633   973   973 I SystemServer: Gesture Launcher Service
+09-05 22:18:29.634   973   973 I SystemServiceManager: Starting com.android.server.GestureLauncherService
+09-05 22:18:29.635   973   973 I SystemServer: DiskStats Service
+09-05 22:18:29.639   973   973 I SystemServer: SamplingProfiler Service
+09-05 22:18:29.646   973   973 I SystemServer: NetworkTimeUpdateService
+09-05 22:18:29.647   973   973 I SystemServer: CommonTimeManagementService
+09-05 22:18:29.651   973   973 I SystemServer: CertBlacklister
+09-05 22:18:29.655   973   973 I SystemServiceManager: Starting com.android.server.dreams.DreamManagerService
+09-05 22:18:29.660   973   973 I SystemServer: Assets Atlas Service
+09-05 22:18:29.665   973   973 I SystemServiceManager: Starting com.android.server.print.PrintManagerService
+09-05 22:18:29.672   973  1245 D AssetAtlas: Loaded configuration: SliceMinArea (832x2048) flags=0x2 count=360
+09-05 22:18:29.680   973   973 I SystemServiceManager: Starting com.android.server.restrictions.RestrictionsManagerService
+09-05 22:18:29.685   973   973 I SystemServiceManager: Starting com.android.server.media.MediaSessionService
+09-05 22:18:29.701   973   973 I SystemServer: Media Router Service
+09-05 22:18:29.707   973   973 I SystemServiceManager: Starting com.android.server.trust.TrustManagerService
+09-05 22:18:29.712   150   291 I [Gralloc]: ion_alloc from ion_client:18 via heap type DMA(mask:16) for 6815744 Bytes uncached buffer successfully, usage = 0x00000100
+09-05 22:18:29.716   973   973 I SystemServiceManager: Starting com.android.server.fingerprint.FingerprintService
+09-05 22:18:29.726   973   973 W FingerprintService: fingerprint service not available
+09-05 22:18:29.727   973   973 V FingerprintService: Fingerprint HAL id: 0
+09-05 22:18:29.728   973   973 I SystemServer: BackgroundDexOptService
+09-05 22:18:29.733   973   973 I SystemServiceManager: Starting com.android.server.pm.LauncherAppsService
+09-05 22:18:29.746   973   973 I SystemServiceManager: Starting com.android.server.media.projection.MediaProjectionManagerService
+09-05 22:18:29.759   973  1245 D AssetAtlas: Rendered atlas in 26.49ms (0.00+26.49ms)
+09-05 22:18:29.779   973   973 I WindowManager: SAFE MODE not enabled
+09-05 22:18:29.780   973   973 I SystemServiceManager: Starting com.android.server.MmsServiceBroker
+09-05 22:18:29.860   973   973 E LockSettingsStorage: Cannot read file java.io.FileNotFoundException: /data/system/gatekeeper.password.key: open failed: ENOENT (No such file or directory)
+09-05 22:18:29.860   973   973 E LockSettingsStorage: Cannot read file java.io.FileNotFoundException: /data/system/password.key: open failed: ENOENT (No such file or directory)
+09-05 22:18:29.861   973   973 E LockSettingsStorage: Cannot read file java.io.FileNotFoundException: /data/system/gatekeeper.pattern.key: open failed: ENOENT (No such file or directory)
+09-05 22:18:29.862   973   973 E LockSettingsStorage: Cannot read file java.io.FileNotFoundException: /data/system/gatekeeper.gesture.key: open failed: ENOENT (No such file or directory)
+09-05 22:18:29.862   973   973 E LockSettingsStorage: Cannot read file java.io.FileNotFoundException: /data/system/gesture.key: open failed: ENOENT (No such file or directory)
+09-05 22:18:29.862   973   973 I SystemServiceManager: Starting phase 480
+09-05 22:18:29.892   973   973 I SystemServiceManager: Starting phase 500
+09-05 22:18:29.895   973   973 D BluetoothService: onBootPhase: PHASE_SYSTEM_SERVICES_READY
+09-05 22:18:29.903   973   973 I WifiService: WifiService starting up with Wi-Fi enabled
+09-05 22:18:29.909   973   973 D WifiService: setWifiEnabled: true pid=973, uid=1000
+09-05 22:18:29.910   973   973 E WifiService: Invoking mWifiStateMachine.setWifiEnabled
+09-05 22:18:29.912   973  1237 D WifiController: WifiController msg { when=0 what=155656 target=com.android.internal.util.StateMachine$SmHandler } deferred for 499ms
+09-05 22:18:29.913   154  1033 D WifiHW  : Enter: wifi_get_fw_path function, fw_type=0,
+09-05 22:18:29.913   154  1033 D WifiHW  : Eneter: wifi_change_fw_path, fwpath = /system/vendor/modules/fw_bcm40181a2.bin.
+09-05 22:18:29.913   154  1033 D SoftapController: Softap fwReload - Ok
+09-05 22:18:29.918   154  1033 D CommandListener: Setting iface cfg
+09-05 22:18:29.918   154  1033 D CommandListener: Trying to bring down wlan0
+09-05 22:18:29.920   154  1033 D CommandListener: Clearing all IP addresses on wlan0
+09-05 22:18:29.929   973  1236 E WifiMonitor: killSupplicant p2ptrue init.svc.wpa_supplicant=unknown init.svc.p2p_supplicant=unknown
+09-05 22:18:29.946   973  1237 D WifiService: New client listening to asynchronous messages
+09-05 22:18:29.949   973   973 I WifiScanningService: Registering wifiscanner
+09-05 22:18:29.959   973   973 I RttService: Registering rttmanager
+09-05 22:18:29.964   973   973 I EthernetServiceImpl: Starting Ethernet service
+09-05 22:18:29.969   973   973 D Ethernet: Registering NetworkFactory
+09-05 22:18:29.971   973  1238 D ConnectivityService: Got NetworkFactory Messenger for Ethernet
+09-05 22:18:29.973   973  1251 D Ethernet: got request NetworkRequest [ id=1, legacyType=-1, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VPN] ] with score 0
+09-05 22:18:29.999   973   973 V BackupManagerService: No ancestral data
+09-05 22:18:30.059   973   973 V KeyValueBackupJob: Scheduling k/v pass in 249 minutes
+09-05 22:18:30.099   973   973 V BackupManagerService: Starting with transport com.google.android.gms/.backup.BackupTransportService
+09-05 22:18:30.099   973   973 V BackupManagerService: Found transports: 2
+09-05 22:18:30.100   973   973 I BackupManagerService: Binding to transport host ComponentInfo{android/com.android.internal.backup.LocalTransportService}
+09-05 22:18:30.102   973   973 I BackupManagerService: Binding to transport host ComponentInfo{com.google.android.gms/com.google.android.gms.backup.BackupTransportService}
+09-05 22:18:30.104   973   973 I BackupManagerService: Found stale backup journal, scheduling
+09-05 22:18:30.100  1107  1107 W Binder_3: type=1400 audit(0.0:14): avc: denied { ioctl } for path="socket:[6292]" dev="sockfs" ino=6292 ioctlcmd=7704 scontext=u:r:surfaceflinger:s0 tcontext=u:r:surfaceflinger:s0 tclass=unix_stream_socket permissive=0
+09-05 22:18:30.100  1107  1107 W Binder_3: type=1400 audit(0.0:15): avc: denied { ioctl } for path="socket:[6292]" dev="sockfs" ino=6292 ioctlcmd=7704 scontext=u:r:surfaceflinger:s0 tcontext=u:r:surfaceflinger:s0 tclass=unix_stream_socket permissive=0
+09-05 22:18:30.130   291   291 W Binder_2: type=1400 audit(0.0:16): avc: denied { ioctl } for path="socket:[6294]" dev="sockfs" ino=6294 ioctlcmd=7704 scontext=u:r:surfaceflinger:s0 tcontext=u:r:surfaceflinger:s0 tclass=unix_stream_socket permissive=0
+09-05 22:18:30.130   291   291 W Binder_2: type=1400 audit(0.0:17): avc: denied { ioctl } for path="socket:[6294]" dev="sockfs" ino=6294 ioctlcmd=7704 scontext=u:r:surfaceflinger:s0 tcontext=u:r:surfaceflinger:s0 tclass=unix_stream_socket permissive=0
+09-05 22:18:30.145   150   291 D SurfaceFlinger: ####setDisplayParameter: dispId=0, cmd = 2, para0 = 0, para1= 0, para2 = 0
+09-05 22:18:30.150   973   973 V DisplayManagerService: update:brightnessLightMode=1
+09-05 22:18:30.150   150   287 D SurfaceFlinger: ####setDisplayParameter: dispId=0, cmd = 2, para0 = 1, para1= 0, para2 = 0
+09-05 22:18:30.151   150   291 D SurfaceFlinger: ####setDisplayParameter: dispId=0, cmd = 3, para0 = 0, para1= 0, para2 = 0
+09-05 22:18:30.152   973   973 V DisplayManagerService: update:hdmiOutputMode=10
+09-05 22:18:30.152   150  1107 D SurfaceFlinger: ####setDisplayParameter: dispId=1, cmd = 6, para0 = 4, para1= 10, para2 = 0
+09-05 22:18:30.152   973   973 V DisplayManagerService: update:hdmiPersent=25700
+09-05 22:18:30.153   150   287 D SurfaceFlinger: ####setDisplayParameter: dispId=1, cmd = 7, para0 = 100, para1= 100, para2 = 0
+09-05 22:18:30.156   973  1076 E KernelUidCpuTimeReader: Failed to read uid_cputime: /proc/uid_cputime/show_uid_stat: open failed: ENOENT (No such file or directory)
+09-05 22:18:30.158   973  1104 W KeyguardServiceDelegate: onScreenTurningOn(): no keyguard service!
+09-05 22:18:30.165   973  1077 I Pointer : Device Enumerated: Input Device -1: Virtual
+09-05 22:18:30.165   973  1077 I Pointer :   Descriptor: a718a782d34bc767f4689c232d64d527998ea7fd
+09-05 22:18:30.165   973  1077 I Pointer :   Generation: 2
+09-05 22:18:30.165   973  1077 I Pointer :   Location: built-in
+09-05 22:18:30.165   973  1077 I Pointer :   Keyboard Type: alphabetic
+09-05 22:18:30.165   973  1077 I Pointer :   Has Vibrator: false
+09-05 22:18:30.165   973  1077 I Pointer :   Has mic: false
+09-05 22:18:30.165   973  1077 I Pointer :   Sources: 0x301 ( keyboard dpad )
+09-05 22:18:30.165   973  1077 I Pointer : Device Enumerated: Input Device 1: gt9xxf_ts
+09-05 22:18:30.165   973  1077 I Pointer :   Descriptor: 9e6143a1bc5dd41251b165ed559e32d49b5aad8f
+09-05 22:18:30.165   973  1077 I Pointer :   Generation: 12
+09-05 22:18:30.165   973  1077 I Pointer :   Location: built-in
+09-05 22:18:30.165   973  1077 I Pointer :   Keyboard Type: none
+09-05 22:18:30.165   973  1077 I Pointer :   Has Vibrator: false
+09-05 22:18:30.165   973  1077 I Pointer :   Has mic: false
+09-05 22:18:30.165   973  1077 I Pointer :   Sources: 0x1002 ( touchscreen )
+09-05 22:18:30.165   973  1077 I Pointer :     AXIS_X: source=0x1002 min=0.0 max=719.0 flat=0.0 fuzz=0.0 resolution=0.0
+09-05 22:18:30.165   973  1077 I Pointer :     AXIS_Y: source=0x1002 min=0.0 max=1279.0 flat=0.0 fuzz=0.0 resolution=0.0
+09-05 22:18:30.165   973  1077 I Pointer :     AXIS_PRESSURE: source=0x1002 min=0.0 max=1.0 flat=0.0 fuzz=0.0 resolution=0.0
+09-05 22:18:30.165   973  1077 I Pointer :     AXIS_SIZE: source=0x1002 min=0.0 max=1.0 flat=0.0 fuzz=0.0 resolution=0.0
+09-05 22:18:30.165   973  1077 I Pointer :     AXIS_TOUCH_MAJOR: source=0x1002 min=0.0 max=1468.6047 flat=0.0 fuzz=0.0 resolution=0.0
+09-05 22:18:30.165   973  1077 I Pointer :     AXIS_TOUCH_MINOR: source=0x1002 min=0.0 max=1468.6047 flat=0.0 fuzz=0.0 resolution=0.0
+09-05 22:18:30.165   973  1077 I Pointer :     AXIS_TOOL_MAJOR: source=0x1002 min=0.0 max=1468.6047 flat=0.0 fuzz=0.0 resolution=0.0
+09-05 22:18:30.165   973  1077 I Pointer :     AXIS_TOOL_MINOR: source=0x1002 min=0.0 max=1468.6047 flat=0.0 fuzz=0.0 resolution=0.0
+09-05 22:18:30.165   973  1077 I Pointer : Device Enumerated: Input Device 3: sunxi-keyboard
+09-05 22:18:30.165   973  1077 I Pointer :   Descriptor: 485d69228e24f5e46da1598745890b214130dbc4
+09-05 22:18:30.165   973  1077 I Pointer :   Generation: 8
+09-05 22:18:30.165   973  1077 I Pointer :   Location: built-in
+09-05 22:18:30.165   973  1077 I Pointer :   Keyboard Type: non-alphabetic
+09-05 22:18:30.165   973  1077 I Pointer :   Has Vibrator: false
+09-05 22:18:30.165   973  1077 I Pointer :   Has mic: false
+09-05 22:18:30.165   973  1077 I Pointer :   Sources: 0x101 ( keyboard )
+09-05 22:18:30.165   973  1077 I Pointer : Device Enumerated: Input Device 4: axp22-supplyer
+09-05 22:18:30.165   973  1077 I Pointer :   Descriptor: d2c52ff0f656fac4cd7b7a118d575e0109a9fe1c
+09-05 22:18:30.165   973  1077 I Pointer :   Generation: 6
+09-05 22:18:30.165   973  1077 I Pointer :   Location: built-in
+09-05 22:18:30.165   973  1077 I Pointer :   Keyboard Type: non-alphabetic
+09-05 22:18:30.165   973  1077 I Pointer :   Has Vibrator: false
+09-05 22:18:30.165   973  1077 I Pointer :   Has mic: false
+09-05 22:18:30.165   973  1077 I Pointer :   Sources: 0x101 ( keyboard )
+09-05 22:18:30.166   973  1077 I Pointer : Device Enumerated: Input Device 6: headset
+09-05 22:18:30.166   973  1077 I Pointer :   Descriptor: 99d4086daf0596433a6b43722ccf792b235f8bca
+09-05 22:18:30.166   973  1077 I Pointer :   Generation: 4
+09-05 22:18:30.166   973  1077 I Pointer :   Location: built-in
+09-05 22:18:30.166   973  1077 I Pointer :   Keyboard Type: non-alphabetic
+09-05 22:18:30.166   973  1077 I Pointer :   Has Vibrator: false
+09-05 22:18:30.166   973  1077 I Pointer :   Has mic: false
+09-05 22:18:30.166   973  1077 I Pointer :   Sources: 0x101 ( keyboard )
+09-05 22:18:30.188   973   973 D BackgroundManagerService: reload inputmethod list: [com.google.android.googlequicksearchbox, com.google.android.inputmethod.pinyin, com.android.inputmethod.latin, jp.co.omronsoft.openwnn]
+09-05 22:18:30.216   150   287 I [Gralloc]: ion_alloc from ion_client:18 via heap type DMA(mask:16) for 3686400 Bytes uncached buffer successfully, usage = 0x00000f02
+09-05 22:18:30.217   973   973 D BackgroundManagerService: reload account app list: [com.google.android.gm, com.google.android.gm, com.google.android.gms, com.google.android.gm]
+09-05 22:18:30.218   973   973 I ActivityManager: System now ready
+09-05 22:18:30.224   973   973 I SystemServer: Making services ready
+09-05 22:18:30.225   973   973 I SystemServiceManager: Starting phase 550
+09-05 22:18:30.229   973  1221 D MountService: Thinking about reset, mSystemReady=true, mDaemonConnected=true
+09-05 22:18:30.230   973  1221 D VoldConnector: SND -> {4 volume reset}
+09-05 22:18:30.230   973  1076 I ActivityManager: Force stopping com.android.providers.media appid=10005 user=-1: vold reset
+09-05 22:18:30.231   973  1222 D VoldConnector: RCV <- {651 emulated 7}
+09-05 22:18:30.232   973  1222 D VoldConnector: RCV <- {659 emulated}
+09-05 22:18:30.232   973   973 D UsbAlsaManager: Adding ALSA device AlsaDevice: [card: 0, device: 0, type: 1]
+09-05 22:18:30.232   973   973 D UsbAlsaManager: Adding ALSA device AlsaDevice: [card: 0, device: 0, type: 2]
+09-05 22:18:30.232   973  1222 D VoldConnector: RCV <- {650 emulated 2 "" ""}
+09-05 22:18:30.233   973  1222 D VoldConnector: RCV <- {651 emulated 0}
+09-05 22:18:30.233   973  1222 D VoldConnector: RCV <- {200 4 Command succeeded}
+09-05 22:18:30.234   973  1221 D VoldConnector: SND -> {5 volume user_added 0 0}
+09-05 22:18:30.235   973  1222 D VoldConnector: RCV <- {200 5 Command succeeded}
+09-05 22:18:30.236   973   973 W MountService: No primary storage defined yet; hacking together a stub
+09-05 22:18:30.240   973  1078 V MountService: Found primary storage at VolumeInfo{emulated}:
+09-05 22:18:30.240   973  1078 V MountService:     type=EMULATED diskId=null partGuid=null mountFlags=0 mountUserId=-1
+09-05 22:18:30.240   973  1078 V MountService:     state=UNMOUNTED
+09-05 22:18:30.240   973  1078 V MountService:     fsType=null fsUuid=null fsLabel=null
+09-05 22:18:30.240   973  1078 V MountService:     path=null internalPath=null
+09-05 22:18:30.240   973   973 I SystemServer: WebViewFactory preparation
+09-05 22:18:30.242   973  1221 D VoldConnector: SND -> {6 volume mount emulated 3 -1}
+09-05 22:18:30.244   973  1222 D VoldConnector: RCV <- {651 emulated 1}
+09-05 22:18:30.245   973  1222 D VoldConnector: RCV <- {656 emulated /data/media}
+09-05 22:18:30.245   973  1222 D VoldConnector: RCV <- {655 emulated /storage/emulated}
+09-05 22:18:30.247   135   156 V vold    : Waiting for FUSE to spin up...
+09-05 22:18:30.267   150  1107 I [Gralloc]: ion_alloc from ion_client:18 via heap type DMA(mask:16) for 3686400 Bytes uncached buffer successfully, usage = 0x00000f02
+09-05 22:18:30.273   973   973 I Zygote  : Process: zygote socket opened, supported ABIS: armeabi-v7a,armeabi
+09-05 22:18:30.297   135   156 V vold    : Waiting for FUSE to spin up...
+09-05 22:18:30.298   973   973 I ActivityManager: Start proc 1259:WebViewLoader-armeabi-v7a/1037 [android.webkit.WebViewFactory$RelroFileCreator] for
+09-05 22:18:30.298   973   973 D libcheckfile: checkfile_init
+09-05 22:18:30.310   150  1107 I [Gralloc]: ion_alloc from ion_client:18 via heap type DMA(mask:16) for 3686400 Bytes uncached buffer successfully, usage = 0x00000f02
+09-05 22:18:30.327   973   973 I ActivityManager: Start proc 1267:com.android.systemui/u0a20 for service com.android.systemui/.SystemUIService
+09-05 22:18:30.328   973   973 D NetworkManagement: enabling bandwidth control
+09-05 22:18:30.348   150  1107 I [Gralloc]: ion_alloc from ion_client:18 via heap type DMA(mask:16) for 3686400 Bytes uncached buffer successfully, usage = 0x00000f02
+09-05 22:18:30.349   973  1222 D VoldConnector: RCV <- {651 emulated 2}
+09-05 22:18:30.350   973  1222 D VoldConnector: RCV <- {200 6 Command succeeded}
+09-05 22:18:30.356   973  1076 I ActivityManager: Start proc 1275:android.process.media/u0a5 for broadcast com.android.providers.media/.MtpReceiver
+09-05 22:18:30.374  1259  1259 V WebViewFactory: RelroFileCreator (64bit = false),  32-bit lib: /system/app/WebViewGoogle/WebViewGoogle.apk!/lib/armeabi-v7a/libwebviewchromium.so, 64-bit lib:
+09-05 22:18:30.380   973  1076 I ActivityManager: Start proc 1289:com.android.externalstorage/u0a6 for broadcast com.android.externalstorage/.MountReceiver
+09-05 22:18:30.418   973  1237 D WifiController: DEFERRED_TOGGLE handled
+09-05 22:18:30.664  1275  1275 W System  : ClassLoader referenced unknown path: /system/priv-app/MediaProvider/lib/arm
+09-05 22:18:30.664  1267  1267 W System  : ClassLoader referenced unknown path: /system/priv-app/SystemUI/lib/arm
+09-05 22:18:30.758  1289  1289 W System  : ClassLoader referenced unknown path: /system/priv-app/ExternalStorageProvider/lib/arm
+09-05 22:18:30.761  1275  1275 W System  : ClassLoader referenced unknown path: /system/priv-app/DownloadProvider/lib/arm
+09-05 22:18:30.793  1289  1289 D ExternalStorage: After updating volumes, found 1 active roots
+09-05 22:18:30.803  1289  1289 D ExternalStorage: After updating volumes, found 1 active roots
+09-05 22:18:30.811  1289  1289 D ExternalStorage: After updating volumes, found 1 active roots
+09-05 22:18:31.109  1267  1267 V SystemUIService: Starting SystemUI services.
+09-05 22:18:31.112  1259  1259 I art     : System.exit called, status: 0
+09-05 22:18:31.112  1259  1259 I AndroidRuntime: VM exiting with result code 0, cleanup skipped.
+09-05 22:18:31.168   973  1077 W WindowManager: Keyguard drawn timeout. Setting mKeyguardDrawComplete
+09-05 22:18:31.312   973   973 E NetdConnector: NDC Command {8 bandwidth enable} took too long (983ms)
+09-05 22:18:31.375   973  1236 D wifi    : set interface wlan0 flags (UP)
+09-05 22:18:31.376   973  1236 I WifiHAL : Initializing wifi
+09-05 22:18:31.376   973  1236 I WifiHAL : Creating socket
+09-05 22:18:31.384   973  1236 E WifiHAL : Could not find group vendor
+09-05 22:18:31.384   973  1236 I WifiHAL : Initialized Wifi HAL Successfully; vendor cmd = 103
+09-05 22:18:31.385   973  1236 D wifi    : Did set static halHandle = 0xac865ea0
+09-05 22:18:31.385   973  1236 D wifi    : halHandle = 0xac865ea0, mVM = 0xb4d7c000, mCls = 0x1005de
+09-05 22:18:31.385   973  1236 D wifi    : array field set
+09-05 22:18:31.385   973  1236 I WifiNative-HAL: interface[0] = wlan0
+09-05 22:18:31.385   973  1236 I WifiNative-HAL: interface[1] = p2p0
+09-05 22:18:31.389   973  1404 I WifiNative-HAL: Waiting for HAL events mWifiHalHandle=-1400480096
+09-05 22:18:31.389   973  1404 D wifi    : waitForHalEvents called, vm = 0xb4d7c000, obj = 0x1005de, env = 0xaa5091c0
+09-05 22:18:31.404   973  1101 D Tethering: sendTetherStateChangedBroadcast 1, 0, 0
+09-05 22:18:31.399   973  1236 D WifiMonitor: startMonitoring(wlan0) with mConnected = false
+09-05 22:18:31.410   973  1236 E WifiHW  : Unable to open connection to supplicant on "@android:wpa_wlan0": No such file or directory
+09-05 22:18:31.417  1275  1275 D MtpService: starting MTP server in MTP mode
+09-05 22:18:31.467   154  1033 I iptables: iptables: No chain/target/match by that name.
+09-05 22:18:31.478   154  1033 I iptables: iptables terminated by exit(1)
+09-05 22:18:31.479   154  1033 E Netd    : exec() res=0, status=256 for /system/bin/iptables -w -F st_penalty_log
+09-05 22:18:31.512   154  1033 I ip6tables: ip6tables: No chain/target/match by that name.
+09-05 22:18:31.528   154  1033 I ip6tables: ip6tables terminated by exit(1)
+09-05 22:18:31.528   154  1033 E Netd    : exec() res=0, status=256 for /system/bin/ip6tables -w -F st_penalty_log
+09-05 22:18:31.561   154  1033 I iptables: iptables: No chain/target/match by that name.
+09-05 22:18:31.562   154  1033 I iptables: iptables terminated by exit(1)
+09-05 22:18:31.563   154  1033 E Netd    : exec() res=0, status=256 for /system/bin/iptables -w -F st_penalty_reject
+09-05 22:18:31.594   154  1033 I ip6tables: ip6tables: No chain/target/match by that name.
+09-05 22:18:31.598   154  1033 I ip6tables: ip6tables terminated by exit(1)
+09-05 22:18:31.599   154  1033 E Netd    : exec() res=0, status=256 for /system/bin/ip6tables -w -F st_penalty_reject
+09-05 22:18:31.630   154  1033 I iptables: iptables: No chain/target/match by that name.
+09-05 22:18:31.631   154  1033 I iptables: iptables terminated by exit(1)
+09-05 22:18:31.632   154  1033 E Netd    : exec() res=0, status=256 for /system/bin/iptables -w -F st_clear_caught
+09-05 22:18:31.665   154  1033 I ip6tables: ip6tables: No chain/target/match by that name.
+09-05 22:18:31.666   154  1033 I ip6tables: ip6tables terminated by exit(1)
+09-05 22:18:31.666   154  1033 E Netd    : exec() res=0, status=256 for /system/bin/ip6tables -w -F st_clear_caught
+09-05 22:18:31.679  1407  1407 I wpa_supplicant: Successfully initialized wpa_supplicant
+09-05 22:18:31.693   154  1033 I iptables: iptables: No chain/target/match by that name.
+09-05 22:18:31.694   154  1033 I iptables: iptables terminated by exit(1)
+09-05 22:18:31.694   154  1033 E Netd    : exec() res=0, status=256 for /system/bin/iptables -w -F st_clear_detect
+09-05 22:18:31.726   154  1033 I ip6tables: ip6tables: No chain/target/match by that name.
+09-05 22:18:31.727   154  1033 I ip6tables: ip6tables terminated by exit(1)
+09-05 22:18:31.728   154  1033 E Netd    : exec() res=0, status=256 for /system/bin/ip6tables -w -F st_clear_detect
+09-05 22:18:31.771   154  1033 I iptables: iptables: No chain/target/match by that name.
+09-05 22:18:31.773   154  1033 I iptables: iptables terminated by exit(1)
+09-05 22:18:31.774   154  1033 E Netd    : exec() res=0, status=256 for /system/bin/iptables -w -X st_penalty_log
+09-05 22:18:31.783  1407  1407 I wpa_supplicant: rfkill: Cannot open RFKILL control device
+09-05 22:18:31.803  1407  1407 I wpa_supplicant: nl80211: Could not re-add multicast membership for vendor events: -2 (No such file or directory)
+09-05 22:18:31.831   154  1033 I ip6tables: ip6tables: No chain/target/match by that name.
+09-05 22:18:31.832   154  1033 I ip6tables: ip6tables terminated by exit(1)
+09-05 22:18:31.832   154  1033 E Netd    : exec() res=0, status=256 for /system/bin/ip6tables -w -X st_penalty_log
+09-05 22:18:31.864   154  1033 I iptables: iptables: No chain/target/match by that name.
+09-05 22:18:31.865   154  1033 I iptables: iptables terminated by exit(1)
+09-05 22:18:31.865   154  1033 E Netd    : exec() res=0, status=256 for /system/bin/iptables -w -X st_penalty_reject
+09-05 22:18:31.908   154  1033 I ip6tables: ip6tables: No chain/target/match by that name.
+09-05 22:18:31.915   154  1033 I ip6tables: ip6tables terminated by exit(1)
+09-05 22:18:31.916   154  1033 E Netd    : exec() res=0, status=256 for /system/bin/ip6tables -w -X st_penalty_reject
+09-05 22:18:31.947   154  1033 I iptables: iptables: No chain/target/match by that name.
+09-05 22:18:31.960   154  1033 I iptables: iptables terminated by exit(1)
+09-05 22:18:31.960   154  1033 E Netd    : exec() res=0, status=256 for /system/bin/iptables -w -X st_clear_caught
+09-05 22:18:31.997  1407  1407 I wpa_supplicant: rfkill: Cannot open RFKILL control device
+09-05 22:18:31.998   154  1033 I ip6tables: ip6tables: No chain/target/match by that name.
+09-05 22:18:31.999   154  1033 I ip6tables: ip6tables terminated by exit(1)
+09-05 22:18:32.000   154  1033 E Netd    : exec() res=0, status=256 for /system/bin/ip6tables -w -X st_clear_caught
+09-05 22:18:32.030  1407  1407 I wpa_supplicant: nl80211: Could not re-add multicast membership for vendor events: -2 (No such file or directory)
+09-05 22:18:32.049   154  1033 I iptables: iptables: No chain/target/match by that name.
+09-05 22:18:32.050   154  1033 I iptables: iptables terminated by exit(1)
+09-05 22:18:32.050   154  1033 E Netd    : exec() res=0, status=256 for /system/bin/iptables -w -X st_clear_detect
+09-05 22:18:32.098   154  1033 I ip6tables: ip6tables: No chain/target/match by that name.
+09-05 22:18:32.113   154  1033 I ip6tables: ip6tables terminated by exit(1)
+09-05 22:18:32.114   154  1033 E Netd    : exec() res=0, status=256 for /system/bin/ip6tables -w -X st_clear_detect
+09-05 22:18:32.199   160   160 D awplayer: <omx_vdec:255>: (f:omx_vdec, l:255)
+09-05 22:18:32.200   160   160 D awplayer: <getCallingProcessName:212>: Calling process is: com.android.systemui
+09-05 22:18:32.200   160   160 D awplayer: <omx_vdec:343>: ion open fd = 15
+09-05 22:18:32.200   160   160 D awplayer: <component_init:513>: (f:component_init, l:513) name = OMX.allwinner.video.decoder.avc
+09-05 22:18:32.202   160   160 W awplayer: <get_parameter:1175>: pParamProfileLevel->nProfileIndex[0x30] error!
+09-05 22:18:32.202   160   160 E OMXNodeInstance: getParameter(f:allwinner.decoder.avc, ParamVideoProfileLevelQuerySupported(0x600000f)) ERROR: BadParameter(0x80001005)
+09-05 22:18:32.206   160  1503 D awplayer: <ComponentThread:4299>:  stop command.
+09-05 22:18:32.206   160  1503 D awplayer: <ComponentThread:4301>: (f:ComponentThread, l:4301) wait for OMX_VdrvCommand_Stop
+09-05 22:18:32.206   160  1504 D awplayer: <ComponentVdrvThread:4516>: (f:ComponentVdrvThread, l:4516) vdrvThread receive cmd[0x3]
+09-05 22:18:32.206   160  1504 D awplayer: <ComponentVdrvThread:4625>: (f:ComponentVdrvThread, l:4625)(OMX_VdrvCommand_Stop)
+09-05 22:18:32.206   160  1504 D awplayer: <ComponentVdrvThread:4654>: vdrvThread detect nStopFlag[1], exit!
+09-05 22:18:32.207   160  1504 D awplayer: <ComponentVdrvThread:4824>: ***notify: exit the componentVdrvThread!
+09-05 22:18:32.207   160  1503 D awplayer: <ComponentThread:4303>: (f:ComponentThread, l:4303) wait for OMX_VdrvCommand_Stop done!
+09-05 22:18:32.209   160   160 D awplayer: <component_deinit:2486>: (f:component_deinit, l:2486) two threads exit!
+09-05 22:18:32.210   160   160 D awplayer: <~omx_vdec:503>: ~omx_dec done!
+09-05 22:18:32.210   160   160 D awplayer: <check_lib_unload:394>:  Unloading the dynamic library for OMX.allwinner.video.decoder.avc
+09-05 22:18:32.220   160   160 D awplayer: <omx_vdec:255>: (f:omx_vdec, l:255)
+09-05 22:18:32.220   160   160 D awplayer: <getCallingProcessName:212>: Calling process is: com.android.systemui
+09-05 22:18:32.221   160   160 D awplayer: <omx_vdec:343>: ion open fd = 15
+09-05 22:18:32.221   160   160 D awplayer: <component_init:513>: (f:component_init, l:513) name = OMX.allwinner.video.decoder.mjpeg
+09-05 22:18:32.221   160   160 W awplayer: <get_parameter:1169>: OMX_IndexParamVideoProfileLevelQuerySupported, Format[0x8] not support
+09-05 22:18:32.221   160   160 E OMXNodeInstance: getParameter(10:allwinner.decoder.mjpeg, ParamVideoProfileLevelQuerySupported(0x600000f)) ERROR: BadParameter(0x80001005)
+09-05 22:18:32.234   160  1506 D awplayer: <ComponentThread:4299>:  stop command.
+09-05 22:18:32.234   160  1506 D awplayer: <ComponentThread:4301>: (f:ComponentThread, l:4301) wait for OMX_VdrvCommand_Stop
+09-05 22:18:32.234   160  1507 D awplayer: <ComponentVdrvThread:4516>: (f:ComponentVdrvThread, l:4516) vdrvThread receive cmd[0x3]
+09-05 22:18:32.234   160  1507 D awplayer: <ComponentVdrvThread:4625>: (f:ComponentVdrvThread, l:4625)(OMX_VdrvCommand_Stop)
+09-05 22:18:32.234   160  1507 D awplayer: <ComponentVdrvThread:4654>: vdrvThread detect nStopFlag[1], exit!
+09-05 22:18:32.234   160  1506 D awplayer: <ComponentThread:4303>: (f:ComponentThread, l:4303) wait for OMX_VdrvCommand_Stop done!
+09-05 22:18:32.234   160  1507 D awplayer: <ComponentVdrvThread:4824>: ***notify: exit the componentVdrvThread!
+09-05 22:18:32.235   160   160 D awplayer: <component_deinit:2486>: (f:component_deinit, l:2486) two threads exit!
+09-05 22:18:32.235   160   160 D awplayer: <~omx_vdec:503>: ~omx_dec done!
+09-05 22:18:32.235   160   160 D awplayer: <check_lib_unload:394>:  Unloading the dynamic library for OMX.allwinner.video.decoder.mjpeg
+09-05 22:18:32.242   160   160 D awplayer: <omx_vdec:255>: (f:omx_vdec, l:255)
+09-05 22:18:32.242   160   160 D awplayer: <getCallingProcessName:212>: Calling process is: com.android.systemui
+09-05 22:18:32.243   160   160 D awplayer: <omx_vdec:343>: ion open fd = 15
+09-05 22:18:32.243   160   160 D awplayer: <component_init:513>: (f:component_init, l:513) name = OMX.allwinner.video.decoder.mpeg1
+09-05 22:18:32.247   160   160 W awplayer: <get_parameter:1169>: OMX_IndexParamVideoProfileLevelQuerySupported, Format[0xd] not support
+09-05 22:18:32.247   160   160 E OMXNodeInstance: getParameter(11:allwinner.decoder.mpeg1, ParamVideoProfileLevelQuerySupported(0x600000f)) ERROR: BadParameter(0x80001005)
+09-05 22:18:32.248   160  1509 D awplayer: <ComponentThread:4299>:  stop command.
+09-05 22:18:32.248   160  1509 D awplayer: <ComponentThread:4301>: (f:ComponentThread, l:4301) wait for OMX_VdrvCommand_Stop
+09-05 22:18:32.252   160  1510 D awplayer: <ComponentVdrvThread:4516>: (f:ComponentVdrvThread, l:4516) vdrvThread receive cmd[0x3]
+09-05 22:18:32.252   160  1510 D awplayer: <ComponentVdrvThread:4625>: (f:ComponentVdrvThread, l:4625)(OMX_VdrvCommand_Stop)
+09-05 22:18:32.252   160  1510 D awplayer: <ComponentVdrvThread:4654>: vdrvThread detect nStopFlag[1], exit!
+09-05 22:18:32.252   160  1510 D awplayer: <ComponentVdrvThread:4824>: ***notify: exit the componentVdrvThread!
+09-05 22:18:32.252   160  1509 D awplayer: <ComponentThread:4303>: (f:ComponentThread, l:4303) wait for OMX_VdrvCommand_Stop done!
+09-05 22:18:32.252   160   160 D awplayer: <component_deinit:2486>: (f:component_deinit, l:2486) two threads exit!
+09-05 22:18:32.252   160   160 D awplayer: <~omx_vdec:503>: ~omx_dec done!
+09-05 22:18:32.253   160   160 D awplayer: <check_lib_unload:394>:  Unloading the dynamic library for OMX.allwinner.video.decoder.mpeg1
+09-05 22:18:32.258   160   160 D awplayer: <omx_vdec:255>: (f:omx_vdec, l:255)
+09-05 22:18:32.259   160   160 D awplayer: <getCallingProcessName:212>: Calling process is: com.android.systemui
+09-05 22:18:32.259   160   160 D awplayer: <omx_vdec:343>: ion open fd = 15
+09-05 22:18:32.259   160   160 D awplayer: <component_init:513>: (f:component_init, l:513) name = OMX.allwinner.video.decoder.mpeg2
+09-05 22:18:32.259   160   160 W awplayer: <get_parameter:1169>: OMX_IndexParamVideoProfileLevelQuerySupported, Format[0x2] not support
+09-05 22:18:32.260   160   160 E OMXNodeInstance: getParameter(12:allwinner.decoder.mpeg2, ParamVideoProfileLevelQuerySupported(0x600000f)) ERROR: BadParameter(0x80001005)
+09-05 22:18:32.262   160  1515 D awplayer: <ComponentThread:4299>:  stop command.
+09-05 22:18:32.262   160  1515 D awplayer: <ComponentThread:4301>: (f:ComponentThread, l:4301) wait for OMX_VdrvCommand_Stop
+09-05 22:18:32.271   160  1516 D awplayer: <ComponentVdrvThread:4516>: (f:ComponentVdrvThread, l:4516) vdrvThread receive cmd[0x3]
+09-05 22:18:32.271   160  1516 D awplayer: <ComponentVdrvThread:4625>: (f:ComponentVdrvThread, l:4625)(OMX_VdrvCommand_Stop)
+09-05 22:18:32.271   160  1516 D awplayer: <ComponentVdrvThread:4654>: vdrvThread detect nStopFlag[1], exit!
+09-05 22:18:32.271   160  1516 D awplayer: <ComponentVdrvThread:4824>: ***notify: exit the componentVdrvThread!
+09-05 22:18:32.271   160  1515 D awplayer: <ComponentThread:4303>: (f:ComponentThread, l:4303) wait for OMX_VdrvCommand_Stop done!
+09-05 22:18:32.281   160   160 D awplayer: <component_deinit:2486>: (f:component_deinit, l:2486) two threads exit!
+09-05 22:18:32.282   160   160 D awplayer: <~omx_vdec:503>: ~omx_dec done!
+09-05 22:18:32.282   160   160 D awplayer: <check_lib_unload:394>:  Unloading the dynamic library for OMX.allwinner.video.decoder.mpeg2
+09-05 22:18:32.288   160   160 D awplayer: <omx_vdec:255>: (f:omx_vdec, l:255)
+09-05 22:18:32.288   160   160 D awplayer: <getCallingProcessName:212>: Calling process is: com.android.systemui
+09-05 22:18:32.288   160   160 D awplayer: <omx_vdec:343>: ion open fd = 15
+09-05 22:18:32.288   160   160 D awplayer: <component_init:513>: (f:component_init, l:513) name = OMX.allwinner.video.decoder.mpeg4
+09-05 22:18:32.290   160   160 W awplayer: <get_parameter:1175>: pParamProfileLevel->nProfileIndex[0xf] error!
+09-05 22:18:32.290   160   160 E OMXNodeInstance: getParameter(13:allwinner.decoder.mpeg4, ParamVideoProfileLevelQuerySupported(0x600000f)) ERROR: BadParameter(0x80001005)
+09-05 22:18:32.290   160  1518 D awplayer: <ComponentThread:4299>:  stop command.
+09-05 22:18:32.291   160  1518 D awplayer: <ComponentThread:4301>: (f:ComponentThread, l:4301) wait for OMX_VdrvCommand_Stop
+09-05 22:18:32.291   160  1519 D awplayer: <ComponentVdrvThread:4516>: (f:ComponentVdrvThread, l:4516) vdrvThread receive cmd[0x3]
+09-05 22:18:32.291   160  1519 D awplayer: <ComponentVdrvThread:4625>: (f:ComponentVdrvThread, l:4625)(OMX_VdrvCommand_Stop)
+09-05 22:18:32.291   160  1519 D awplayer: <ComponentVdrvThread:4654>: vdrvThread detect nStopFlag[1], exit!
+09-05 22:18:32.291   160  1519 D awplayer: <ComponentVdrvThread:4824>: ***notify: exit the componentVdrvThread!
+09-05 22:18:32.291   160  1518 D awplayer: <ComponentThread:4303>: (f:ComponentThread, l:4303) wait for OMX_VdrvCommand_Stop done!
+09-05 22:18:32.299   160   160 D awplayer: <component_deinit:2486>: (f:component_deinit, l:2486) two threads exit!
+09-05 22:18:32.299   160   160 D awplayer: <~omx_vdec:503>: ~omx_dec done!
+09-05 22:18:32.299   160   160 D awplayer: <check_lib_unload:394>:  Unloading the dynamic library for OMX.allwinner.video.decoder.mpeg4
+09-05 22:18:32.304   160   160 D awplayer: <omx_vdec:255>: (f:omx_vdec, l:255)
+09-05 22:18:32.305   160   160 D awplayer: <getCallingProcessName:212>: Calling process is: com.android.systemui
+09-05 22:18:32.305   160   160 D awplayer: <omx_vdec:343>: ion open fd = 15
+09-05 22:18:32.305   160   160 D awplayer: <component_init:513>: (f:component_init, l:513) name = OMX.allwinner.video.decoder.h263
+09-05 22:18:32.308   160   160 W awplayer: <get_parameter:1175>: pParamProfileLevel->nProfileIndex[0x8] error!
+09-05 22:18:32.308   160   160 E OMXNodeInstance: getParameter(14:allwinner.decoder.h263, ParamVideoProfileLevelQuerySupported(0x600000f)) ERROR: BadParameter(0x80001005)
+09-05 22:18:32.314   160  1524 D awplayer: <ComponentThread:4299>:  stop command.
+09-05 22:18:32.315   160  1524 D awplayer: <ComponentThread:4301>: (f:ComponentThread, l:4301) wait for OMX_VdrvCommand_Stop
+09-05 22:18:32.315   160  1525 D awplayer: <ComponentVdrvThread:4516>: (f:ComponentVdrvThread, l:4516) vdrvThread receive cmd[0x3]
+09-05 22:18:32.315   160  1525 D awplayer: <ComponentVdrvThread:4625>: (f:ComponentVdrvThread, l:4625)(OMX_VdrvCommand_Stop)
+09-05 22:18:32.315   160  1525 D awplayer: <ComponentVdrvThread:4654>: vdrvThread detect nStopFlag[1], exit!
+09-05 22:18:32.315   160  1524 D awplayer: <ComponentThread:4303>: (f:ComponentThread, l:4303) wait for OMX_VdrvCommand_Stop done!
+09-05 22:18:32.315   160  1525 D awplayer: <ComponentVdrvThread:4824>: ***notify: exit the componentVdrvThread!
+09-05 22:18:32.317   160   160 D awplayer: <component_deinit:2486>: (f:component_deinit, l:2486) two threads exit!
+09-05 22:18:32.317   160   160 D awplayer: <~omx_vdec:503>: ~omx_dec done!
+09-05 22:18:32.317   160   160 D awplayer: <check_lib_unload:394>:  Unloading the dynamic library for OMX.allwinner.video.decoder.h263
+09-05 22:18:32.325   160   160 D awplayer: <omx_vdec:255>: (f:omx_vdec, l:255)
+09-05 22:18:32.325   160   160 D awplayer: <getCallingProcessName:212>: Calling process is: com.android.systemui
+09-05 22:18:32.326   160   160 D awplayer: <omx_vdec:343>: ion open fd = 15
+09-05 22:18:32.327   160   160 D awplayer: <component_init:513>: (f:component_init, l:513) name = OMX.allwinner.video.decoder.vp6
+09-05 22:18:32.329   160   160 W awplayer: <get_parameter:1169>: OMX_IndexParamVideoProfileLevelQuerySupported, Format[0xc] not support
+09-05 22:18:32.329   160   160 E OMXNodeInstance: getParameter(15:allwinner.decoder.vp6, ParamVideoProfileLevelQuerySupported(0x600000f)) ERROR: BadParameter(0x80001005)
+09-05 22:18:32.330   160  1527 D awplayer: <ComponentThread:4299>:  stop command.
+09-05 22:18:32.331   160  1528 D awplayer: <ComponentVdrvThread:4516>: (f:ComponentVdrvThread, l:4516) vdrvThread receive cmd[0x3]
+09-05 22:18:32.331   160  1528 D awplayer: <ComponentVdrvThread:4625>: (f:ComponentVdrvThread, l:4625)(OMX_VdrvCommand_Stop)
+09-05 22:18:32.331   160  1528 D awplayer: <ComponentVdrvThread:4654>: vdrvThread detect nStopFlag[1], exit!
+09-05 22:18:32.331   160  1528 D awplayer: <ComponentVdrvThread:4824>: ***notify: exit the componentVdrvThread!
+09-05 22:18:32.331   160  1527 D awplayer: <ComponentThread:4301>: (f:ComponentThread, l:4301) wait for OMX_VdrvCommand_Stop
+09-05 22:18:32.332   160  1527 D awplayer: <ComponentThread:4303>: (f:ComponentThread, l:4303) wait for OMX_VdrvCommand_Stop done!
+09-05 22:18:32.332   160   160 D awplayer: <component_deinit:2486>: (f:component_deinit, l:2486) two threads exit!
+09-05 22:18:32.332   160   160 D awplayer: <~omx_vdec:503>: ~omx_dec done!
+09-05 22:18:32.332   160   160 D awplayer: <check_lib_unload:394>:  Unloading the dynamic library for OMX.allwinner.video.decoder.vp6
+09-05 22:18:32.339   160   160 D awplayer: <omx_vdec:255>: (f:omx_vdec, l:255)
+09-05 22:18:32.339   160   160 D awplayer: <getCallingProcessName:212>: Calling process is: com.android.systemui
+09-05 22:18:32.340   160   160 D awplayer: <omx_vdec:343>: ion open fd = 15
+09-05 22:18:32.340   160   160 D awplayer: <component_init:513>: (f:component_init, l:513) name = OMX.allwinner.video.decoder.vp8
+09-05 22:18:32.340   160   160 W awplayer: <get_parameter:1169>: OMX_IndexParamVideoProfileLevelQuerySupported, Format[0x9] not support
+09-05 22:18:32.340   160   160 E OMXNodeInstance: getParameter(16:allwinner.decoder.vp8, ParamVideoProfileLevelQuerySupported(0x600000f)) ERROR: BadParameter(0x80001005)
+09-05 22:18:32.341   160  1530 D awplayer: <ComponentThread:4299>:  stop command.
+09-05 22:18:32.342   160  1530 D awplayer: <ComponentThread:4301>: (f:ComponentThread, l:4301) wait for OMX_VdrvCommand_Stop
+09-05 22:18:32.342   160  1531 D awplayer: <ComponentVdrvThread:4516>: (f:ComponentVdrvThread, l:4516) vdrvThread receive cmd[0x3]
+09-05 22:18:32.342   160  1531 D awplayer: <ComponentVdrvThread:4625>: (f:ComponentVdrvThread, l:4625)(OMX_VdrvCommand_Stop)
+09-05 22:18:32.342   160  1531 D awplayer: <ComponentVdrvThread:4654>: vdrvThread detect nStopFlag[1], exit!
+09-05 22:18:32.342   160  1531 D awplayer: <ComponentVdrvThread:4824>: ***notify: exit the componentVdrvThread!
+09-05 22:18:32.343   160  1530 D awplayer: <ComponentThread:4303>: (f:ComponentThread, l:4303) wait for OMX_VdrvCommand_Stop done!
+09-05 22:18:32.343   160   160 D awplayer: <component_deinit:2486>: (f:component_deinit, l:2486) two threads exit!
+09-05 22:18:32.344   160   160 D awplayer: <~omx_vdec:503>: ~omx_dec done!
+09-05 22:18:32.344   160   160 D awplayer: <check_lib_unload:394>:  Unloading the dynamic library for OMX.allwinner.video.decoder.vp8
+09-05 22:18:32.352   160   160 D awplayer: <omx_vdec:255>: (f:omx_vdec, l:255)
+09-05 22:18:32.352   160   160 D awplayer: <getCallingProcessName:212>: Calling process is: com.android.systemui
+09-05 22:18:32.353   160   160 D awplayer: <omx_vdec:343>: ion open fd = 15
+09-05 22:18:32.353   160   160 D awplayer: <component_init:513>: (f:component_init, l:513) name = OMX.allwinner.video.decoder.vc1
+09-05 22:18:32.355   160   160 W awplayer: <get_parameter:1169>: OMX_IndexParamVideoProfileLevelQuerySupported, Format[0x5] not support
+09-05 22:18:32.355   160   160 E OMXNodeInstance: getParameter(17:allwinner.decoder.vc1, ParamVideoProfileLevelQuerySupported(0x600000f)) ERROR: BadParameter(0x80001005)
+09-05 22:18:32.367   160  1534 D awplayer: <ComponentThread:4299>:  stop command.
+09-05 22:18:32.367   160  1534 D awplayer: <ComponentThread:4301>: (f:ComponentThread, l:4301) wait for OMX_VdrvCommand_Stop
+09-05 22:18:32.367   160  1535 D awplayer: <ComponentVdrvThread:4516>: (f:ComponentVdrvThread, l:4516) vdrvThread receive cmd[0x3]
+09-05 22:18:32.367   160  1535 D awplayer: <ComponentVdrvThread:4625>: (f:ComponentVdrvThread, l:4625)(OMX_VdrvCommand_Stop)
+09-05 22:18:32.367   160  1535 D awplayer: <ComponentVdrvThread:4654>: vdrvThread detect nStopFlag[1], exit!
+09-05 22:18:32.367   160  1534 D awplayer: <ComponentThread:4303>: (f:ComponentThread, l:4303) wait for OMX_VdrvCommand_Stop done!
+09-05 22:18:32.367   160  1535 D awplayer: <ComponentVdrvThread:4824>: ***notify: exit the componentVdrvThread!
+09-05 22:18:32.368   160   160 D awplayer: <component_deinit:2486>: (f:component_deinit, l:2486) two threads exit!
+09-05 22:18:32.368   160   160 D awplayer: <~omx_vdec:503>: ~omx_dec done!
+09-05 22:18:32.368   160   160 D awplayer: <check_lib_unload:394>:  Unloading the dynamic library for OMX.allwinner.video.decoder.vc1
+09-05 22:18:32.372   160   160 D awplayer: <omx_vdec:255>: (f:omx_vdec, l:255)
+09-05 22:18:32.373   160   160 D awplayer: <getCallingProcessName:212>: Calling process is: com.android.systemui
+09-05 22:18:32.373   160   160 D awplayer: <omx_vdec:343>: ion open fd = 15
+09-05 22:18:32.373   160   160 D awplayer: <component_init:513>: (f:component_init, l:513) name = OMX.allwinner.video.decoder.msmpeg4v1
+09-05 22:18:32.374   160   160 W awplayer: <get_parameter:1169>: OMX_IndexParamVideoProfileLevelQuerySupported, Format[0xf] not support
+09-05 22:18:32.374   160   160 E OMXNodeInstance: getParameter(18:allwinner.decoder.msmpeg4v1, ParamVideoProfileLevelQuerySupported(0x600000f)) ERROR: BadParameter(0x80001005)
+09-05 22:18:32.376   160  1539 D awplayer: <ComponentThread:4299>:  stop command.
+09-05 22:18:32.376   160  1539 D awplayer: <ComponentThread:4301>: (f:ComponentThread, l:4301) wait for OMX_VdrvCommand_Stop
+09-05 22:18:32.383   160  1540 D awplayer: <ComponentVdrvThread:4516>: (f:ComponentVdrvThread, l:4516) vdrvThread receive cmd[0x3]
+09-05 22:18:32.383   160  1540 D awplayer: <ComponentVdrvThread:4625>: (f:ComponentVdrvThread, l:4625)(OMX_VdrvCommand_Stop)
+09-05 22:18:32.383   160  1540 D awplayer: <ComponentVdrvThread:4654>: vdrvThread detect nStopFlag[1], exit!
+09-05 22:18:32.383   160  1540 D awplayer: <ComponentVdrvThread:4824>: ***notify: exit the componentVdrvThread!
+09-05 22:18:32.383   160  1539 D awplayer: <ComponentThread:4303>: (f:ComponentThread, l:4303) wait for OMX_VdrvCommand_Stop done!
+09-05 22:18:32.383   160   160 D awplayer: <component_deinit:2486>: (f:component_deinit, l:2486) two threads exit!
+09-05 22:18:32.383   160   160 D awplayer: <~omx_vdec:503>: ~omx_dec done!
+09-05 22:18:32.384   160   160 D awplayer: <check_lib_unload:394>:  Unloading the dynamic library for OMX.allwinner.video.decoder.msmpeg4v1
+09-05 22:18:32.389   160   160 D awplayer: <omx_vdec:255>: (f:omx_vdec, l:255)
+09-05 22:18:32.390   160   160 D awplayer: <getCallingProcessName:212>: Calling process is: com.android.systemui
+09-05 22:18:32.390   160   160 D awplayer: <omx_vdec:343>: ion open fd = 15
+09-05 22:18:32.390   160   160 D awplayer: <component_init:513>: (f:component_init, l:513) name = OMX.allwinner.video.decoder.msmpeg4v2
+09-05 22:18:32.391   160   160 W awplayer: <get_parameter:1169>: OMX_IndexParamVideoProfileLevelQuerySupported, Format[0x10] not support
+09-05 22:18:32.391   160   160 E OMXNodeInstance: getParameter(19:allwinner.decoder.msmpeg4v2, ParamVideoProfileLevelQuerySupported(0x600000f)) ERROR: BadParameter(0x80001005)
+09-05 22:18:32.391   160  1542 D awplayer: <ComponentThread:4299>:  stop command.
+09-05 22:18:32.391   160  1542 D awplayer: <ComponentThread:4301>: (f:ComponentThread, l:4301) wait for OMX_VdrvCommand_Stop
+09-05 22:18:32.391   160  1543 D awplayer: <ComponentVdrvThread:4516>: (f:ComponentVdrvThread, l:4516) vdrvThread receive cmd[0x3]
+09-05 22:18:32.391   160  1543 D awplayer: <ComponentVdrvThread:4625>: (f:ComponentVdrvThread, l:4625)(OMX_VdrvCommand_Stop)
+09-05 22:18:32.391   160  1543 D awplayer: <ComponentVdrvThread:4654>: vdrvThread detect nStopFlag[1], exit!
+09-05 22:18:32.391   160  1542 D awplayer: <ComponentThread:4303>: (f:ComponentThread, l:4303) wait for OMX_VdrvCommand_Stop done!
+09-05 22:18:32.391   160  1543 D awplayer: <ComponentVdrvThread:4824>: ***notify: exit the componentVdrvThread!
+09-05 22:18:32.392   160   160 D awplayer: <component_deinit:2486>: (f:component_deinit, l:2486) two threads exit!
+09-05 22:18:32.392   160   160 D awplayer: <~omx_vdec:503>: ~omx_dec done!
+09-05 22:18:32.392   160   160 D awplayer: <check_lib_unload:394>:  Unloading the dynamic library for OMX.allwinner.video.decoder.msmpeg4v2
+09-05 22:18:32.402   160   160 D awplayer: <omx_vdec:255>: (f:omx_vdec, l:255)
+09-05 22:18:32.402   160   160 D awplayer: <getCallingProcessName:212>: Calling process is: com.android.systemui
+09-05 22:18:32.403   160   160 D awplayer: <omx_vdec:343>: ion open fd = 15
+09-05 22:18:32.403   160   160 D awplayer: <component_init:513>: (f:component_init, l:513) name = OMX.allwinner.video.decoder.divx
+09-05 22:18:32.403   160   160 W awplayer: <get_parameter:1169>: OMX_IndexParamVideoProfileLevelQuerySupported, Format[0x11] not support
+09-05 22:18:32.403   160   160 E OMXNodeInstance: getParameter(1a:allwinner.decoder.divx, ParamVideoProfileLevelQuerySupported(0x600000f)) ERROR: BadParameter(0x80001005)
+09-05 22:18:32.406   160  1548 D awplayer: <ComponentThread:4299>:  stop command.
+09-05 22:18:32.406   160  1548 D awplayer: <ComponentThread:4301>: (f:ComponentThread, l:4301) wait for OMX_VdrvCommand_Stop
+09-05 22:18:32.407   160  1549 D awplayer: <ComponentVdrvThread:4516>: (f:ComponentVdrvThread, l:4516) vdrvThread receive cmd[0x3]
+09-05 22:18:32.407   160  1549 D awplayer: <ComponentVdrvThread:4625>: (f:ComponentVdrvThread, l:4625)(OMX_VdrvCommand_Stop)
+09-05 22:18:32.407   160  1549 D awplayer: <ComponentVdrvThread:4654>: vdrvThread detect nStopFlag[1], exit!
+09-05 22:18:32.407   160  1549 D awplayer: <ComponentVdrvThread:4824>: ***notify: exit the componentVdrvThread!
+09-05 22:18:32.407   160  1548 D awplayer: <ComponentThread:4303>: (f:ComponentThread, l:4303) wait for OMX_VdrvCommand_Stop done!
+09-05 22:18:32.409   160   160 D awplayer: <component_deinit:2486>: (f:component_deinit, l:2486) two threads exit!
+09-05 22:18:32.410   160   160 D awplayer: <~omx_vdec:503>: ~omx_dec done!
+09-05 22:18:32.410   160   160 D awplayer: <check_lib_unload:394>:  Unloading the dynamic library for OMX.allwinner.video.decoder.divx
+09-05 22:18:32.438   973  1236 D WifiConfigStore: Loading config and enabling all networks
+09-05 22:18:32.439   160   160 D awplayer: <omx_vdec:255>: (f:omx_vdec, l:255)
+09-05 22:18:32.439   160   160 D awplayer: <getCallingProcessName:212>: Calling process is: com.android.systemui
+09-05 22:18:32.439   160   160 D awplayer: <omx_vdec:343>: ion open fd = 15
+09-05 22:18:32.440   160   160 D awplayer: <component_init:513>: (f:component_init, l:513) name = OMX.allwinner.video.decoder.xvid
+09-05 22:18:32.442   160   160 W awplayer: <get_parameter:1169>: OMX_IndexParamVideoProfileLevelQuerySupported, Format[0x12] not support
+09-05 22:18:32.442   160   160 E OMXNodeInstance: getParameter(1b:allwinner.decoder.xvid, ParamVideoProfileLevelQuerySupported(0x600000f)) ERROR: BadParameter(0x80001005)
+09-05 22:18:32.454   160  1553 D awplayer: <ComponentThread:4299>:  stop command.
+09-05 22:18:32.454   160  1553 D awplayer: <ComponentThread:4301>: (f:ComponentThread, l:4301) wait for OMX_VdrvCommand_Stop
+09-05 22:18:32.457   160  1554 D awplayer: <ComponentVdrvThread:4516>: (f:ComponentVdrvThread, l:4516) vdrvThread receive cmd[0x3]
+09-05 22:18:32.457   160  1554 D awplayer: <ComponentVdrvThread:4625>: (f:ComponentVdrvThread, l:4625)(OMX_VdrvCommand_Stop)
+09-05 22:18:32.457   160  1554 D awplayer: <ComponentVdrvThread:4654>: vdrvThread detect nStopFlag[1], exit!
+09-05 22:18:32.457   160  1554 D awplayer: <ComponentVdrvThread:4824>: ***notify: exit the componentVdrvThread!
+09-05 22:18:32.457   160  1553 D awplayer: <ComponentThread:4303>: (f:ComponentThread, l:4303) wait for OMX_VdrvCommand_Stop done!
+09-05 22:18:32.459   160   160 D awplayer: <component_deinit:2486>: (f:component_deinit, l:2486) two threads exit!
+09-05 22:18:32.460   160   160 D awplayer: <~omx_vdec:503>: ~omx_dec done!
+09-05 22:18:32.460   160   160 D awplayer: <check_lib_unload:394>:  Unloading the dynamic library for OMX.allwinner.video.decoder.xvid
+09-05 22:18:32.471   160   160 D awplayer: <omx_vdec:255>: (f:omx_vdec, l:255)
+09-05 22:18:32.471   160   160 D awplayer: <getCallingProcessName:212>: Calling process is: com.android.systemui
+09-05 22:18:32.471   160   160 D awplayer: <omx_vdec:343>: ion open fd = 15
+09-05 22:18:32.471   160   160 D awplayer: <component_init:513>: (f:component_init, l:513) name = OMX.allwinner.video.decoder.s263
+09-05 22:18:32.472   160   160 W awplayer: <get_parameter:1169>: OMX_IndexParamVideoProfileLevelQuerySupported, Format[0xe] not support
+09-05 22:18:32.472   160   160 E OMXNodeInstance: getParameter(1c:allwinner.decoder.s263, ParamVideoProfileLevelQuerySupported(0x600000f)) ERROR: BadParameter(0x80001005)
+09-05 22:18:32.473   160  1559 D awplayer: <ComponentThread:4299>:  stop command.
+09-05 22:18:32.473   160  1560 D awplayer: <ComponentVdrvThread:4516>: (f:ComponentVdrvThread, l:4516) vdrvThread receive cmd[0x3]
+09-05 22:18:32.473   160  1560 D awplayer: <ComponentVdrvThread:4625>: (f:ComponentVdrvThread, l:4625)(OMX_VdrvCommand_Stop)
+09-05 22:18:32.473   160  1560 D awplayer: <ComponentVdrvThread:4654>: vdrvThread detect nStopFlag[1], exit!
+09-05 22:18:32.473   160  1560 D awplayer: <ComponentVdrvThread:4824>: ***notify: exit the componentVdrvThread!
+09-05 22:18:32.473   160  1559 D awplayer: <ComponentThread:4301>: (f:ComponentThread, l:4301) wait for OMX_VdrvCommand_Stop
+09-05 22:18:32.474   160  1559 D awplayer: <ComponentThread:4303>: (f:ComponentThread, l:4303) wait for OMX_VdrvCommand_Stop done!
+09-05 22:18:32.474   160   160 D awplayer: <component_deinit:2486>: (f:component_deinit, l:2486) two threads exit!
+09-05 22:18:32.474   160   160 D awplayer: <~omx_vdec:503>: ~omx_dec done!
+09-05 22:18:32.474   160   160 D awplayer: <check_lib_unload:394>:  Unloading the dynamic library for OMX.allwinner.video.decoder.s263
+09-05 22:18:32.478   973  1236 D WifiConfigStore: loaded 0 passpoint configs
+09-05 22:18:32.479   973  1236 E WifiConfigStore: Error parsing configuration: java.io.FileNotFoundException: /data/misc/wifi/ipconfig.txt: open failed: ENOENT (No such file or directory)
+09-05 22:18:32.490   973  1236 W WifiConfigStore: Upgrading network 0 to android.uid.system:1000
+09-05 22:18:32.491   973  1236 E WifiConfigStore: readAutoJoinStatus: Error parsing configurationjava.io.FileNotFoundException: /data/misc/wifi/autojoinconfig.txt: open failed: ENOENT (No such file or directory)
+09-05 22:18:32.492   973  1236 E WifiConfigStore: buildPnoList sortedWifiConfigurations size 1
+09-05 22:18:32.492   973  1236 E WifiConfigStore: found sortedWifiConfigurations : "abc"WPA_PSK
+09-05 22:18:32.504   160   160 D awplayer: <omx_vdec:255>: (f:omx_vdec, l:255)
+09-05 22:18:32.504   160   160 D awplayer: <getCallingProcessName:212>: Calling process is: com.android.systemui
+09-05 22:18:32.504   160   160 D awplayer: <omx_vdec:343>: ion open fd = 15
+09-05 22:18:32.505   160   160 D awplayer: <component_init:513>: (f:component_init, l:513) name = OMX.allwinner.video.decoder.rxg2
+09-05 22:18:32.505   160   160 W awplayer: <get_parameter:1169>: OMX_IndexParamVideoProfileLevelQuerySupported, Format[0x13] not support
+09-05 22:18:32.505   160   160 E OMXNodeInstance: getParameter(1d:allwinner.decoder.rxg2, ParamVideoProfileLevelQuerySupported(0x600000f)) ERROR: BadParameter(0x80001005)
+09-05 22:18:32.516   973  1236 D WifiNative-HAL: Setting external_sim to 1
+09-05 22:18:32.517   160  1562 D awplayer: <ComponentThread:4299>:  stop command.
+09-05 22:18:32.518   160  1563 D awplayer: <ComponentVdrvThread:4516>: (f:ComponentVdrvThread, l:4516) vdrvThread receive cmd[0x3]
+09-05 22:18:32.518   160  1563 D awplayer: <ComponentVdrvThread:4625>: (f:ComponentVdrvThread, l:4625)(OMX_VdrvCommand_Stop)
+09-05 22:18:32.518   160  1563 D awplayer: <ComponentVdrvThread:4654>: vdrvThread detect nStopFlag[1], exit!
+09-05 22:18:32.518   160  1563 D awplayer: <ComponentVdrvThread:4824>: ***notify: exit the componentVdrvThread!
+09-05 22:18:32.519   973  1236 D wifi    : setting dfs flag to true, 0xaf6fa830
+09-05 22:18:32.521   160  1562 D awplayer: <ComponentThread:4301>: (f:ComponentThread, l:4301) wait for OMX_VdrvCommand_Stop
+09-05 22:18:32.521   160  1562 D awplayer: <ComponentThread:4303>: (f:ComponentThread, l:4303) wait for OMX_VdrvCommand_Stop done!
+09-05 22:18:32.521   160   160 D awplayer: <component_deinit:2486>: (f:component_deinit, l:2486) two threads exit!
+09-05 22:18:32.522   973  1236 D WifiStateMachine: Setting OUI to DA-A1-19
+09-05 22:18:32.522   160   160 D awplayer: <~omx_vdec:503>: ~omx_dec done!
+09-05 22:18:32.522   160   160 D awplayer: <check_lib_unload:394>:  Unloading the dynamic library for OMX.allwinner.video.decoder.rxg2
+09-05 22:18:32.522   973  1236 D wifi    : setting scan oui 0xaf6fa830
+09-05 22:18:32.522   973  1236 D WifiHAL : Sending mac address OUI
+09-05 22:18:32.522   973  1236 E WifiHAL : failed to set scanning mac OUI; result = -95
+09-05 22:18:32.530   160   160 D awplayer: <omx_vdec:255>: (f:omx_vdec, l:255)
+09-05 22:18:32.531   160   160 D awplayer: <getCallingProcessName:212>: Calling process is: com.android.systemui
+09-05 22:18:32.531   160   160 D awplayer: <omx_vdec:343>: ion open fd = 15
+09-05 22:18:32.531   160   160 D awplayer: <component_init:513>: (f:component_init, l:513) name = OMX.allwinner.video.decoder.wmv1
+09-05 22:18:32.532   160   160 W awplayer: <get_parameter:1169>: OMX_IndexParamVideoProfileLevelQuerySupported, Format[0x14] not support
+09-05 22:18:32.532   160   160 E OMXNodeInstance: getParameter(1e:allwinner.decoder.wmv1, ParamVideoProfileLevelQuerySupported(0x600000f)) ERROR: BadParameter(0x80001005)
+09-05 22:18:32.534   160  1568 D awplayer: <ComponentThread:4299>:  stop command.
+09-05 22:18:32.534   160  1568 D awplayer: <ComponentThread:4301>: (f:ComponentThread, l:4301) wait for OMX_VdrvCommand_Stop
+09-05 22:18:32.540   160  1569 D awplayer: <ComponentVdrvThread:4516>: (f:ComponentVdrvThread, l:4516) vdrvThread receive cmd[0x3]
+09-05 22:18:32.540   160  1569 D awplayer: <ComponentVdrvThread:4625>: (f:ComponentVdrvThread, l:4625)(OMX_VdrvCommand_Stop)
+09-05 22:18:32.540   160  1568 D awplayer: <ComponentThread:4303>: (f:ComponentThread, l:4303) wait for OMX_VdrvCommand_Stop done!
+09-05 22:18:32.541   160  1569 D awplayer: <ComponentVdrvThread:4654>: vdrvThread detect nStopFlag[1], exit!
+09-05 22:18:32.541   160  1569 D awplayer: <ComponentVdrvThread:4824>: ***notify: exit the componentVdrvThread!
+09-05 22:18:32.542   160   160 D awplayer: <component_deinit:2486>: (f:component_deinit, l:2486) two threads exit!
+09-05 22:18:32.542   160   160 D awplayer: <~omx_vdec:503>: ~omx_dec done!
+09-05 22:18:32.542   160   160 D awplayer: <check_lib_unload:394>:  Unloading the dynamic library for OMX.allwinner.video.decoder.wmv1
+09-05 22:18:32.555   973  1236 E wifi    : android_net_wifi_getLinkLayerStats: failed to get link statistics
+09-05 22:18:32.556   160   160 D awplayer: <omx_vdec:255>: (f:omx_vdec, l:255)
+09-05 22:18:32.556   160   160 D awplayer: <getCallingProcessName:212>: Calling process is: com.android.systemui
+09-05 22:18:32.556   160   160 D awplayer: <omx_vdec:343>: ion open fd = 15
+09-05 22:18:32.556   160   160 D awplayer: <component_init:513>: (f:component_init, l:513) name = OMX.allwinner.video.decoder.wmv2
+09-05 22:18:32.557   160   160 W awplayer: <get_parameter:1169>: OMX_IndexParamVideoProfileLevelQuerySupported, Format[0x15] not support
+09-05 22:18:32.557   160   160 E OMXNodeInstance: getParameter(1f:allwinner.decoder.wmv2, ParamVideoProfileLevelQuerySupported(0x600000f)) ERROR: BadParameter(0x80001005)
+09-05 22:18:32.557   973  1236 D WifiConfigStore: Retrieve network priorities after PNO.
+09-05 22:18:32.559   160  1571 D awplayer: <ComponentThread:4299>:  stop command.
+09-05 22:18:32.560   160  1572 D awplayer: <ComponentVdrvThread:4516>: (f:ComponentVdrvThread, l:4516) vdrvThread receive cmd[0x3]
+09-05 22:18:32.560   160  1572 D awplayer: <ComponentVdrvThread:4625>: (f:ComponentVdrvThread, l:4625)(OMX_VdrvCommand_Stop)
+09-05 22:18:32.560   160  1572 D awplayer: <ComponentVdrvThread:4654>: vdrvThread detect nStopFlag[1], exit!
+09-05 22:18:32.560   160  1572 D awplayer: <ComponentVdrvThread:4824>: ***notify: exit the componentVdrvThread!
+09-05 22:18:32.561   160  1571 D awplayer: <ComponentThread:4301>: (f:ComponentThread, l:4301) wait for OMX_VdrvCommand_Stop
+09-05 22:18:32.561   160  1571 D awplayer: <ComponentThread:4303>: (f:ComponentThread, l:4303) wait for OMX_VdrvCommand_Stop done!
+09-05 22:18:32.562   160   160 D awplayer: <component_deinit:2486>: (f:component_deinit, l:2486) two threads exit!
+09-05 22:18:32.562   160   160 D awplayer: <~omx_vdec:503>: ~omx_dec done!
+09-05 22:18:32.562   160   160 D awplayer: <check_lib_unload:394>:  Unloading the dynamic library for OMX.allwinner.video.decoder.wmv2
+09-05 22:18:32.570   973  1236 E wifi    : wifi_get_supported_feature_set returned error = 0xffffffa1
+09-05 22:18:32.570   973  1236 D wifi    : android_net_wifi_setLinkLayerStats: 1
+09-05 22:18:32.585   160   160 D awplayer: <get_omx_component_factory_fn:276>: ----get_omx_component_factory_fn
+09-05 22:18:32.585   160   160 D awplayer: <getCallingProcessName:263>: Calling process is: com.android.systemui
+09-05 22:18:32.585   160   160 D awplayer: <omx_venc:353>: omx_enc Create!
+09-05 22:18:32.585   160   160 D awplayer: <component_init:433>:  COMPONENT_INIT, name = OMX.allwinner.video.encoder.avc
+09-05 22:18:32.586   160   160 E OMXNodeInstance: getParameter(20:allwinner.encoder.avc, ParamVideoProfileLevelQuerySupported(0x600000f)) ERROR: BadParameter(0x80001005)
+09-05 22:18:32.586   160   160 W ACodec  : do not know color format 0x7f000789 = 2130708361
+09-05 22:18:32.586   160   160 D awplayer: <component_deinit:2055>: component_deinit
+09-05 22:18:32.592   160  1578 D awplayer: <ComponentThread:2989>: x stop command.
+09-05 22:18:32.595   973  1236 D WifiConfigStore: Retrieve network priorities after PNO.
+09-05 22:18:32.602   160  1579 D awplayer: <ComponentVencThread:3895>: vencThread detect nStopFlag[1], exit!
+09-05 22:18:32.603   160   160 D awplayer: <check_lib_unload:394>:  Unloading the dynamic library for OMX.allwinner.video.encoder.avc
+09-05 22:18:32.608   973  1236 D WifiConfigStore: Loading config and enabling all networks
+09-05 22:18:32.640   973  1236 D WifiConfigStore: loaded 0 passpoint configs
+09-05 22:18:32.641   973  1236 E WifiConfigStore: Error parsing configuration: java.io.FileNotFoundException: /data/misc/wifi/ipconfig.txt: open failed: ENOENT (No such file or directory)
+09-05 22:18:32.642   973  1236 W WifiConfigStore: Upgrading network 0 to android.uid.system:1000
+09-05 22:18:32.644   973  1236 E WifiConfigStore: readAutoJoinStatus: Error parsing configurationjava.io.FileNotFoundException: /data/misc/wifi/autojoinconfig.txt: open failed: ENOENT (No such file or directory)
+09-05 22:18:32.644   973  1236 E WifiConfigStore: buildPnoList sortedWifiConfigurations size 1
+09-05 22:18:32.645   973  1236 E WifiConfigStore: found sortedWifiConfigurations : "abc"WPA_PSK
+09-05 22:18:32.658   160   160 W OMXNodeInstance: [21:google.mpeg4.decoder] component does not support metadata mode; using fallback
+09-05 22:18:32.664   160   160 W OMXNodeInstance: [22:google.h263.decoder] component does not support metadata mode; using fallback
+09-05 22:18:32.707   160   160 W OMXNodeInstance: [23:google.h264.decoder] component does not support metadata mode; using fallback
+09-05 22:18:32.759   160   160 W OMXNodeInstance: [24:google.hevc.decoder] component does not support metadata mode; using fallback
+09-05 22:18:32.776   973  1236 E wifi    : android_net_wifi_getLinkLayerStats: failed to get link statistics
+09-05 22:18:32.792   973  1236 E native  : do suspend false
+09-05 22:18:32.808   973  1236 D WifiConfigStore: No blacklist allowed without epno enabled
+09-05 22:18:32.808   973  1236 D WifiConfigStore: Retrieve network priorities after PNO.
+09-05 22:18:32.817   160   160 W OMXNodeInstance: [25:google.vp8.decoder] component does not support metadata mode; using fallback
+09-05 22:18:32.831   973  1236 D WifiConfigStore: Retrieve network priorities after PNO.
+09-05 22:18:32.842   973  1236 D WifiConfigStore: Retrieve network priorities after PNO.
+09-05 22:18:32.849   973  1236 E wifi    : android_net_wifi_getLinkLayerStats: failed to get link statistics
+09-05 22:18:32.854   160   160 W OMXNodeInstance: [26:google.vp9.decoder] component does not support metadata mode; using fallback
+09-05 22:18:32.884   160   160 I SoftMPEG4Encoder: Construct SoftMPEG4Encoder
+09-05 22:18:32.885   160   160 W ACodec  : do not know color format 0x7f000789 = 2130708361
+09-05 22:18:32.902   973  1101 E BluetoothManagerService: MESSAGE_TIMEOUT_BIND
+09-05 22:18:32.958   160   160 W ACodec  : do not know color format 0x7f000789 = 2130708361
+09-05 22:18:32.963   160   160 I SoftMPEG4Encoder: Construct SoftMPEG4Encoder
+09-05 22:18:32.964   160   160 W ACodec  : do not know color format 0x7f000789 = 2130708361
+09-05 22:18:32.999  1267  1267 I vol.Events: writeEvent collection_started
+09-05 22:18:33.028  1267  1629 I vol.Events: writeEvent external_ringer_mode_changed normal
+09-05 22:18:33.028  1267  1629 I vol.Events: writeEvent internal_ringer_mode_changed normal
+09-05 22:18:33.031   160   160 W ACodec  : do not know color format 0x7f000789 = 2130708361
+09-05 22:18:33.062   160   160 W MediaCodecList: unable to open media codecs configuration xml file: /data/misc/media/media_codecs_profiling_results.xml
+09-05 22:18:33.066  1267  1446 I OMXClient: Using client-side OMX mux.
+09-05 22:18:33.184   160  1132 E AudioFlinger: no wake lock to update!
+09-05 22:18:33.282  1267  1649 I OMXClient: Using client-side OMX mux.
+09-05 22:18:33.380  1267  1629 I vol.Events: writeEvent level_changed STREAM_ALARM 7
+09-05 22:18:33.387  1267  1629 I vol.Events: writeEvent level_changed STREAM_BLUETOOTH_SCO 7
+09-05 22:18:33.394  1267  1629 I vol.Events: writeEvent level_changed STREAM_MUSIC 15
+09-05 22:18:33.410  1267  1629 I vol.Events: writeEvent level_changed STREAM_RING 7
+09-05 22:18:33.418  1267  1629 I vol.Events: writeEvent level_changed STREAM_SYSTEM 7
+09-05 22:18:33.446  1267  1629 I vol.Events: writeEvent level_changed STREAM_VOICE_CALL 4
+09-05 22:18:33.465  1267  1267 D StorageNotification: Notifying about private volume: VolumeInfo{private}:
+09-05 22:18:33.465  1267  1267 D StorageNotification:     type=PRIVATE diskId=null partGuid=null mountFlags=0 mountUserId=-1
+09-05 22:18:33.465  1267  1267 D StorageNotification:     state=MOUNTED
+09-05 22:18:33.465  1267  1267 D StorageNotification:     fsType=null fsUuid=null fsLabel=null
+09-05 22:18:33.465  1267  1267 D StorageNotification:     path=/data internalPath=null
+09-05 22:18:33.493  1267  1669 I OMXClient: Using client-side OMX mux.
+09-05 22:18:33.594   973   973 E NetdConnector: NDC Command {9 strict enable} took too long (2279ms)
+09-05 22:18:33.594   973  1228 E NetdConnector: NDC Command {10 interface getcfg p2p0} took too long (1028ms)
+09-05 22:18:33.596   154  1033 D CommandListener: Setting iface cfg
+09-05 22:18:33.596   154  1033 D CommandListener: Trying to bring up p2p0
+09-05 22:18:33.597   973  1228 D WifiMonitor: startMonitoring(p2p0) with mConnected = true
+09-05 22:18:33.623   973  1228 D WifiNative-HAL: p2pGetDeviceAddress
+09-05 22:18:33.627   973  1228 D WifiNative-HAL: p2pGetDeviceAddress returning 9a:3b:16:30:07:6d
+09-05 22:18:33.667   973  1035 I StatusBarManagerService: registerStatusBar bar=com.android.internal.statusbar.IStatusBar$Stub$Proxy@f82e9d3
+09-05 22:18:33.837   154  1033 D CommandListener: Setting iface cfg
+09-05 22:18:33.837   154  1033 D CommandListener: Trying to bring up p2p0
+09-05 22:18:33.839   973  1228 D WifiMonitor: startMonitoring(p2p0) with mConnected = true
+09-05 22:18:33.857   973  1228 D WifiNative-HAL: p2pGetDeviceAddress
+09-05 22:18:33.859   973  1228 D WifiNative-HAL: p2pGetDeviceAddress returning 9a:3b:16:30:07:6d
+09-05 22:18:34.050   973   973 D PermissionMonitor: Monitoring
+09-05 22:18:34.051  1407  1407 I wpa_supplicant: p2p0: CTRL-EVENT-REGDOM-CHANGE init=BEACON_HINT type=UNKNOWN
+09-05 22:18:34.052  1407  1407 I wpa_supplicant: p2p0: CTRL-EVENT-REGDOM-CHANGE init=BEACON_HINT type=UNKNOWN
+09-05 22:18:34.068  1407  1407 I wpa_supplicant: wlan0: Trying to associate with ec:17:2f:fa:55:4a (SSID='abc' freq=2462 MHz)
+09-05 22:18:34.070   973  1236 D WIFI    : Registering NetworkFactory
+09-05 22:18:34.071   973  1236 D WIFI_UT : Registering NetworkFactory
+09-05 22:18:34.071   973  1238 D ConnectivityService: Got NetworkFactory Messenger for WIFI
+09-05 22:18:34.071   973  1238 D ConnectivityService: Got NetworkFactory Messenger for WIFI_UT
+09-05 22:18:34.082   973   973 D PermissionMonitor: Users: 1, Apps: 72
+09-05 22:18:34.088   973  1237 D WifiService: New client listening to asynchronous messages
+09-05 22:18:34.104   973   973 I SystemServiceManager: Starting phase 600
+09-05 22:18:34.104   160   160 V audio_hw_primary: adev_set_parameters, A2dpSuspended=false
+09-05 22:18:34.106   973  1101 D BluetoothManagerService: Added callback: android.bluetooth.BluetoothAdapter$1@2e7c1e7:true
+09-05 22:18:34.121   973   973 I BackupManagerService: Backup enabled => false
+09-05 22:18:34.125   160  1136 I AudioFlinger: systemReady
+09-05 22:18:34.155   973  1236 E wifi    : android_net_wifi_getLinkLayerStats: failed to get link statistics
+09-05 22:18:34.167   973   973 I ActivityManager: Start proc 1708:com.google.android.googlequicksearchbox:interactor/u0a21 for service com.google.android.googlequicksearchbox/com.google.android.voiceinteraction.GsaVoiceInteractionService
+09-05 22:18:34.224   973   973 E InputMethodManagerService: Ignoring updateSystemUiLocked due to an invalid token. uid:1000 token:null
+09-05 22:18:34.238   973  1236 D WIFI    : got request NetworkRequest [ id=1, legacyType=-1, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VPN] ] with score 0
+09-05 22:18:34.239   973  1236 D WIFI_UT : got request NetworkRequest [ id=1, legacyType=-1, [ Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VPN] ] with score 0
+09-05 22:18:34.266   973  1719 I OMXClient: Using client-side OMX mux.
+09-05 22:18:34.291   973   973 I ActivityManager: Start proc 1721:com.google.android.inputmethod.pinyin/u0a43 for service com.google.android.inputmethod.pinyin/.PinyinIME
+09-05 22:18:34.291   973   973 V InputMethodManagerService: Adding window token: android.os.Binder@7e9f345
+09-05 22:18:34.355   973   973 E FlpHardwareProvider: Error hw_get_module 'flp': -2
+09-05 22:18:34.356   973   973 E LocationManagerService: FLP HAL not supported
+09-05 22:18:34.370   973   973 E ActivityRecognitionHardware: Error hw_get_module: -2
+09-05 22:18:34.371   973   973 E LocationManagerService: Hardware Activity-Recognition not supported.
+09-05 22:18:34.389   973   973 I CommonTimeManagementService: No common time service detected on this platform.  Common time services will be unavailable.
+09-05 22:18:34.392   973  1220 I InputReader: Reconfiguring input devices.  changes=0x00000020
+09-05 22:18:34.394   973   973 I MmsServiceBroker: Delay connecting to MmsService until an API is called
+09-05 22:18:34.397   973   973 D MountService: onStartUser 0
+09-05 22:18:34.397   973   973 D VoldConnector: SND -> {7 volume user_started 0}
+09-05 22:18:34.398   135   156 D vold    : Linking /storage/emulated/0 to /mnt/user/0/primary
+09-05 22:18:34.399   973  1222 D VoldConnector: RCV <- {200 7 Command succeeded}
+09-05 22:18:34.400   973  1220 I InputReader: Reconfiguring input devices.  changes=0x00000010
+09-05 22:18:34.400   973  1221 D MountService: Volume emulated broadcasting mounted to UserHandle{0}
+09-05 22:18:34.403   973   973 I ActivityManager: START u0 {act=android.intent.action.MAIN cat=[android.intent.category.HOME] flg=0x10000000 cmp=com.android.launcher3/.Launcher} from uid 0 on display 0
+09-05 22:18:34.417  1275  1275 D MtpService: onStorageStateChanged /storage/emulated/0 mounted -> mounted
+09-05 22:18:34.460   973   973 I ActivityManager: Start proc 1736:com.android.launcher3/u0a12 for activity com.android.launcher3/.Launcher
+09-05 22:18:34.464  1708  1708 W System  : ClassLoader referenced unknown path: /system/priv-app/Velvet/lib/arm
+09-05 22:18:34.473   973  1742 I OMXClient: Using client-side OMX mux.
+09-05 22:18:34.527   973  1075 I ActivityManager: Start proc 1743:com.android.printspooler/u0a60 for service com.android.printspooler/.model.PrintSpoolerService
+09-05 22:18:34.552   973   973 D RttService: SCAN_AVAILABLE : 1
+09-05 22:18:34.553   973  1250 D RttService: DefaultState got{ when=-1ms what=160513 target=com.android.internal.util.StateMachine$SmHandler }
+09-05 22:18:34.564   973   973 I Choreographer: Skipped 266 frames!  The application may be doing too much work on its main thread.
+09-05 22:18:34.584  1407  1407 I wpa_supplicant: wlan0: Associated with ec:17:2f:fa:55:4a
+09-05 22:18:34.628  1721  1721 W System  : ClassLoader referenced unknown path: /system/app/GooglePinyinIME/lib/arm
+09-05 22:18:34.632  1407  1407 I wpa_supplicant: wlan0: WPA: Key negotiation completed with ec:17:2f:fa:55:4a [PTK=CCMP GTK=CCMP]
+09-05 22:18:34.633  1407  1407 I wpa_supplicant: wlan0: CTRL-EVENT-CONNECTED - Connection to ec:17:2f:fa:55:4a completed [id=0 id_str=]
+09-05 22:18:34.797   973  1236 D WifiConfigStore: Retrieve network priorities after PNO.
+09-05 22:18:34.810   973   973 W System  : ClassLoader referenced unknown path: /system/priv-app/Telecom/lib/arm
+09-05 22:18:34.841   973  1236 D ConnectivityService: registerNetworkAgent NetworkAgentInfo{ ni{[type: WIFI[], state: CONNECTING/CONNECTING, reason: (unspecified), extra: "abc", roaming: false, failover: false, isAvailable: true]}  network{100}  lp{{LinkAddresses: []  Routes: [] DnsAddresses: [] Domains: null MTU: 0 TcpBufferSizes: 524288,1048576,2097152,262144,524288,1048576}}  nc{[ Transports: WIFI Capabilities: INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VPN LinkUpBandwidth>=1048576Kbps LinkDnBandwidth>=1048576Kbps]}  Score{20}  everValidated{false}  lastValidated{false}  created{false} lingering{f
+alse} explicitlySelected{false} acceptUnvalidated{false} everCaptivePortalDetected{false} lastCaptivePortalDetected{false} }
+09-05 22:18:34.842   973  1238 D ConnectivityService: NetworkAgentInfo [WIFI () - 100] EVENT_NETWORK_INFO_CHANGED, going from null to CONNECTING
+09-05 22:18:34.842   973  1236 E WifiConfigStore: saveWifiConfigBSSID Setting BSSID for "abc"WPA_PSK to any
+09-05 22:18:34.861   973  1236 E WifiConfigStore: saveWifiConfigBSSID Setting BSSID for "abc"WPA_PSK to any
+09-05 22:18:34.884  1736  1736 W System  : ClassLoader referenced unknown path: /system/priv-app/Launcher3/lib/arm
+09-05 22:18:34.897   154  1033 D CommandListener: Setting iface cfg
+09-05 22:18:34.922   973  1236 D WifiStateMachine: Start Dhcp Watchdog 1
+09-05 22:18:34.966   973  1767 I OMXClient: Using client-side OMX mux.
+09-05 22:18:34.968   973  1238 D ConnectivityService: notifyType CAP_CHANGED for NetworkAgentInfo [WIFI () - 100]
+09-05 22:18:34.968   973  1238 D ConnectivityService: updateNetworkScore for NetworkAgentInfo [WIFI () - 100] to 60
+09-05 22:18:35.004   973  1770 D DhcpClient: Receive thread started
+09-05 22:18:35.087   973  1236 E native  : do suspend false
+09-05 22:18:35.116   973  1766 D DhcpClient: Broadcasting DHCPDISCOVER
+09-05 22:18:35.144   973  1771 I OMXClient: Using client-side OMX mux.
+09-05 22:18:35.193   973  1770 D DhcpClient: Received packet: 98:3b:16:30:07:6d OFFER, ip /192.168.7.104, mask /255.255.255.0, DNS servers: /192.168.7.1 , gateways [/192.168.7.1] lease time 2943, domain null
+09-05 22:18:35.194   973  1766 D DhcpClient: Got pending lease: IP address 192.168.7.104/24 Gateway 192.168.7.1  DNS servers: [ 192.168.7.1 ] Domains DHCP server /192.168.7.1 Vendor info null lease 2943 seconds
+09-05 22:18:35.198   973  1766 D DhcpClient: Broadcasting DHCPREQUEST ciaddr=0.0.0.0 request=192.168.7.104 serverid=192.168.7.1
+09-05 22:18:35.214   973  1770 D DhcpClient: Received packet: 98:3b:16:30:07:6d ACK: your new IP /192.168.7.104, netmask /255.255.255.0, gateways [/192.168.7.1] DNS servers: /192.168.7.1 , lease time 3000
+09-05 22:18:35.215   973  1766 D DhcpClient: Confirmed lease: IP address 192.168.7.104/24 Gateway 192.168.7.1  DNS servers: [ 192.168.7.1 ] Domains DHCP server /192.168.7.1 Vendor info null lease 3000 seconds
+09-05 22:18:35.217   154  1033 D CommandListener: Setting iface cfg
+09-05 22:18:35.226  1267  1307 I art     : Background sticky concurrent mark sweep GC freed 18921(1061KB) AllocSpace objects, 0(0B) LOS objects, 13% free, 7MB/8MB, paused 23.007ms total 61.405ms
+09-05 22:18:35.230   973  1766 D DhcpClient: Scheduling renewal in 1499s
+09-05 22:18:35.244   973  1236 D WifiStateMachine: WifiStateMachine: handleSuccessfulIpConfiguration and no scan results"abc"WPA_PSK
+09-05 22:18:35.245   973  1238 D ConnectivityService: NetworkAgentInfo [WIFI () - 100] EVENT_NETWORK_INFO_CHANGED, going from CONNECTING to CONNECTED
+09-05 22:18:35.249   973  1238 D ConnectivityService: Adding iface wlan0 to network 100
+09-05 22:18:35.255   973  1236 E WifiStateMachine: Did not find remoteAddress {192.168.7.1} in /proc/net/arp
+09-05 22:18:35.356   973   973 I Telecom : Class: TelecomSystem.INSTANCE being set
+09-05 22:18:35.360   973   973 W ContextImpl: Calling a method in the system process without a qualified user: android.app.ContextImpl.startService:1221 android.content.ContextWrapper.startService:581 com.android.server.telecom.components.TelecomService.initializeTelecomSystem:107 com.android.server.telecom.components.TelecomService.onBind:46 android.app.ActivityThread.handleBindService:2904
+09-05 22:18:35.379   973  1778 I ActivityManager: Start proc 1781:android.process.acore/u0a3 for content provider com.android.providers.contacts/.CallLogProvider
+09-05 22:18:35.409   973  1238 E ConnectivityService: Unexpected mtu value: 0, wlan0
+09-05 22:18:35.409   973  1238 D ConnectivityService: Adding Route [fe80::/64 -> :: wlan0] to network 100
+09-05 22:18:35.411  1743  1743 I PrintSpoolerService: No existing print spooler state.
+09-05 22:18:35.412   973  1238 D ConnectivityService: Adding Route [192.168.7.0/24 -> 0.0.0.0 wlan0] to network 100
+09-05 22:18:35.414   973  1238 D ConnectivityService: Adding Route [0.0.0.0/0 -> 192.168.7.1 wlan0] to network 100
+09-05 22:18:35.417   973  1238 D ConnectivityService: Setting Dns servers for network 100 to [/192.168.7.1]
+09-05 22:18:35.426   973  1238 D ConnectivityService: notifyType IP_CHANGED for NetworkAgentInfo [WIFI () - 100]
+09-05 22:18:35.452   973  1238 D ConnectivityService: scheduleUnvalidatedPrompt 100
+09-05 22:18:35.453   973  1238 D ConnectivityService: updateSignalStrengthThresholds: CONNECT, sending [] to NetworkAgentInfo [WIFI () - 100]
+09-05 22:18:35.453   973  1238 D ConnectivityService: rematch for NetworkAgentInfo [WIFI () - 100]
+09-05 22:18:35.453   973  1238 D ConnectivityService:    accepting network in place of null
+09-05 22:18:35.455   973  1238 D ConnectivityService: Switching to new default network: NetworkAgentInfo{ ni{[type: WIFI[], state: CONNECTED/CONNECTED, reason: (unspecified), extra: "abc", roaming: false, failover: false, isAvailable: true]}  network{100}  lp{{InterfaceName: wlan0 LinkAddresses: [fe80::9a3b:16ff:fe30:76d/64,192.168.7.104/24,]  Routes: [fe80::/64 -> :: wlan0,192.168.7.0/24 -> 0.0.0.0 wlan0,0.0.0.0/0 -> 192.168.7.1 wlan0,] DnsAddresses: [192.168.7.1,] Domains: null MTU: 0 TcpBufferSizes: 524288,1048576,2097152,262144,524288,1048576}}  nc{[ Transports: WIFI Capabilities: INTERNET
+&NOT_RESTRICTED&TRUSTED&NOT_VPN LinkUpBandwidth>=1048576Kbps LinkDnBandwidth>=1048576Kbps SignalStrength: -49]}  Score{20}  everValidated{false}  lastValidated{false}  created{true} lingering{false} explicitlySelected{false} acceptUnvalidated{false} everCaptivePortalDetected{false} lastCaptivePortalDetected{false} }
+09-05 22:18:35.470  1281  1281 W Binder_4: type=1400 audit(0.0:18): avc: denied { ioctl } for path="socket:[6425]" dev="sockfs" ino=6425 ioctlcmd=7704 scontext=u:r:surfaceflinger:s0 tcontext=u:r:surfaceflinger:s0 tclass=unix_stream_socket permissive=0
+09-05 22:18:35.470  1281  1281 W Binder_4: type=1400 audit(0.0:19): avc: denied { ioctl } for path="socket:[6425]" dev="sockfs" ino=6425 ioctlcmd=7704 scontext=u:r:surfaceflinger:s0 tcontext=u:r:surfaceflinger:s0 tclass=unix_stream_socket permissive=0
+09-05 22:18:35.519   973  1798 I OMXClient: Using client-side OMX mux.
+09-05 22:18:35.558   154  1033 V IdletimerController: runCmd(/system/bin/ip6tables -w -t raw -A idletimer_raw_PREROUTING -i wlan0 -j IDLETIMER --timeout 15 --label 1 --send_nl_msg 1) res_ipv4=0, res_ipv6=0
+09-05 22:18:35.558   973   973 D RttService: SCAN_AVAILABLE : 3
+09-05 22:18:35.570   973  1249 D wifi    : failed to get capabilities : -95
+09-05 22:18:35.570   973  1249 E WifiScanningService: could not get scan capabilities
+09-05 22:18:35.571   973  1250 D RttService: DefaultState got{ when=-13ms what=160512 target=com.android.internal.util.StateMachine$SmHandler }
+09-05 22:18:35.572   973  1242 D NotificationSQLiteLog: Pruned event entries: 0
+09-05 22:18:35.597   973   973 I ActivityManager: Start proc 1808:com.google.android.gms.persistent/u0a7 for broadcast com.google.android.gms/com.google.android.location.internal.NlpNetworkProviderSettingsUpdateReceiver
+09-05 22:18:35.604   973   973 V WiredAccessoryManager: init()
+09-05 22:18:35.642  1781  1781 W System  : ClassLoader referenced unknown path: /system/priv-app/ContactsProvider/lib/arm
+09-05 22:18:35.655   973  1236 D WifiNetworkAgent: NetworkAgent: Received signal strength thresholds: []
+09-05 22:18:35.660   973  1236 D WifiNative-HAL: stopRssiMonitoring, cmdId 0
+09-05 22:18:35.680   973   988 I art     : Background sticky concurrent mark sweep GC freed 60452(3MB) AllocSpace objects, 24(572KB) LOS objects, 27% free, 14MB/19MB, paused 5.433ms total 186.049ms
+09-05 22:18:35.691   154  1033 V IdletimerController: runCmd(/system/bin/ip6tables -w -t mangle -A idletimer_mangle_POSTROUTING -o wlan0 -j IDLETIMER --timeout 15 --label 1 --send_nl_msg 1) res_ipv4=0, res_ipv6=0
+09-05 22:18:35.697   973  1238 D ConnectivityService: Setting tx/rx TCP buffers to 524288,1048576,2097152,262144,524288,1048576
+09-05 22:18:35.715   973  1238 D CSLegacyTypeTracker: Sending CONNECTED broadcast for type 1 NetworkAgentInfo [WIFI () - 100] isDefaultNetwork=true
+09-05 22:18:35.716   973  1238 D ConnectivityService: sendStickyBroadcast: action=android.net.conn.CONNECTIVITY_CHANGE
+09-05 22:18:35.718   973  1238 D ConnectivityService: notifyType PRECHECK for NetworkAgentInfo [WIFI () - 100]
+09-05 22:18:35.721   150   287 D PermissionCache: checking android.permission.HARDWARE_TEST for uid=1000 => granted (6201 us)
+09-05 22:18:35.745  1289  1344 W art     : Suspending all threads took: 7.195ms
+09-05 22:18:35.770   973  1825 I OMXClient: Using client-side OMX mux.
+09-05 22:18:35.819   973  1101 D BluetoothManagerService: Added callback: android.bluetooth.IBluetoothManagerCallback$Stub$Proxy@b816f78:true
+09-05 22:18:35.885   973   973 V BackupManagerService: Connected to transport ComponentInfo{android/com.android.internal.backup.LocalTransportService}
+09-05 22:18:35.885   973   973 V BackupManagerService: Registering transport android/com.android.internal.backup.LocalTransportService::android/com.android.internal.backup.LocalTransport = android.app.backup.BackupTransport$TransportImpl@c4046af
+09-05 22:18:35.897  1267  1267 D LocalBluetoothProfileManager: Adding local MAP profile
+09-05 22:18:35.905  1267  1267 D BluetoothMap: Create BluetoothMap proxy object
+09-05 22:18:35.921   973   973 I Choreographer: Skipped 78 frames!  The application may be doing too much work on its main thread.
+09-05 22:18:35.928  1267  1267 D LocalBluetoothProfileManager: LocalBluetoothProfileManager construction complete
+09-05 22:18:35.957  1808  1808 W System  : ClassLoader referenced unknown path: /system/priv-app/GmsCore/lib/arm
+09-05 22:18:35.988   973  1748 D ConnectivityService: listenForNetwork for Listen from uid/pid:10020/1267 for NetworkRequest [ id=3, legacyType=-1, [] ]
+09-05 22:18:36.023  1267  1267 I CameraManagerGlobal: Connecting to camera service
+09-05 22:18:36.049   160   160 I CameraService: getCameraCharacteristics: Switching to HAL1 shim implementation...
+09-05 22:18:36.059   150   291 I [Gralloc]: ion_alloc from ion_client:18 via heap type DMA(mask:16) for 3686400 Bytes cached buffer successfully, usage = 0x00000933
+09-05 22:18:36.059   160   160 I CameraService: CameraService::connect call (PID 160 "media", camera ID 0) for HAL version default and Camera API version 1
+09-05 22:18:36.064   160   160 E CameraService: getCameraPriorityFromProcState: Received invalid process state -1 from ActivityManagerService!
+09-05 22:18:36.064   160   160 D HALCameraFactory: There is 2 attached cameras and 0 removable cameras
+09-05 22:18:36.068   160   160 D MediaPlayer: (f:setDataSource, l:164) set BDFolderPlay[0]
+09-05 22:18:36.128   160  1829 D NuPlayerDriver: notifyListener_l(0xb5a97860), (1, 0, 0)
+09-05 22:18:36.128   160   160 D MediaPlayer: (f:setDataSource, l:164) set BDFolderPlay[0]
+09-05 22:18:36.156   160  1831 D NuPlayerDriver: notifyListener_l(0xb5a97bc0), (1, 0, 0)
+09-05 22:18:36.156   160   160 D MediaPlayer: (f:setDataSource, l:164) set BDFolderPlay[0]
+09-05 22:18:36.159   160  1834 E FileSource: Failed to open file '/system/media/audio/ui/VideoStop.ogg'. (No such file or directory)
+09-05 22:18:36.159   160  1834 E GenericSource: Failed to create data source!
+09-05 22:18:36.159   160  1833 D NuPlayerDriver: notifyListener_l(0xb5a97c20), (100, 1, -2147483648)
+09-05 22:18:36.159   160  1833 E MediaPlayer: error (1, -2147483648)
+09-05 22:18:36.165   160   160 I CameraClient: Opening camera 0
+09-05 22:18:36.206   973  1101 D Tethering: MasterInitialState.processMessage what=3
+09-05 22:18:36.738  1736  1736 V Launcher: LauncherAppState inited
+09-05 22:18:36.799   160   160 D HALCameraFactory: Calling process is: /system/bin/mediaserver
+09-05 22:18:36.803   160   625 W CameraHardware: CMD_QUEUE_STOP_FACE_DETECTE failed, mFaceDetection not opened.
+09-05 22:18:36.915  1736  1736 D Launcher.Model: Old launcher provider: content://com.android.launcher2.settings/favorites?notify=true
+09-05 22:18:36.916  1736  1736 D Launcher.Model: Old launcher provider does not exist.
+09-05 22:18:36.930   160  1837 D CallbackNotifier: savePictureThread exit, line: 1515
+09-05 22:18:36.930   160   160 I CameraFlashlight: Destroying camera 0
+09-05 22:18:37.032   160   160 D HALCameraFactory: There is 2 attached cameras and 0 removable cameras
+09-05 22:18:37.033   160   160 I CameraService: disconnect: Disconnected client for camera 0 for PID 160
+09-05 22:18:37.033   160   160 D NuPlayerDriver: reset(0xb5a97860)
+09-05 22:18:37.033   160   160 D NuPlayerDriver: notifyListener_l(0xb5a97860), (8, 0, 0)
+09-05 22:18:37.034   160  1829 D NuPlayerDriver: notifyResetComplete(0xb5a97860)
+09-05 22:18:37.034   160   160 D NuPlayerDriver: reset(0xb5a97bc0)
+09-05 22:18:37.034   160   160 D NuPlayerDriver: notifyListener_l(0xb5a97bc0), (8, 0, 0)
+09-05 22:18:37.035   160  1831 D NuPlayerDriver: notifyResetComplete(0xb5a97bc0)
+09-05 22:18:37.035   160   160 D NuPlayerDriver: reset(0xb5a97c20)
+09-05 22:18:37.035   160   160 D NuPlayerDriver: notifyListener_l(0xb5a97c20), (8, 0, 0)
+09-05 22:18:37.036   160  1833 D NuPlayerDriver: notifyResetComplete(0xb5a97c20)
+09-05 22:18:37.037   160  1653 I CameraService: getCameraCharacteristics: Switching to HAL1 shim implementation...
+09-05 22:18:37.038   160  1653 I CameraService: CameraService::connect call (PID 160 "media", camera ID 1) for HAL version default and Camera API version 1
+09-05 22:18:37.038   160  1653 E CameraService: getCameraPriorityFromProcState: Received invalid process state -1 from ActivityManagerService!
+09-05 22:18:37.038   160  1653 D HALCameraFactory: There is 2 attached cameras and 0 removable cameras
+09-05 22:18:37.038   160  1653 D MediaPlayer: (f:setDataSource, l:164) set BDFolderPlay[0]
+09-05 22:18:37.047   973  1729 D AlarmManagerService: Setting time of day to sec=1473085116
+09-05 22:18:36.716   160  1839 D NuPlayerDriver: notifyListener_l(0xb5a97980), (1, 0, 0)
+09-05 22:18:36.716   160  1653 D MediaPlayer: (f:setDataSource, l:164) set BDFolderPlay[0]
+09-05 22:18:36.735   160  1841 D NuPlayerDriver: notifyListener_l(0xb5a97a40), (1, 0, 0)
+09-05 22:18:36.735   160  1653 D MediaPlayer: (f:setDataSource, l:164) set BDFolderPlay[0]
+09-05 22:18:36.736   160  1844 E FileSource: Failed to open file '/system/media/audio/ui/VideoStop.ogg'. (No such file or directory)
+09-05 22:18:36.737   160  1844 E GenericSource: Failed to create data source!
+09-05 22:18:36.737   160  1843 D NuPlayerDriver: notifyListener_l(0xb5a97aa0), (100, 1, -2147483648)
+09-05 22:18:36.737   160  1843 E MediaPlayer: error (1, -2147483648)
+09-05 22:18:36.743   160  1653 I CameraClient: Opening camera 1
+09-05 22:18:36.765   160  1136 V audio_hw_primary: adev_set_parameters, A2dpSuspended=false
+09-05 22:18:36.933  1781  1781 W System  : ClassLoader referenced unknown path: /system/app/UserDictionaryProvider/lib/arm
+09-05 22:18:37.390   160  1653 D HALCameraFactory: Calling process is: /system/bin/mediaserver
+09-05 22:18:37.390   160  1653 E V4L2CameraDevice: getFullSize failed
+09-05 22:18:37.392   160   631 W CameraHardware: CMD_QUEUE_STOP_FACE_DETECTE failed, mFaceDetection not opened.
+09-05 22:18:37.518   160  1849 D CallbackNotifier: savePictureThread exit, line: 1515
+09-05 22:18:37.518   160  1653 I CameraFlashlight: Destroying camera 1
+09-05 22:18:37.560   291   291 W Binder_2: type=1400 audit(0.0:20): avc: denied { ioctl } for path="socket:[6440]" dev="sockfs" ino=6440 ioctlcmd=7704 scontext=u:r:surfaceflinger:s0 tcontext=u:r:surfaceflinger:s0 tclass=unix_stream_socket permissive=0
+09-05 22:18:37.560   291   291 W Binder_2: type=1400 audit(0.0:21): avc: denied { ioctl } for path="socket:[6440]" dev="sockfs" ino=6440 ioctlcmd=7704 scontext=u:r:surfaceflinger:s0 tcontext=u:r:surfaceflinger:s0 tclass=unix_stream_socket permissive=0
+09-05 22:18:37.620   160  1653 D HALCameraFactory: There is 2 attached cameras and 0 removable cameras
+09-05 22:18:37.621   160  1653 I CameraService: disconnect: Disconnected client for camera 1 for PID 160
+09-05 22:18:37.621   160  1653 D NuPlayerDriver: reset(0xb5a97980)
+09-05 22:18:37.621   160  1653 D NuPlayerDriver: notifyListener_l(0xb5a97980), (8, 0, 0)
+09-05 22:18:37.622   160  1839 D NuPlayerDriver: notifyResetComplete(0xb5a97980)
+09-05 22:18:37.623   160  1653 D NuPlayerDriver: reset(0xb5a97a40)
+09-05 22:18:37.623   160  1653 D NuPlayerDriver: notifyListener_l(0xb5a97a40), (8, 0, 0)
+09-05 22:18:37.624   160  1841 D NuPlayerDriver: notifyResetComplete(0xb5a97a40)
+09-05 22:18:37.624   160  1653 D NuPlayerDriver: reset(0xb5a97aa0)
+09-05 22:18:37.624   160  1653 D NuPlayerDriver: notifyListener_l(0xb5a97aa0), (8, 0, 0)
+09-05 22:18:37.625   160  1843 D NuPlayerDriver: notifyResetComplete(0xb5a97aa0)
+09-05 22:18:37.815  1267  1307 I art     : Background sticky concurrent mark sweep GC freed 7642(496KB) AllocSpace objects, 0(0B) LOS objects, 7% free, 7MB/8MB, paused 11.706ms total 34.978ms
+09-05 22:18:37.960  1107  1107 W Binder_3: type=1400 audit(0.0:22): avc: denied { ioctl } for path="socket:[6442]" dev="sockfs" ino=6442 ioctlcmd=7704 scontext=u:r:surfaceflinger:s0 tcontext=u:r:surfaceflinger:s0 tclass=unix_stream_socket permissive=0
+09-05 22:18:37.960  1107  1107 W Binder_3: type=1400 audit(0.0:23): avc: denied { ioctl } for path="socket:[6442]" dev="sockfs" ino=6442 ioctlcmd=7704 scontext=u:r:surfaceflinger:s0 tcontext=u:r:surfaceflinger:s0 tclass=unix_stream_socket permissive=0
+09-05 22:18:37.971  1267  1856 D OpenGLRenderer: Use EGL_SWAP_BEHAVIOR_PRESERVED: false
+09-05 22:18:37.971  1267  1856 D OpenGLRenderer: profile bars disabled
+09-05 22:18:37.972  1267  1856 D OpenGLRenderer: ambientRatio = 1.50
+09-05 22:18:38.030  1330  1330 W Binder_4: type=1400 audit(0.0:24): avc: denied { ioctl } for path="socket:[8558]" dev="sockfs" ino=8558 ioctlcmd=7704 scontext=u:r:system_server:s0 tcontext=u:r:system_server:s0 tclass=unix_stream_socket permissive=0
+09-05 22:18:38.058  1267  1267 D PhoneStatusBar: disable: < expand icons alerts system_info back home recent clock search quick_settings >
+09-05 22:18:38.030  1330  1330 W Binder_4: type=1400 audit(0.0:25): avc: denied { ioctl } for path="socket:[8558]" dev="sockfs" ino=8558 ioctlcmd=7704 scontext=u:r:system_server:s0 tcontext=u:r:system_server:s0 tclass=unix_stream_socket permissive=0
+09-05 22:18:38.110  1054  1054 W Binder_3: type=1400 audit(0.0:26): avc: denied { ioctl } for path="socket:[7975]" dev="sockfs" ino=7975 ioctlcmd=7704 scontext=u:r:system_server:s0 tcontext=u:r:system_server:s0 tclass=unix_stream_socket permissive=0
+09-05 22:18:38.120  1054  1054 W Binder_3: type=1400 audit(0.0:27): avc: denied { ioctl } for path="socket:[7975]" dev="sockfs" ino=7975 ioctlcmd=7704 scontext=u:r:system_server:s0 tcontext=u:r:system_server:s0 tclass=unix_stream_socket permissive=0
+09-05 22:18:38.120  1034  1034 W Binder_1: type=1400 audit(0.0:28): avc: denied { ioctl } for path="socket:[6451]" dev="sockfs" ino=6451 ioctlcmd=7704 scontext=u:r:system_server:s0 tcontext=u:r:system_server:s0 tclass=unix_stream_socket permissive=0
+09-05 22:18:38.130  1034  1034 W Binder_1: type=1400 audit(0.0:29): avc: denied { ioctl } for path="socket:[6451]" dev="sockfs" ino=6451 ioctlcmd=7704 scontext=u:r:system_server:s0 tcontext=u:r:system_server:s0 tclass=unix_stream_socket permissive=0
+09-05 22:18:38.212  1267  1267 D PhoneStatusBar: heads up is enabled
+09-05 22:18:38.251  1736  1736 D Launcher: mQsb == null
+09-05 22:18:38.285  1267  1267 I Choreographer: Skipped 188 frames!  The application may be doing too much work on its main thread.
+09-05 22:18:38.290   973  1253 V KeyValueBackupJob: Scheduling k/v pass in 243 minutes
+09-05 22:18:38.296  1808  1808 I MultiDex: VM with version 2.1.0 has multidex support
+09-05 22:18:38.296  1808  1808 I MultiDex: install
+09-05 22:18:38.296  1808  1808 I MultiDex: VM has multidex support, MultiDex support library is disabled.
+09-05 22:18:38.298  1267  1267 D ViewRootImpl: changeCanvasOpacity: opaque=true
+09-05 22:18:38.498  1267  1856 I OpenGLRenderer: Initialized EGL, version 1.4
+09-05 22:18:38.751   150  1107 I [Gralloc]: ion_alloc from ion_client:18 via heap type DMA(mask:16) for 92160 Bytes uncached buffer successfully, usage = 0x00000f02
+09-05 22:18:38.764  1781  1846 I ContactLocale: AddressBook Labels [zh-CN]: [, A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z, 螒, 螔, 螕, 螖, 螘, 螙, 螚, 螛, 螜, 螝, 螞, 螠, 螡, 螢, 螣, 螤, 巍, 危, 韦, 违, 桅, 围, 唯, 惟, , 袗, 袘, 袙, 袚, 袛, 袀, 袝, 袆, 袞, 袟, 袠, 袉, 袡, 袌, 袣, 袥, 袎, 袦, 袧, 袏, 袨, 袩, 袪, 小, 孝, 袐, 校, 肖, 啸, 笑, 效, 袕, 楔, 些, 挟, 携, , 讗, 讘, 讙, 讚, 讛, 讜, 讝, 讞, 讟, 讬, 讻, 诇, 诪, 谞, 住, 注, 驻, 爪, 拽, 专, 砖, 转, , 丕, 亘, 鬲, 孬, 噩, 丨, 禺, 丿, 匕, 乇, 夭, 爻, 卮, 氐, 囟, 胤, 馗, 毓, 睾, 賮, 賯, 賰, 賱, 賲, 賳, 賴, 賵,
+賷, , 喔? 喔? 喔? 喔? 喔? 喔? 喔? 喔? 喔? 喔? 喔? 喔? 喔? 喔? 喔? 喔? 喔? 喔? 喔? 喔? 喔? 喔? 喔? 喔? 喔? 喔? 喔? 喔? 喔? 喔? 喔? 喔? 喔? 喔? 喔? 喔? 喔? 喔? 喔? 喔? 喔? 喔? 喔? 喔? 喔? 喔? , 銊? 銊? 銊? 銊? 銋? 銋? 銋? 銋? 銋? 銋? 銋? 銋? 銋? 銋? , 銇? 銇? 銇? 銇? 銇? 銇? 銇? 銈? 銈? 銈? #, ]
+09-05 22:18:38.784   150   291 I [Gralloc]: ion_alloc from ion_client:18 via heap type DMA(mask:16) for 92160 Bytes uncached buffer successfully, usage = 0x00000f02
+09-05 22:18:38.790   150   291 I [Gralloc]: ion_alloc from ion_client:18 via heap type DMA(mask:16) for 92160 Bytes uncached buffer successfully, usage = 0x00000f02
+09-05 22:18:38.821   150   287 I [Gralloc]: ion_alloc from ion_client:18 via heap type DMA(mask:16) for 3502080 Bytes cached buffer successfully, usage = 0x00000933
+09-05 22:18:38.829   150   291 I [Gralloc]: ion_alloc from ion_client:18 via heap type DMA(mask:16) for 92160 Bytes uncached buffer successfully, usage = 0x00000f02
+09-05 22:18:38.895  1736  1736 D Launcher.Utilities: searchComponent = com.google.android.googlequicksearchbox
+09-05 22:18:38.923  1708  1708 I GsaVoiceInteractionSrv: onReady
+09-05 22:18:38.938   150  1107 I [Gralloc]: ion_alloc from ion_client:18 via heap type DMA(mask:16) for 184320 Bytes uncached buffer successfully, usage = 0x00000f02
+09-05 22:18:38.962   973  1748 I ActivityManager: Start proc 1862:com.google.android.googlequicksearchbox:search/u0a21 for service com.google.android.googlequicksearchbox/com.google.android.hotword.service.HotwordService
+09-05 22:18:38.973   150   291 I [Gralloc]: ion_alloc from ion_client:18 via heap type DMA(mask:16) for 184320 Bytes uncached buffer successfully, usage = 0x00000f02
+09-05 22:18:38.983   150   291 I [Gralloc]: ion_alloc from ion_client:18 via heap type DMA(mask:16) for 184320 Bytes uncached buffer successfully, usage = 0x00000f02
+09-05 22:18:38.990   150   291 I [Gralloc]: ion_alloc from ion_client:18 via heap type DMA(mask:16) for 184320 Bytes uncached buffer successfully, usage = 0x00000f02
+09-05 22:18:39.010   973  1237 D WifiService: New client listening to asynchronous messages
+09-05 22:18:39.139  1736  1838 W Launcher: setApplicationContext called twice! old=android.app.Application@bcb5dbe new=android.app.Application@bcb5dbe
+09-05 22:18:39.140   287   287 W Binder_1: type=1400 audit(0.0:30): avc: denied { ioctl } for path="socket:[6455]" dev="sockfs" ino=6455 ioctlcmd=7704 scontext=u:r:surfaceflinger:s0 tcontext=u:r:surfaceflinger:s0 tclass=unix_stream_socket permissive=0
+09-05 22:18:39.140   287   287 W Binder_1: type=1400 audit(0.0:31): avc: denied { ioctl } for path="socket:[6455]" dev="sockfs" ino=6455 ioctlcmd=7704 scontext=u:r:surfaceflinger:s0 tcontext=u:r:surfaceflinger:s0 tclass=unix_stream_socket permissive=0
+09-05 22:18:39.158  1736  1874 D OpenGLRenderer: Use EGL_SWAP_BEHAVIOR_PRESERVED: false
+09-05 22:18:39.173   973  1034 I ActivityManager: Start proc 1876:com.google.process.gapps/u0a7 for content provider com.google.android.gsf/.gservices.GservicesProvider
+09-05 22:18:39.230  1881  1881 W Binder_7: type=1400 audit(0.0:32): avc: denied { ioctl } for path="socket:[8575]" dev="sockfs" ino=8575 ioctlcmd=7704 scontext=u:r:system_server:s0 tcontext=u:r:system_server:s0 tclass=unix_stream_socket permissive=0
+09-05 22:18:39.271  1267  1307 I art     : Background partial concurrent mark sweep GC freed 12149(639KB) AllocSpace objects, 0(0B) LOS objects, 40% free, 8MB/13MB, paused 2.175ms total 151.946ms
+09-05 22:18:39.240  1881  1881 W Binder_7: type=1400 audit(0.0:33): avc: denied { ioctl } for path="socket:[8575]" dev="sockfs" ino=8575 ioctlcmd=7704 scontext=u:r:system_server:s0 tcontext=u:r:system_server:s0 tclass=unix_stream_socket permissive=0
+09-05 22:18:39.349  1862  1862 W System  : ClassLoader referenced unknown path: /system/priv-app/Velvet/lib/arm
+09-05 22:18:39.486  1876  1876 W System  : ClassLoader referenced unknown path: /system/priv-app/GoogleServicesFramework/lib/arm
+09-05 22:18:39.564   973   988 I art     : Background partial concurrent mark sweep GC freed 20821(1252KB) AllocSpace objects, 4(6MB) LOS objects, 33% free, 7MB/11MB, paused 3.020ms total 102.881ms
+09-05 22:18:39.648  1781  1846 D ContactDirectoryManager: Found com.google.android.gm.exchange.bundled.directory.provider
+09-05 22:18:39.654  1781  1846 D ContactDirectoryManager: Found com.google.contacts.gal.provider
+09-05 22:18:39.693   973  1881 I ActivityManager: Start proc 1889:com.google.android.gm/u0a40 for content provider com.google.android.gm/com.android.exchange.provider.ExchangeDirectoryProvider
+09-05 22:18:39.809  1876  1876 I GservicesProvider: Gservices pushing to system: true; secure/global: true
+09-05 22:18:39.822  1736  1874 I OpenGLRenderer: Initialized EGL, version 1.4
+09-05 22:18:40.049   150   287 I [Gralloc]: ion_alloc from ion_client:18 via heap type DMA(mask:16) for 3686400 Bytes uncached buffer successfully, usage = 0x00000f02
+09-05 22:18:40.052  1889  1889 W System  : ClassLoader referenced unknown path: /system/app/Gmail2/lib/arm
+09-05 22:18:40.180   150  1857 I [Gralloc]: ion_alloc from ion_client:18 via heap type DMA(mask:16) for 3686400 Bytes uncached buffer successfully, usage = 0x00000f02
+09-05 22:18:40.287  1876  1876 I GoogleHttpClient: GMS http client unavailable, use old client
+09-05 22:18:40.353   150  1857 I [Gralloc]: ion_alloc from ion_client:18 via heap type DMA(mask:16) for 3686400 Bytes uncached buffer successfully, usage = 0x00000f02
+09-05 22:18:40.390  1894  1894 W Binder_8: type=1400 audit(0.0:34): avc: denied { ioctl } for path="socket:[8620]" dev="sockfs" ino=8620 ioctlcmd=7704 scontext=u:r:system_server:s0 tcontext=u:r:system_server:s0 tclass=unix_stream_socket permissive=0
+09-05 22:18:40.390  1894  1894 W Binder_8: type=1400 audit(0.0:35): avc: denied { ioctl } for path="socket:[8620]" dev="sockfs" ino=8620 ioctlcmd=7704 scontext=u:r:system_server:s0 tcontext=u:r:system_server:s0 tclass=unix_stream_socket permissive=0
+09-05 22:18:40.546   150  1857 I [Gralloc]: ion_alloc from ion_client:18 via heap type DMA(mask:16) for 3686400 Bytes uncached buffer successfully, usage = 0x00000f02
+09-05 22:18:40.611  1736  1736 I Choreographer: Skipped 79 frames!  The application may be doing too much work on its main thread.
+^C
+C:\Users\Administrator>

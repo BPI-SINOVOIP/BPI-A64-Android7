@@ -1,0 +1,8 @@
+allow shell media_rw_data_file:dir create_dir_perms;
+allow shell media_rw_data_file:file create_file_perms;
+allow shell sysfs:file { getattr read open };
+allow shell init_exec:file getattr;
+allow shell profman_exec:file getattr;
+allow shell logger_file:dir getattr;
+allow shell rootfs:file getattr;
+allow shell proc_sysrq:file getattr;

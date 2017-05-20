@@ -1,0 +1,17 @@
+# android user-space param opt
+type paramopt, domain;
+type paramopt_exec, exec_type, file_type;
+
+init_daemon_domain(paramopt)
+
+allow paramopt kmsg_device:chr_file { open write };
+allow paramopt proc_meminfo:file { open read getattr };
+allow paramopt rootfs:file { open read getattr };
+allow paramopt property_socket:sock_file write;
+allow paramopt init:unix_stream_socket connectto;
+allow paramopt dalvik_prop:property_service set;
+allow paramopt hwui_prop:property_service set;
+allow paramopt config_prop:property_service set;
+allow paramopt shell_exec:file { open read execute execute_no_trans getattr };
+allow paramopt sysfs_lowmemorykiller:file { open write };
+

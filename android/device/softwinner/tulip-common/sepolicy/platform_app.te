@@ -1,0 +1,5 @@
+allow platform_app app_data_file:file { execmod };
+allow platform_app storage_file:file { read getattr open };
+allow platform_app cache_recovery_file:dir search;
+allow platform_app recovery_service:service_manager find;
+allow platform_app platform_app:process { ptrace };

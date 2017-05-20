@@ -1,0 +1,13 @@
+type preinstall, domain;
+type preinstall_exec, exec_type, file_type;
+init_daemon_domain(preinstall)
+
+allow preinstall shell_exec:file read;
+allow preinstall self:capability { dac_override fowner chown };
+allow preinstall vfat:dir { search mounton write add_name };
+allow preinstall vfat:file { create read write open getattr };
+allow preinstall shell_exec:file getattr;
+allow preinstall toolbox_exec:file { getattr execute read open execute_no_trans };
+allow preinstall apk_data_file:dir { write getattr setattr read create open add_name };
+allow preinstall apk_data_file:file { read write create open setattr };
+allow preinstall system_file:dir { read open };

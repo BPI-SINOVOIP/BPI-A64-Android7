@@ -1,0 +1,5 @@
+# Write to /sys/class/rfkill/rfkill0/state
+# TODO: label it sysfs_bluetooth_writable instead
+allow bluetooth sysfs:file rw_file_perms;
+allow bluetooth media_rw_data_file:dir { write search create add_name };
+allow bluetooth media_rw_data_file:file { write create open };

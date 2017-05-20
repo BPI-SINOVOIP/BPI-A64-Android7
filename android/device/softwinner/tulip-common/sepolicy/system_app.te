@@ -1,0 +1,9 @@
+allow system_app cache_file:dir { write add_name remove_name };
+allow system_app cache_file:file { create write open unlink setattr };
+allow system_app ctl_default_prop:property_service set;
+allow system_app block_device:dir search;
+allow system_app cache_recovery_file:dir {search getattr write add_name remove_name };
+allow system_app cache_recovery_file:file { create write open unlink setattr getattr};
+allow system_app radio_data_file:dir getattr;
+
+

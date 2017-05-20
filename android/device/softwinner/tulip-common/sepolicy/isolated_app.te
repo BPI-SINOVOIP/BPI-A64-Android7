@@ -1,0 +1,5 @@
+allow isolated_app app_data_file:dir search;
+allow isolated_app app_data_file:file ioctl;
+allow isolated_app untrusted_app:unix_stream_socket ioctl;
+allow isolated_app app_data_file:dir getattr;
+allow isolated_app shell_data_file:dir search;

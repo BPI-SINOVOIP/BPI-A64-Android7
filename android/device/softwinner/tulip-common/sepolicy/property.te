@@ -1,0 +1,3 @@
+type hwui_prop, property_type, core_property_type;
+
+neverallow { domain -init -paramopt } hwui_prop:property_service set;

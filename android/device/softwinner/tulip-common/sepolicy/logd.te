@@ -1,0 +1,2 @@
+allow logd media_rw_data_file:file { read getattr open };
+allow logd unlabeled:dir { search };

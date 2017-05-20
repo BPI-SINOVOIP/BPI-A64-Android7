@@ -1,0 +1,1 @@
+allow bootanim cache_file:dir { search read getattr open };

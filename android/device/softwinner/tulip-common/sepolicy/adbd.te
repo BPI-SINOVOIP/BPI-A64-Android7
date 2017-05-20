@@ -1,0 +1,4 @@
+allow adbd self:process setcurrent;
+allow adbd media_rw_data_file:dir create_dir_perms;
+allow adbd media_rw_data_file:file create_file_perms;
+allow adbd security_file:dir search;

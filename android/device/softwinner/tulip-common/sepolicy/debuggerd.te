@@ -1,0 +1,4 @@
+allow debuggerd tee_device:chr_file rw_file_perms;
+allow debuggerd gpu_device:chr_file rw_file_perms;
+allow debuggerd app_data_file:file {open getattr read};
+allow debuggerd app_data_file:dir {search};

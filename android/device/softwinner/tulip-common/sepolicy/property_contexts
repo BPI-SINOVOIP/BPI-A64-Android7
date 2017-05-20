@@ -1,0 +1,2 @@
+mediasw.stopscaner                    u:object_r:system_prop:s0
+ro.hwui.                              u:object_r:hwui_prop:s0

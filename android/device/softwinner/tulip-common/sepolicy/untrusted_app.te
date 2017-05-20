@@ -1,0 +1,18 @@
+allow untrusted_app zygote:unix_dgram_socket getattr;
+allow untrusted_app debugfs:file getattr;
+allow untrusted_app storage_stub_file:dir getattr;
+allow untrusted_app system_app_data_file:dir { search getattr };
+allow untrusted_app storage_file:file { read open };
+allow untrusted_app self:udp_socket ioctl;
+allow untrusted_app logger_file:dir getattr;
+
+allow system_server media_rw_data_file:dir relabelfrom;
+
+allow untrusted_app domain:dir { getattr search };
+allow untrusted_app domain:file { read getattr open };
+allow untrusted_app domain:lnk_file read;
+allow untrusted_app untrusted_app:udp_socket {ioctl};
+allow untrusted_app sysfs_zram:dir search;
+allow untrusted_app sysfs_zram:file { read open getattr};
+allow untrusted_app untrusted_app:tcp_socket ioctl;
+allow untrusted_app sysfs:file { read open };
