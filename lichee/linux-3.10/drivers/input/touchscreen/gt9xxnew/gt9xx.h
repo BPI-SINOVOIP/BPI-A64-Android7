@@ -32,16 +32,15 @@
 #include <linux/vmalloc.h>
 #include <linux/interrupt.h>
 #include <linux/io.h>
-
-#ifdef CONFIG_HAS_EARLYSUSPEND
-#include <linux/earlysuspend.h>
-#endif
-
 #include <linux/gpio.h>
 #include <linux/sys_config.h>
 #include <linux/init-input.h>
 #include <linux/pinctrl/consumer.h>
 #include <linux/pinctrl/pinconf-sunxi.h>
+#include <linux/pm_runtime.h>
+#include <linux/fb.h>
+#include <linux/notifier.h>
+
 
 //***************************PART1:ON/OFF define*******************************
 #define GTP_CUSTOM_CFG        0
@@ -86,9 +85,6 @@ struct goodix_ts_data {
     struct input_dev  *input_dev;
     struct hrtimer timer;
     struct work_struct  work;
-#ifdef CONFIG_HAS_EARLYSUSPEND
-    struct early_suspend early_suspend;
-#endif
     s32 irq_is_disable;
     s32 use_irq;
     u16 abs_x_max;
@@ -98,6 +94,10 @@ struct goodix_ts_data {
     u8  green_wake_mode;
     u8  enter_update;
     u8  gtp_is_suspend;
+	bool is_suspended;
+	bool is_runtime_suspend;
+	bool try_to_runtime_suspend;
+	bool try_to_runtime_resume;
     u8  gtp_rawdiff_mode;
     u8  gtp_cfg_len;
     u8  fixed_cfg;
@@ -122,6 +122,8 @@ struct goodix_ts_data {
     u8 rqst_processing;
     u8 is_950;
 #endif
+
+	struct notifier_block fb_notif;
     
 };
 

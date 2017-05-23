@@ -48,8 +48,8 @@
  */
 
 #include <linux/irq.h>
+
 #include "gt9xx.h"
-#include <linux/pm.h>
 
 #if GTP_ICS_SLOT_REPORT
     #include <linux/input/mt.h>
@@ -75,6 +75,12 @@ unsigned int ctp_key_list[KEY_NUM]={KEY_SWITCHVIDEOMODE,KEY_KBDILLUMTOGGLE,KEY_K
     
 #endif
 
+#ifdef CONFIG_FB
+static int fb_notifier_callback(struct notifier_block *self,
+                                unsigned long event, void *data);
+
+#endif
+
 static s8 gtp_i2c_test(struct i2c_client *client);
 void gtp_reset_guitar(struct i2c_client *client, s32 ms);
 s32 gtp_send_cfg(struct i2c_client *client);
@@ -90,11 +96,6 @@ static const struct file_operations config_proc_ops = {
     .write = gt91xx_config_write_proc,
 };
 
-#ifdef CONFIG_HAS_EARLYSUSPEND
-static void goodix_ts_early_suspend(struct early_suspend *h);
-static void goodix_ts_late_resume(struct early_suspend *h);
-#endif
- 
 #if GTP_CREATE_WR_NODE
 extern s32 init_wr_node(struct i2c_client*);
 extern void uninit_wr_node(void);
@@ -314,29 +315,32 @@ static ssize_t gtp_gesture_enable_store(struct device *dev,struct device_attribu
 {
         unsigned long data;
         int error;
-		struct input_dev *input=dev_get_drvdata(dev);
 	
         error = strict_strtoul(buf, 10, &data);
         if (error) {
                 printk("%s strict_strtoul error\n", __FUNCTION__);
                 goto exit;
         }
-	dprintk(DEBUG_INIT,"%s g_suspend_flag=%d,gtp_gesture_wakeup=%d,enable=%ld\n",__func__,g_suspend_flag,gtp_gesture_wakeup,data);
-        if (!g_suspend_flag) {
-	    if(data) {
+		
+		dprintk(DEBUG_INIT,"%s g_suspend_flag=%d,gtp_gesture_wakeup=%d,enable=%ld\n",__func__,g_suspend_flag,gtp_gesture_wakeup,data);
+
+		if (!g_suspend_flag) {
+	    	if(data) {
                 gtp_gesture_wakeup = 1;
-		gtp_power_ctrl_sleep = 0;
-		dprintk(DEBUG_INIT,"%s gtp_gesture_wakeup=%d,enable=%ld\n",__func__,gtp_gesture_wakeup,data);
-	    }
-	    else {
+				gtp_power_ctrl_sleep = 0;
+				dprintk(DEBUG_INIT,"%s gtp_gesture_wakeup=%d,enable=%ld\n",__func__,gtp_gesture_wakeup,data);
+	    	}
+	   		else {
                 gtp_gesture_wakeup = 0;
                 gtp_power_ctrl_sleep = 1;
                 dprintk(DEBUG_INIT,"%s gtp_gesture_wakeup=%d,enable=%ld\n",__func__,gtp_gesture_wakeup,data);	
-	    }
-	}
-	else
-	    dprintk(DEBUG_INIT,"%s gtp is suspend!!!! gtp_gesture_wakeup cann't be set!! gtp_gesture_wakeup=%d,enable=%ld\n",__func__,gtp_gesture_wakeup,data);
-        return count;
+	    	}
+		}
+		else {
+	    	dprintk(DEBUG_INIT,"%s gtp is suspend!!!! gtp_gesture_wakeup cann't be set!! gtp_gesture_wakeup=%d,enable=%ld\n",__func__,gtp_gesture_wakeup,data);
+		}
+
+		return count;
 exit:
         return error;
 }
@@ -1987,11 +1991,11 @@ static ssize_t gt91xx_config_write_proc(struct file *filp, const char __user *bu
 {
     s32 ret = 0;
 
-    GTP_DEBUG("write count %d\n", count);
+    GTP_DEBUG("write count %zu\n", count);
 
     if (count > GTP_CONFIG_MAX_LENGTH)
     {
-        GTP_ERROR("size not match [%d:%d]\n", GTP_CONFIG_MAX_LENGTH, count);
+        GTP_ERROR("size not match [%d:%zu]\n", GTP_CONFIG_MAX_LENGTH, count);
         return -EFAULT;
     }
 
@@ -2189,13 +2193,6 @@ if(1 == exchange_x_y_flag)
     if(ret) {
             GTP_ERROR("create sys failed\n");
     }
-    
-#ifdef CONFIG_HAS_EARLYSUSPEND
-    ts->early_suspend.level = EARLY_SUSPEND_LEVEL_BLANK_SCREEN + 1;
-    ts->early_suspend.suspend = goodix_ts_early_suspend;
-    ts->early_suspend.resume = goodix_ts_late_resume;
-    register_early_suspend(&ts->early_suspend);
-#endif
 
 #if GTP_WITH_PEN
     gtp_pen_init(ts);
@@ -2643,6 +2640,57 @@ void gtp_get_chip_type(struct goodix_ts_data *ts)
 #endif
 //************* For GT9XXF End ************//
 
+/* allwinner hwc not use fbmem FB_BLANK ioctl, 
+ * so can't use fb_notifier_callback to suspend/resume TP 
+ * add sysfsnode here for syspend/resume control by syseye.
+ */
+static unsigned long data_save;
+
+static ssize_t gt9xx_enable_show(struct device *dev,
+               struct device_attribute *attr, char *buf)
+{
+	return sprintf(buf, "%d\n", (int)data_save);
+}
+
+static ssize_t gt9xx_enable_store(struct device *dev,
+               struct device_attribute *attr,
+               const char *buf, size_t count)
+{
+    int error;
+	struct i2c_client *client = to_i2c_client(dev);
+	struct goodix_ts_data *ts = i2c_get_clientdata(client);
+
+    error = strict_strtoul(buf, 10, &data_save);
+    if (error)
+    	return error;
+
+	pr_info("data_save = %ld, ts_init->is_runtime_suspend = %d\n", data_save, ts->is_runtime_suspend);
+
+	if (data_save == 0 && !ts->is_runtime_suspend) {
+	    pr_info("[BPI] go to runtime_suspend\n");
+		ts->try_to_runtime_suspend = true;
+        pm_runtime_put(&client->dev);
+    }else if (data_save == 1 && ts->is_runtime_suspend){
+		pr_info("[BPI] go to runtime_resume\n");
+        pm_runtime_get_sync(&client->dev);
+    }
+
+    return count;
+}
+
+static DEVICE_ATTR(runtime_suspend, S_IRUGO | S_IWUSR,
+    gt9xx_enable_show, gt9xx_enable_store);
+
+
+static struct attribute *gt9xx_attributes[] = {
+    &dev_attr_runtime_suspend.attr,
+    NULL
+};
+
+static struct attribute_group gt9xx_attr_group = {
+	.attrs = gt9xx_attributes,
+};
+
 /*******************************************************
 Function:
     I2c probe.
@@ -2693,6 +2741,7 @@ static int goodix_ts_probe(struct i2c_client *client, const struct i2c_device_id
     
     ts->gtp_rawdiff_mode = 0;
     ts->gtp_is_suspend = 0;
+	ts->is_runtime_suspend	= false;
     
 #if GTP_COMPATIBLE_MODE
     gtp_get_chip_type(ts);
@@ -2765,6 +2814,23 @@ static int goodix_ts_probe(struct i2c_client *client, const struct i2c_device_id
     {
         gtp_irq_enable(ts);
     }
+#ifdef CONFIG_FB
+	ts->fb_notif.notifier_call = fb_notifier_callback;
+	ret = fb_register_client(&ts->fb_notif);
+	if(ret)
+		GTP_ERROR("Unable to register fb_notifier");
+#endif
+
+	device_enable_async_suspend(&client->dev);
+	ret = sysfs_create_group(&client->dev.kobj,&gt9xx_attr_group);
+	if (ret < 0)
+	{
+		dev_err(&client->dev,"gt9xx: sysfs_create_group err\n");
+	}
+	
+	pm_runtime_set_active(&client->dev);
+	pm_runtime_get(&client->dev);
+	pm_runtime_enable(&client->dev);
     
 #if GTP_CREATE_WR_NODE
     init_wr_node(client);
@@ -2790,11 +2856,10 @@ static int goodix_ts_remove(struct i2c_client *client)
     struct goodix_ts_data *ts = i2c_get_clientdata(client);
     
     GTP_DEBUG_FUNC();
-    
-#ifdef CONFIG_HAS_EARLYSUSPEND
-    unregister_early_suspend(&ts->early_suspend);
-#endif
 
+	pm_runtime_disable(&client->dev);
+	pm_runtime_set_suspended(&client->dev);
+    
 #if GTP_CREATE_WR_NODE
     uninit_wr_node();
 #endif
@@ -2831,46 +2896,62 @@ static int goodix_ts_remove(struct i2c_client *client)
     return 0;
 }
 
+#ifdef CONFIG_PM
 static void goodix_ts_suspend(struct goodix_ts_data *ts)
 {
 	s8 ret = -1;
 	
 	GTP_DEBUG_FUNC();
-    GTP_INFO("System suspend.");
+    GTP_INFO("Goodix suspend.");
 
     ts->gtp_is_suspend = 1;
     g_suspend_flag = 1;
     dprintk(DEBUG_INIT,"%s g_suspend_flag=%d\n",__func__,g_suspend_flag);
+
+	cancel_work_sync(&ts->work);
+	flush_workqueue(goodix_wq);
+
+	if(ts->try_to_runtime_suspend){
+		dprintk(DEBUG_SUSPEND,"do runtime_suspend\n");
+		ts->is_runtime_suspend = true;
+	}
+	else{
+		dprintk(DEBUG_SUSPEND,"do suspend\n");
+		ts->is_suspended = true;
+	}
+	
 #if GTP_ESD_PROTECT
     gtp_esd_switch(ts->client, SWITCH_OFF);
 #endif
 
+
 //#if GTP_GESTURE_WAKEUP
-	if(gtp_gesture_wakeup)
+	if(gtp_gesture_wakeup) {
    		ret = gtp_enter_doze(ts);
+	} 
 	else {
 //#else
-    if (ts->use_irq)
-    {
-        gtp_irq_disable(ts);
-    }
-    else
-    {
-        hrtimer_cancel(&ts->timer);
-    }
-    ret = gtp_enter_sleep(ts);
-}
+    	if (ts->use_irq)
+    	{
+        	gtp_irq_disable(ts);
+    	}
+    	else
+    	{
+        	hrtimer_cancel(&ts->timer);
+    	}
+    	ret = gtp_enter_sleep(ts);
+	}
 //#endif 
     if (ret < 0)
     {
-        GTP_ERROR("GTP early suspend failed.");
+        GTP_ERROR("GTP suspend failed.");
     }
     // to avoid waking up while not sleeping
     //  delay 48 + 10ms to ensure reliability    
     msleep(58);   
 //#if (!GTP_GESTURE_WAKEUP)
 	if(!gtp_gesture_wakeup){
-    	printk("ctp power off in early suspend!!!\n");
+    	printk("ctp power off in suspend!!!\n");
     	input_set_power_enable(&(config_info.input_type), 0);
     	__gpio_set_value(config_info.wakeup_gpio.gpio, 0);
 //#endif
@@ -2883,7 +2964,8 @@ static void goodix_ts_resume(struct goodix_ts_data *ts)
 	
 	GTP_DEBUG_FUNC();
     
-    GTP_INFO("System resume.");
+    GTP_INFO("Goodix resume.");
+	
 //#if (!GTP_GESTURE_WAKEUP)
 if(!gtp_gesture_wakeup){
     __gpio_set_value(config_info.wakeup_gpio.gpio, 1);
@@ -2904,6 +2986,7 @@ if(gtp_gesture_wakeup)
     {
         GTP_ERROR("GTP later resume failed.");
     }
+	
 #if (GTP_COMPATIBLE_MODE)
     if (CHIP_TYPE_GT9F == ts->chip_type)
     {
@@ -2924,6 +3007,15 @@ if(gtp_gesture_wakeup)
         hrtimer_start(&ts->timer, ktime_set(1, 0), HRTIMER_MODE_REL);
     }
 
+	if(ts->try_to_runtime_suspend && ts->is_runtime_suspend && !ts->is_suspended){
+		dprintk(DEBUG_SUSPEND,"do runtime_resume\n");
+		ts->try_to_runtime_suspend  = false;
+		ts->is_runtime_suspend 		= false;
+	}else if(ts->is_suspended){
+		dprintk(DEBUG_SUSPEND,"do resume\n");
+		ts->is_suspended = false;
+	}
+
     ts->gtp_is_suspend = 0;
     g_suspend_flag = 0;
     dprintk(DEBUG_INIT,"%s g_suspend_flag=%d\n",__func__,g_suspend_flag);
@@ -2932,10 +3024,17 @@ if(gtp_gesture_wakeup)
 #endif
 }
 
-#ifdef CONFIG_PM
-static int goodix_pm_suspend(struct i2c_client *client, pm_message_t mesg)
+static int goodix_pm_suspend(struct device *dev)
 {
-	struct goodix_ts_data *ts = i2c_get_clientdata(client);
+	struct goodix_ts_data *ts = dev_get_drvdata(dev);
+
+	if(pm_runtime_suspended(dev)){
+		dprintk(DEBUG_SUSPEND,"do suspend\n");
+		ts->gtp_is_suspend = 1;
+		g_suspend_flag = 1;
+		return 0;
+	}
+	
 	if(ts) {
 		GTP_INFO("suspend enter");
 		goodix_ts_suspend(ts);
@@ -2944,9 +3043,17 @@ static int goodix_pm_suspend(struct i2c_client *client, pm_message_t mesg)
 	return 0;
 }
 
-static int goodix_pm_resume(struct i2c_client *client)
+static int goodix_pm_resume(struct device *dev)
 {
-	struct goodix_ts_data *ts = i2c_get_clientdata(client);
+	struct goodix_ts_data *ts = dev_get_drvdata(dev);
+
+	if(ts->is_runtime_suspend && ts->is_suspended){
+		dprintk(DEBUG_SUSPEND,"do resume\n");
+		ts->gtp_is_suspend = 0;
+    	g_suspend_flag = 0;
+		return 0;
+	}
+		
 	if(ts) {
 		GTP_INFO("resume enter");
 		goodix_ts_resume(ts);
@@ -2956,41 +3063,26 @@ static int goodix_pm_resume(struct i2c_client *client)
 }
 #endif
 
-#ifdef CONFIG_HAS_EARLYSUSPEND
-/*******************************************************
-Function:
-    Early suspend function.
-Input:
-    h: early_suspend struct.
-Output:
-    None.
-*******************************************************/
-static void goodix_ts_early_suspend(struct early_suspend *h)
+#ifdef CONFIG_FB
+static int fb_notifier_callback(struct notifier_block *self,
+				unsigned long event, void *data)
 {
-    struct goodix_ts_data *ts = container_of(h, struct goodix_ts_data, early_suspend);  
-    
-    if(ts) {
-		GTP_INFO("early suspend enter");
-		goodix_ts_suspend(ts);
-	}
-}
+	struct goodix_ts_data *ts = container_of(self, struct goodix_ts_data, fb_notif);
+	struct fb_event *evdata = data;
+	int *blank;
 
-/*******************************************************
-Function:
-    Late resume function.
-Input:
-    h: early_suspend struct.
-Output:
-    None.
-*******************************************************/
-static void goodix_ts_late_resume(struct early_suspend *h)
-{
-    struct goodix_ts_data *ts = = container_of(h, struct goodix_ts_data, early_suspend);
-
-	if(ts) {
-		GTP_INFO("late resume enter");
-		goodix_ts_resume(ts);
+	GTP_INFO("fb_notifier_callback");
+	
+	if(event && evdata->data && event == FB_EVENT_BLANK && ts && ts->client)
+	{
+		blank = evdata->data;
+		if(*blank == FB_BLANK_UNBLANK)
+			GTP_INFO("FB_BLANK_UNBLANK");
+		else if(*blank == FB_BLANK_POWERDOWN)
+			GTP_INFO("FB_BLANK_UNBLANK");
 	}
+	
+	return 0;
 }
 #endif
 
@@ -3238,20 +3330,24 @@ static const struct i2c_device_id goodix_ts_id[] = {
     { }
 };
 
+#ifdef CONFIG_PM
+static UNIVERSAL_DEV_PM_OPS(goodix_pm_ops, goodix_pm_suspend,
+			goodix_pm_resume, NULL);
+
+#define GOODIX_PM_OPS	(&goodix_pm_ops)
+#endif
+
 static struct i2c_driver goodix_ts_driver = {
 	.class          = I2C_CLASS_HWMON,
     .probe      = goodix_ts_probe,
     .remove     = goodix_ts_remove,
-#ifndef CONFIG_HAS_EARLYSUSPEND
-#ifdef CONFIG_PM
-    .suspend    = goodix_pm_suspend,
-    .resume     = goodix_pm_resume,
-#endif
-#endif
     .id_table   = goodix_ts_id,
     .driver = {
     	.name   = CTP_NAME,
-        .owner    = THIS_MODULE,
+        .owner  = THIS_MODULE,
+#ifdef CONFIG_PM
+        .pm 	= GOODIX_PM_OPS,
+#endif
     },
     .address_list	= normal_i2c,
 };
@@ -3283,9 +3379,7 @@ Output:
 static int __init goodix_ts_init(void)
 {
     s32 ret = -1;
-    script_item_u   val;
-    script_item_value_type_e  type;
-    dprintk(DEBUG_INIT,"GTP driver init\n");
+    dprintk(DEBUG_INIT,"[BPI]GTP driver init\n");
     if (input_fetch_sysconfig_para(&(config_info.input_type))) {
 		printk("%s: ctp_fetch_sysconfig_para err.\n", __func__);
 		return 0;
@@ -3301,19 +3395,6 @@ static int __init goodix_ts_init(void)
         printk("*** if use ctp,please put the sys_config.fex ctp_used set to 1. \n");
         return 0;
 	}
-
-#if 0
-    type = script_get_item("ctp_para", "ctp_gesture_wakeup", &val);
-    if (SCIRPT_ITEM_VALUE_TYPE_INT != type) {
-            printk("%s: ctp_gesture_wakeup script_get_item  err. \n", __func__);
-        	//return 0;
-        }
-
-    if (val.val == 1){
-		gtp_gesture_wakeup = 1;
-        dprintk(DEBUG_INIT,"GTP driver gesture wakeup is used!\n");
-       }
-#endif
 
     if(!gtp_gesture_wakeup)
 		gtp_power_ctrl_sleep = 1;	
