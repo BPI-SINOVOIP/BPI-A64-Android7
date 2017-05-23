@@ -371,23 +371,19 @@ static ssize_t regulator_state_store(struct device *dev,
 {
 	struct regulator_dev *rdev = dev_get_drvdata(dev);
 	int ret = 0;
-
+	
+#if 1
 	if (sysfs_streq(buf, "enable")) {
-		if (_regulator_is_enabled(rdev) <= 0) {
-			pr_info("enable regulator %s\n", rdev_get_name(rdev));
+		
+		pr_info("enable regulator %s\n", rdev_get_name(rdev));
 
-			mutex_lock(&rdev->mutex);
-			ret = _regulator_enable(rdev);
-			mutex_unlock(&rdev->mutex);
+		mutex_lock(&rdev->mutex);
+		ret = _regulator_enable(rdev);
+		mutex_unlock(&rdev->mutex);
 
-			if (ret != 0 && rdev->supply) {
-				regulator_disable(rdev->supply);
-				pr_err("enable failed\n");
-				return ret;
-			}
-		}
-		else {
-			pr_info("regulator already enabled");
+		if (ret != 0) {
+			pr_err("enable failed\n");
+			return ret;
 		}
 	}
 	else if(sysfs_streq(buf, "disable")) {
@@ -398,8 +394,7 @@ static ssize_t regulator_state_store(struct device *dev,
 			ret = _regulator_disable(rdev);
 			mutex_unlock(&rdev->mutex);
 
-			if (ret == 0 && rdev->supply) {
-				regulator_disable(rdev->supply);
+			if (ret != 0) {
 				pr_err("disable failed\n");
 				return ret;
 			}
@@ -408,6 +403,18 @@ static ssize_t regulator_state_store(struct device *dev,
 			pr_info("regulator already disabled");
 		}
 	}
+#else
+	if (sysfs_streq(buf, "enable")) {
+		ret = regulator_enable(rdev->supply);
+		if(ret)
+			pr_info("enable regulator %s failed\n", rdev_get_name(rdev));
+	}
+	else if(sysfs_streq(buf, "disable")) {
+		ret = regulator_disable(rdev->supply);
+		if(ret)
+			pr_info("diable regulator %s failed\n", rdev_get_name(rdev));
+	}
+#endif
 
 	return count;
 }
