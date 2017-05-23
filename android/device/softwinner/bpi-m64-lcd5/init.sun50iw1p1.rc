@@ -44,8 +44,8 @@ on fs
     chown keystore keystore /dev/scdev
 
     # sw-keyboard
-    insmod /system/vendor/modules/sunxi-keyboard.ko
-    init_dev_detect 
+    # insmod /system/vendor/modules/sunxi-keyboard.ko
+    # init_dev_detect 
 
     # TP
     insmod /system/vendor/modules/gt9xxnew_ts.ko
@@ -55,8 +55,7 @@ on fs
     insmod /system/vendor/modules/videobuf2-memops.ko
     insmod /system/vendor/modules/videobuf2-dma-contig.ko
     insmod /system/vendor/modules/vfe_io.ko
-    insmod /system/vendor/modules/gc0328c.ko
-    insmod /system/vendor/modules/gc2145.ko
+    insmod /system/vendor/modules/ov5640.ko
     insmod /system/vendor/modules/vfe_v4l2.ko
 
     # network
@@ -82,8 +81,8 @@ on fs
 
 
 on property:sys.boot_completed=1
-    chown system system /sys/devices/soc.0/1c2ac00.twi/i2c-0/0-0040/runtime_suspend
-    chmod 0660 /sys/devices/soc.0/1c2ac00.twi/i2c-0/0-0040/runtime_suspend
+    chown system system /sys/devices/soc.0/1c2ac00.twi/i2c-0/0-005d/runtime_suspend
+    chmod 0660 /sys/devices/soc.0/1c2ac00.twi/i2c-0/0-005d/runtime_suspend
 
 on post-fs-data
     mkdir /data/media 0770 media_rw media_rw
