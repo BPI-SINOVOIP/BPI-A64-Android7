@@ -115,6 +115,21 @@ jtag_ck         = port:PB1<4><default><default><default>
 jtag_do         = port:PB2<4><default><default><default>
 jtag_di         = port:PB3<4><default><default><default>
 
+;----------------------------------------------------------------------------------
+;
+;LED support
+;----------------------------------------------------------------------------------
+[led_para]
+compatible              = "allwinner,sunxi-leds"
+led_used		= 1
+led_num	 	 	= 3
+led1			= port:PD24<1><default><default><default>
+led1_trigger		= "default-on"
+led2			= port:PE14<1><default><default><default>
+led2_trigger		= "heartbeat"
+led3			= port:PE15<1><default><default><default>
+led3_trigger		= "default-on"
+
 [clock]
 pll4            = 300
 pll6            = 600
@@ -195,8 +210,8 @@ gmac_txen          = port:PD20<4><default><3><default>
 gmac_clkin         = port:PD21<4><default><3><default>
 gmac_mdc           = port:PD22<4><default><3><default>
 gmac_mdio          = port:PD23<4><default><3><default>
-gmac-power1        = "vcc-gmac-33"
-gmac-power2        = 
+gmac_power1        = "vcc-gmac-33"
+gmac_power2        = 
 tx-delay           = 0
 rx-delay           = 0
 
@@ -1235,9 +1250,41 @@ gpio-spk = port:PD14<1><0><default><0>
 ;ir --- infra remote configuration
 ;----------------------------------------------------------------------------------
 [s_cir0]
-s_cir0_used         = 0
-ir_power_key_code   = 0x0
-ir_addr_code        = 0x0
+s_cir0_used         = 1
+ir_keycount  = 10
+
+ir_key_addr0  	= 0x17c601
+ir_key_code0    = 103
+
+ir_key_addr1  	= 0x17c619
+ir_key_code1    = 105
+
+ir_key_addr2  	= 0x17c611
+ir_key_code2    = 106
+
+ir_key_addr3  	= 0x17c609
+ir_key_code3    = 108
+
+ir_key_addr4  	= 0x17c60f
+ir_key_code4    = 102
+
+ir_key_addr5  	= 0x17c60d
+ir_key_code5    = 158
+
+ir_key_addr6  	= 0x17c61c
+ir_key_code6    = 119
+
+
+ir_key_addr7  	= 0x17c67f
+ir_key_code7    = 139
+
+
+ir_key_addr8  	= 0x17c640
+ir_key_code8    = 28
+
+ir_key_addr9  	= 0x17c612
+ir_key_code9    = 116
+
 
 ;-------------------------------------------------------------------------------
 ;userspace gpio interface for android
@@ -1245,7 +1292,7 @@ ir_addr_code        = 0x0
 [gpio_para]
 compatible 	= "allwinner,sunxi-init-gpio"
 gpio_used       = 1
-gpio_num        = 30
+gpio_num        = 28
 gpio_pin_1	=  port:PH3<1><default><default><0>
 gpio_pin_2	=  port:PH2<1><default><default><0>
 gpio_pin_3	=  port:PH6<1><default><default><0>
@@ -1274,8 +1321,7 @@ gpio_pin_25	=  port:PB7<1><default><default><0>
 gpio_pin_26	=  port:PL9<1><default><default><0>
 gpio_pin_27	=  port:PL7<1><default><default><0>
 gpio_pin_28	=  port:PL8<1><default><default><0>
-gpio_pin_29	=  port:PE14<1><default><default><1>
-gpio_pin_30	=  port:PE15<1><default><default><1>
+
 
 ;-------------------------------------------------------------------------------------
 ;used                        ---0:not used,1:used
@@ -1383,8 +1429,8 @@ pmu_usbpc_vol              = 4400
 pmu_usbpc_cur              = 500
 pmu_battery_warning_level1 = 15
 pmu_battery_warning_level2 = 0
-pmu_chgled_func            = 0
-pmu_chgled_type            = 0
+pmu_chgled_func            = 1
+pmu_chgled_type            = 1
 
 pmu_bat_para1              = 0
 pmu_bat_para2              = 0
