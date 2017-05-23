@@ -210,8 +210,8 @@ gmac_txen          = port:PD20<4><default><3><default>
 gmac_clkin         = port:PD21<4><default><3><default>
 gmac_mdc           = port:PD22<4><default><3><default>
 gmac_mdio          = port:PD23<4><default><3><default>
-gmac-power1        = "vcc-gmac-33"
-gmac-power2        = 
+gmac_power1        = "vcc-gmac-33"
+gmac_power2        = 
 tx-delay           = 0
 rx-delay           = 0
 
@@ -1292,7 +1292,7 @@ ir_key_code9    = 116
 [gpio_para]
 compatible 	= "allwinner,sunxi-init-gpio"
 gpio_used       = 1
-gpio_num        = 30
+gpio_num        = 28
 gpio_pin_1	=  port:PH3<1><default><default><0>
 gpio_pin_2	=  port:PH2<1><default><default><0>
 gpio_pin_3	=  port:PH6<1><default><default><0>
@@ -1321,8 +1321,7 @@ gpio_pin_25	=  port:PB7<1><default><default><0>
 gpio_pin_26	=  port:PL9<1><default><default><0>
 gpio_pin_27	=  port:PL7<1><default><default><0>
 gpio_pin_28	=  port:PL8<1><default><default><0>
-gpio_pin_29	=  port:PE14<1><default><default><1>
-gpio_pin_30	=  port:PE15<1><default><default><1>
+
 
 ;-------------------------------------------------------------------------------------
 ;used                        ---0:not used,1:used
@@ -1494,7 +1493,7 @@ pmu_powkey_off_en          = 1
 pmu_powkey_long_time       = 1500
 pmu_powkey_on_time         = 1000
 power_start                = 0
-pmu_batt_used		   = 1
+pmu_batt_used		   = 0
 
 ;--------------------------------------------------------------------------------------------------------
 ;pmu0 is axp81x
