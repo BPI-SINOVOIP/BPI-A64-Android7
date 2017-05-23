@@ -58,6 +58,7 @@ function pack_info()
 DEFINE_string 'chip' '' 'chip to build, e.g. sun7i' 'c'
 DEFINE_string 'platform' '' 'platform to build, e.g. linux, android, camdroid' 'p'
 DEFINE_string 'board' '' 'board to build, e.g. evb' 'b'
+DEFINE_string 'version' '' 'platform version, e.g 7.0' 'a'
 DEFINE_string 'kernel' '' 'kernel to build, e.g. linux-3.4, linux-3.10' 'k'
 DEFINE_string 'debug_mode' 'uart0' 'config debug mode, e.g. uart0, card0' 'd'
 DEFINE_string 'signture' 'none' 'pack boot signture to do secure boot' 's'
@@ -70,6 +71,7 @@ FLAGS "$@" || exit $?
 eval set -- "${FLAGS_ARGV}"
 
 PACK_CHIP=${FLAGS_chip}
+PACK_VERSION=${FLAGS_version}
 PACK_PLATFORM=${FLAGS_platform}
 PACK_BOARD=${FLAGS_board}
 PACK_KERN=${FLAGS_kernel}
@@ -78,6 +80,7 @@ PACK_SIG=${FLAGS_signture}
 PACK_SECURE=${FLAGS_secure}
 PACK_MODE=${FLAGS_mode}
 PACK_FUNC=${FLAGS_function}
+PACK_TIME=`date +%Y%m%d-%H%M`
 
 ROOT_DIR=`pwd`
 TOOLS_DIR="${ROOT_DIR}/pctools/linux"
@@ -415,7 +418,7 @@ function do_prepare()
 	sed -i 's/\\\\/\//g' out/image.cfg
 	sed -i 's/^imagename/;imagename/g' out/image.cfg
 
-	IMG_NAME="${PACK_CHIP}_${PACK_PLATFORM}_${PACK_BOARD}_${PACK_DEBUG}"
+	IMG_NAME="${PACK_CHIP}_${PACK_PLATFORM}_${PACK_VERSION}_${PACK_BOARD}_${PACK_DEBUG}_${PACK_TIME}"
 
 	if [ "x${PACK_SIG}" != "xnone" ]; then
 		IMG_NAME="${IMG_NAME}_${PACK_SIG}"
