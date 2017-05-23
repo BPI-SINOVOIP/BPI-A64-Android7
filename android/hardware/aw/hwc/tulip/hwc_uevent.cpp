@@ -151,6 +151,10 @@ disp_tv_mode get_suitable_hdmi_mode(int select, disp_tv_mode lastmode)
     arg[0] = select;
     int ret, i, j = -1;
     disp_tv_mode theMostMode = DISP_TV_MODE_NUM;
+
+	/* bpi, hdmi mode */
+	struct disp_output *para;
+	
     i = sizeof(g_tv_para) / sizeof(g_tv_para[0]);
     if(lastmode < DISP_TV_MODE_NUM)
     {
@@ -162,36 +166,49 @@ disp_tv_mode get_suitable_hdmi_mode(int select, disp_tv_mode lastmode)
                 return lastmode;
 	        }
     }
-    while(i > 0)
-    {
-        i--;
-        if(g_tv_para[i].mode == DISP_TV_MOD_1080P_60HZ)
-        {
-            j = i;
-        }
-        if(j != -1)
-        {
-            arg[1] = DISP_OUTPUT_TYPE_HDMI;
-	        arg[2] = g_tv_para[i].mode;
-            ret = ioctl(Globctx->DisplayFd, DISP_DEVICE_SWITCH, arg);
-	        if(ret >= 0)
+
+	/* bpi, hdmi mode */
+	if(Globctx->SunxiDisplay[0].DisplayType == DISP_OUTPUT_TYPE_HDMI)
+	{
+		arg[1] = (unsigned long)para;
+		ret = ioctl(Globctx->DisplayFd, DISP_GET_OUTPUT, arg);
+	    if(ret >= 0)
+	    {
+            theMostMode = (disp_tv_mode)para->mode;
+	    }
+	}else{
+	    while(i > 0)
+	    {
+	        i--;
+	        if(g_tv_para[i].mode == DISP_TV_MOD_720P_60HZ)
 	        {
-                if(theMostMode == DISP_TV_MODE_NUM)
-                {
-                    g_tv_para[sizeof(g_tv_para) / sizeof(g_tv_para[0])-1].support = 1<<select;
-                    theMostMode = g_tv_para[i].mode;
-                }
-                g_tv_para[i].support |= 1<<select;
-	        }else{
-	            g_tv_para[i].support &= ~(1<<select);
+	            j = i;
 	        }
-        }
-    }
+	        if(j != -1)
+	        {
+	            arg[1] = DISP_OUTPUT_TYPE_HDMI;
+		        arg[2] = g_tv_para[i].mode;
+	            ret = ioctl(Globctx->DisplayFd, DISP_DEVICE_SWITCH, arg);
+		        if(ret >= 0)
+		        {
+	                if(theMostMode == DISP_TV_MODE_NUM)
+	                {
+	                    g_tv_para[sizeof(g_tv_para) / sizeof(g_tv_para[0])-1].support = 1<<select;
+	                    theMostMode = g_tv_para[i].mode;
+	                }
+	                g_tv_para[i].support |= 1<<select;
+		        }else{
+		            g_tv_para[i].support &= ~(1<<select);
+		        }
+	        }
+        return DISP_TV_MOD_720P_60HZ;
+	    }
+	}
     if(theMostMode != DISP_TV_MODE_NUM)
     {
         return theMostMode;
     }else{
-        return DISP_TV_MOD_1080P_60HZ;
+        return DISP_TV_MOD_720P_60HZ;
     }
 }
 
@@ -223,6 +240,7 @@ int hwc_hotplug_switch(int DisplayNum, bool plug, disp_tv_mode set_mode)
         }
         if(set_mode != DISP_TV_MODE_NUM)
         {
+            PsDisplayInfo->setblank = 1;
             PsDisplayInfo->VarDisplayWidth = get_info_mode(set_mode,WIDTH);
             PsDisplayInfo->VarDisplayHeight = get_info_mode(set_mode,HEIGHT);
             PsDisplayInfo->DisplayType = DISP_OUTPUT_TYPE_HDMI;
@@ -239,15 +257,20 @@ int hwc_hotplug_switch(int DisplayNum, bool plug, disp_tv_mode set_mode)
                 PsDisplayInfo->InitDisplayWidth = PsDisplayInfo->VarDisplayWidth;
             }
             Globctx->memlimit += PsDisplayInfo->InitDisplayHeight * PsDisplayInfo->InitDisplayWidth * 4;
-            Globctx->hot_plug = 1;
+            if(Globctx->SunxiDisplay[0].DisplayType != DISP_OUTPUT_TYPE_HDMI)
+			{
+            	Globctx->hot_plug = 1;
+			}
             arg[0] = DisplayNum;
             arg[1] = DISP_OUTPUT_TYPE_HDMI;
             arg[2] = set_mode;
             ioctl(Globctx->DisplayFd, DISP_DEVICE_SWITCH, (unsigned long)arg);
+            PsDisplayInfo->setblank = 0;
+            Globctx->psHwcProcs->invalidate(Globctx->psHwcProcs);
             arg[0] = DisplayNum;
             arg[1] = 1;
             ioctl(Globctx->DisplayFd, DISP_VSYNC_EVENT_EN,(unsigned long)arg);
-        }else{
+        }else if (Globctx->SunxiDisplay[0].DisplayType != DISP_OUTPUT_TYPE_HDMI){
 
             ALOGD("###has no fix HDMI Mode###");
             return 0;
@@ -270,7 +293,7 @@ int hwc_hotplug_switch(int DisplayNum, bool plug, disp_tv_mode set_mode)
     }else{
         ALOGD("###psHwcProcs  No register.###");
     }
-    if(!plug)
+    if(!plug && Globctx->SunxiDisplay[0].DisplayType != DISP_OUTPUT_TYPE_HDMI)
     {
         arg[0] = DisplayNum;
         arg[1] = DISP_OUTPUT_TYPE_NONE; 
@@ -405,7 +428,7 @@ static int hwc_uevent(void)
                     }
                 }
 
-                if(IsHdmi)
+                if(IsHdmi && Globctx->SunxiDisplay[0].DisplayType != DISP_OUTPUT_TYPE_HDMI)
                 {
                     while(s)
                     {

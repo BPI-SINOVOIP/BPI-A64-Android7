@@ -926,6 +926,25 @@ static bool resize_layer(HwcDisContext_t *Localctx,
 	    layer_info->fb.crop.y = fb_crop->top + ((cut_top == 1) ? cut_mod:0);
 		layer_info->fb.crop.height = srcdiff - cut_mod;
     }
+
+	/* bpi,  hdmi mode*/
+     #if defined(HWC_DEBUG)
+        ALOGD("\nold:\n[%f,%f]#S[%lld,%lld,%lld,%lld] F[%lld,%lld,%lld,%lld]\n",
+            Localctx->WidthScaleFactor, Localctx->HighetScaleFactor,
+            layer_info->fb.crop.x, layer_info->fb.crop.y, layer_info->fb.crop.width,
+            layer_info->fb.crop.height, layer_info->screen_win.x, layer_info->screen_win.y,
+            layer_info->screen_win.width, layer_info->screen_win.height);
+    #endif
+
+    if(gSunxiHwcDevice.SunxiDisplay[0].DisplayType == DISP_OUTPUT_TYPE_HDMI) {
+	    layer_info->fb.crop.x = (long long)(((long long)(psLayer->sourceCrop.left)) << 32);
+	    layer_info->fb.crop.width = (long long)(((long long)(psLayer->sourceCrop.right)) << 32);
+	    layer_info->fb.crop.width -= layer_info->fb.crop.x;
+	    layer_info->fb.crop.y = (long long)(((long long)(psLayer->sourceCrop.top)) << 32);
+	    layer_info->fb.crop.height = (long long)(((long long)(psLayer->sourceCrop.bottom)) << 32);
+	    layer_info->fb.crop.height -= layer_info->fb.crop.y;
+    }
+	/* bpi end */
     if(layer_info->b_trd_out == 1)
     {
         switch(PsDisplayInfo->Current3DMode)
@@ -1353,6 +1372,9 @@ int hwc_setup_layer(hwc_dispc_data_t *DisplayData, HwcDisContext_t *Localctx)
     ChannelInfo_t *psChannelInfo = Localctx->ChannelInfo;
     struct private_handle_t *handle = NULL;
 
+	/* bpi, hdmi mode */
+	bool enableLayer = !(PsDisplayInfo->setblank);
+
     ture_disp = PsDisplayInfo->VirtualToHWDisplay;
     if(ture_disp < 0 || ture_disp >= NUMBEROFDISPLAY)
     {
@@ -1422,7 +1444,9 @@ int hwc_setup_layer(hwc_dispc_data_t *DisplayData, HwcDisContext_t *Localctx)
             layer_info->zorder = zOrder;
             layer_info->alpha_value = psChannelInfo[CHCnt].planeAlpha;
 
-            psDisconfig->enable = 1;
+			/* bpi, hdmi mode
+            psDisconfig->enable = 1; */
+			psDisconfig->enable = enableLayer;
             psDisconfig->layer_id = LCnt;
             psDisconfig->channel = psChannelInfo[CHCnt].hasVideo ? VideoCnt : UiCnt;
             psHwlayer_info->hwchannel = psDisconfig->channel;

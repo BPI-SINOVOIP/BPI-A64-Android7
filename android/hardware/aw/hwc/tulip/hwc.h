@@ -315,7 +315,7 @@ typedef struct{
     bool                VsyncEnable;
     bool                issecure;
     bool                active;
-    
+    bool                setblank;
     int                 HwChannelNum;
     int                 LayerNumofCH;
     int                 VideoCHNum;
