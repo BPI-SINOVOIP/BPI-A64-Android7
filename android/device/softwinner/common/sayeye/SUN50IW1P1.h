@@ -15,7 +15,9 @@
 /* task spec files defined */
 #define TASKS       "/dev/cpuctl/tasks"
 /* touch screen runtime suspend */
-#define TP_SUSPEND  "/sys/devices/soc.0/1c2ac00.twi/i2c-0/0-0040/runtime_suspend"
+/* bpi, TP runtime suspend contron in hwc */
+/* #define TP_SUSPEND  "/sys/devices/soc.0/1c2ac00.twi/i2c-0/0-005d/runtime_suspend" */
+#define TP_SUSPEND  ""
 
 /*  value define */
 #define ROOMAGE_PERF       "816000 4 0 0 1152000 4 0 0 0"

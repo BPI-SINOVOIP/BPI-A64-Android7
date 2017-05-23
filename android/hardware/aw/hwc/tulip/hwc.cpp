@@ -52,6 +52,9 @@ static int hwc_blank(struct hwc_composer_device_1* dev, int disp, int blank)
     HWC_UNREFERENCED_PARAMETER(dev);
     HWC_UNREFERENCED_PARAMETER(disp);
     HWC_UNREFERENCED_PARAMETER(blank);
+    int open_fd;
+    char i;
+    ssize_t ret = 0;
 
 	SUNXI_hwcdev_context_t *Globctx = &gSunxiHwcDevice;
 	if(!blank)
@@ -65,6 +68,26 @@ static int hwc_blank(struct hwc_composer_device_1* dev, int disp, int blank)
     {
 	    arg[0] = PsDisplayInfo->VirtualToHWDisplay;
 	    arg[1] = blank;
+
+	    /*bpi, tp runtime suspend*/
+	    ALOGE("display blank = %u", blank);
+	    open_fd = open("/sys/devices/soc.0/1c2ac00.twi/i2c-0/0-005d/runtime_suspend", O_WRONLY);
+	    if (open_fd >= 0)
+	    {
+		if (blank)
+			i = '0';
+		else
+			i = '1';
+
+                ret = write(open_fd, &i, 1);
+                if (ret < 0)
+                        ALOGD("###write /sys/devices/soc.0/1c2ac00.twi/i2c-0/0-005d/runtime_suspend fail");
+                close(open_fd);
+	    } else {
+                ALOGD("###open /sys/devices/soc.0/1c2ac00.twi/i2c-0/0-005d/runtime_suspend fail");
+            }
+	    /* bpi end */
+
 	    if(ioctl(Globctx->DisplayFd, DISP_BLANK, (unsigned long)arg) != 0)
 		    return -1;
     }

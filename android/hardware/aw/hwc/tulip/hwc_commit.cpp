@@ -555,8 +555,28 @@ deal_fence:
                         {
                             arg[0] = PsDisplayInfo->VirtualToHWDisplay;
                             arg[1] = 0;
-                            if(ioctl(Globctx->DisplayFd, DISP_BLANK, (unsigned long)arg) != 0)
+
+			    if(ioctl(Globctx->DisplayFd, DISP_BLANK, (unsigned long)arg) != 0)
                                 ALOGE("##########unblank error!");
+
+			    /*bpi, tp runtime suspend*/
+			    int open_fd;
+            		    ALOGE("display blank = 0");
+            		    open_fd = open("/sys/devices/soc.0/1c2ac00.twi/i2c-0/0-005d/runtime_suspend", O_WRONLY);
+            		    if (open_fd >= 0)
+            		    {
+                        	char i = '1';
+
+				ssize_t ret = 0;
+                		ret = write(open_fd, &i, 1);
+                		if (ret < 0)
+                        		ALOGD("###write /sys/devices/soc.0/1c2ac00.twi/i2c-0/0-005d/runtime_suspend fail");
+                		close(open_fd);
+            		    } else {
+                		ALOGD("###open /sys/devices/soc.0/1c2ac00.twi/i2c-0/0-005d/runtime_suspend fail");
+            		    }
+            		    /* bpi end */
+
                         }
                         Globctx->unblank_flag = 0;
                         unblank_count = 0;
