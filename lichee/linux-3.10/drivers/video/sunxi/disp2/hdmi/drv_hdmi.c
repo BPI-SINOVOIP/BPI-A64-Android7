@@ -645,7 +645,9 @@ static int hdmi_pm_notify_fn (struct notifier_block *notify_block,
 	case PM_SUSPEND_PREPARE:
 		if (HDMI_task) {
 			__inf("we should stop HDMI_task here\n");
-			switch_set_state(&hdmi_switch_dev, 0);	
+#ifdef CONFIG_SWITCH
+			switch_set_state(&hdmi_switch_dev, 0);
+#endif
 			hdmi_disable();
 		}
 		break;

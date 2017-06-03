@@ -36,7 +36,7 @@
 #include <linux/pinctrl/pinconf-sunxi.h>
 #include <linux/of_gpio.h>
 #include <linux/regulator/consumer.h>
-#include <linux/switch.h>
+#include <linux/android_switch.h>
 
 #ifdef CONFIG_DEVFREQ_DRAM_FREQ_WITH_SOFT_NOTIFY
 #include <linux/sunxi_dramfreq.h>

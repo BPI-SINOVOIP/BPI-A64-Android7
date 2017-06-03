@@ -25,7 +25,7 @@
 #include <linux/io.h>
 #include <linux/regulator/consumer.h>
 #include <linux/i2c.h>
-#include <linux/switch.h>
+#include <linux/android_switch.h>
 #include <linux/irq.h>
 #include <linux/input.h>
 #include <linux/timer.h>

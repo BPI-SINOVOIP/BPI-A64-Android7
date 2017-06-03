@@ -26,7 +26,7 @@
 #include <linux/cdev.h>
 #include <linux/types.h>
 #include <linux/module.h>
-#include <linux/switch.h>
+#include <linux/android_switch.h>
 #include <linux/types.h>
 #include <linux/of_irq.h>
 #include <linux/of_address.h>
