@@ -1,8 +1,5 @@
 on init
-    insmod /nand.ko
-    insmod /sw-device.ko debug_mask=0xff ctp_mask=1
-    insmod /disp.ko
-    insmod /lcd.ko
+    #insmod /disp.ko
     insmod /gt9xxnew_ts.ko
 	
     mkdir /usbhost

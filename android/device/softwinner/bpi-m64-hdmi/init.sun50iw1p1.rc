@@ -18,7 +18,6 @@ on init
 
     mkdir /oem 0550 system system
 on early-fs
-    insmod nand.ko
     mount_all /fstab.sun50iw1p1
     swapon_all /fstab.sun50iw1p1
     restorecon_recursive /persist
@@ -27,9 +26,9 @@ on early-fs
     mount vfat /dev/block/by-name/media_data /oem ro nosuid nodev utf8,context=u:object_r:oemfs:s0
 
 on fs
-    insmod /system/vendor/modules/disp.ko
+    #insmod /system/vendor/modules/disp.ko
     insmod /system/vendor/modules/sunxi_tr.ko
-    insmod /system/vendor/modules/hdmi.ko
+    #insmod /system/vendor/modules/hdmi.ko
 
     #secure storage
     insmod /system/vendor/modules/te_sec_storage.ko
@@ -125,7 +124,6 @@ on boot
     chmod 0660 /sys/class/devfreq/dramfreq/adaptive/pause
 
 on charger
-    insmod nand.ko
     mount_all /fstab.sun50iw1p1
     insmod /system/vendor/modules/disp.ko
     class_start charger

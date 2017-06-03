@@ -44,10 +44,7 @@ PRODUCT_COPY_FILES += \
     device/softwinner/bpi-m64-hdmi/init.recovery.sun50iw1p1.rc:root/init.recovery.sun50iw1p1.rc \
     device/softwinner/bpi-m64-hdmi/ueventd.sun50iw1p1.rc:root/ueventd.sun50iw1p1.rc \
     device/softwinner/common/verity/rsa_key/verity_key:root/verity_key \
-    device/softwinner/bpi-m64-hdmi/modules/modules/nand.ko:root/nand.ko \
     device/softwinner/bpi-m64-hdmi/modules/modules/sunxi_tr.ko:root/sunxi_tr.ko \
-    device/softwinner/bpi-m64-hdmi/modules/modules/disp.ko:root/disp.ko \
-    device/softwinner/bpi-m64-hdmi/modules/modules/sunxi-keyboard.ko:recovery/root/sunxi-keyboard.ko \
     device/softwinner/bpi-m64-hdmi/modules/modules/gt9xxnew_ts.ko:recovery/root/gt9xxnew_ts.ko \
 
 PRODUCT_COPY_FILES += \
