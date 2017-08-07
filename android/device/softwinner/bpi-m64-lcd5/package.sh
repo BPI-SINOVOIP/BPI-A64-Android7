@@ -6,7 +6,6 @@ chip=sun50iw1p1
 platform=android
 board=bpi-m64-lcd5
 board1=bpi-m64-hso-lcd7
-board2=bpi-m64-lg007
 debug=uart0
 sigmode=none
 securemode=none
@@ -62,4 +61,3 @@ done
 
 ./pack -c $chip -p $platform -b $board -a $version -d $debug -s $sigmode -v $securemode
 ./pack -c $chip -p $platform -b $board1 -a $version -d $debug -s $sigmode -v $securemode
-./pack -c $chip -p $platform -b $board2 -a $version -d $debug -s $sigmode -v $securemode
