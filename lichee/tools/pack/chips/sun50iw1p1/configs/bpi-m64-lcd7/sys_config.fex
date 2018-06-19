@@ -552,28 +552,28 @@ fb1_height               = 0
 [lcd0]
 lcd_used            = 1
 
-lcd_driver_name     = "LHR050H41_MIPI_RGB"
-lcd_model_name      = "LHR050H41_MIPI_RGB"
+lcd_driver_name     = "S070WV20_MIPI_RGB"
+lcd_model_name      = "S070WV20_MIPI_RGB"
 
 lcd_backlight       = 180
 lcd_if              = 4
-lcd_x               = 720
-lcd_y               = 1280
-lcd_width           = 62
-lcd_height          = 110
-lcd_dclk_freq       = 71
-lcd_pwm_used        = 0
+lcd_x               = 800
+lcd_y               = 480
+lcd_width           = 86
+lcd_height          = 154
+lcd_dclk_freq       = 30
+lcd_pwm_used        = 1
 lcd_pwm_ch          = 16
-lcd_pwm_freq        = 10000
+lcd_pwm_freq        = 50000
 lcd_pwm_pol         = 1
 lcd_pwm_max_limit   = 255
 
-lcd_hbp             = 124
-lcd_ht              = 896
-lcd_hspw            = 24
-lcd_vbp             = 24
-lcd_vt              = 1312
-lcd_vspw            = 4
+lcd_hbp             = 88
+lcd_ht              = 928
+lcd_hspw            = 48
+lcd_vbp             = 32
+lcd_vt              = 525
+lcd_vspw            = 3
 
 lcd_lvds_if         = 0
 lcd_lvds_colordepth = 0
@@ -598,8 +598,8 @@ lcd_power2= "vcc-pd"
 lcd_fix_power       = "vcc-dsi-33"
 lcd_pin_power = "vcc-pd"
 
-lcd_gpio_0	= port:PD6<1><0><2><1>
-lcd_gpio_1	= port:PD7<1><0><2><1>
+lcd_gpio_0	= port:PD6<1><0><2><0>
+lcd_gpio_1	= port:PD7<1><0><2><0>
 
 [hdmi]
 hdmi_used = 1
