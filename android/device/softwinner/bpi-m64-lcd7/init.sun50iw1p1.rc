@@ -47,7 +47,8 @@ on fs
     # init_dev_detect 
 
     # TP
-    insmod /system/vendor/modules/gt9xxnew_ts.ko
+    #insmod /system/vendor/modules/gt9xxnew_ts.ko
+    insmod /system/vendor/modules/ft5x_ts.ko
 
     # csi module
     insmod /system/vendor/modules/videobuf2-core.ko
