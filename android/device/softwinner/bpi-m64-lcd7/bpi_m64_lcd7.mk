@@ -118,7 +118,7 @@ PRODUCT_PROPERTY_OVERRIDES += \
     sys.p_debug=false
 
 PRODUCT_PROPERTY_OVERRIDES += \
-    ro.sf.lcd_density=213
+    ro.sf.lcd_density=160
 
 PRODUCT_PROPERTY_OVERRIDES += \
     ro.spk_dul.used=false
