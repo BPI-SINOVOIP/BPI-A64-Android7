@@ -403,9 +403,9 @@ rtp_exchange_x_y_flag = 0
 [ctp]
 compatible	    = "allwinner,sun50i-ctp-para"
 ctp_used            = 1
-ctp_name	    = "ft5x_ts"
+ctp_name	    = "bpi_lcd7"
 ctp_twi_id          = 0
-ctp_twi_addr        = 0x38
+ctp_twi_addr        = 0x5d
 ctp_screen_max_x    = 800
 ctp_screen_max_y    = 480
 ctp_revert_x_flag   = 0
@@ -428,11 +428,11 @@ compatible 		  = "allwinner,sun50i-ctp-list"
 ctp_list_used         	  = 1
 gslX680new		  = 0
 gt9xx_ts                  = 0
-gt9xxnew_ts		  = 0
+gt9xxnew_ts		  = 1
 gt82x                     = 0
 zet622x                   = 0
 aw5306_ts                 = 0
-ft5x                      = 1
+ft5x_ts                   = 1
 
 ;----------------------------------------------------------------------------------
 ;touch key configuration

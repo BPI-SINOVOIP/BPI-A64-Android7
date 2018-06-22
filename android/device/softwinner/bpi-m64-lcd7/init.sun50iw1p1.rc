@@ -44,11 +44,11 @@ on fs
 
     # sw-keyboard
     # insmod /system/vendor/modules/sunxi-keyboard.ko
-    # init_dev_detect 
 
+    init_dev_detect 
     # TP
     #insmod /system/vendor/modules/gt9xxnew_ts.ko
-    insmod /system/vendor/modules/ft5x_ts.ko
+    #insmod /system/vendor/modules/ft5x_ts.ko
 
     # csi module
     insmod /system/vendor/modules/videobuf2-core.ko

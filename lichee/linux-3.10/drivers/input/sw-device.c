@@ -5,10 +5,10 @@
 
 #include "sw-device.h"
 
-static int ctp_mask = 0x0;
+static int ctp_mask = 0x1;
 static u32 debug_mask = 0;
-#define dprintk(level_mask, fmt, arg...)	if (unlikely(debug_mask & level_mask)) \
-	printk(KERN_DEBUG fmt , ## arg)
+#define dprintk(level_mask, fmt, arg...)	/*if (unlikely(debug_mask & level_mask))*/ \
+	printk(KERN_INFO fmt , ## arg)
 
 module_param_named(debug_mask, debug_mask, int, S_IRUGO | S_IWUSR | S_IWGRP);
 module_param_named(ctp_mask, ctp_mask, int , S_IRUGO | S_IWUSR | S_IWGRP);
@@ -984,9 +984,6 @@ static struct platform_driver sw_input_platform_driver = {
 		.of_match_table = sw_input_match,
 	},
 };
-
-
-
 
 static struct attribute *sw_device_attributes[] = {
         &dev_attr_gsensor.attr,
