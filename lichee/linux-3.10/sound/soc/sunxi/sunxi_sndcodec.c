@@ -19,6 +19,7 @@
 #include <linux/gpio.h>
 #include <linux/io.h>
 #include <linux/input.h>
+#include <linux/android_switch.h>
 #include <sound/pcm.h>
 #include <sound/soc.h>
 #include <sound/jack.h>
@@ -82,6 +83,12 @@ static bool is_irq 			= false;
 static int  switch_state 	= 0;
 static struct snd_soc_dai *card0_device0_interface;
 
+#if defined(CONFIG_SWITCH)
+static struct switch_dev sunxi_codec_jack = {
+	.name = "h2w",
+};
+#endif
+
 /* 
 * Identify the jack type as Headset/Headphone/None 
 */
@@ -133,6 +140,7 @@ static void sunxi_check_hs_detect_status(struct work_struct *work)
 		if (jack_type != ctx->switch_status) {
 			ctx->switch_status = jack_type;
 			snd_jack_report(ctx->jack.jack, jack_type);
+			switch_set_state(&sunxi_codec_jack, 1);
 			pr_debug("switch:%d\n",jack_type);
 			switch_state = jack_type;
 		}
@@ -167,6 +175,7 @@ static void sunxi_check_hs_detect_status(struct work_struct *work)
 		ctx->switch_status = 0;
 		/*clear headset pulgout pending.*/
 		snd_jack_report(ctx->jack.jack, ctx->switch_status);
+		switch_set_state(&sunxi_codec_jack, 0);
 		switch_state = ctx->switch_status;
 		pr_err("plugout_end:switch:%d\n",ctx->switch_status);
 		ctx->tv_headset_plugin.tv_sec = 0;
@@ -727,7 +736,7 @@ static int sunxi_machine_probe(struct platform_device *pdev)
 		goto err0;
 	}
 
-	#ifdef CONFIG_SND_SOC_HUB
+#ifdef CONFIG_SND_SOC_HUB
 	/*
 	*sunxi_sndpcm_dai_link[0]:audiocodec
 	*sunxi_sndpcm_dai_link[1]:Voice
@@ -738,7 +747,12 @@ static int sunxi_machine_probe(struct platform_device *pdev)
 	*/
 	memcpy(sunxi_sndpcm_dai_link + 4,
 			sunxi_hub_dai_link, sizeof(sunxi_hub_dai_link));
-	#endif
+#endif
+
+#if defined(CONFIG_SWITCH)
+	switch_dev_register(&sunxi_codec_jack);
+#endif
+
 	/* register the soc card */
 	snd_soc_sunxi_sndpcm.dev = &pdev->dev;
 	snd_soc_card_set_drvdata(&snd_soc_sunxi_sndpcm, ctx);
@@ -853,8 +867,11 @@ static int sunxi_machine_probe(struct platform_device *pdev)
 					snd_soc_read(ctx->codec, 0x1C),
 					snd_soc_read(ctx->codec, 0x1D));
 
+	switch_set_state(&sunxi_codec_jack, 2);
+
 	return 0;
 err1:
+	switch_dev_unregister(&sunxi_codec_jack);
 	snd_soc_unregister_component(&pdev->dev);
 err0:
 	return ret;
