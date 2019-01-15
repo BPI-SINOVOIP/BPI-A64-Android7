@@ -11,12 +11,12 @@ DEVICE_PACKAGE_OVERLAYS := device/softwinner/bpi-m64-lcd7/overlay \
 
 PRODUCT_PACKAGES += Launcher3
 
+#BPI-M64 Porting
 PRODUCT_PACKAGES += \
     ESFileExplorer \
     VideoPlayer \
-    Saturn \
-    Bluetooth \
-    Update
+    Bluetooth 
+
 	
 #widevine
 PRODUCT_PACKAGES += \
@@ -76,9 +76,10 @@ $(call inherit-product, device/softwinner/common/rild/radio_common.mk)
 #$(call inherit-product, device/softwinner/common/ril_modem/huawei/mu509/huawei_mu509.mk)
 #$(call inherit-product, device/softwinner/common/ril_modem/Oviphone/em55/oviphone_em55.mk)
 
+#Justin Porting 
 # Realtek wifi efuse map
-PRODUCT_COPY_FILES += \
-    device/softwinner/bpi-m64-lcd7/configs/wifi/wifi_efuse_8723bs-vq0.map:system/etc/wifi/wifi_efuse_8723bs-vq0.map
+#PRODUCT_COPY_FILES += \
+#    device/softwinner/bpi-m64-lcd7/configs/wifi/wifi_efuse_8723bs-vq0.map:system/etc/wifi/wifi_efuse_8723bs-vq0.map
 
 
 PRODUCT_PROPERTY_OVERRIDES += \
@@ -123,10 +124,11 @@ PRODUCT_PROPERTY_OVERRIDES += \
 PRODUCT_PROPERTY_OVERRIDES += \
     ro.spk_dul.used=false
 
+#BPI-M64 Porting
 PRODUCT_PROPERTY_OVERRIDES += \
-    persist.sys.timezone=Asia/Shanghai \
-    persist.sys.country=Hans-CN \
-    persist.sys.language=zh
+    persist.sys.timezone=Asia/Taipei \
+    persist.sys.language=EN \
+    persist.sys.country=US
 
 # stoarge
 PRODUCT_PROPERTY_OVERRIDES += \
