@@ -17,11 +17,13 @@ PRODUCT_PROPERTY_OVERRIDES += \
        dalvik.vm.dex2oat-filter=""
 endif
 
+# ----BPI Remove Allwinner APK Start --------
 # preinstall apk
-PRODUCT_PACKAGES += \
-    DragonFire \
-    DragonPhone \
-    DragonAging \
+#PRODUCT_PACKAGES += \
+#    DragonFire \
+#    DragonPhone \
+#    DragonAging \
+# ----BPI Remove Allwinner APK End --------
 	
 # usb
 PRODUCT_PACKAGES += \
