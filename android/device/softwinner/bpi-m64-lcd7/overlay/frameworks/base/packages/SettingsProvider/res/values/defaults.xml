@@ -23,4 +23,11 @@
 
     <!-- ethernet default state -->
     <bool name="def_ethernet_on">false</bool>
+      <!-- Justin Porting 20190116 Start-->
+     <integer name="def_screen_off_timeout">2147483647</integer> 
+     <bool name="def_lockscreen_disabled">true</bool> 
+     <bool name="def_accelerometer_rotation">false</bool>  
+     <bool name="def_user_setup_complete">true</bool> 
+     <integer name="def_hdmi_output_mode">5</integer>
+      <!-- Justin Porting 20190116 End-->
 </resources>
