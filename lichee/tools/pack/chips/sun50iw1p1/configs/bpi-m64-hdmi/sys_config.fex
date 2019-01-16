@@ -638,7 +638,7 @@ pwm_positive        = port:PL10<7><0><default><default>
 [boot_disp]
 output_disp = 0
 output_type = 3
-output_mode = 10
+output_mode = 5
 
 ;--------------------------------------------------------------------------------
 ;csi (COMS Sensor Interface) configuration
@@ -1491,7 +1491,7 @@ pmu_bat_temp_para14        = 242
 pmu_bat_temp_para15        = 179
 pmu_bat_temp_para16        = 134
 
-pmu_powkey_off_time        = 6000
+pmu_powkey_off_time        = 4000
 pmu_powkey_off_func        = 0
 pmu_powkey_off_en          = 1
 pmu_powkey_long_time       = 1500

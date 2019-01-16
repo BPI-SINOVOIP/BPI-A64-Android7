@@ -315,7 +315,7 @@ typedef struct{
     bool                VsyncEnable;
     bool                issecure;
     bool                active;
-    bool                setblank;
+    bool                setblank;    //Justin Porting 20160815
     int                 HwChannelNum;
     int                 LayerNumofCH;
     int                 VideoCHNum;
@@ -462,10 +462,7 @@ typedef struct
     int                 fb_pre_mem;
     /* end mem limit */
 	int					unblank_flag;
-	bool                isFreeFB;
-	bool                isNeedSecureBuffer;
 	unsigned char       has_secure;
-	unsigned char       has_3D;
 
 }SUNXI_hwcdev_context_t;
 

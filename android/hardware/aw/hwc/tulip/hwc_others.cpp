@@ -129,10 +129,10 @@ int _hwc_device_set_enhancemode(int disp, bool on_off, bool half)
 int _hwc_device_set_output_mode(int disp, int out_type, int out_mode)
 {
     SUNXI_hwcdev_context_t *Globctx = &gSunxiHwcDevice;
-	/* bpi, hdmi mode use disp0 */
-	if(Globctx->SunxiDisplay[0].DisplayType == DISP_OUTPUT_TYPE_HDMI)
-		disp = 0;
-		
+    //Justin Porting 20160815 Start
+       if(Globctx->SunxiDisplay[0].DisplayType == DISP_OUTPUT_TYPE_HDMI)
+        disp = 0;
+    //Justin Porting 20160815 End
     DisplayInfo   *PsDisplayInfo = &Globctx->SunxiDisplay[disp];
     int disp_t;
 
@@ -151,11 +151,11 @@ int _hwc_set_persent(int disp,int para0, int para1)
 {
     SUNXI_hwcdev_context_t *Globctx = &gSunxiHwcDevice;
     DisplayInfo   *PsDisplayInfo = NULL;
+     //Justin Porting 20160815 Start
+        if(Globctx->SunxiDisplay[0].DisplayType == DISP_OUTPUT_TYPE_HDMI)
+       disp = 0;    
+     //Justin Porting 20160815 End
 
-	/* bpi, hdmi mode use disp0 */
-	if(Globctx->SunxiDisplay[0].DisplayType == DISP_OUTPUT_TYPE_HDMI)
-		disp = 0;
-    
     PsDisplayInfo = &Globctx->SunxiDisplay[disp];
     if(PsDisplayInfo->VirtualToHWDisplay != -1 && PsDisplayInfo->DisplayType == DISP_OUTPUT_TYPE_HDMI)
     {
