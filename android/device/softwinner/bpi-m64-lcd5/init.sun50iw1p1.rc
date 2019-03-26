@@ -46,6 +46,45 @@ on fs
     # insmod /system/vendor/modules/sunxi-keyboard.ko
     # init_dev_detect 
 
+    # BPI M64 GPIO
+    insmod /system/vendor/modules/gpio-sunxi.ko
+	
+    # BPI-M664-GPIO 
+        chmod 777 /sys/class/gpio_sw/PH3/data
+	chmod 777 /sys/class/gpio_sw/PH2/data
+	chmod 777 /sys/class/gpio_sw/PH6/data
+	chmod 777 /sys/class/gpio_sw/PH7/data
+	chmod 777 /sys/class/gpio_sw/PH10/data
+	chmod 777 /sys/class/gpio_sw/PH11/data
+	chmod 777 /sys/class/gpio_sw/PD2/data
+	chmod 777 /sys/class/gpio_sw/PD3/data
+	chmod 777 /sys/class/gpio_sw/PD1/data
+	chmod 777 /sys/class/gpio_sw/PC4/data
+	chmod 777 /sys/class/gpio_sw/PC7/data
+	chmod 777 /sys/class/gpio_sw/PB5/data
+	chmod 777 /sys/class/gpio_sw/PB4/data
+	chmod 777 /sys/class/gpio_sw/PB6/data
+	chmod 777 /sys/class/gpio_sw/PL12/data
+	chmod 777 /sys/class/gpio_sw/PB0/data
+	chmod 777 /sys/class/gpio_sw/PB1/data
+	chmod 777 /sys/class/gpio_sw/PB3/data
+	chmod 777 /sys/class/gpio_sw/PB2/data
+	chmod 777 /sys/class/gpio_sw/PD4/data
+	chmod 777 /sys/class/gpio_sw/PC0/data
+	chmod 777 /sys/class/gpio_sw/PD0/data
+	chmod 777 /sys/class/gpio_sw/PC2/data
+	chmod 777 /sys/class/gpio_sw/PC3/data
+	chmod 777 /sys/class/gpio_sw/PB7/data
+	chmod 777 /sys/class/gpio_sw/PL9/data
+	chmod 777 /sys/class/gpio_sw/PL7/data
+	chmod 777 /sys/class/gpio_sw/PL8/data
+        chmod 777 /sys/class/gpio_sw/PE14/data
+        chmod 777 /sys/class/gpio_sw/PE15/data
+
+
+
+
+
     # TP
     insmod /system/vendor/modules/gt9xxnew_ts.ko
 

@@ -121,7 +121,7 @@ jtag_di         = port:PB3<4><default><default><default>
 ;----------------------------------------------------------------------------------
 [led_para]
 compatible              = "allwinner,sunxi-leds"
-led_used		= 1
+led_used		= 0
 led_num	 	 	= 3
 led1			= port:PD24<1><default><default><default>
 led1_trigger		= "default-on"
@@ -1296,7 +1296,7 @@ ir_key_code9    = 116
 [gpio_para]
 compatible 	= "allwinner,sunxi-init-gpio"
 gpio_used       = 1
-gpio_num        = 28
+gpio_num        = 30
 gpio_pin_1	=  port:PH3<1><default><default><0>
 gpio_pin_2	=  port:PH2<1><default><default><0>
 gpio_pin_3	=  port:PH6<1><default><default><0>
@@ -1325,6 +1325,9 @@ gpio_pin_25	=  port:PB7<1><default><default><0>
 gpio_pin_26	=  port:PL9<1><default><default><0>
 gpio_pin_27	=  port:PL7<1><default><default><0>
 gpio_pin_28	=  port:PL8<1><default><default><0>
+gpio_pin_29	=  port:PE14<1><default><default><1>
+gpio_pin_30	=  port:PE15<1><default><default><1>
+
 
 
 ;-------------------------------------------------------------------------------------
@@ -1491,7 +1494,7 @@ pmu_bat_temp_para14        = 242
 pmu_bat_temp_para15        = 179
 pmu_bat_temp_para16        = 134
 
-pmu_powkey_off_time        = 6000
+pmu_powkey_off_time        = 4000
 pmu_powkey_off_func        = 0
 pmu_powkey_off_en          = 1
 pmu_powkey_long_time       = 1500
