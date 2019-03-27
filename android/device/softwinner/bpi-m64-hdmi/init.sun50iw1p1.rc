@@ -118,6 +118,11 @@ on fs
     chown bluetooth net_bt_stack /sys/class/rfkill/rfkill0/type
 
 
+    #Justin 20190327 Porting for BPI-M64-Root Start
+    setenforce 0
+    #Justin 20190327 Porting for BPI-M64-Root End
+
+
 on post-fs-data
     mkdir /data/media 0770 media_rw media_rw
 

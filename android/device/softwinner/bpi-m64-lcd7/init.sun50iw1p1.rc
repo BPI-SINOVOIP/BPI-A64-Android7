@@ -113,6 +113,11 @@ on fs
     chown bluetooth net_bt_stack /sys/class/rfkill/rfkill0/state
     chown bluetooth net_bt_stack /sys/class/rfkill/rfkill0/type
 
+     #Justin 20190327 Porting for BPI-M64-Root Start
+    setenforce 0
+    #Justin 20190327 Porting for BPI-M64-Root End
+
+
 
 on property:sys.boot_completed=1
     chown system system /sys/devices/soc.0/1c2ac00.twi/i2c-0/0-005d/runtime_suspend
