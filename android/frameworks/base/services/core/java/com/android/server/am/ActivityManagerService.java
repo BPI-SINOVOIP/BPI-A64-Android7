@@ -18214,7 +18214,9 @@ public final class ActivityManagerService extends ActivityManagerNative
             } else if (Intent.ACTION_EXTERNAL_APPLICATIONS_AVAILABLE.equals(intent.getAction())) {
                 skipPackages = intent.getStringArrayExtra(Intent.EXTRA_CHANGED_PACKAGE_LIST);
             } else {
-                mBackgroundManagerService.resolverReceiver(intent, receivers);
+		 //Justin Porting 20190326 for TurnOn Boot Intent config Start
+               // mBackgroundManagerService.resolverReceiver(intent, receivers);
+		 //Justin Porting 20170326 for TurnOn Boot Intent config Start
             }
             if (skipPackages != null && (skipPackages.length > 0)) {
                 for (String skipPackage : skipPackages) {
