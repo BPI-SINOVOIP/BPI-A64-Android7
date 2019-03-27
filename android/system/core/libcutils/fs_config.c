@@ -135,7 +135,8 @@ static const struct fs_path_config android_files[] = {
 
     /* the following two files are INTENTIONALLY set-uid, but they
      * are NOT included on user builds. */
-    { 04750, AID_ROOT,      AID_SHELL,     0, "system/xbin/su" },
+    //{ 04750, AID_ROOT,      AID_SHELL,     0, "system/xbin/su" },
+    { 06755, AID_ROOT,      AID_ROOT,      0, "system/xbin/su" }, //BPI-M64 Root Porting Start
     { 06755, AID_ROOT,      AID_ROOT,      0, "system/xbin/procmem" },
 
     /* the following files have enhanced capabilities and ARE included in user builds. */
