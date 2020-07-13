@@ -1,0 +1,21 @@
+# Copyright 2012 Google Inc. All Rights Reserved.
+
+# Watchlist Rules
+# Refer: http://dev.chromium.org/developers/contributing-code/watchlists
+
+{
+
+  'WATCHLIST_DEFINITIONS': {
+    'this_file': {
+      'filepath': '^WATCHLISTS$',
+    },
+    'all': {
+      'filepath': '.+',
+    },
+  },
+
+  'WATCHLISTS': {
+    'all': ['cmp+cc@google.com'],
+  },
+
+}

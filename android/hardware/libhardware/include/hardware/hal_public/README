@@ -1,0 +1,13 @@
+GPU Type list
+Mali GPU
+    Mali Utgard
+        Mali-400
+        Mali-450
+
+    Mali Midgard
+        Mali-T720
+        Mali-T760
+
+Imagination GPU
+    SGX544
+    RGX6230

@@ -1,0 +1,29 @@
+[
+  {
+    "cmd": [],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "trigger",
+    "trigger_specs": [
+      {
+        "builder_name": "cross-compiler",
+        "properties": {
+          "a": 1
+        }
+      },
+      {
+        "builder_name": "cross-compiler",
+        "properties": {
+          "a": 2
+        }
+      }
+    ],
+    "~followup_annotations": [
+      "@@@STEP_TEXT@cross-compiler@@@"
+    ]
+  },
+  {
+    "name": "$result",
+    "recipe_result": null,
+    "status_code": 0
+  }
+]

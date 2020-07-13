@@ -70,6 +70,7 @@ SRCS_bl += ../lib/nanohub/sha2.c ../lib/nanohub/rsa.c ../lib/nanohub/aes.c src/s
 SRCS_os += src/printf.c src/timer.c src/seos.c src/heap.c src/slab.c src/spi.c src/trylock.c
 SRCS_os += src/hostIntf.c src/hostIntfI2c.c src/hostIntfSpi.c src/nanohubCommand.c src/sensors.c src/syscall.c
 SRCS_os += src/eventQ.c src/osApi.c src/appSec.c src/simpleQ.c src/floatRt.c
+SRCS_os += src/algos/ap_hub_sync.c
 
 #some help for bootloader
 SRCS_bl += src/printf.c
@@ -116,7 +117,7 @@ links/v_$(VARIANT):
 	touch links/v_$(VARIANT)
 
 %.unchecked.elf: symlinks $(SRCS_$*) $(DEPS)
-	$(GCC) -o $@ $(SRCS_$*) $(OSFLAGS) $(OSFLAGS_$*) $(FLAGS) -lm -lc -lgcc
+	$(GCC) -o $@ $(SRCS_$*) $(OSFLAGS) $(OSFLAGS_$*) $(FLAGS) -lgcc -nostdlib
 
 %.checked.elf : %.unchecked.elf  symcheck.sh
 	./symcheck.sh $< $@ $(BADWORDS)

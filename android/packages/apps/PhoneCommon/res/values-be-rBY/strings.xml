@@ -47,6 +47,11 @@
     <string name="callFailed_unobtainable_number" msgid="124621797631734731">"Несапраўдны нумар"</string>
     <string name="incall_error_missing_voicemail_number" msgid="3651090591812220874">"Невядомы нумар галасавой пошты."</string>
     <string name="callFailed_video_call_tty_enabled" msgid="186585701668604271">"Калі рэжым TTY уключаны, немагчыма рабіць відэавыклікі."</string>
+    <string name="callEnded_pulled" msgid="437630601519502587">"Выклік пераведзены на іншую прыладу."</string>
     <string name="ringtone_silent" msgid="249805466934178869">"Няма"</string>
     <string name="ringtone_unknown" msgid="2303463713486734520">"Невядомы рынгтон"</string>
+    <string name="callFailed_maximum_reached" msgid="4823790040422765056">"Усе даступныя лініі выкарыстоўваюцца. Каб зрабіць выклік, адключыце адзін выклік на гэтай прыладзе ці на адной з вашых іншых прылад."</string>
+    <string name="callFailed_data_disabled" msgid="3885826754435317856">"Выклік скончаны, паколькі сотавая перадача даных была адключана."</string>
+    <string name="callFailed_data_limit_reached_description" msgid="1439284832802552582">"Выклік скончаны, паколькі дасягнуты ліміт на мабільную перадачу даных."</string>
+    <string name="callFailed_data_limit_reached" msgid="7045770594965160282">"Дасягнуты ліміт перадачы даных. Выклік скончаны."</string>
 </resources>

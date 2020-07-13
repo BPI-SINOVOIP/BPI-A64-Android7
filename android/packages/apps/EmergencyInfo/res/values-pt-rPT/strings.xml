@@ -96,7 +96,8 @@
     <string name="user_emergency_info_title" msgid="7827058167207376581">"Informações de emergência"</string>
     <string name="user_emergency_info_consent" msgid="5636028073450797246">"As informações aqui introduzidas podem ajudar os socorristas numa emergência. São armazenadas apenas no seu dispositivo e qualquer pessoa as pode ler a partir do teclado de emergência sem desbloquear o telemóvel."</string>
     <string name="emergency_info_continue" msgid="5453201508537906087">"Continuar"</string>
-    <string name="no_info_provided" msgid="6775035037534954056">"Informações de emergência não fornecidas"</string>
+    <string name="no_info_provided" msgid="716200382010821001">"Sem informações acerca do proprietário do telemóvel"</string>
+    <string name="tap_pencil" msgid="2723698054265296934">"Se este for o seu telemóvel, toque no ícone de lápis para adicionar informações que serão apresentadas aqui em caso de emergência"</string>
     <string name="clear_all" msgid="8899013032870561633">"Limpar tudo"</string>
     <string name="clear" msgid="3648880442502887163">"Limpar"</string>
     <string name="clear_all_message" msgid="1548432000373861295">"Pretende limpar todas as informações e contactos?"</string>

@@ -55,7 +55,6 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * A service that allows scripts and the RPC server to run in the background.
  *
- * @author Damon Kohler (damonkohler@gmail.com)
  */
 public class ScriptingLayerService extends ForegroundService {
   private static final int NOTIFICATION_ID = NotificationIdFactory.create();

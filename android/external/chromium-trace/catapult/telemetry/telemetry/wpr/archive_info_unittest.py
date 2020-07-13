@@ -7,7 +7,7 @@ import shutil
 import tempfile
 import unittest
 
-from catapult_base import cloud_storage  # pylint: disable=import-error
+from py_utils import cloud_storage  # pylint: disable=import-error
 
 from telemetry.page import page
 from telemetry.testing import system_stub
@@ -121,6 +121,11 @@ class WprArchiveInfoTest(unittest.TestCase):
     with open(self.story_set_archive_info_file, 'r') as f:
       archive_file_contents = json.load(f)
       self.assertEquals(expected_archive_file_contents, archive_file_contents)
+
+    # Nit: Ensure the saved json does not contian trailing spaces.
+    with open(self.story_set_archive_info_file, 'rU') as f:
+      for line in f:
+        self.assertFalse(line.rstrip('\n').endswith(' '))
 
   def testModifications(self):
     recording1_path = os.path.join(self.tmp_dir, recording1)

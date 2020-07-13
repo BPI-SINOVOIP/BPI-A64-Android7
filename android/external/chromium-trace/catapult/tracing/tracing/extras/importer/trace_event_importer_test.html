@@ -5,32 +5,37 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/time_display_modes.html">
+<link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/core/test_utils.html">
+<link rel="import" href="/tracing/extras/importer/battor_importer.html">
 <link rel="import" href="/tracing/extras/importer/trace_event_importer.html">
 <link rel="import" href="/tracing/extras/measure/measure.html">
 <link rel="import" href="/tracing/importer/import.html">
+<link rel="import" href="/tracing/model/container_memory_dump.html">
 <link rel="import" href="/tracing/model/memory_dump_test_utils.html">
 <link rel="import" href="/tracing/model/scoped_id.html">
 <link rel="import" href="/tracing/model/vm_region.html">
 <link rel="import" href="/tracing/value/numeric.html">
-<link rel="import" href="/tracing/value/time_display_mode.html">
-<link rel="import" href="/tracing/value/unit.html">
 
 <script>
 'use strict';
 
 tr.b.unittest.testSuite(function() {
   var findSliceNamed = tr.c.TestUtils.findSliceNamed;
+  var ClockDomainId = tr.model.ClockDomainId;
   var ColorScheme = tr.b.ColorScheme;
   var MeasureAsyncSlice = tr.e.measure.MeasureAsyncSlice;
   var ScopedId = tr.model.ScopedId;
   var VMRegion = tr.model.VMRegion;
   var ScalarNumeric = tr.v.ScalarNumeric;
   var unitlessNumber_smallerIsBetter =
-      tr.v.Unit.byName.unitlessNumber_smallerIsBetter;
+      tr.b.Unit.byName.unitlessNumber_smallerIsBetter;
   var checkDumpNumericsAndDiagnostics =
       tr.model.MemoryDumpTestUtils.checkDumpNumericsAndDiagnostics;
   var checkVMRegions = tr.model.MemoryDumpTestUtils.checkVMRegions;
+  var LIGHT = tr.model.ContainerMemoryDump.LevelOfDetail.LIGHT;
+  var DETAILED = tr.model.ContainerMemoryDump.LevelOfDetail.DETAILED;
 
   function makeModel(events, opt_shift, opt_prune) {
     return tr.c.TestUtils.newModelWithEvents([events], {
@@ -44,10 +49,11 @@ tr.b.unittest.testSuite(function() {
   }
 
   function checkHeapEntry(entry, expectedDump, expectedSize, expectedTitles,
-      expectedObjectTypeName) {
+      expectedObjectTypeName, expectedCount) {
     assert.strictEqual(entry.heapDump, expectedDump);
     assert.strictEqual(entry.size, expectedSize);
     assert.strictEqual(entry.objectTypeName, expectedObjectTypeName);
+    assert.strictEqual(entry.count, expectedCount);
     if (expectedTitles === undefined) {
       assert.isUndefined(entry.leafStackFrame);
     } else {
@@ -879,9 +885,9 @@ tr.b.unittest.testSuite(function() {
         ph: 'C', id: 1},
       {name: 'ctr', args: {'value': 20}, pid: 1, ts: 15, cat: 'foo', tid: 1,
         ph: 'C', id: 1},
-      {name: 'ctr', args: {'value': 30}, pid: 1, ts: 18, cat: 'foo', tid: 1,
+      {name: 'ctr', args: {'value': 30}, pid: 1, ts: 20, cat: 'foo', tid: 1,
         ph: 'C', id: 1},
-      {name: 'ctr', args: {'value': 40}, pid: 1, ts: 20, cat: 'bar', tid: 1,
+      {name: 'ctr', args: {'value': 40}, pid: 1, ts: 25, cat: 'bar', tid: 1,
         ph: 'C', id: 2}
     ];
     var m = makeModel(events);
@@ -904,7 +910,7 @@ tr.b.unittest.testSuite(function() {
     assert.equal(ctr.category, 'foo');
     assert.equal(ctr.numSamples, 3);
     assert.equal(ctr.numSeries, 1);
-    assert.deepEqual(ctr.timestamps, [0.01, 0.015, 0.018]);
+    assert.deepEqual(ctr.timestamps, [0.01, 0.015, 0.02]);
 
     samples = [];
     ctr.series[0].samples.forEach(function(sample) {
@@ -917,7 +923,7 @@ tr.b.unittest.testSuite(function() {
     assert.equal(ctr.category, 'bar');
     assert.equal(ctr.numSamples, 1);
     assert.equal(ctr.numSeries, 1);
-    assert.deepEqual(ctr.timestamps, [0.02]);
+    assert.deepEqual(ctr.timestamps, [0.025]);
     var samples = [];
     ctr.series[0].samples.forEach(function(sample) {
       samples.push(sample.value);
@@ -2214,10 +2220,10 @@ tr.b.unittest.testSuite(function() {
     // arguments of the snapshots to be mutated.
     var m;
     try {
-      tr.model.ObjectSnapshot.register(ASnapshot, {typeName: 'a'});
+      tr.model.ObjectSnapshot.subTypes.register(ASnapshot, {typeName: 'a'});
       m = makeModel(events);
     } finally {
-      tr.model.ObjectSnapshot.unregister(ASnapshot);
+      tr.model.ObjectSnapshot.subTypes.unregister(ASnapshot);
     }
     assert.isFalse(m.hasImportWarnings);
 
@@ -4014,14 +4020,21 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('importMemoryDumps_levelsOfDetail', function() {
-    function checkLevelsOfDetail(rawLevelsOfDetail, expectedGlobalLevelOfDetail,
-        expectedProcessLevelsOfDetail) {
+    function checkLevelsOfDetail(pmdSpecifications, expectedGlobalLevelOfDetail,
+        expectedProcessLevelsOfDetail, expectedHasWarnings) {
       var events = [];
-      rawLevelsOfDetail.forEach(function(rawProcessLevelsOfDetail, pid) {
-        rawProcessLevelsOfDetail.forEach(function(rawComposableLevelOfDetail) {
+      pmdSpecifications.forEach(function(singlePmdSpecifications, pid) {
+        singlePmdSpecifications.forEach(function(singlePmdSpecification) {
           var dumps = {};
-          if (rawComposableLevelOfDetail !== undefined)
-            dumps.level_of_detail = rawComposableLevelOfDetail;
+          if (singlePmdSpecification.levelOfDetail !== undefined)
+            dumps.level_of_detail = singlePmdSpecification.levelOfDetail;
+          if (singlePmdSpecification.vmRegions) {
+            dumps.process_mmaps = {
+              vm_regions: [
+                { sa: 'f0', sz: '150', pf: 6, mf: '[stack]', bs: { pss: 'ff'} }
+              ]
+            };
+          }
           events.push({
             name: 'process_' + pid,
             pid: pid,
@@ -4050,33 +4063,75 @@ tr.b.unittest.testSuite(function() {
         assert.strictEqual(process.memoryDumps[0].levelOfDetail,
             expectedProcessLevelsOfDetail[i]);
       }
+
+      assert.strictEqual(model.hasImportWarnings, expectedHasWarnings);
     }
 
-    // Well-formed trace events.
-    checkLevelsOfDetail([[undefined]], undefined, [undefined]);
-    checkLevelsOfDetail([['light'], ['light']], 'light', ['light', 'light']);
+    // Legacy trace events (without levels of detail).
+    checkLevelsOfDetail([[{}]], LIGHT, [LIGHT], false);
+    checkLevelsOfDetail([[{ vmRegions: true }]], DETAILED, [DETAILED], false);
     checkLevelsOfDetail(
         [
-          ['detailed', 'detailed'],
-          ['detailed'],
-          ['detailed', 'detailed', 'detailed']
+          [{}] /* raw composable PMD1 events */,
+          [{}, {}] /* raw composable PMD2 events */
         ],
-        'detailed',
-        ['detailed', 'detailed', 'detailed']);
+        LIGHT /* expected GMD level of detail */,
+        [LIGHT, LIGHT] /* expected PMD levels of detail */,
+        false /* no warnings expected */);
+    checkLevelsOfDetail(
+        [
+          [{}, { vmRegions: true }, {}],
+          [{ vmRegions: true }, {}]
+        ],
+        DETAILED, [DETAILED, DETAILED], false);
+
+    // Well-formed traces events (VM regions should be irrelevant).
+    checkLevelsOfDetail(
+        [
+          [{ levelOfDetail: 'light'}],
+          [{ levelOfDetail: 'light', vmRegions: true }]
+        ],
+        LIGHT, [LIGHT, LIGHT], false);
+    checkLevelsOfDetail(
+        [
+          [
+            { levelOfDetail: 'detailed' }, { levelOfDetail: 'detailed' }
+          ],
+          [
+            { levelOfDetail: 'detailed', vmRegions: true }
+          ],
+          [
+            { levelOfDetail: 'detailed' },
+            { levelOfDetail: 'detailed', vmRegions: true },
+            { levelOfDetail: 'detailed' }
+          ]
+        ],
+        DETAILED, [DETAILED, DETAILED, DETAILED], false);
 
     // Not so well-formed trace events.
     checkLevelsOfDetail(
-        [['light'], [undefined], ['detailed'], ['light']],
-        'detailed',
-        ['light', undefined, 'detailed', 'light']);
+        [
+          [{}, { levelOfDetail: 'detailed'}, {}]
+        ],
+        DETAILED, [DETAILED], true);
     checkLevelsOfDetail(
-        [['light', 'detailed'], [undefined], ['light', undefined]],
-        'detailed',
-        ['detailed', undefined, 'light']);
+        [
+          [{ levelOfDetail: 'light' }],
+          [{}],
+          [{ levelOfDetail: 'detailed' }],
+          [{ levelOfDetail: 'light' }]],
+        DETAILED, [LIGHT, LIGHT, DETAILED, LIGHT], true);
     checkLevelsOfDetail(
-        [['invalid', 'light'], ['invalid']],
-        'light',
-        ['light', undefined]);
+        [
+          [{ levelOfDetail: 'light' }, { levelOfDetail: 'detailed' }],
+          [{}],
+          [{ levelOfDetail: 'light' }, {}]],
+        DETAILED, [DETAILED, LIGHT, LIGHT], true);
+    checkLevelsOfDetail(
+        [
+          [{ levelOfDetail: 'invalid' }, { levelOfDetail: 'light' }],
+          [{ levelOfDetail: 'invalid' }]],
+        LIGHT, [LIGHT, LIGHT], true);
   });
 
   test('importMemoryDumps_heapDumps_oldFormat', function() {
@@ -4381,17 +4436,17 @@ tr.b.unittest.testSuite(function() {
                   { bt: '' /* root */, type: '24', size: '2e6fc8' },
                   { bt: '' /* root */, type: '25', size: '1737e4' },
                   { bt: '-1', type: '22', size: '5b6cd6' },
-                  { bt: 'FOUR-AND-A-BIT', size: '18f0' },
+                  { bt: 'FOUR-AND-A-BIT', size: '18f0', count: '100' },
                   { bt: 'FOUR-AND-A-BIT', type: '26', size: 'c78' },
                   { bt: '\u03C0', size: 'e3a8' }
                 ]
               },
               malloc: {
                 entries: [
-                  { bt: '', size: '789' },
-                  { bt: '0.5', size: '123' },
-                  { bt: 'NaN', size: '456' },
-                  { bt: '3', type: '25', size: 'cd' }
+                  { bt: '', size: '789', count: '50' },
+                  { bt: '0.5', size: '123', count: '60' },
+                  { bt: 'NaN', size: '456', count: '70' },
+                  { bt: '3', type: '25', size: 'cd', count: '80' }
                 ]
               }
             }
@@ -4618,7 +4673,7 @@ tr.b.unittest.testSuite(function() {
         ['<self>'], '[unknown]');
     checkHeapEntry(partitionAllocEntries3[4], partitionAllocDump3, 6384,
         ['<self>', 'UpdateLayoutTree', 'TimerBase::run',
-            'MessageLoop::RunTask'], undefined /* sum over all types */);
+            'MessageLoop::RunTask'], undefined /* sum over all types */, 256);
     checkHeapEntry(partitionAllocEntries3[5], partitionAllocDump3, 3192,
         ['<self>', 'UpdateLayoutTree', 'TimerBase::run',
             'MessageLoop::RunTask'], 'blink::WebFrame *');
@@ -4632,14 +4687,16 @@ tr.b.unittest.testSuite(function() {
     var mallocEntries3 = mallocDump3.entries;
     assert.lengthOf(mallocEntries3, 4);
     checkHeapEntry(mallocEntries3[0], mallocDump3, 1929, undefined /* root */,
-        undefined /* sum over all types */);
+        undefined /* sum over all types */, 80);
     checkHeapEntry(mallocEntries3[1], mallocDump3, 291,
-        ['<self>', 'MessageLoop::RunTask'], undefined /* sum over all types */);
+        ['<self>', 'MessageLoop::RunTask'], undefined /* sum over all types */,
+        96);
     checkHeapEntry(mallocEntries3[2], mallocDump3, 1110,
-        ['<self>', 'MessageLoop::JogTask'], undefined /* sum over all types */);
+        ['<self>', 'MessageLoop::JogTask'], undefined /* sum over all types */,
+        112);
     checkHeapEntry(mallocEntries3[3], mallocDump3, 205,
         ['FunctionCall', 'ScheduledAction::execute', 'TimerBase::run',
-            'MessageLoop::RunTask'], 'blink::ContextLifecycleObserver *');
+            'MessageLoop::RunTask'], 'blink::ContextLifecycleObserver *', 128);
 
     // All heap dumps in Process 42 should use the same stack frames.
     assert.strictEqual(
@@ -4957,7 +5014,7 @@ tr.b.unittest.testSuite(function() {
     assert.deepEqual(gmd2.processMemoryDumps, {42: pmd2});
 
     // Check the composed dump.
-    assert.strictEqual(pmd1.levelOfDetail, 'light');
+    assert.strictEqual(pmd1.levelOfDetail, LIGHT);
 
     var totals = pmd1.totals;
     assert.strictEqual(totals.residentBytes, 256);
@@ -5014,7 +5071,7 @@ tr.b.unittest.testSuite(function() {
     assert.strictEqual(entries[0].size, 1280);
 
     // Check the other dumps.
-    assert.strictEqual(pmd2.levelOfDetail, 'detailed');
+    assert.strictEqual(pmd2.levelOfDetail, DETAILED);
     assert.isUndefined(pmd2.vmRegions);
     assert.lengthOf(pmd2.memoryAllocatorDumps, 1);
     var otherLocal1Dump = pmd2.getMemoryAllocatorDumpByFullName('local1');
@@ -5026,7 +5083,7 @@ tr.b.unittest.testSuite(function() {
     checkLinkCounts(otherLocal1Dump, false /* owns */, 1 /* owned by */,
         0 /* retains */, 0 /* retained by */);
 
-    assert.isUndefined(pmd3.levelOfDetail);
+    assert.strictEqual(pmd3.levelOfDetail, DETAILED);
     var otherVmRegions = pmd3.vmRegions;
     checkVMRegions(otherVmRegions, [
       {
@@ -5197,7 +5254,7 @@ tr.b.unittest.testSuite(function() {
       displayTimeUnit: 'ns'
     };
     var m = makeModel(JSON.stringify(eventData));
-    assert.equal(m.intrinsicTimeUnit, tr.v.TimeDisplayModes.ns);
+    assert.equal(m.intrinsicTimeUnit, tr.b.TimeDisplayModes.ns);
   });
 
   test('extractBattorSubTraces', function() {
@@ -5218,8 +5275,7 @@ tr.b.unittest.testSuite(function() {
       ],
       powerTraceAsString: battorLog
     };
-
-    var m = makeModel(eventData);
+    var m = new tr.Model();
     var importer = new tr.e.importer.TraceEventImporter(m, eventData);
     var subTraces = importer.extractSubtraces();
     assert.isTrue(subTraces instanceof Array);
@@ -5242,6 +5298,28 @@ tr.b.unittest.testSuite(function() {
     assert.equal(m.metadata.length, 1);
     assert.equal(m.metadata[0].name, 'metadata');
     assert.equal(m.metadata[0].value, metadataValue);
+  });
+
+  test('importTraceConfigAsMetadata', function() {
+    var traceConfigData = {
+        enable_argument_filter: false,
+        enable_sampling: false,
+        enable_systrace: false,
+        record_mode: 'record-until-full'
+    };
+
+    var eventData = {
+      traceEvents: [
+      { name: 'TraceConfig', args: { value: traceConfigData },
+        pid: 2, ts: 0, tid: 1, ph: 'M', cat: '__metadata' },
+      ],
+    };
+
+    var m = makeModel(eventData);
+    assert.isTrue(m.metadata instanceof Array);
+    assert.equal(m.metadata.length, 1);
+    assert.equal(m.metadata[0].name, 'TraceConfig');
+    assert.equal(m.metadata[0].value, traceConfigData);
   });
 
   test('importMarks', function() {
@@ -5583,27 +5661,79 @@ tr.b.unittest.testSuite(function() {
     assert.equal(C.subSlices.length, 0);
   });
 
-  test('clockSync', function() {
+  test('clockSync_requesterWithoutMetadata', function() {
     var events = [{
-      name: 'clock_sync', args: {sync_id: 'abc', issue_ts: 5},
-      pid: 1, ts: 15, cat: '__metadata', tid: 2, ph: 'c'
+      name: 'clock_sync', args: {sync_id: 'abc', issue_ts: 5000},
+      pid: 1, ts: 15000, cat: '__metadata', tid: 2, ph: 'c'
     }];
+
+    var io = new tr.importer.ImportOptions();
+    var m = new tr.Model();
+    var i = new tr.importer.Import(m, io);
+
+    m.clockSyncManager.addClockSyncMarker(
+        ClockDomainId.LINUX_FTRACE_GLOBAL, 'abc', 15);
+
+    i.importTraces([events]);
+
+    // The clock sync happened in UNKNOWN_CHROME_LEGACY at 10ms and in
+    // LINUX_FTRACE_GLOBAL at 15ms. The transformer should shift the ftrace
+    // timestamps back by 5ms.
+    assert.strictEqual(
+        m.clockSyncManager.getModelTimeTransformer(
+            ClockDomainId.UNKNOWN_CHROME_LEGACY)(5),
+        5);
+    assert.strictEqual(
+        m.clockSyncManager.getModelTimeTransformer(
+            ClockDomainId.LINUX_FTRACE_GLOBAL)(15),
+        10);
+    assert.isFalse(m.hasImportWarnings);
+  });
+
+  test('clockSync_requesterWithMetadata', function() {
+    var events = {
+      traceEvents: [{
+        name: 'clock_sync', args: {sync_id: 'abc', issue_ts: 5},
+        pid: 1, ts: 15, cat: '__metadata', tid: 2, ph: 'c'
+      }],
+      metadata: {
+        'clock-domain': ClockDomainId.BATTOR
+      }
+    };
 
     var m = makeModel(events);
 
-    var foundClockSync = false;
-    for (var i = 0; i < m.clockSyncRecords.length; i++) {
-      var clockSync = m.clockSyncRecords[i];
-      if (clockSync.syncId !== 'abc')
-        continue;
-
-      foundClockSync = true;
-      assert.equal(clockSync.start, .005);
-      assert.equal(clockSync.duration, .010);
-    }
-
-    assert.isTrue(foundClockSync);
+    // Make sure that our clock domain was chosen as the model.
+    assert.equal(
+        m.clockSyncManager.getModelTimeTransformer(ClockDomainId.BATTOR)(.005),
+        .005);
     assert.isFalse(m.hasImportWarnings);
+  });
+
+  test('clockSync_recipient', function() {
+    var events = {
+      traceEvents: [{
+        name: 'clock_sync', args: {sync_id: 'abc'}, pid: 1, ts: 15000,
+        cat: '__metadata', tid: 2, ph: 'c'
+      }],
+      metadata: {
+        'clock-domain': ClockDomainId.TELEMETRY
+      }
+    };
+
+    var m = makeModel(events);
+
+    m.clockSyncManager.addClockSyncMarker(
+        ClockDomainId.LINUX_CLOCK_MONOTONIC, 'abc', 10);
+
+    assert.equal(
+        m.clockSyncManager.getModelTimeTransformer(
+            ClockDomainId.TELEMETRY)(15),
+        10);
+    assert.equal(
+        m.clockSyncManager.getModelTimeTransformer(
+            ClockDomainId.LINUX_CLOCK_MONOTONIC)(10),
+        10);
   });
 
   test('clockSync_missingSyncId', function() {
@@ -5613,27 +5743,7 @@ tr.b.unittest.testSuite(function() {
     }];
 
     var m = makeModel(events);
-    assert.isTrue(m.hasImportWarnings);
-  });
 
-  test('clockSync_missingStartTs', function() {
-    var events = [{
-      name: 'clock_sync', args: {sync_id: 'abc'},
-      pid: 1, ts: 15, cat: '__metadata', tid: 2, ph: 'c'
-    }];
-
-    var m = makeModel(events);
-
-    var foundClockSync = false;
-    for (var i = 0; i < m.clockSyncRecords.length; i++) {
-      var clockSync = m.clockSyncRecords[i];
-      if (clockSync.syncId !== 'abc')
-        continue;
-
-      foundClockSync = true;
-    }
-
-    assert.isFalse(foundClockSync);
     assert.isTrue(m.hasImportWarnings);
   });
 

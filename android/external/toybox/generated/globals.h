@@ -987,7 +987,7 @@ struct df_data {
 struct du_data {
   long maxdepth;
 
-  long depth, total;
+  unsigned long depth, total;
   dev_t st_dev;
   void *inodes;
 };

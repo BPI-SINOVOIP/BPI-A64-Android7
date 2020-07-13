@@ -19,7 +19,6 @@ package com.googlecode.android_scripting.interpreter;
 /**
  * A collection of {@link String} keys for querying an InterpreterProvider.
  *
- * @author Alexey Reznichenko (alexey.reznichenko@gmail.com)
  */
 public interface InterpreterPropertyNames {
 

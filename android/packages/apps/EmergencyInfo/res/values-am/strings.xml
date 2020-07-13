@@ -96,7 +96,8 @@
     <string name="user_emergency_info_title" msgid="7827058167207376581">"የአስቸኳይ አደጋ ጊዜ መረጃ"</string>
     <string name="user_emergency_info_consent" msgid="5636028073450797246">"እዚህ የሚያስገቡት መረጃ በአስቸኳይ አደጋ ላይ ለሚመጡ የመጀመሪያ እርዳታ ሰጪዎች ሊረዳቸው ይችላል። በእርስዎ መሣሪያ ላይ ብቻ ነው የሚከማቸው፣ ነገር ግን ማንኛውም ሰው ስልክዎን መክፈት ሳያስፈልገው ከድንገተኛ መደወያው ላይ ሊያነብበው ይችላል።"</string>
     <string name="emergency_info_continue" msgid="5453201508537906087">"ቀጥል"</string>
-    <string name="no_info_provided" msgid="6775035037534954056">"ምንም የተሰጠ የአስችኳይ ጊዜ መረጃ የለም"</string>
+    <string name="no_info_provided" msgid="716200382010821001">"ስለስልኩ ባለቤት ምንም መረጃ የለም"</string>
+    <string name="tap_pencil" msgid="2723698054265296934">"ይሄ የእርስዎ ስልክ ከሆነ በአስቸኳይ አደጋ ጊዜ እዚህ ላይ የሚታየውን መረጃ ለማከል የእርሳስ አዶውን መታ ያድርጉት"</string>
     <string name="clear_all" msgid="8899013032870561633">"ሁሉንም አጽዳ"</string>
     <string name="clear" msgid="3648880442502887163">"አጽዳ"</string>
     <string name="clear_all_message" msgid="1548432000373861295">"ሁሉንም መረጃ እና እውቂያዎች ይጸዱ?"</string>

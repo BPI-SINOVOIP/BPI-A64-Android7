@@ -5,11 +5,11 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/ui/analysis/analysis_sub_view.html">
+<link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/ui/analysis/alert_sub_view.html">
+<link rel="import" href="/tracing/ui/analysis/analysis_sub_view.html">
 
-<polymer-element name="tr-ui-a-single-frame-sub-view"
-    extends="tr-ui-a-sub-view">
+<dom-module id='tr-ui-a-single-frame-sub-view'>
   <template>
     <style>
     :host {
@@ -24,30 +24,39 @@ found in the LICENSE file.
     <tr-ui-a-alert-sub-view id="asv">
     </tr-ui-a-alert-sub-view>
   </template>
-  <script>
-  'use strict';
+</dom-module>
+<script>
+'use strict';
 
-  Polymer({
-    ready: function() {
-      this.currentSelection_ = undefined;
-    },
+Polymer({
+  is: 'tr-ui-a-single-frame-sub-view',
+  behaviors: [tr.ui.analysis.AnalysisSubView],
 
-    get selection() {
-      return this.currentSelection_;
-    },
+  ready: function() {
+    this.currentSelection_ = undefined;
+  },
 
-    set selection(selection) {
-      if (selection.length != 1)
-        throw new Error('Only supports single frame!');
-      this.currentSelection_ = selection;
-      this.$.asv.selection = selection[0].associatedAlerts;
-    },
+  get selection() {
+    return this.currentSelection_;
+  },
 
-    get relatedEventsToHighlight() {
-      if (!this.currentSelection_)
-        return undefined;
-      return this.currentSelection_[0].associatedEvents;
-    }
-  });
-  </script>
-</polymer-element>
+  set selection(selection) {
+    this.currentSelection_ = selection;
+    this.$.asv.selection = tr.b.getOnlyElement(selection).associatedAlerts;
+  },
+
+  get relatedEventsToHighlight() {
+    if (!this.currentSelection_)
+      return undefined;
+    return tr.b.getOnlyElement(this.currentSelection_).associatedEvents;
+  }
+});
+
+tr.ui.analysis.AnalysisSubView.register(
+    'tr-ui-a-single-frame-sub-view',
+    tr.model.Frame,
+    {
+      multi: false,
+      title: 'Frame',
+    });
+</script>

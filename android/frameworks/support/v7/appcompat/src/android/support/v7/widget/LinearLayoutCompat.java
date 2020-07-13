@@ -22,6 +22,7 @@ import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.support.annotation.IntDef;
+import android.support.annotation.RestrictTo;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.view.ViewCompat;
 import android.support.v7.appcompat.R;
@@ -34,6 +35,8 @@ import android.view.accessibility.AccessibilityNodeInfo;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+
+import static android.support.annotation.RestrictTo.Scope.GROUP_ID;
 
 
 /**
@@ -53,6 +56,7 @@ import java.lang.annotation.RetentionPolicy;
  */
 public class LinearLayoutCompat extends ViewGroup {
     /** @hide */
+    @RestrictTo(GROUP_ID)
     @IntDef({HORIZONTAL, VERTICAL})
     @Retention(RetentionPolicy.SOURCE)
     public @interface OrientationMode {}
@@ -61,6 +65,7 @@ public class LinearLayoutCompat extends ViewGroup {
     public static final int VERTICAL = 1;
 
     /** @hide */
+    @RestrictTo(GROUP_ID)
     @IntDef(flag = true,
             value = {
                     SHOW_DIVIDER_NONE,
@@ -268,6 +273,7 @@ public class LinearLayoutCompat extends ViewGroup {
      *
      * @hide Used internally by framework.
      */
+    @RestrictTo(GROUP_ID)
     public int getDividerWidth() {
         return mDividerWidth;
     }
@@ -487,7 +493,7 @@ public class LinearLayoutCompat extends ViewGroup {
     }
 
     /**
-     * <p>Returns the view at the specified index. This method can be overriden
+     * <p>Returns the view at the specified index. This method can be overridden
      * to take into account virtual children. Refer to
      * {@link android.widget.TableLayout} and {@link android.widget.TableRow}
      * for an example.</p>
@@ -1354,7 +1360,7 @@ public class LinearLayoutCompat extends ViewGroup {
 
     /**
      * <p>Measure the child according to the parent's measure specs. This
-     * method should be overriden by subclasses to force the sizing of
+     * method should be overridden by subclasses to force the sizing of
      * children. This method is called by {@link #measureVertical(int, int)} and
      * {@link #measureHorizontal(int, int)}.</p>
      *

@@ -7,6 +7,8 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/color_scheme.html">
 <link rel="import" href="/tracing/base/iteration_helpers.html">
+<link rel="import" href="/tracing/base/unit.html">
+<link rel="import" href="/tracing/base/unit_scale.html">
 <link rel="import" href="/tracing/model/memory_allocator_dump.html">
 <link rel="import"
     href="/tracing/ui/analysis/memory_dump_allocator_details_pane.html">
@@ -19,10 +21,8 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/ui/base/table.html">
 <link rel="import" href="/tracing/ui/view_specific_brushing_state.html">
 <link rel="import" href="/tracing/value/numeric.html">
-<link rel="import" href="/tracing/value/unit.html">
 
-<polymer-element name="tr-ui-a-memory-dump-overview-pane"
-    extends="tr-ui-a-stacked-pane">
+<dom-module id='tr-ui-a-memory-dump-overview-pane'>
   <template>
     <style>
       :host {
@@ -46,6 +46,7 @@ found in the LICENSE file.
         flex: 1 0 auto;
         align-self: stretch;
         font-size: 12px;
+        overflow: auto;
       }
 
       #info_text {
@@ -70,7 +71,7 @@ found in the LICENSE file.
       <tr-ui-b-table id="table"></tr-ui-b-table>
     </div>
   </template>
-</polymer-element>
+</dom-module>
 <script>
 'use strict';
 
@@ -79,7 +80,7 @@ tr.exportTo('tr.ui.analysis', function() {
   var ColorScheme = tr.b.ColorScheme;
   var ScalarNumeric = tr.v.ScalarNumeric;
   var sizeInBytes_smallerIsBetter =
-      tr.v.Unit.byName.sizeInBytes_smallerIsBetter;
+      tr.b.Unit.byName.sizeInBytes_smallerIsBetter;
 
   var PLATFORM_SPECIFIC_TOTAL_NAME_SUFFIX = '_bytes';
 
@@ -146,6 +147,10 @@ tr.exportTo('tr.ui.analysis', function() {
         textContent: this.name,
         color: UsedMemoryColumn.COLOR
       });
+    },
+
+    getFormattingContext: function(unit) {
+      return { unitPrefix: tr.b.UnitScale.Binary.MEBI };
     },
 
     color: function(numerics, processMemoryDumps) {
@@ -335,34 +340,53 @@ tr.exportTo('tr.ui.analysis', function() {
       return titleEl;
     },
 
+    getFormattingContext: function(unit) {
+      return { unitPrefix: tr.b.UnitScale.Binary.MEBI };
+    },
+
     addInfos: function(numerics, processMemoryDumps, infos) {
       if (processMemoryDumps === undefined)
         return;
 
       var heapDumpCount = 0;
+      var missingSizeCount = 0;
+
       for (var i = 0; i < processMemoryDumps.length; i++) {
         var processMemoryDump = processMemoryDumps[i];
         if (processMemoryDump === undefined)
           continue;
+
         var heapDumps = processMemoryDump.heapDumps;
-        if (heapDumps === undefined)
-          continue;
-        if (heapDumps[this.name] !== undefined)
+        if (heapDumps !== undefined && heapDumps[this.name] !== undefined)
           heapDumpCount++;
+        var allocatorDump =
+            processMemoryDump.getMemoryAllocatorDumpByFullName(this.name);
+
+        if (allocatorDump !== undefined &&
+            allocatorDump.numerics[DISPLAYED_SIZE_NUMERIC_NAME] === undefined) {
+          missingSizeCount++;
+        }
       }
-
-      if (heapDumpCount === 0)
-        return;  // There are no heap dumps.
-
-      var infoQuantifier = heapDumpCount < numerics.length ?
-          ' ' + SOME_TIMESTAMPS_INFO_QUANTIFIER : '';
 
       // Emit a heap dump info if at least one of the process memory dumps has
       // a heap dump associated with this allocator.
-      infos.push({
-        message: 'Heap dump provided' + infoQuantifier + '.',
-        icon: TRIGRAM_FOR_HEAVEN
-      });
+      if (heapDumpCount > 0) {
+        var infoQuantifier = heapDumpCount < numerics.length ?
+            ' ' + SOME_TIMESTAMPS_INFO_QUANTIFIER : '';
+        infos.push({
+          message: 'Heap dump provided' + infoQuantifier + '.',
+          icon: TRIGRAM_FOR_HEAVEN
+        });
+      }
+
+      // Emit a warning if this allocator did not provide size in at least one
+      // of the process memory dumps.
+      if (missingSizeCount > 0) {
+        var infoQuantifier = missingSizeCount < numerics.length ?
+            ' ' + SOME_TIMESTAMPS_INFO_QUANTIFIER : '';
+        infos.push(tr.ui.analysis.createWarningInfo(
+            'Size was not provided' + infoQuantifier + '.'));
+      }
     },
 
     getChildPaneBuilder: function(processMemoryDumps) {
@@ -431,7 +455,10 @@ tr.exportTo('tr.ui.analysis', function() {
     }
   ];
 
-  Polymer('tr-ui-a-memory-dump-overview-pane', {
+  Polymer({
+    is: 'tr-ui-a-memory-dump-overview-pane',
+    behaviors: [tr.ui.analysis.StackedPane],
+
     created: function() {
       this.processMemoryDumps_ = undefined;
       this.aggregationMode_ = undefined;
@@ -466,7 +493,7 @@ tr.exportTo('tr.ui.analysis', function() {
      */
     set processMemoryDumps(processMemoryDumps) {
       this.processMemoryDumps_ = processMemoryDumps;
-      this.scheduleRebuildPane_();
+      this.scheduleRebuild_();
     },
 
     get processMemoryDumps() {
@@ -475,7 +502,7 @@ tr.exportTo('tr.ui.analysis', function() {
 
     set aggregationMode(aggregationMode) {
       this.aggregationMode_ = aggregationMode;
-      this.scheduleRebuildPane_();
+      this.scheduleRebuild_();
     },
 
     get aggregationMode() {
@@ -524,7 +551,7 @@ tr.exportTo('tr.ui.analysis', function() {
       return selectedColumn.getChildPaneBuilder(selectedTableRow.contexts);
     },
 
-    rebuildPane_: function() {
+    onRebuild_: function() {
       if (this.processMemoryDumps_ === undefined ||
           this.processMemoryDumps_.length === 0) {
         // Show the info text (hide the table).
@@ -628,8 +655,11 @@ tr.exportTo('tr.ui.analysis', function() {
               memoryAllocatorDumps.forEach(function(allocatorDump) {
                 var rootDisplayedSizeNumeric = allocatorDump.numerics[
                     DISPLAYED_SIZE_NUMERIC_NAME];
-                if (rootDisplayedSizeNumeric !== undefined)
-                  sizes[allocatorDump.fullName] = rootDisplayedSizeNumeric;
+                if (rootDisplayedSizeNumeric === undefined) {
+                  rootDisplayedSizeNumeric =
+                      new ScalarNumeric(sizeInBytes_smallerIsBetter, 0);
+                }
+                sizes[allocatorDump.fullName] = rootDisplayedSizeNumeric;
               });
               return sizes;
             });

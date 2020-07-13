@@ -65,7 +65,6 @@ from acts.test_utils.tel.tel_voice_utils import is_phone_in_call_volte
 from acts.test_utils.tel.tel_voice_utils import phone_setup_volte
 from acts.test_utils.tel.tel_voice_utils import set_audio_route
 from acts.test_utils.tel.tel_voice_utils import get_cep_conference_call_id
-from acts.utils import load_config
 
 
 class TelLiveVideoTest(TelephonyBaseTest):
@@ -118,8 +117,7 @@ class TelLiveVideoTest(TelephonyBaseTest):
             # Disable Data, VT not available
             "test_disable_data_vt_unavailable", )
 
-        self.simconf = load_config(self.user_params["sim_conf_file"])
-        self.stress_test_number = int(self.user_params["stress_test_number"])
+        self.stress_test_number = self.get_stress_test_number()
         self.wifi_network_ssid = self.user_params["wifi_network_ssid"]
 
         try:
@@ -400,8 +398,8 @@ class TelLiveVideoTest(TelephonyBaseTest):
 
         if not call_id_requester or not call_id_responder:
             self.log.error("Couldn't find a candidate call id {}:{}, {}:{}"
-                           .format(ads[0].serial, call_id_requester, ads[
-                               1].serial, call_id_responder))
+                           .format(ads[0].serial, call_id_requester, ads[1]
+                                   .serial, call_id_responder))
             return False
 
         if not video_call_modify_video(self.log, ads[0], call_id_requester,
@@ -506,8 +504,8 @@ class TelLiveVideoTest(TelephonyBaseTest):
 
         if not call_id_requester or not call_id_responder:
             self.log.error("Couldn't find a candidate call id {}:{}, {}:{}"
-                           .format(ads[0].serial, call_id_requester, ads[
-                               1].serial, call_id_responder))
+                           .format(ads[0].serial, call_id_requester, ads[1]
+                                   .serial, call_id_responder))
             return False
 
         if not video_call_modify_video(
@@ -613,13 +611,13 @@ class TelLiveVideoTest(TelephonyBaseTest):
                 MAX_WAIT_TIME_VIDEO_SESSION_EVENT)
             if event_on_responder['data']['Event'] != SESSION_EVENT_RX_PAUSE:
                 self.log.error(
-                    "Event not correct. event_on_responder: {}. Expected :{}".format(
-                        event_on_responder, SESSION_EVENT_RX_PAUSE))
+                    "Event not correct. event_on_responder: {}. Expected :{}".
+                    format(event_on_responder, SESSION_EVENT_RX_PAUSE))
                 return False
             if event_on_requester['data']['Event'] != SESSION_EVENT_RX_PAUSE:
                 self.log.error(
-                    "Event not correct. event_on_requester: {}. Expected :{}".format(
-                        event_on_requester, SESSION_EVENT_RX_PAUSE))
+                    "Event not correct. event_on_requester: {}. Expected :{}".
+                    format(event_on_requester, SESSION_EVENT_RX_PAUSE))
                 return False
         except Empty:
             self.log.error("Expected event not received.")
@@ -656,13 +654,13 @@ class TelLiveVideoTest(TelephonyBaseTest):
                 MAX_WAIT_TIME_VIDEO_SESSION_EVENT)
             if event_on_responder['data']['Event'] != SESSION_EVENT_RX_RESUME:
                 self.log.error(
-                    "Event not correct. event_on_responder: {}. Expected :{}".format(
-                        event_on_responder, SESSION_EVENT_RX_RESUME))
+                    "Event not correct. event_on_responder: {}. Expected :{}".
+                    format(event_on_responder, SESSION_EVENT_RX_RESUME))
                 return False
             if event_on_requester['data']['Event'] != SESSION_EVENT_RX_RESUME:
                 self.log.error(
-                    "Event not correct. event_on_requester: {}. Expected :{}".format(
-                        event_on_requester, SESSION_EVENT_RX_RESUME))
+                    "Event not correct. event_on_requester: {}. Expected :{}".
+                    format(event_on_requester, SESSION_EVENT_RX_RESUME))
                 return False
         except Empty:
             self.log.error("Expected event not received.")
@@ -791,12 +789,13 @@ class TelLiveVideoTest(TelephonyBaseTest):
             return False
 
         self.log.info("Step2: Initiate Voice Call PhoneA->PhoneC.")
-        if not call_setup_teardown(self.log,
-                                   ads[0],
-                                   ads[2],
-                                   None,
-                                   verify_caller_func=None,
-                                   verify_callee_func=is_phone_in_call_volte):
+        if not call_setup_teardown(
+                self.log,
+                ads[0],
+                ads[2],
+                None,
+                verify_caller_func=None,
+                verify_callee_func=is_phone_in_call_volte):
             self.log.error("Failed to setup a call")
             return False
 
@@ -859,12 +858,13 @@ class TelLiveVideoTest(TelephonyBaseTest):
             return False
 
         self.log.info("Step2: Initiate Voice Call PhoneC->PhoneA.")
-        if not call_setup_teardown(self.log,
-                                   ads[2],
-                                   ads[0],
-                                   None,
-                                   verify_caller_func=is_phone_in_call_volte,
-                                   verify_callee_func=None):
+        if not call_setup_teardown(
+                self.log,
+                ads[2],
+                ads[0],
+                None,
+                verify_caller_func=is_phone_in_call_volte,
+                verify_callee_func=None):
             self.log.error("Failed to setup a call")
             return False
 
@@ -912,12 +912,13 @@ class TelLiveVideoTest(TelephonyBaseTest):
             return False
 
         self.log.info("Step1: Initiate VoLTE Call PhoneA->PhoneB.")
-        if not call_setup_teardown(self.log,
-                                   ads[0],
-                                   ads[1],
-                                   None,
-                                   verify_caller_func=is_phone_in_call_volte,
-                                   verify_callee_func=is_phone_in_call_volte):
+        if not call_setup_teardown(
+                self.log,
+                ads[0],
+                ads[1],
+                None,
+                verify_caller_func=is_phone_in_call_volte,
+                verify_callee_func=is_phone_in_call_volte):
             self.log.error("Failed to setup a call")
             return False
         calls = ads[0].droid.telecomCallGetCallIds()
@@ -985,12 +986,13 @@ class TelLiveVideoTest(TelephonyBaseTest):
             return False
 
         self.log.info("Step1: Initiate VoLTE Call PhoneA->PhoneB.")
-        if not call_setup_teardown(self.log,
-                                   ads[0],
-                                   ads[1],
-                                   None,
-                                   verify_caller_func=is_phone_in_call_volte,
-                                   verify_callee_func=is_phone_in_call_volte):
+        if not call_setup_teardown(
+                self.log,
+                ads[0],
+                ads[1],
+                None,
+                verify_caller_func=is_phone_in_call_volte,
+                verify_callee_func=is_phone_in_call_volte):
             self.log.error("Failed to setup a call")
             return False
         calls = ads[0].droid.telecomCallGetCallIds()
@@ -1077,12 +1079,13 @@ class TelLiveVideoTest(TelephonyBaseTest):
             return False
 
         self.log.info("Step2: Initiate Voice Call PhoneC->PhoneA.")
-        if not call_setup_teardown(self.log,
-                                   ads[2],
-                                   ads[0],
-                                   None,
-                                   verify_caller_func=is_phone_in_call_volte,
-                                   verify_callee_func=None):
+        if not call_setup_teardown(
+                self.log,
+                ads[2],
+                ads[0],
+                None,
+                verify_caller_func=is_phone_in_call_volte,
+                verify_callee_func=None):
             self.log.error("Failed to setup a call")
             return False
 
@@ -1186,12 +1189,13 @@ class TelLiveVideoTest(TelephonyBaseTest):
             return False
 
         self.log.info("Step2: Initiate Voice Call PhoneC->PhoneA.")
-        if not call_setup_teardown(self.log,
-                                   ads[2],
-                                   ads[0],
-                                   None,
-                                   verify_caller_func=is_phone_in_call_volte,
-                                   verify_callee_func=None):
+        if not call_setup_teardown(
+                self.log,
+                ads[2],
+                ads[0],
+                None,
+                verify_caller_func=is_phone_in_call_volte,
+                verify_callee_func=None):
             self.log.error("Failed to setup a call")
             return False
 
@@ -1645,15 +1649,16 @@ class TelLiveVideoTest(TelephonyBaseTest):
         # Check if Conf Call is currently active
         if ads[0].droid.telecomCallGetCallState(
                 call_conf_id) != CALL_STATE_ACTIVE:
-            self.log.error(
-                "Call_id:{}, state:{}, expected: STATE_ACTIVE".format(
-                    call_conf_id, ads[0].droid.telecomCallGetCallState(
-                        call_conf_id)))
+            self.log.error("Call_id:{}, state:{}, expected: STATE_ACTIVE".
+                           format(call_conf_id, ads[
+                               0].droid.telecomCallGetCallState(call_conf_id)))
             return False
 
         self.log.info(
             "Merge - Step2: End call on PhoneB and verify call continues.")
-        ads[1].droid.telecomEndCall()
+        if not hangup_call(self.log, ads[1]):
+            self.log.error("Failed to end the call on PhoneB")
+            return False
         time.sleep(WAIT_TIME_IN_CALL)
         calls = ads[0].droid.telecomCallGetCallIds()
         self.log.info("Calls in PhoneA{}".format(calls))
@@ -1662,8 +1667,10 @@ class TelLiveVideoTest(TelephonyBaseTest):
         if not verify_incall_state(self.log, [ads[1]], False):
             return False
 
-        ads[1].droid.telecomEndCall()
-        ads[0].droid.telecomEndCall()
+        if not (hangup_call(self.log, ads[2]) and
+                hangup_call(self.log, ads[0])):
+            self.log.error("Failed to clean up remaining calls")
+            return False
         return True
 
     def _test_vt_conference_merge_drop_cep(self, ads, call_ab_id, call_ac_id):
@@ -1723,15 +1730,14 @@ class TelLiveVideoTest(TelephonyBaseTest):
         # Check if Conf Call is currently active
         if ads[0].droid.telecomCallGetCallState(
                 call_conf_id) != CALL_STATE_ACTIVE:
-            self.log.error(
-                "Call_id:{}, state:{}, expected: STATE_ACTIVE".format(
-                    call_conf_id, ads[0].droid.telecomCallGetCallState(
-                        call_conf_id)))
+            self.log.error("Call_id:{}, state:{}, expected: STATE_ACTIVE".
+                           format(call_conf_id, ads[
+                               0].droid.telecomCallGetCallState(call_conf_id)))
             return False
 
-        self.log.info(
-            "End call on PhoneB and verify call continues.")
-        ads[1].droid.telecomEndCall()
+        if not hangup_call(self.log, ads[1]):
+            self.log.error("Failed to end call on PhoneB")
+            return False
         time.sleep(WAIT_TIME_IN_CALL)
         calls = ads[0].droid.telecomCallGetCallIds()
         self.log.info("Calls in PhoneA{}".format(calls))
@@ -1740,8 +1746,10 @@ class TelLiveVideoTest(TelephonyBaseTest):
         if not verify_incall_state(self.log, [ads[1]], False):
             return False
 
-        ads[1].droid.telecomEndCall()
-        ads[0].droid.telecomEndCall()
+        if not (hangup_call(self.log, ads[2]) and
+                hangup_call(self.log, ads[0])):
+            self.log.error("Failed to clean up remaining calls")
+            return False
 
         return True
 
@@ -1780,8 +1788,7 @@ class TelLiveVideoTest(TelephonyBaseTest):
             True)
 
     def _test_call_volte_add_mo_video_accept_as_voice_merge_drop(
-            self,
-            use_cep=False):
+            self, use_cep=False):
         # This test case is not supported by VZW.
         ads = self.android_devices
         tasks = [(phone_setup_video, (self.log, ads[0])),
@@ -1875,8 +1882,7 @@ class TelLiveVideoTest(TelephonyBaseTest):
             True)
 
     def _test_call_volte_add_mt_video_accept_as_voice_merge_drop(
-            self,
-            use_cep=False):
+            self, use_cep=False):
         ads = self.android_devices
         tasks = [(phone_setup_video, (self.log, ads[0])),
                  (phone_setup_volte, (self.log, ads[1])), (phone_setup_video,
@@ -1999,12 +2005,13 @@ class TelLiveVideoTest(TelephonyBaseTest):
             return False
 
         self.log.info("Step2: Initiate Voice Call PhoneA->PhoneC.")
-        if not call_setup_teardown(self.log,
-                                   ads[0],
-                                   ads[2],
-                                   None,
-                                   verify_caller_func=None,
-                                   verify_callee_func=is_phone_in_call_volte):
+        if not call_setup_teardown(
+                self.log,
+                ads[0],
+                ads[2],
+                None,
+                verify_caller_func=None,
+                verify_callee_func=is_phone_in_call_volte):
             self.log.error("Failed to setup a call")
             return False
 
@@ -2147,12 +2154,13 @@ class TelLiveVideoTest(TelephonyBaseTest):
             return False
 
         self.log.info("Step2: Initiate Voice Call PhoneC->PhoneA.")
-        if not call_setup_teardown(self.log,
-                                   ads[2],
-                                   ads[0],
-                                   None,
-                                   verify_caller_func=is_phone_in_call_volte,
-                                   verify_callee_func=None):
+        if not call_setup_teardown(
+                self.log,
+                ads[2],
+                ads[0],
+                None,
+                verify_caller_func=is_phone_in_call_volte,
+                verify_callee_func=None):
             self.log.error("Failed to setup a call")
             return False
 
@@ -2274,12 +2282,13 @@ class TelLiveVideoTest(TelephonyBaseTest):
             return False
 
         self.log.info("Step1: Initiate VoLTE Call PhoneA->PhoneB.")
-        if not call_setup_teardown(self.log,
-                                   ads[0],
-                                   ads[1],
-                                   None,
-                                   verify_caller_func=is_phone_in_call_volte,
-                                   verify_callee_func=is_phone_in_call_volte):
+        if not call_setup_teardown(
+                self.log,
+                ads[0],
+                ads[1],
+                None,
+                verify_caller_func=is_phone_in_call_volte,
+                verify_callee_func=is_phone_in_call_volte):
             self.log.error("Failed to setup a call")
             return False
         calls = ads[0].droid.telecomCallGetCallIds()
@@ -2401,12 +2410,13 @@ class TelLiveVideoTest(TelephonyBaseTest):
             return False
 
         self.log.info("Step1: Initiate VoLTE Call PhoneA->PhoneB.")
-        if not call_setup_teardown(self.log,
-                                   ads[0],
-                                   ads[1],
-                                   None,
-                                   verify_caller_func=is_phone_in_call_volte,
-                                   verify_callee_func=is_phone_in_call_volte):
+        if not call_setup_teardown(
+                self.log,
+                ads[0],
+                ads[1],
+                None,
+                verify_caller_func=is_phone_in_call_volte,
+                verify_callee_func=is_phone_in_call_volte):
             self.log.error("Failed to setup a call")
             return False
         calls = ads[0].droid.telecomCallGetCallIds()

@@ -57,9 +57,9 @@ TEST(Positions) {
     RelocInfo::Mode mode = (i % 2 == 0) ?
         RelocInfo::STATEMENT_POSITION : RelocInfo::POSITION;
     if (mode == RelocInfo::STATEMENT_POSITION) {
-      printf("TEST WRITING STATEMENT %p %d\n", pc, pos);
+      printf("TEST WRITING STATEMENT %p %d\n", static_cast<void*>(pc), pos);
     } else {
-      printf("TEST WRITING POSITION %p %d\n", pc, pos);
+      printf("TEST WRITING POSITION %p %d\n", static_cast<void*>(pc), pos);
     }
     WriteRinfo(&writer, pc, mode, pos);
     CHECK(writer.pos() - RelocInfoWriter::kMaxSize >= relocation_info_end);
@@ -68,8 +68,9 @@ TEST(Positions) {
   writer.Finish();
   relocation_info_size = static_cast<int>(buffer_end - writer.pos());
   MacroAssembler assm(CcTest::i_isolate(), nullptr, 0, CodeObjectRequired::kNo);
-  CodeDesc desc = {buffer.get(),         buffer_size, code_size,
-                   relocation_info_size, 0,           &assm};
+  CodeDesc desc = {
+      buffer.get(), buffer_size, code_size, relocation_info_size, 0,
+      nullptr,      0,           &assm};
 
   // Read only (non-statement) positions.
   {

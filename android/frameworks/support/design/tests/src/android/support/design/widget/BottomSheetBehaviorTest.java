@@ -17,6 +17,12 @@
 package android.support.design.widget;
 
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.lessThanOrEqualTo;
+
 import android.os.SystemClock;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
@@ -51,11 +57,8 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import org.hamcrest.Matcher;
+import org.hamcrest.Matchers;
 import org.junit.Test;
-
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.MatcherAssert.assertThat;
 
 public class BottomSheetBehaviorTest extends
         BaseInstrumentationTestCase<BottomSheetBehaviorActivity> {
@@ -85,6 +88,8 @@ public class BottomSheetBehaviorTest extends
 
         @Override
         public void onSlide(@NonNull View bottomSheet, float slideOffset) {
+            assertThat(slideOffset, is(greaterThanOrEqualTo(-1f)));
+            assertThat(slideOffset, is(lessThanOrEqualTo(1f)));
         }
 
         @Override
@@ -110,6 +115,59 @@ public class BottomSheetBehaviorTest extends
     }
 
     /**
+     * Wait for a FAB to change its visibility (either shown or hidden).
+     */
+    private static class OnVisibilityChangedListener extends
+            FloatingActionButton.OnVisibilityChangedListener implements IdlingResource {
+
+        private final boolean mShown;
+        private boolean mIsIdle;
+        private ResourceCallback mResourceCallback;
+
+        OnVisibilityChangedListener(boolean shown) {
+            mShown = shown;
+        }
+
+        private void transitionToIdle() {
+            if (!mIsIdle) {
+                mIsIdle = true;
+                if (mResourceCallback != null) {
+                    mResourceCallback.onTransitionToIdle();
+                }
+            }
+        }
+
+        @Override
+        public void onShown(FloatingActionButton fab) {
+            if (mShown) {
+                transitionToIdle();
+            }
+        }
+
+        @Override
+        public void onHidden(FloatingActionButton fab) {
+            if (!mShown) {
+                transitionToIdle();
+            }
+        }
+
+        @Override
+        public String getName() {
+            return OnVisibilityChangedListener.class.getSimpleName();
+        }
+
+        @Override
+        public boolean isIdleNow() {
+            return mIsIdle;
+        }
+
+        @Override
+        public void registerIdleTransitionCallback(ResourceCallback resourceCallback) {
+            mResourceCallback = resourceCallback;
+        }
+    }
+
+    /**
      * This is like {@link GeneralSwipeAction}, but it does not send ACTION_UP at the end.
      */
     private static class DragAction implements ViewAction {
@@ -130,7 +188,7 @@ public class BottomSheetBehaviorTest extends
 
         @Override
         public Matcher<View> getConstraints() {
-            return ViewMatchers.isDisplayed();
+            return Matchers.any(View.class);
         }
 
         @Override
@@ -160,7 +218,6 @@ public class BottomSheetBehaviorTest extends
                         MotionEvents.sendCancel(uiController, downEvent);
                         throw new RuntimeException("Cannot drag: failed to send a move event.");
                     }
-                    BottomSheetBehavior behavior = BottomSheetBehavior.from(view);
                 }
                 int duration = ViewConfiguration.getPressedStateDuration();
                 if (duration > 0) {
@@ -279,7 +336,6 @@ public class BottomSheetBehaviorTest extends
                                         view.getHeight() - behavior.getPeekHeight()};
                             }
                         }, Press.FINGER), ViewMatchers.isDisplayingAtLeast(5)));
-        // Avoid a deadlock (b/26160710)
         registerIdlingResourceCallback();
         try {
             Espresso.onView(ViewMatchers.withId(R.id.bottom_sheet))
@@ -296,7 +352,6 @@ public class BottomSheetBehaviorTest extends
         Espresso.onView(ViewMatchers.withId(R.id.bottom_sheet))
                 .perform(DesignViewActions.withCustomConstraints(ViewActions.swipeDown(),
                         ViewMatchers.isDisplayingAtLeast(5)));
-        // Avoid a deadlock (b/26160710)
         registerIdlingResourceCallback();
         try {
             Espresso.onView(ViewMatchers.withId(R.id.bottom_sheet))
@@ -363,7 +418,6 @@ public class BottomSheetBehaviorTest extends
                             }
                         }, Press.FINGER),
                         ViewMatchers.isDisplayingAtLeast(5)));
-        // Avoid a deadlock (b/26160710)
         registerIdlingResourceCallback();
         try {
             Espresso.onView(ViewMatchers.withId(R.id.bottom_sheet))
@@ -407,6 +461,46 @@ public class BottomSheetBehaviorTest extends
 
     @Test
     @MediumTest
+    public void testInvisibleThenVisible() {
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(new Runnable() {
+            @Override
+            public void run() {
+                // The bottom sheet is initially invisible
+                getBottomSheet().setVisibility(View.INVISIBLE);
+                // Then it becomes visible when the CoL is touched
+                getCoordinatorLayout().setOnTouchListener(new View.OnTouchListener() {
+                    @Override
+                    public boolean onTouch(View view, MotionEvent e) {
+                        if (e.getAction() == MotionEvent.ACTION_DOWN) {
+                            getBottomSheet().setVisibility(View.VISIBLE);
+                            return true;
+                        }
+                        return false;
+                    }
+                });
+                assertThat(getBehavior().getState(), is(BottomSheetBehavior.STATE_COLLAPSED));
+            }
+        });
+        // Drag over the CoL
+        Espresso.onView(ViewMatchers.withId(R.id.coordinator))
+                // Drag (and not release)
+                .perform(new DragAction(
+                        GeneralLocation.BOTTOM_CENTER,
+                        GeneralLocation.TOP_CENTER,
+                        Press.FINGER))
+                .check(new ViewAssertion() {
+                    @Override
+                    public void check(View view, NoMatchingViewException e) {
+                        // The bottom sheet should not react to the touch events
+                        assertThat(getBottomSheet(), is(ViewMatchers.isDisplayed()));
+                        assertThat(getBehavior().getState(),
+                                is(BottomSheetBehavior.STATE_COLLAPSED));
+                    }
+                });
+    }
+
+    @Test
+    @MediumTest
     public void testNestedScroll() {
         final ViewGroup bottomSheet = getBottomSheet();
         final BottomSheetBehavior behavior = getBehavior();
@@ -438,7 +532,7 @@ public class BottomSheetBehaviorTest extends
         // Swipe from the very bottom of the bottom sheet to the top edge of the screen so that the
         // scrolling content is also scrolled
         Espresso.onView(ViewMatchers.withId(R.id.coordinator))
-                .perform(new GeneralSwipeAction(Swipe.FAST,
+                .perform(new GeneralSwipeAction(Swipe.SLOW,
                         new CoordinatesProvider() {
                             @Override
                             public float[] calculateCoordinates(View view) {
@@ -494,7 +588,6 @@ public class BottomSheetBehaviorTest extends
                                     }
                                 }, Press.FINGER),
                         ViewMatchers.isDisplayed()));
-        // Avoid a deadlock (b/26160710)
         registerIdlingResourceCallback();
         try {
             Espresso.onView(ViewMatchers.withId(R.id.bottom_sheet))
@@ -538,6 +631,87 @@ public class BottomSheetBehaviorTest extends
                 });
     }
 
+    @Test
+    public void testFabVisibility() {
+        withFabVisibilityChange(false, new Runnable() {
+            @Override
+            public void run() {
+                checkSetState(BottomSheetBehavior.STATE_EXPANDED, ViewMatchers.isDisplayed());
+            }
+        });
+        withFabVisibilityChange(true, new Runnable() {
+            @Override
+            public void run() {
+                checkSetState(BottomSheetBehavior.STATE_COLLAPSED, ViewMatchers.isDisplayed());
+            }
+        });
+    }
+
+    @Test
+    public void testAutoPeekHeight() {
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(new Runnable() {
+            @Override
+            public void run() {
+                getBehavior().setPeekHeight(BottomSheetBehavior.PEEK_HEIGHT_AUTO);
+            }
+        });
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(new Runnable() {
+            @Override
+            public void run() {
+                CoordinatorLayout col = getCoordinatorLayout();
+                assertThat(getBottomSheet().getTop(),
+                        is(Math.min(col.getWidth() * 9 / 16,
+                                col.getHeight() - getBehavior().getPeekHeightMin())));
+            }
+        });
+    }
+
+    @Test
+    @MediumTest
+    public void testAutoPeekHeightHide() {
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(new Runnable() {
+            @Override
+            public void run() {
+                getBehavior().setHideable(true);
+                getBehavior().setPeekHeight(0);
+                getBehavior().setPeekHeight(BottomSheetBehavior.PEEK_HEIGHT_AUTO);
+            }
+        });
+        checkSetState(BottomSheetBehavior.STATE_HIDDEN, not(ViewMatchers.isDisplayed()));
+    }
+
+    @Test
+    public void testDynamicContent() {
+        registerIdlingResourceCallback();
+        try {
+            InstrumentationRegistry.getInstrumentation().runOnMainSync(new Runnable() {
+                @Override
+                public void run() {
+                    ViewGroup.LayoutParams params = getBottomSheet().getLayoutParams();
+                    params.height = ViewGroup.LayoutParams.WRAP_CONTENT;
+                    getBottomSheet().setLayoutParams(params);
+                    View view = new View(getBottomSheet().getContext());
+                    int size = getBehavior().getPeekHeight() * 2;
+                    getBottomSheet().addView(view, new ViewGroup.LayoutParams(size, size));
+                    assertThat(getBottomSheet().getChildCount(), is(1));
+                    // Shrink the content height.
+                    ViewGroup.LayoutParams lp = view.getLayoutParams();
+                    lp.height = (int) (size * 0.8);
+                    view.setLayoutParams(lp);
+                    // Immediately expand the bottom sheet.
+                    getBehavior().setState(BottomSheetBehavior.STATE_EXPANDED);
+                }
+            });
+            Espresso.onView(ViewMatchers.withId(R.id.bottom_sheet))
+                    .check(ViewAssertions.matches(ViewMatchers.isDisplayed()));
+            assertThat(getBehavior().getState(), is(BottomSheetBehavior.STATE_EXPANDED));
+            // Make sure that the bottom sheet is not floating above the bottom.
+            assertThat(getBottomSheet().getBottom(), is(getCoordinatorLayout().getBottom()));
+        } finally {
+            unregisterIdlingResourceCallback();
+        }
+    }
+
     private void checkSetState(final int state, Matcher<View> matcher) {
         registerIdlingResourceCallback();
         try {
@@ -556,7 +730,7 @@ public class BottomSheetBehaviorTest extends
     }
 
     private void registerIdlingResourceCallback() {
-        // TODO(yaraki): Move this to setUp() when b/26160710 is fixed
+        // This cannot be done in setUp(), or swiping action cannot be executed.
         mCallback = new Callback(getBehavior());
         Espresso.registerIdlingResources(mCallback);
     }
@@ -565,6 +739,21 @@ public class BottomSheetBehaviorTest extends
         if (mCallback != null) {
             Espresso.unregisterIdlingResources(mCallback);
             mCallback = null;
+        }
+    }
+
+    private void withFabVisibilityChange(boolean shown, Runnable action) {
+        OnVisibilityChangedListener listener = new OnVisibilityChangedListener(shown);
+        CoordinatorLayout.LayoutParams lp =
+                (CoordinatorLayout.LayoutParams) mActivityTestRule.getActivity().mFab
+                        .getLayoutParams();
+        FloatingActionButton.Behavior behavior = (FloatingActionButton.Behavior) lp.getBehavior();
+        behavior.setInternalAutoHideListener(listener);
+        Espresso.registerIdlingResources(listener);
+        try {
+            action.run();
+        } finally {
+            Espresso.unregisterIdlingResources(listener);
         }
     }
 

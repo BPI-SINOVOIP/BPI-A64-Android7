@@ -19,7 +19,6 @@ package com.googlecode.android_scripting.language;
 /**
  * Represents the Ruby programming language.
  *
- * @author igor.v.karp@gmail.com (Igor Karp)
  */
 public class RubyLanguage extends Language {
 

@@ -143,13 +143,10 @@ public class EditInfoActivity extends EmergencyTabActivity {
         sharedPreferences.edit().remove(PreferenceKeys.KEY_EMERGENCY_CONTACTS).commit();
 
         // Refresh the UI.
-        ArrayList<Pair<String, Fragment>> fragments = getFragments();
-        EditEmergencyInfoFragment editEmergencyInfoFragment =
-                (EditEmergencyInfoFragment) fragments.get(0).second;
-        editEmergencyInfoFragment.reloadFromPreference();
-        EditEmergencyContactsFragment editEmergencyContactsFragment =
-                (EditEmergencyContactsFragment) fragments.get(1).second;
-        editEmergencyContactsFragment.reloadFromPreference();
+        ViewPagerAdapter adapter = getTabsAdapter();
+        if (adapter != null){
+            adapter.notifyDataSetChanged();
+        }
     }
 
     /**

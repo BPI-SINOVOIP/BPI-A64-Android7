@@ -168,6 +168,21 @@ public class ImsManagerFacade extends RpcReceiver {
         return ImsManager.isVtEnabledByPlatform(mContext);
     }
 
+    @Rpc(description = "Return True if Video Calling is provisioned for this device.")
+    public boolean imsIsVtProvisionedOnDevice() {
+        return ImsManager.isVtProvisionedOnDevice(mContext);
+    }
+
+    @Rpc(description = "Set Video Telephony Enabled")
+    public void imsSetVtSetting(Boolean enabled) {
+        ImsManager.setVtSetting(mContext, enabled);
+    }
+
+    @Rpc(description = "Return user enabled status for Video Telephony")
+    public boolean imsIsVtEnabledByUser() {
+        return ImsManager.isVtEnabledByUser(mContext);
+    }
+
     @Override
     public void shutdown() {
 

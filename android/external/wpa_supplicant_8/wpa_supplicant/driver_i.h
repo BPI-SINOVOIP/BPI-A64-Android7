@@ -30,6 +30,18 @@ static inline void wpa_drv_deinit(struct wpa_supplicant *wpa_s)
 		wpa_s->driver->deinit(wpa_s->drv_priv);
 }
 
+
+#if defined(ENABLE_XR_CHANGES)
+static inline int wpa_drv_set_wowlan(struct wpa_supplicant *wpa_s,
+struct wpa_driver_wowlan_params *wowlan_params)
+{
+	if (!wpa_s->driver->set_wowlan)
+		return -1;
+	return wpa_s->driver->set_wowlan(wpa_s->drv_priv, wowlan_params);
+}
+#endif
+
+
 static inline int wpa_drv_set_param(struct wpa_supplicant *wpa_s,
 				    const char *param)
 {

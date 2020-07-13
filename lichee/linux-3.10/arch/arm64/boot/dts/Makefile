@@ -5,9 +5,8 @@ dtb-$(CONFIG_ARCH_XGENE) += apm-mustang.dtb
 dtb-$(CONFIG_ARCH_SUN50IW1P1) += sun50iw1p1-fpga.dtb \
 				sun50iw1p1-sata.dtb \
 				sun50iw1p1-soc.dtb \
-				sun50iw1p1-bpi-m64-lcd5.dtb \
-				sun50iw1p1-bpi-m64-hso-lcd7.dtb \
-				sun50iw1p1-bpi-m64-hdmi.dtb
+				sun50iw1p1-m64-lcd7.dtb \
+				sun50iw1p1-m64-hdmi.dtb
 dtb-$(CONFIG_ARCH_SUN50IW2P1) += sun50iw2p1-fpga.dtb sun50iw2p1-perf1_v1_0.dtb \
 				sun50iw2p1-perf2_v1_0.dtb sun50iw2p1-p1.dtb \
 				sun50iw2p1-sata.dtb sun50iw2p1-soc.dtb

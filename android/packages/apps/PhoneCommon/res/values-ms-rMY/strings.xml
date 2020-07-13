@@ -47,6 +47,11 @@
     <string name="callFailed_unobtainable_number" msgid="124621797631734731">"Nombor tidak sah"</string>
     <string name="incall_error_missing_voicemail_number" msgid="3651090591812220874">"Nombor mel suara tidak diketahui."</string>
     <string name="callFailed_video_call_tty_enabled" msgid="186585701668604271">"Tidak dapat membuat panggilan video apabila TTY didayakan."</string>
+    <string name="callEnded_pulled" msgid="437630601519502587">"Panggilan dipindahkan ke peranti lain."</string>
     <string name="ringtone_silent" msgid="249805466934178869">"Tiada"</string>
     <string name="ringtone_unknown" msgid="2303463713486734520">"Nada dering tidak diketahui"</string>
+    <string name="callFailed_maximum_reached" msgid="4823790040422765056">"Semua talian yang tersedia sedang digunakan. Untuk membuat panggilan, sila putuskan salah satu panggilan pada peranti ini atau pada salah satu peranti anda yang lain."</string>
+    <string name="callFailed_data_disabled" msgid="3885826754435317856">"Panggilan ditamatkan kerana data selular dilumpuhkan."</string>
+    <string name="callFailed_data_limit_reached_description" msgid="1439284832802552582">"Panggilan ditamatkan kerana had data selular telah dicapai."</string>
+    <string name="callFailed_data_limit_reached" msgid="7045770594965160282">"Had data dicapai. Panggilan ditamatkan."</string>
 </resources>

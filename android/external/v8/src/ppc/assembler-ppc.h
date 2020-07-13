@@ -46,15 +46,24 @@
 #include "src/assembler.h"
 #include "src/ppc/constants-ppc.h"
 
-#define ABI_USES_FUNCTION_DESCRIPTORS \
-  (V8_HOST_ARCH_PPC && (V8_OS_AIX ||    \
-                      (V8_TARGET_ARCH_PPC64 && V8_TARGET_BIG_ENDIAN)))
+#if V8_HOST_ARCH_PPC && \
+    (V8_OS_AIX || (V8_TARGET_ARCH_PPC64 && V8_TARGET_BIG_ENDIAN))
+#define ABI_USES_FUNCTION_DESCRIPTORS 1
+#else
+#define ABI_USES_FUNCTION_DESCRIPTORS 0
+#endif
 
-#define ABI_PASSES_HANDLES_IN_REGS \
-  (!V8_HOST_ARCH_PPC || V8_OS_AIX || V8_TARGET_ARCH_PPC64)
+#if !V8_HOST_ARCH_PPC || V8_OS_AIX || V8_TARGET_ARCH_PPC64
+#define ABI_PASSES_HANDLES_IN_REGS 1
+#else
+#define ABI_PASSES_HANDLES_IN_REGS 0
+#endif
 
-#define ABI_RETURNS_OBJECT_PAIRS_IN_REGS \
-  (!V8_HOST_ARCH_PPC || !V8_TARGET_ARCH_PPC64 || V8_TARGET_LITTLE_ENDIAN)
+#if !V8_HOST_ARCH_PPC || !V8_TARGET_ARCH_PPC64 || V8_TARGET_LITTLE_ENDIAN
+#define ABI_RETURNS_OBJECT_PAIRS_IN_REGS 1
+#else
+#define ABI_RETURNS_OBJECT_PAIRS_IN_REGS 0
+#endif
 
 #if !V8_HOST_ARCH_PPC || (V8_TARGET_ARCH_PPC64 && V8_TARGET_LITTLE_ENDIAN)
 #define ABI_CALL_VIA_IP 1
@@ -63,9 +72,9 @@
 #endif
 
 #if !V8_HOST_ARCH_PPC || V8_OS_AIX || V8_TARGET_ARCH_PPC64
-#define ABI_TOC_REGISTER Register::kCode_r2
+#define ABI_TOC_REGISTER 2
 #else
-#define ABI_TOC_REGISTER Register::kCode_r13
+#define ABI_TOC_REGISTER 13
 #endif
 
 #define INSTR_AND_DATA_CACHE_COHERENCY LWSYNC
@@ -99,6 +108,8 @@ namespace internal {
   V(d8)  V(d9)  V(d10) V(d11) V(d12) V(d13) V(d14) V(d15) \
   V(d16) V(d17) V(d18) V(d19) V(d20) V(d21) V(d22) V(d23) \
   V(d24) V(d25) V(d26) V(d27) V(d28) V(d29) V(d30) V(d31)
+
+#define FLOAT_REGISTERS DOUBLE_REGISTERS
 
 #define ALLOCATABLE_DOUBLE_REGISTERS(V)                   \
   V(d1)  V(d2)  V(d3)  V(d4)  V(d5)  V(d6)  V(d7)         \
@@ -155,8 +166,6 @@ struct Register {
     Register r = {code};
     return r;
   }
-  const char* ToString();
-  bool IsAllocatable() const;
   bool is_valid() const { return 0 <= reg_code && reg_code < kNumRegisters; }
   bool is(Register reg) const { return reg_code == reg.reg_code; }
   int code() const {
@@ -195,6 +204,8 @@ const Register kConstantPoolRegister = r28;  // Constant pool.
 const Register kRootRegister = r29;          // Roots array pointer.
 const Register cp = r30;                     // JavaScript context pointer.
 
+static const bool kSimpleFPAliasing = true;
+
 // Double word FP register.
 struct DoubleRegister {
   enum Code {
@@ -208,8 +219,6 @@ struct DoubleRegister {
   static const int kNumRegisters = Code::kAfterLast;
   static const int kMaxNumRegisters = kNumRegisters;
 
-  const char* ToString();
-  bool IsAllocatable() const;
   bool is_valid() const { return 0 <= reg_code && reg_code < kNumRegisters; }
   bool is(DoubleRegister reg) const { return reg_code == reg.reg_code; }
   int code() const {
@@ -229,6 +238,11 @@ struct DoubleRegister {
   int reg_code;
 };
 
+typedef DoubleRegister FloatRegister;
+
+// TODO(ppc) Define SIMD registers.
+typedef DoubleRegister Simd128Register;
+
 #define DECLARE_REGISTER(R) \
   const DoubleRegister R = {DoubleRegister::kCode_##R};
 DOUBLE_REGISTERS(DECLARE_REGISTER)
@@ -247,7 +261,7 @@ Register ToRegister(int num);
 
 // Coprocessor register
 struct CRegister {
-  bool is_valid() const { return 0 <= reg_code && reg_code < 16; }
+  bool is_valid() const { return 0 <= reg_code && reg_code < 8; }
   bool is(CRegister creg) const { return reg_code == creg.reg_code; }
   int code() const {
     DCHECK(is_valid());
@@ -273,14 +287,6 @@ const CRegister cr4 = {4};
 const CRegister cr5 = {5};
 const CRegister cr6 = {6};
 const CRegister cr7 = {7};
-const CRegister cr8 = {8};
-const CRegister cr9 = {9};
-const CRegister cr10 = {10};
-const CRegister cr11 = {11};
-const CRegister cr12 = {12};
-const CRegister cr13 = {13};
-const CRegister cr14 = {14};
-const CRegister cr15 = {15};
 
 // -----------------------------------------------------------------------------
 // Machine instruction Operands
@@ -804,18 +810,21 @@ class Assembler : public AssemblerBase {
   void sub(Register dst, Register src1, Register src2, OEBit s = LeaveOE,
            RCBit r = LeaveRC);
 
-  void subfic(Register dst, Register src, const Operand& imm);
+  void subc(Register dst, Register src1, Register src2, OEBit s = LeaveOE,
+            RCBit r = LeaveRC);
+  void sube(Register dst, Register src1, Register src2, OEBit s = LeaveOE,
+            RCBit r = LeaveRC);
 
-  void subfc(Register dst, Register src1, Register src2, OEBit s = LeaveOE,
-             RCBit r = LeaveRC);
+  void subfic(Register dst, Register src, const Operand& imm);
 
   void add(Register dst, Register src1, Register src2, OEBit s = LeaveOE,
            RCBit r = LeaveRC);
 
   void addc(Register dst, Register src1, Register src2, OEBit o = LeaveOE,
             RCBit r = LeaveRC);
-
-  void addze(Register dst, Register src1, OEBit o, RCBit r);
+  void adde(Register dst, Register src1, Register src2, OEBit o = LeaveOE,
+            RCBit r = LeaveRC);
+  void addze(Register dst, Register src1, OEBit o = LeaveOE, RCBit r = LeaveRC);
 
   void mullw(Register dst, Register src1, Register src2, OEBit o = LeaveOE,
              RCBit r = LeaveRC);
@@ -1203,7 +1212,7 @@ class Assembler : public AssemblerBase {
 
   // Record a deoptimization reason that can be used by a log or cpu profiler.
   // Use --trace-deopt to enable.
-  void RecordDeoptReason(const int reason, const SourcePosition position);
+  void RecordDeoptReason(const int reason, int raw_position, int id);
 
   // Writes a single byte or word of data in the code stream.  Used
   // for inline tables, e.g., jump-tables.
@@ -1212,7 +1221,9 @@ class Assembler : public AssemblerBase {
   void dq(uint64_t data);
   void dp(uintptr_t data);
 
-  PositionsRecorder* positions_recorder() { return &positions_recorder_; }
+  AssemblerPositionsRecorder* positions_recorder() {
+    return &positions_recorder_;
+  }
 
   // Read/patch instructions
   Instr instr_at(int pos) { return *reinterpret_cast<Instr*>(buffer_ + pos); }
@@ -1459,8 +1470,8 @@ class Assembler : public AssemblerBase {
   friend class RelocInfo;
   friend class CodePatcher;
   friend class BlockTrampolinePoolScope;
-  PositionsRecorder positions_recorder_;
-  friend class PositionsRecorder;
+  AssemblerPositionsRecorder positions_recorder_;
+  friend class AssemblerPositionsRecorder;
   friend class EnsureSpace;
 };
 

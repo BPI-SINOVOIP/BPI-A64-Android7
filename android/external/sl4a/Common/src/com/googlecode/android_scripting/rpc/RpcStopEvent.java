@@ -25,7 +25,6 @@ import java.lang.annotation.Target;
 /**
  * Use this annotation to mark an RPC as one that stops generating events.
  *
- * @author damonkohler@gmail.com (Damon Kohler)
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)

@@ -46,7 +46,6 @@ import java.util.concurrent.ExecutorService;
 /**
  * Manages and provides access to the set of available interpreters.
  *
- * @author Damon Kohler (damonkohler@gmail.com)
  */
 public class InterpreterConfiguration {
 

@@ -1,0 +1,345 @@
+[
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[DEPOT_TOOLS]/gclient.py",
+      "config",
+      "--spec",
+      "cache_dir = None\nsolutions = [{'custom_vars': {'chromium_trunk': 'svn://svn-mirror.golo.chromium.org/chrome/trunk'}, 'deps_file': 'DEPS', 'managed': True, 'name': 'v8', 'url': 'https://chromium.googlesource.com/v8/v8'}]"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "gclient setup"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[DEPOT_TOOLS]/gclient.py",
+      "sync",
+      "--nohooks",
+      "--force",
+      "--verbose",
+      "--delete_unversioned_trees",
+      "--with_branch_heads",
+      "--output-json",
+      "/path/to/tmp/json"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "gclient sync",
+    "~followup_annotations": [
+      "@@@STEP_LOG_LINE@json.output@{@@@",
+      "@@@STEP_LOG_LINE@json.output@  \"solutions\": {@@@",
+      "@@@STEP_LOG_LINE@json.output@    \"v8/\": {@@@",
+      "@@@STEP_LOG_LINE@json.output@      \"revision\": 50110@@@",
+      "@@@STEP_LOG_LINE@json.output@    }@@@",
+      "@@@STEP_LOG_LINE@json.output@  }@@@",
+      "@@@STEP_LOG_LINE@json.output@}@@@",
+      "@@@STEP_LOG_END@json.output@@@",
+      "@@@SET_BUILD_PROPERTY@got_revision@50110@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "git",
+      "checkout",
+      "-f",
+      "FETCH_HEAD"
+    ],
+    "cwd": "[SLAVE_BUILD]/v8",
+    "name": "git checkout"
+  },
+  {
+    "cmd": [
+      "git",
+      "branch",
+      "-D",
+      "work"
+    ],
+    "cwd": "[SLAVE_BUILD]/v8",
+    "name": "git branch"
+  },
+  {
+    "cmd": [
+      "git",
+      "clean",
+      "-ffd"
+    ],
+    "cwd": "[SLAVE_BUILD]/v8",
+    "name": "git clean"
+  },
+  {
+    "cmd": [
+      "git",
+      "show",
+      "refs/remotes/branch-heads/3.4:include/v8-version.h"
+    ],
+    "cwd": "[SLAVE_BUILD]/v8",
+    "name": "Check latest version file",
+    "stdout": "/path/to/tmp/"
+  },
+  {
+    "cmd": [
+      "git",
+      "show",
+      "refs/remotes/branch-heads/3.4~1:include/v8-version.h"
+    ],
+    "cwd": "[SLAVE_BUILD]/v8",
+    "name": "Check previous version file",
+    "stdout": "/path/to/tmp/"
+  },
+  {
+    "cmd": [
+      "git",
+      "new-branch",
+      "work",
+      "--upstream",
+      "refs/remotes/branch-heads/3.4"
+    ],
+    "cwd": "[SLAVE_BUILD]/v8",
+    "name": "git new-branch"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "\nimport shutil\nimport sys\nshutil.copy(sys.argv[1], sys.argv[2])\n",
+      "\n#define V8_MAJOR_VERSION 3\n#define V8_MINOR_VERSION 4\n#define V8_BUILD_NUMBER 3\n#define V8_PATCH_LEVEL 3\n",
+      "[SLAVE_BUILD]/v8/include/v8-version.h"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "Increment version"
+  },
+  {
+    "cmd": [
+      "git",
+      "commit",
+      "-am",
+      "Version 3.4.3.3"
+    ],
+    "cwd": "[SLAVE_BUILD]/v8",
+    "name": "git commit"
+  },
+  {
+    "cmd": [
+      "git",
+      "cl",
+      "land",
+      "-f",
+      "--bypass-hooks"
+    ],
+    "cwd": "[SLAVE_BUILD]/v8",
+    "name": "git cl"
+  },
+  {
+    "cmd": [
+      "git",
+      "fetch"
+    ],
+    "cwd": "[SLAVE_BUILD]/v8",
+    "name": "git fetch"
+  },
+  {
+    "cmd": [
+      "git",
+      "show",
+      "refs/remotes/branch-heads/3.4:include/v8-version.h"
+    ],
+    "cwd": "[SLAVE_BUILD]/v8",
+    "name": "Check committed version file",
+    "stdout": "/path/to/tmp/"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "import time; time.sleep(5)"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "Wait for commit",
+    "~followup_annotations": [
+      "@@@STEP_LOG_LINE@python.inline@import time; time.sleep(5)@@@",
+      "@@@STEP_LOG_END@python.inline@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "git",
+      "fetch"
+    ],
+    "cwd": "[SLAVE_BUILD]/v8",
+    "name": "git fetch (2)"
+  },
+  {
+    "cmd": [
+      "git",
+      "show",
+      "refs/remotes/branch-heads/3.4:include/v8-version.h"
+    ],
+    "cwd": "[SLAVE_BUILD]/v8",
+    "name": "Check committed version file (2)",
+    "stdout": "/path/to/tmp/"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "import time; time.sleep(10)"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "Wait for commit (2)",
+    "~followup_annotations": [
+      "@@@STEP_LOG_LINE@python.inline@import time; time.sleep(10)@@@",
+      "@@@STEP_LOG_END@python.inline@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "git",
+      "fetch"
+    ],
+    "cwd": "[SLAVE_BUILD]/v8",
+    "name": "git fetch (3)"
+  },
+  {
+    "cmd": [
+      "git",
+      "show",
+      "refs/remotes/branch-heads/3.4:include/v8-version.h"
+    ],
+    "cwd": "[SLAVE_BUILD]/v8",
+    "name": "Check committed version file (3)",
+    "stdout": "/path/to/tmp/"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "import time; time.sleep(15)"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "Wait for commit (3)",
+    "~followup_annotations": [
+      "@@@STEP_LOG_LINE@python.inline@import time; time.sleep(15)@@@",
+      "@@@STEP_LOG_END@python.inline@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "git",
+      "fetch"
+    ],
+    "cwd": "[SLAVE_BUILD]/v8",
+    "name": "git fetch (4)"
+  },
+  {
+    "cmd": [
+      "git",
+      "show",
+      "refs/remotes/branch-heads/3.4:include/v8-version.h"
+    ],
+    "cwd": "[SLAVE_BUILD]/v8",
+    "name": "Check committed version file (4)",
+    "stdout": "/path/to/tmp/"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "import time; time.sleep(20)"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "Wait for commit (4)",
+    "~followup_annotations": [
+      "@@@STEP_LOG_LINE@python.inline@import time; time.sleep(20)@@@",
+      "@@@STEP_LOG_END@python.inline@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "git",
+      "fetch"
+    ],
+    "cwd": "[SLAVE_BUILD]/v8",
+    "name": "git fetch (5)"
+  },
+  {
+    "cmd": [
+      "git",
+      "show",
+      "refs/remotes/branch-heads/3.4:include/v8-version.h"
+    ],
+    "cwd": "[SLAVE_BUILD]/v8",
+    "name": "Check committed version file (5)",
+    "stdout": "/path/to/tmp/"
+  },
+  {
+    "cmd": [],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "Waiting for commit timed out",
+    "~followup_annotations": [
+      "@@@STEP_FAILURE@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "git",
+      "log",
+      "-n1",
+      "--format=%H",
+      "refs/remotes/branch-heads/3.4"
+    ],
+    "cwd": "[SLAVE_BUILD]/v8",
+    "name": "git log",
+    "stdout": "/path/to/tmp/"
+  },
+  {
+    "cmd": [
+      "git",
+      "show",
+      "74882b7a8e55268d1658f83efefa1c2585cee723:include/v8-version.h"
+    ],
+    "cwd": "[SLAVE_BUILD]/v8",
+    "name": "Check head version file",
+    "stdout": "/path/to/tmp/"
+  },
+  {
+    "cmd": [
+      "git",
+      "describe",
+      "--tags",
+      "74882b7a8e55268d1658f83efefa1c2585cee723"
+    ],
+    "cwd": "[SLAVE_BUILD]/v8",
+    "name": "git describe",
+    "stdout": "/path/to/tmp/"
+  },
+  {
+    "cmd": [
+      "git",
+      "ls-remote",
+      "https://chromium.googlesource.com/v8/v8",
+      "refs/heads/3.4-lkgr"
+    ],
+    "cwd": "[SLAVE_BUILD]/v8",
+    "name": "git ls-remote 3.4-lkgr",
+    "stdout": "/path/to/tmp/",
+    "~followup_annotations": [
+      "@@@STEP_LOG_LINE@ref@74882b7a8e55268d1658f83efefa1c2585cee723@@@",
+      "@@@STEP_LOG_END@ref@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "echo",
+      "There is no new lkgr."
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "log"
+  },
+  {
+    "name": "$result",
+    "recipe_result": null,
+    "status_code": 0
+  }
+]

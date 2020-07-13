@@ -37,6 +37,20 @@ static struct efuse_key_map key_maps[] = {
 {"",                     0,     0,   0,       0,       0,     {0} },
 };
 
+#elif defined(CONFIG_ARCH_SUN8IW5)
+#define EFUSE_IS_PUBLIC
+#define EFUSE_HAS_NO_RW_PROTECT
+
+static struct efuse_key_map key_maps[] = {
+/* Name                  Offset Size ReadFlag BurnFlag Public Reserve */
+{EFUSE_CHIPID_NAME,      0x0,   128, -1,      -1,      1,     {0} },
+{EFUSE_THM_SENSOR_NAME,  0x10,  32,  -1,      -1,      1,     {0} },
+{EFUSE_CHIP_CONF_NAME,   0x14,  32,  -1,      -1,      1,     {0} },
+{EFUSE_BACKUP_KEY_NAME,  0x18,  64,  -1,      -1,      1,     {0} },
+{EFUSE_ROTPK_NAME,       0x20, 256,  -1,      -1,      1,     {0} },
+{"",                     0,     0,   0,       0,      0,     {0} },
+};
+
 #elif defined(CONFIG_ARCH_SUN8IW11)
 
 #define EFUSE_IS_PUBLIC
@@ -59,6 +73,38 @@ static struct efuse_key_map key_map_rd_pro = {
 EFUSE_RD_PROTECT_NAME,  0x8C,   32,  -1,      -1,      1,     {0} };
 static struct efuse_key_map key_map_wr_pro = {
 EFUSE_WR_PROTECT_NAME,  0x8C,   32,  -1,      -1,      1,     {0} };
+
+#elif defined(CONFIG_ARCH_SUN8IW17)
+
+static struct efuse_key_map key_maps[] = {
+/* Name                  Offset Size ReadFlag BurnFlag Public Reserve */
+{EFUSE_CHIPID_NAME,      0x0,   128,  0,      0,      1,     {0} },
+{EFUSE_BROM_CONF_NAME,   0x10,  16,   1,      1,      1,     {0} },
+{EFUSE_BROM_TRY_NAME,    0x12,  16,   1,      1,      1,     {0} },
+{EFUSE_THM_SENSOR_NAME,  0x14,  96,   2,      2,      1,     {0} },
+{EFUSE_FT_ZONE_NAME,     0x20,  128,  3,      3,      1,     {0} },
+{EFUSE_OEM_NAME,         0x30,  128,  4,      4,      1,     {0} },
+{EFUSE_JTAG_SECU_NAME,   0x48,  32,   7,      7,      0,     {0} },
+{EFUSE_JTAG_ATTR_NAME,   0x4C,  32,   8,      8,      0,     {0} },
+{EFUSE_IN_NAME,          0x50,  192,  9,      9,      0,     {0} },
+{EFUSE_OPT_ID_NAME,      0x68,  32,   10,     10,     0,     {0} },
+{EFUSE_ID_NAME,          0x6C,  32,   11,     11,     0,     {0} },
+{EFUSE_ROTPK_NAME,       0x70,  256,  12,     12,     0,     {0} },
+{EFUSE_SSK_NAME,         0x90,  128,  13,     13,     0,     {0} },
+{EFUSE_RSSK_NAME,        0xA0,  256,  14,     14,     0,     {0} },
+{EFUSE_RESERVED_NAME,    0xC0,  128,  15,     15,     0,     {0} },
+{EFUSE_EK_HASH_NAME,     0xD0,  128,  16,     16,     0,     {0} },
+{EFUSE_SN_NAME,          0xE0,  192,  17,     17,     0,     {0} },
+{EFUSE_NV1_NAME,         0xF8,  32,   18,     18,     0,     {0} },
+{EFUSE_NV2_NAME,         0xFC,  224,  19,     19,     0,     {0} },
+{EFUSE_RESERVED2_NAME,   0x118, 320,  20,     20,     0,     {0} },
+{"",                     0,     0,    0,      0,      0,     {0} },
+};
+
+static struct efuse_key_map key_map_wr_pro = {
+EFUSE_WR_PROTECT_NAME,  0x40,  32,  5,       5,       0,     {0} };
+static struct efuse_key_map key_map_rd_pro = {
+EFUSE_RD_PROTECT_NAME,  0x44,  32,  6,       6,       0,     {0} };
 
 #elif defined(CONFIG_ARCH_SUN50IW1) || defined(CONFIG_ARCH_SUN50IW2)
 

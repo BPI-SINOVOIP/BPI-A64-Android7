@@ -1,0 +1,114 @@
+[
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[BUILD]/scripts/slave/bot_update.py",
+      "--master",
+      "chromium.testing.master",
+      "--builder",
+      "Mojo Linux Perf",
+      "--slave",
+      "TestSlavename",
+      "--spec",
+      "cache_dir = None\nsolutions = [{'deps_file': 'DEPS', 'managed': True, 'name': 'src', 'url': 'https://chromium.googlesource.com/external/mojo.git'}]",
+      "--root",
+      "src",
+      "--revision_mapping_file",
+      "{}",
+      "--output_json",
+      "/path/to/tmp/json",
+      "--revision",
+      "src@HEAD",
+      "--force",
+      "--output_manifest"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "bot_update",
+    "~followup_annotations": [
+      "@@@STEP_TEXT@Some step text@@@",
+      "@@@STEP_LOG_LINE@json.output@{@@@",
+      "@@@STEP_LOG_LINE@json.output@  \"did_run\": true, @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"manifest\": {}, @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"patch_failure\": false, @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"patch_root\": \"src\", @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"properties\": {}, @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"root\": \"src\", @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"step_text\": \"Some step text\"@@@",
+      "@@@STEP_LOG_LINE@json.output@}@@@",
+      "@@@STEP_LOG_END@json.output@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[DEPOT_TOOLS]/gclient.py",
+      "runhooks"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "gclient runhooks"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[SLAVE_BUILD]/src/mojo/tools/mojob.py",
+      "gn",
+      "--release"
+    ],
+    "cwd": "[SLAVE_BUILD]/src",
+    "env": {
+      "GOMA_DIR": "[BUILD]/goma"
+    },
+    "name": "mojob gn"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[SLAVE_BUILD]/src/mojo/tools/mojob.py",
+      "build",
+      "--release"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "env": {
+      "GOMA_DIR": "[BUILD]/goma"
+    },
+    "name": "mojob build"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[SLAVE_BUILD]/src/mojo/tools/get_test_list.py",
+      "{\"build_number\": 571, \"builder_name\": \"Mojo Linux Perf\", \"dcheck_always_on\": false, \"is_debug\": false, \"master_name\": \"chromium.testing.master\", \"target_os\": \"linux\", \"test_results_server\": \"test-results.appspot.com\", \"test_types\": [\"perf\"]}",
+      "/path/to/tmp/json"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "get_test_list",
+    "~followup_annotations": [
+      "@@@STEP_LOG_LINE@json.output@[@@@",
+      "@@@STEP_LOG_LINE@json.output@  {@@@",
+      "@@@STEP_LOG_LINE@json.output@    \"command\": [@@@",
+      "@@@STEP_LOG_LINE@json.output@      \"world\"@@@",
+      "@@@STEP_LOG_LINE@json.output@    ], @@@",
+      "@@@STEP_LOG_LINE@json.output@    \"name\": \"Hello\"@@@",
+      "@@@STEP_LOG_LINE@json.output@  }@@@",
+      "@@@STEP_LOG_LINE@json.output@]@@@",
+      "@@@STEP_LOG_END@json.output@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "world"
+    ],
+    "cwd": "[SLAVE_BUILD]/src",
+    "name": "Hello"
+  },
+  {
+    "name": "$result",
+    "recipe_result": null,
+    "status_code": 0
+  }
+]

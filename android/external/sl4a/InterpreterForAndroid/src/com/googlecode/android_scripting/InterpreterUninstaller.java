@@ -36,8 +36,6 @@ import java.util.List;
 /**
  * AsyncTask for uninstalling interpreters.
  *
- * @author Damon Kohler (damonkohler@gmail.com)
- * @author Alexey Reznichenko (alexey.reznichenko@gmail.com)
  */
 public abstract class InterpreterUninstaller extends AsyncTask<Void, Void, Boolean> {
 

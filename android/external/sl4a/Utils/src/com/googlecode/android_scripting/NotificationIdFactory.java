@@ -22,7 +22,6 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Creates unique ids to identify the notifications created by the android scripting service and the
  * trigger service.
  *
- * @author Felix Arends (felix.arends@gmail.com)
  *
  */
 public final class NotificationIdFactory {

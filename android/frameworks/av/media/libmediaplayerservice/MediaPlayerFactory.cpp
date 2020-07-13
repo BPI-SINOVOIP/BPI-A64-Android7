@@ -555,8 +555,6 @@ void MediaPlayerFactory::registerBuiltinFactories() {
         return;
 	registerFactory_l(new AwPlayerFactory(), AW_PLAYER);
 
-//  tplayer not support in box. (bz)
-//	registerFactory_l(new TPlayerFactory(), THUMBNAIL_PLAYER);
     registerFactory_l(new NuPlayerFactory(), NU_PLAYER);
     registerFactory_l(new TestPlayerFactory(), TEST_PLAYER);
 

@@ -47,6 +47,11 @@
     <string name="callFailed_unobtainable_number" msgid="124621797631734731">"Hindi wastong numero"</string>
     <string name="incall_error_missing_voicemail_number" msgid="3651090591812220874">"Hindi alam ang numero ng voicemail."</string>
     <string name="callFailed_video_call_tty_enabled" msgid="186585701668604271">"Hindi makakapagsagawa ng mga video call kapag naka-enable ang TTY."</string>
+    <string name="callEnded_pulled" msgid="437630601519502587">"Inilipat ang tawag sa isa pang device."</string>
     <string name="ringtone_silent" msgid="249805466934178869">"Wala"</string>
     <string name="ringtone_unknown" msgid="2303463713486734520">"Hindi kilalang ringtone"</string>
+    <string name="callFailed_maximum_reached" msgid="4823790040422765056">"Ginagamit ang lahat ng available na linya. Upang tumawag, putulin ang koneksyon ng isa sa mga tawag sa device na ito, o sa isa sa iyong iba pang mga device."</string>
+    <string name="callFailed_data_disabled" msgid="3885826754435317856">"Natapos na ang tawag dahil na-disable ang cellular data."</string>
+    <string name="callFailed_data_limit_reached_description" msgid="1439284832802552582">"Natapos na ang tawag dahil naabot ang limitasyon ng cellular data."</string>
+    <string name="callFailed_data_limit_reached" msgid="7045770594965160282">"Naabot ang limitasyon ng data. Natapos na ang tawag."</string>
 </resources>

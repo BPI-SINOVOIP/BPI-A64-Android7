@@ -37,8 +37,6 @@ import java.util.zip.ZipFile;
 /**
  * AsyncTask for extracting ZIP files.
  *
- * @author Damon Kohler (damonkohler@gmail.com)
- * @author Alexey Reznichenko (alexey.reznichenko@gmail.com)
  */
 public class ZipExtractorTask extends AsyncTask<Void, Integer, Long> {
 

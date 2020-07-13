@@ -88,6 +88,18 @@
                             </td>
                         </tr>
                         <tr>
+                            <td class="rowtitle">Modules Done</td>
+                            <td>
+                                <xsl:value-of select="Result/Summary/@modules_done"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="rowtitle">Modules Total</td>
+                            <td>
+                                <xsl:value-of select="Result/Summary/@modules_total"/>
+                            </td>
+                        </tr>
+                        <tr>
                             <td class="rowtitle">Fingerprint</td>
                             <td>
                                 <xsl:value-of select="Result/Build/@build_fingerprint"/>

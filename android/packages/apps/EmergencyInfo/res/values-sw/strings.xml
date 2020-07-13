@@ -96,7 +96,8 @@
     <string name="user_emergency_info_title" msgid="7827058167207376581">"Maelezo ya dharura"</string>
     <string name="user_emergency_info_consent" msgid="5636028073450797246">"Maelezo unayoandika hapa yanaweza kuwasaidia watu wa kwanza kuchukua hatua jambo la dharura likitokea. Maelezo haya huhifadhiwa kwenye kifaa chako pekee na mtu yeyote anaweza kuyasoma kutoka kipiga simu ya dharura bila kufungua simu yako."</string>
     <string name="emergency_info_continue" msgid="5453201508537906087">"Endelea"</string>
-    <string name="no_info_provided" msgid="6775035037534954056">"Hakuna maelezo ya dharura yaliyotolewa"</string>
+    <string name="no_info_provided" msgid="716200382010821001">"Hatuna maelezo kuhusu mmiliki wa simu"</string>
+    <string name="tap_pencil" msgid="2723698054265296934">"Ikiwa hii ni simu yako, gonga aikoni ya penseli ili uongeze maelezo ambayo yataonekana hapa wakati wa dharura."</string>
     <string name="clear_all" msgid="8899013032870561633">"Futa yote"</string>
     <string name="clear" msgid="3648880442502887163">"Futa"</string>
     <string name="clear_all_message" msgid="1548432000373861295">"Ungependa kufuta maelezo na anwani zote?"</string>

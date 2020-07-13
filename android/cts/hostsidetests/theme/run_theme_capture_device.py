@@ -97,7 +97,6 @@ def doCapturing(setup, deviceSerial):
     print "Found device: " + deviceSerial
     device = androidDevice(deviceSerial)
 
-    outPath = outPath + "/%d" % (device.getSdkLevel())
     density = device.getDensity()
     if CTS_THEME_dict.has_key(density):
         resName = CTS_THEME_dict[density]

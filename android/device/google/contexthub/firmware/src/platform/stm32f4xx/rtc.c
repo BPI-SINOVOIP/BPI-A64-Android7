@@ -25,7 +25,7 @@
 #include <variant/inc/variant.h>
 
 #ifndef NS_PER_S
-#define NS_PER_S                    1000000000ULL
+#define NS_PER_S                    UINT64_C(1000000000)
 #endif
 
 
@@ -102,17 +102,13 @@ struct StmRtc
 
 /* Jitter = max wakeup timer resolution (61.035 us)
  * + 2 RTC cycles for synchronization (61.035 us) */
-#define RTC_PERIOD_NS               30517UL
-#define RTC_CK_APRE_HZ              256UL
-#define RTC_CK_APRE_PERIOD_NS       3906250UL
-#define RTC_DIV2_PERIOD_NS          61035UL
-#define RTC_DIV4_PERIOD_NS          122070UL
-#define RTC_DIV8_PERIOD_NS          244141UL
-#define RTC_DIV16_PERIOD_NS         488281UL
-/* TODO: Measure the jitter in the overhead of setting the wakeup timers.
- * Initially setting to 1 RTC clock cycle. */
-#define RTC_WUT_NOISE_NS            30517UL
-#define RTC_ALARM_NOISE_NS          30517UL
+#define RTC_DIV2_PERIOD_NS          UINT64_C(61035)
+#define RTC_DIV4_PERIOD_NS          UINT64_C(122070)
+#define RTC_DIV8_PERIOD_NS          UINT64_C(244141)
+#define RTC_DIV16_PERIOD_NS         UINT64_C(488281)
+
+#define RTC_VALID_DELAY_FOR_PERIOD(delay, period) \
+    (delay < (period * (RTC_WKUP_DOWNCOUNT_MAX + 1)))
 
 static void rtcSetDefaultDateTimeAndPrescalar(void)
 {
@@ -171,52 +167,46 @@ int rtcSetWakeupTimer(uint64_t delay)
     uint32_t wakeupClock;
     uint32_t periodNs;
 
-    /* Minimum wakeup interrupt period is 122 us */
+    /* Minimum wakeup interrupt period is 122 us, max is 36.4 hours */
     if (delay < (RTC_DIV2_PERIOD_NS * 2)) {
         return RTC_ERR_TOO_SMALL;
+    } else if (delay > (NS_PER_S * 2 * RTC_WKUP_DOWNCOUNT_MAX)) {
+        delay = NS_PER_S * 2 * RTC_WKUP_DOWNCOUNT_MAX;
     }
 
     /* Get appropriate clock period for delay size.  Wakeup clock = RTC/x. */
-    if (delay < (RTC_DIV2_PERIOD_NS * RTC_WKUP_DOWNCOUNT_MAX)) {
+    if (RTC_VALID_DELAY_FOR_PERIOD(delay, RTC_DIV2_PERIOD_NS)) {
 
         wakeupClock = RTC_CR_WUCKSEL_2DIV;
         periodNs = RTC_DIV2_PERIOD_NS;
         periodNsRecip = U64_RECIPROCAL_CALCULATE(RTC_DIV2_PERIOD_NS);
     }
-    else if (delay < ((unsigned long long)RTC_DIV4_PERIOD_NS * RTC_WKUP_DOWNCOUNT_MAX)) {
+    else if (RTC_VALID_DELAY_FOR_PERIOD(delay, RTC_DIV4_PERIOD_NS)) {
 
         wakeupClock = RTC_CR_WUCKSEL_4DIV;
         periodNs = RTC_DIV4_PERIOD_NS;
         periodNsRecip = U64_RECIPROCAL_CALCULATE(RTC_DIV4_PERIOD_NS);
     }
-    else if (delay < ((unsigned long long)RTC_DIV8_PERIOD_NS * RTC_WKUP_DOWNCOUNT_MAX)) {
+    else if (RTC_VALID_DELAY_FOR_PERIOD(delay, RTC_DIV8_PERIOD_NS)) {
 
         wakeupClock = RTC_CR_WUCKSEL_8DIV;
         periodNs = RTC_DIV8_PERIOD_NS;
         periodNsRecip = U64_RECIPROCAL_CALCULATE(RTC_DIV8_PERIOD_NS);
     }
-    else if (delay < ((unsigned long long)RTC_DIV16_PERIOD_NS * RTC_WKUP_DOWNCOUNT_MAX)) {
+    else if (RTC_VALID_DELAY_FOR_PERIOD(delay, RTC_DIV16_PERIOD_NS)) {
 
         wakeupClock = RTC_CR_WUCKSEL_16DIV;
         periodNs = RTC_DIV16_PERIOD_NS;
         periodNsRecip = U64_RECIPROCAL_CALCULATE(RTC_DIV16_PERIOD_NS);
     }
-    else if (delay < ((unsigned long long)NS_PER_S * RTC_WKUP_DOWNCOUNT_MAX)) {
-
-        wakeupClock = RTC_CR_WUCKSEL_CK_SPRE;
-        periodNs = NS_PER_S;
-        periodNsRecip = U64_RECIPROCAL_CALCULATE(NS_PER_S);
-    }
-    else if (delay < ((unsigned long long)NS_PER_S * 2 * RTC_WKUP_DOWNCOUNT_MAX)) {
-
-        wakeupClock = RTC_CR_WUCKSEL_CK_SPRE_2;
-        periodNs = NS_PER_S;
-        periodNsRecip = U64_RECIPROCAL_CALCULATE(NS_PER_S);
-    }
     else {
 
-        osLog(LOG_ERROR, "RTC delay impossible");
-        return RTC_ERR_INTERNAL;
+        if (RTC_VALID_DELAY_FOR_PERIOD(delay, NS_PER_S))
+            wakeupClock = RTC_CR_WUCKSEL_CK_SPRE;
+        else
+            wakeupClock = RTC_CR_WUCKSEL_CK_SPRE_2;
+        periodNs = NS_PER_S;
+        periodNsRecip = U64_RECIPROCAL_CALCULATE(NS_PER_S);
     }
 
     intState = cpuIntsOff();

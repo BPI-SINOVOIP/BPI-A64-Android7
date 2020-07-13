@@ -21,11 +21,13 @@ import android.app.ActionBar;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.os.Parcelable;
+import android.support.annotation.RestrictTo;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.view.ViewPropertyAnimatorCompat;
 import android.support.v4.view.ViewPropertyAnimatorListenerAdapter;
 import android.support.v7.app.WindowDecorActionBar;
 import android.support.v7.appcompat.R;
+import android.support.v7.content.res.AppCompatResources;
 import android.support.v7.view.menu.ActionMenuItem;
 import android.support.v7.view.menu.MenuBuilder;
 import android.support.v7.view.menu.MenuPresenter;
@@ -42,6 +44,8 @@ import android.widget.AdapterView;
 import android.widget.Spinner;
 import android.widget.SpinnerAdapter;
 
+import static android.support.annotation.RestrictTo.Scope.GROUP_ID;
+
 /**
  * Internal class used to interact with the Toolbar widget without
  * exposing interface methods to the public API.
@@ -53,6 +57,7 @@ import android.widget.SpinnerAdapter;
  *
  * @hide
  */
+@RestrictTo(GROUP_ID)
 public class ToolbarWidgetWrapper implements DecorToolbar {
     private static final String TAG = "ToolbarWidgetWrapper";
 
@@ -61,7 +66,7 @@ public class ToolbarWidgetWrapper implements DecorToolbar {
     // Default fade duration for fading in/out tool bar.
     private static final long DEFAULT_FADE_DURATION_MS = 200;
 
-    private Toolbar mToolbar;
+    Toolbar mToolbar;
 
     private int mDisplayOpts;
     private View mTabView;
@@ -73,17 +78,16 @@ public class ToolbarWidgetWrapper implements DecorToolbar {
     private Drawable mNavIcon;
 
     private boolean mTitleSet;
-    private CharSequence mTitle;
+    CharSequence mTitle;
     private CharSequence mSubtitle;
     private CharSequence mHomeDescription;
 
-    private Window.Callback mWindowCallback;
-    private boolean mMenuPrepared;
+    Window.Callback mWindowCallback;
+    boolean mMenuPrepared;
     private ActionMenuPresenter mActionMenuPresenter;
 
     private int mNavigationMode = ActionBar.NAVIGATION_MODE_STANDARD;
 
-    private final AppCompatDrawableManager mDrawableManager;
     private int mDefaultNavigationContentDescription = 0;
     private Drawable mDefaultNavigationIcon;
 
@@ -170,8 +174,6 @@ public class ToolbarWidgetWrapper implements DecorToolbar {
             mDisplayOpts = detectDisplayOptions();
         }
         a.recycle();
-
-        mDrawableManager = AppCompatDrawableManager.get();
 
         setDefaultNavigationContentDescription(defaultNavigationContentDescription);
         mHomeDescription = mToolbar.getNavigationContentDescription();
@@ -295,7 +297,7 @@ public class ToolbarWidgetWrapper implements DecorToolbar {
 
     @Override
     public void setIcon(int resId) {
-        setIcon(resId != 0 ? mDrawableManager.getDrawable(getContext(), resId) : null);
+        setIcon(resId != 0 ? AppCompatResources.getDrawable(getContext(), resId) : null);
     }
 
     @Override
@@ -306,7 +308,7 @@ public class ToolbarWidgetWrapper implements DecorToolbar {
 
     @Override
     public void setLogo(int resId) {
-        setLogo(resId != 0 ? mDrawableManager.getDrawable(getContext(), resId) : null);
+        setLogo(resId != 0 ? AppCompatResources.getDrawable(getContext(), resId) : null);
     }
 
     @Override
@@ -593,7 +595,7 @@ public class ToolbarWidgetWrapper implements DecorToolbar {
 
     @Override
     public void setNavigationIcon(int resId) {
-        setNavigationIcon(resId != 0 ? mDrawableManager.getDrawable(getContext(), resId) : null);
+        setNavigationIcon(resId != 0 ? AppCompatResources.getDrawable(getContext(), resId) : null);
     }
 
     @Override
@@ -645,8 +647,7 @@ public class ToolbarWidgetWrapper implements DecorToolbar {
 
     @Override
     public void setBackgroundDrawable(Drawable d) {
-        //noinspection deprecation
-        mToolbar.setBackgroundDrawable(d);
+        ViewCompat.setBackground(mToolbar, d);
     }
 
     @Override

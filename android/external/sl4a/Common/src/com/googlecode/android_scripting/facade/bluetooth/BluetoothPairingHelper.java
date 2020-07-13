@@ -20,12 +20,17 @@ import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
 
 import com.googlecode.android_scripting.Log;
+import com.googlecode.android_scripting.facade.EventFacade;
 
 public class BluetoothPairingHelper extends BroadcastReceiver {
-  public BluetoothPairingHelper() {
+  private final EventFacade mEventFacade;
+
+  public BluetoothPairingHelper(EventFacade eventFacade) {
     super();
+    mEventFacade = eventFacade;
     Log.d("Pairing helper created.");
   }
   /**
@@ -34,11 +39,17 @@ public class BluetoothPairingHelper extends BroadcastReceiver {
   @Override
   public void onReceive(Context c, Intent intent) {
     String action = intent.getAction();
+    Bundle result = new Bundle();
     Log.d("Bluetooth pairing intent received: " + action);
     BluetoothDevice mDevice = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
     if(action.equals(BluetoothDevice.ACTION_PAIRING_REQUEST)) {
       int type = intent.getIntExtra(BluetoothDevice.EXTRA_PAIRING_VARIANT, BluetoothDevice.ERROR);
       Log.d("Processing Action Paring Request with type " + type);
+      int pin = intent.getIntExtra(BluetoothDevice.EXTRA_PAIRING_KEY,0);
+      result.putInt("Pin", pin);
+      result.putInt("PairingVariant", type);
+      mEventFacade.postEvent("BluetoothActionPairingRequest" + Integer.toString(type), result.clone());
+      result.clear();
       if(type == BluetoothDevice.PAIRING_VARIANT_PASSKEY_CONFIRMATION ||
          type == BluetoothDevice.PAIRING_VARIANT_CONSENT) {
         mDevice.setPairingConfirmation(true);

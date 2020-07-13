@@ -1,0 +1,335 @@
+[
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[BUILD]/scripts/slave/bot_update.py",
+      "--master",
+      "chromium.infra.cron",
+      "--builder",
+      "ChromiumOS Codesearch",
+      "--slave",
+      "TestSlavename",
+      "--spec",
+      "cache_dir = None\nsolutions = [{'custom_vars': {'googlecode_url': 'svn://svn-mirror.golo.chromium.org/%s', 'nacl_trunk': 'svn://svn-mirror.golo.chromium.org/native_client/trunk', 'sourceforge_url': 'svn://svn-mirror.golo.chromium.org/%(repo)s', 'webkit_trunk': 'svn://svn-mirror.golo.chromium.org/blink/trunk'}, 'deps_file': 'DEPS', 'managed': True, 'name': 'src', 'url': 'svn://svn-mirror.golo.chromium.org/chrome/trunk/src'}, {'deps_file': 'DEPS', 'managed': True, 'name': 'tools/chrome-devtools-frontend', 'url': 'https://chromium.googlesource.com/chromium/tools/chrome-devtools-frontend'}, {'deps_file': 'DEPS', 'managed': True, 'name': 'tools/commit-queue', 'url': 'https://chromium.googlesource.com/chromium/tools/commit-queue'}, {'deps_file': 'DEPS', 'managed': True, 'name': 'tools/gsd_generate_index', 'url': 'https://chromium.googlesource.com/chromium/tools/gsd_generate_index'}, {'deps_file': 'DEPS', 'managed': True, 'name': 'tools/perf', 'url': 'https://chromium.googlesource.com/chromium/tools/perf'}, {'deps_file': 'DEPS', 'managed': True, 'name': 'tools/command_wrapper/bin', 'url': 'https://chromium.googlesource.com/chromium/tools/command_wrapper/bin'}, {'deps_file': 'DEPS', 'managed': True, 'name': 'tools/depot_tools', 'url': 'https://chromium.googlesource.com/chromium/tools/depot_tools'}, {'deps_file': 'DEPS', 'managed': True, 'name': 'tools/chromium-jobqueue', 'url': 'https://chromium.googlesource.com/chromium/tools/chromium-jobqueue'}, {'deps_file': 'DEPS', 'managed': True, 'name': 'tools/chromium-shortener', 'url': 'https://chromium.googlesource.com/chromium/tools/chromium-shortener'}, {'deps_file': 'DEPS', 'managed': True, 'name': 'tools/deps2git', 'url': 'https://chromium.googlesource.com/chromium/tools/deps2git'}, {'deps_file': 'DEPS', 'managed': True, 'name': 'infra', 'url': 'https://chromium.googlesource.com/infra/infra'}]",
+      "--root",
+      "src",
+      "--revision_mapping_file",
+      "{\"src\": \"got_revision\", \"src/native_client\": \"got_nacl_revision\", \"src/third_party/angle\": \"got_angle_revision\", \"src/third_party/webrtc\": \"got_webrtc_revision\", \"src/tools/swarming_client\": \"got_swarming_client_revision\", \"src/v8\": \"got_v8_revision\"}",
+      "--output_json",
+      "/path/to/tmp/json",
+      "--revision",
+      "src@HEAD",
+      "--output_manifest"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "bot_update",
+    "~followup_annotations": [
+      "@@@STEP_TEXT@Some step text@@@",
+      "@@@STEP_LOG_LINE@json.output@{@@@",
+      "@@@STEP_LOG_LINE@json.output@  \"did_run\": true, @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"manifest\": {@@@",
+      "@@@STEP_LOG_LINE@json.output@    \"src\": {@@@",
+      "@@@STEP_LOG_LINE@json.output@      \"repository\": \"https://fake.org/src.git\", @@@",
+      "@@@STEP_LOG_LINE@json.output@      \"revision\": \"f27fede2220bcd326aee3e86ddfd4ebd0fe58cb9\"@@@",
+      "@@@STEP_LOG_LINE@json.output@    }, @@@",
+      "@@@STEP_LOG_LINE@json.output@    \"src/native_client\": {@@@",
+      "@@@STEP_LOG_LINE@json.output@      \"repository\": \"https://fake.org/src/native_client.git\", @@@",
+      "@@@STEP_LOG_LINE@json.output@      \"revision\": \"d998e125e8253980d76e269b7982aeeefc1b9b50\"@@@",
+      "@@@STEP_LOG_LINE@json.output@    }, @@@",
+      "@@@STEP_LOG_LINE@json.output@    \"src/third_party/angle\": {@@@",
+      "@@@STEP_LOG_LINE@json.output@      \"repository\": \"https://fake.org/src/third_party/angle.git\", @@@",
+      "@@@STEP_LOG_LINE@json.output@      \"revision\": \"fac9503c46405f77757b9a728eb85b8d7bc6080c\"@@@",
+      "@@@STEP_LOG_LINE@json.output@    }, @@@",
+      "@@@STEP_LOG_LINE@json.output@    \"src/third_party/webrtc\": {@@@",
+      "@@@STEP_LOG_LINE@json.output@      \"repository\": \"https://fake.org/src/third_party/webrtc.git\", @@@",
+      "@@@STEP_LOG_LINE@json.output@      \"revision\": \"0f90628433546e61d9268596da93418c623137f4\"@@@",
+      "@@@STEP_LOG_LINE@json.output@    }, @@@",
+      "@@@STEP_LOG_LINE@json.output@    \"src/tools/swarming_client\": {@@@",
+      "@@@STEP_LOG_LINE@json.output@      \"repository\": \"https://fake.org/src/tools/swarming_client.git\", @@@",
+      "@@@STEP_LOG_LINE@json.output@      \"revision\": \"a0ee5d99f1d4b38ddaa4c759c837980b63b99566\"@@@",
+      "@@@STEP_LOG_LINE@json.output@    }, @@@",
+      "@@@STEP_LOG_LINE@json.output@    \"src/v8\": {@@@",
+      "@@@STEP_LOG_LINE@json.output@      \"repository\": \"https://fake.org/src/v8.git\", @@@",
+      "@@@STEP_LOG_LINE@json.output@      \"revision\": \"801ada225ddc271c132c3a35f03975671d43e399\"@@@",
+      "@@@STEP_LOG_LINE@json.output@    }@@@",
+      "@@@STEP_LOG_LINE@json.output@  }, @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"patch_failure\": false, @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"patch_root\": \"src\", @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"properties\": {@@@",
+      "@@@STEP_LOG_LINE@json.output@    \"got_angle_revision\": \"fac9503c46405f77757b9a728eb85b8d7bc6080c\", @@@",
+      "@@@STEP_LOG_LINE@json.output@    \"got_angle_revision_cp\": \"refs/heads/master@{#297276}\", @@@",
+      "@@@STEP_LOG_LINE@json.output@    \"got_nacl_revision\": \"d998e125e8253980d76e269b7982aeeefc1b9b50\", @@@",
+      "@@@STEP_LOG_LINE@json.output@    \"got_nacl_revision_cp\": \"refs/heads/master@{#274981}\", @@@",
+      "@@@STEP_LOG_LINE@json.output@    \"got_revision\": \"f27fede2220bcd326aee3e86ddfd4ebd0fe58cb9\", @@@",
+      "@@@STEP_LOG_LINE@json.output@    \"got_revision_cp\": \"refs/heads/master@{#170242}\", @@@",
+      "@@@STEP_LOG_LINE@json.output@    \"got_swarming_client_revision\": \"a0ee5d99f1d4b38ddaa4c759c837980b63b99566\", @@@",
+      "@@@STEP_LOG_LINE@json.output@    \"got_swarming_client_revision_cp\": \"refs/heads/master@{#276089}\", @@@",
+      "@@@STEP_LOG_LINE@json.output@    \"got_v8_revision\": \"801ada225ddc271c132c3a35f03975671d43e399\", @@@",
+      "@@@STEP_LOG_LINE@json.output@    \"got_v8_revision_cp\": \"refs/heads/master@{#43426}\", @@@",
+      "@@@STEP_LOG_LINE@json.output@    \"got_webrtc_revision\": \"0f90628433546e61d9268596da93418c623137f4\", @@@",
+      "@@@STEP_LOG_LINE@json.output@    \"got_webrtc_revision_cp\": \"refs/heads/master@{#120644}\"@@@",
+      "@@@STEP_LOG_LINE@json.output@  }, @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"root\": \"src\", @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"step_text\": \"Some step text\"@@@",
+      "@@@STEP_LOG_LINE@json.output@}@@@",
+      "@@@STEP_LOG_END@json.output@@@",
+      "@@@SET_BUILD_PROPERTY@got_nacl_revision@\"d998e125e8253980d76e269b7982aeeefc1b9b50\"@@@",
+      "@@@SET_BUILD_PROPERTY@got_swarming_client_revision@\"a0ee5d99f1d4b38ddaa4c759c837980b63b99566\"@@@",
+      "@@@SET_BUILD_PROPERTY@got_webrtc_revision@\"0f90628433546e61d9268596da93418c623137f4\"@@@",
+      "@@@SET_BUILD_PROPERTY@got_revision@\"f27fede2220bcd326aee3e86ddfd4ebd0fe58cb9\"@@@",
+      "@@@SET_BUILD_PROPERTY@got_nacl_revision_cp@\"refs/heads/master@{#274981}\"@@@",
+      "@@@SET_BUILD_PROPERTY@got_angle_revision@\"fac9503c46405f77757b9a728eb85b8d7bc6080c\"@@@",
+      "@@@SET_BUILD_PROPERTY@got_v8_revision@\"801ada225ddc271c132c3a35f03975671d43e399\"@@@",
+      "@@@SET_BUILD_PROPERTY@got_v8_revision_cp@\"refs/heads/master@{#43426}\"@@@",
+      "@@@SET_BUILD_PROPERTY@got_swarming_client_revision_cp@\"refs/heads/master@{#276089}\"@@@",
+      "@@@SET_BUILD_PROPERTY@got_webrtc_revision_cp@\"refs/heads/master@{#120644}\"@@@",
+      "@@@SET_BUILD_PROPERTY@got_revision_cp@\"refs/heads/master@{#170242}\"@@@",
+      "@@@SET_BUILD_PROPERTY@got_angle_revision_cp@\"refs/heads/master@{#297276}\"@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "\nimport os, sys\nfrom common import chromium_utils\n\nif os.path.exists(sys.argv[1]):\n  chromium_utils.RemoveDirectory(sys.argv[1])\n",
+      "[SLAVE_BUILD]/src/third_party/llvm-build"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "rmtree llvm-build",
+    "~followup_annotations": [
+      "@@@STEP_LOG_LINE@python.inline@@@@",
+      "@@@STEP_LOG_LINE@python.inline@import os, sys@@@",
+      "@@@STEP_LOG_LINE@python.inline@from common import chromium_utils@@@",
+      "@@@STEP_LOG_LINE@python.inline@@@@",
+      "@@@STEP_LOG_LINE@python.inline@if os.path.exists(sys.argv[1]):@@@",
+      "@@@STEP_LOG_LINE@python.inline@  chromium_utils.RemoveDirectory(sys.argv[1])@@@",
+      "@@@STEP_LOG_END@python.inline@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[DEPOT_TOOLS]/gclient.py",
+      "runhooks"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "env": {
+      "GYP_CROSSCOMPILE": "1",
+      "GYP_DEFINES": "chromeos=1 clang=1 component=shared_library fastbuild=1 ffmpeg_branding=ChromeOS gomadir='[BUILD]/goma' proprietary_codecs=1 target_arch=x64 use_goma=1 use_ozone=1"
+    },
+    "name": "gclient runhooks for chromeos"
+  },
+  {
+    "cmd": [
+      "ninja",
+      "-C",
+      "[SLAVE_BUILD]/src/out/Debug",
+      "all",
+      "-t",
+      "compdb",
+      "cc",
+      "cxx",
+      "objc",
+      "objcxx"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "generate compilation database for chromeos",
+    "stdout": "/path/to/tmp/"
+  },
+  {
+    "allow_subannotations": true,
+    "cmd": [
+      "python",
+      "-u",
+      "[BUILD]/scripts/slave/clang_revision.py",
+      "--src-dir",
+      "[SLAVE_BUILD]/src",
+      "--output-json",
+      "/path/to/tmp/json"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "clang_revision",
+    "~followup_annotations": [
+      "@@@STEP_LOG_LINE@json.output@{@@@",
+      "@@@STEP_LOG_LINE@json.output@  \"clang_revision\": \"123456-7\"@@@",
+      "@@@STEP_LOG_LINE@json.output@}@@@",
+      "@@@STEP_LOG_END@json.output@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[BUILD]/scripts/slave/compile.py",
+      "--target",
+      "Debug",
+      "--src-dir",
+      "[SLAVE_BUILD]/src",
+      "--build-tool",
+      "ninja",
+      "--compiler",
+      "goma-clang",
+      "--goma-jsonstatus",
+      "/path/to/tmp/json",
+      "--goma-dir",
+      "[BUILD]/goma",
+      "--",
+      "all"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "compile",
+    "~followup_annotations": [
+      "@@@STEP_LOG_LINE@json.output (invalid)@null@@@",
+      "@@@STEP_LOG_END@json.output (invalid)@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "cp",
+      "some compilation data",
+      "[SLAVE_BUILD]/src/out/Debug/compile_commands.json"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "copy compilation database"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[DEPOT_TOOLS]/gclient.py",
+      "runhooks"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "env": {
+      "GYP_DEFINES": "clang=1 component=shared_library fastbuild=1 gomadir='[BUILD]/goma' target_arch=x64 use_goma=1"
+    },
+    "name": "gclient runhooks for linux"
+  },
+  {
+    "cmd": [
+      "ninja",
+      "-C",
+      "[SLAVE_BUILD]/src/out/Debug",
+      "all",
+      "-t",
+      "compdb",
+      "cc",
+      "cxx",
+      "objc",
+      "objcxx"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "generate compilation database for linux",
+    "stdout": "/path/to/tmp/"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[BUILD]/scripts/slave/chromium/filter_compilations.py",
+      "--compdb-input",
+      "[SLAVE_BUILD]/src/out/Debug/compile_commands.json",
+      "--compdb-filter",
+      "some compilation data",
+      "--compdb-output",
+      "[SLAVE_BUILD]/src/out/Debug/compile_commands.json"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "Filter out duplicate compilation units"
+  },
+  {
+    "cmd": [
+      "tools/clang/scripts/update.sh",
+      "--force-local-build",
+      "--without-android",
+      "--with-chrome-tools",
+      "translation_unit"
+    ],
+    "cwd": "[SLAVE_BUILD]/src",
+    "name": "compile translation_unit clang tool"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[SLAVE_BUILD]/src/tools/clang/scripts/run_tool.py",
+      "[SLAVE_BUILD]/src/third_party/llvm-build/Release+Asserts/bin/translation_unit",
+      "[SLAVE_BUILD]/src/out/Debug",
+      "--all"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "run translation_unit clang tool"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[BUILD]/scripts/slave/chromium/package_index.py",
+      "--path-to-compdb",
+      "[SLAVE_BUILD]/src/out/Debug/compile_commands.json",
+      "--path-to-archive-output",
+      "[SLAVE_BUILD]/src/out/Debug/index_pack_chromeos.zip"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "create index pack"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "RECIPE_MODULE[gsutil]/resources/gsutil_wrapper.py",
+      "--",
+      "[DEPOT_TOOLS]/gsutil.py",
+      "----",
+      "cp",
+      "[SLAVE_BUILD]/src/out/Debug/index_pack_chromeos.zip",
+      "gs://chrome-codesearch/prod/index_pack_chromeos_170242.zip"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "gsutil upload index pack",
+    "~followup_annotations": [
+      "@@@STEP_LINK@gsutil.upload@https://storage.cloud.google.com/chrome-codesearch/prod/index_pack_chromeos_170242.zip@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[BUILD]/scripts/slave/archive_source_codesearch.py",
+      "src",
+      "build",
+      "infra",
+      "tools",
+      "/usr/include",
+      "-f",
+      "chromium_src_chromeos.tar.bz2"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "archive source"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "RECIPE_MODULE[gsutil]/resources/gsutil_wrapper.py",
+      "--",
+      "[DEPOT_TOOLS]/gsutil.py",
+      "----",
+      "cp",
+      "[SLAVE_BUILD]/chromium_src_chromeos.tar.bz2",
+      "gs://chrome-codesearch/prod/chromium_src_chromeos_170242.tar.bz2"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "gsutil upload source tarball",
+    "~followup_annotations": [
+      "@@@STEP_LINK@gsutil.upload@https://storage.cloud.google.com/chrome-codesearch/prod/chromium_src_chromeos_170242.tar.bz2@@@"
+    ]
+  },
+  {
+    "name": "$result",
+    "recipe_result": null,
+    "status_code": 0
+  }
+]

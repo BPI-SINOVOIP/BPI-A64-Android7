@@ -20,8 +20,8 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.view.ActionProvider;
-import android.support.v7.media.MediaRouter;
 import android.support.v7.media.MediaRouteSelector;
+import android.support.v7.media.MediaRouter;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -256,7 +256,7 @@ public class MediaRouteActionProvider extends ActionProvider {
         mButton.setDialogFactory(mDialogFactory);
         mButton.setLayoutParams(new ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.FILL_PARENT));
+                ViewGroup.LayoutParams.MATCH_PARENT));
         return mButton;
     }
 
@@ -279,7 +279,7 @@ public class MediaRouteActionProvider extends ActionProvider {
                 MediaRouter.AVAILABILITY_FLAG_IGNORE_DEFAULT_ROUTE);
     }
 
-    private void refreshRoute() {
+    void refreshRoute() {
         refreshVisibility();
     }
 

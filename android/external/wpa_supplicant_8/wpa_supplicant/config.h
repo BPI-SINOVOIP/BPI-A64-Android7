@@ -811,6 +811,19 @@ struct wpa_config {
 	 */
 	unsigned int bss_expiration_scan_count;
 
+	#ifdef ENABLE_XR_CHANGES
+	#ifdef CONFIG_AP
+	/**
+	 * wmm_enabled - Enable WMM for SofAP
+	 */
+	int wmm_enabled;
+
+	/**
+	 * uapsd_enabled - Enable UAPSD for SofAP
+	 */
+	int uapsd_enabled;
+	#endif /* CONFIG_AP */
+	#endif /* ENABLE_XR_CHANGES */
 	/**
 	 * filter_ssids - SSID-based scan result filtering
 	 *

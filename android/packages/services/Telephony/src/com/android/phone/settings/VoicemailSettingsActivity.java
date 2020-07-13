@@ -30,25 +30,24 @@ import android.preference.PreferenceActivity;
 import android.preference.PreferenceScreen;
 import android.preference.SwitchPreference;
 import android.provider.ContactsContract.CommonDataKinds;
-import android.telephony.TelephonyManager;
+import android.telecom.PhoneAccountHandle;
 import android.text.BidiFormatter;
 import android.text.TextDirectionHeuristics;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.MenuItem;
 import android.widget.ListAdapter;
-
 import com.android.internal.telephony.CallForwardInfo;
 import com.android.internal.telephony.Phone;
 import com.android.internal.telephony.PhoneConstants;
-import com.android.phone.R;
 import com.android.phone.EditPhoneNumberPreference;
 import com.android.phone.PhoneGlobals;
 import com.android.phone.PhoneUtils;
+import com.android.phone.R;
 import com.android.phone.SubscriptionInfoHelper;
+import com.android.phone.vvm.omtp.OmtpConstants;
 import com.android.phone.vvm.omtp.OmtpVvmCarrierConfigHelper;
-import com.android.phone.vvm.omtp.sync.OmtpVvmSourceManager;
-
+import com.android.phone.vvm.omtp.VisualVoicemailPreferences;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -59,7 +58,8 @@ public class VoicemailSettingsActivity extends PreferenceActivity
         implements DialogInterface.OnClickListener,
                 Preference.OnPreferenceChangeListener,
                 EditPhoneNumberPreference.OnDialogClosedListener,
-                EditPhoneNumberPreference.GetDefaultNumberListener {
+                EditPhoneNumberPreference.GetDefaultNumberListener,
+                VoicemailRingtonePreference.VoicemailRingtoneNameChangeListener {
     private static final String LOG_TAG = VoicemailSettingsActivity.class.getSimpleName();
     private static final boolean DBG = (PhoneGlobals.DBG_LEVEL >= 2);
 
@@ -186,6 +186,8 @@ public class VoicemailSettingsActivity extends PreferenceActivity
     private CallForwardInfo[] mNewFwdSettings;
     private String mNewVMNumber;
 
+    private CharSequence mOldVmRingtoneName = "";
+
     /**
      * Used to indicate that the voicemail preference should be shown.
      */
@@ -193,6 +195,7 @@ public class VoicemailSettingsActivity extends PreferenceActivity
 
     private boolean mForeground;
     private Phone mPhone;
+    private PhoneAccountHandle mPhoneAccountHandle;
     private SubscriptionInfoHelper mSubscriptionInfoHelper;
     private OmtpVvmCarrierConfigHelper mOmtpVvmCarrierConfigHelper;
 
@@ -202,7 +205,7 @@ public class VoicemailSettingsActivity extends PreferenceActivity
     private VoicemailRingtonePreference mVoicemailNotificationRingtone;
     private CheckBoxPreference mVoicemailNotificationVibrate;
     private SwitchPreference mVoicemailVisualVoicemail;
-
+    private Preference mVoicemailChangePinPreference;
 
     //*********************************************************************************************
     // Preference Activity Methods
@@ -221,6 +224,7 @@ public class VoicemailSettingsActivity extends PreferenceActivity
         mSubscriptionInfoHelper.setActionBarTitle(
                 getActionBar(), getResources(), R.string.voicemail_settings_with_label);
         mPhone = mSubscriptionInfoHelper.getPhone();
+        mPhoneAccountHandle = PhoneUtils.makePstnPhoneAccountHandle(mPhone);
         mOmtpVvmCarrierConfigHelper = new OmtpVvmCarrierConfigHelper(
                 mPhone.getContext(), mPhone.getSubId());
     }
@@ -253,7 +257,8 @@ public class VoicemailSettingsActivity extends PreferenceActivity
 
         mVoicemailNotificationRingtone = (VoicemailRingtonePreference) findPreference(
                 getResources().getString(R.string.voicemail_notification_ringtone_key));
-        mVoicemailNotificationRingtone.init(mPhone);
+        mVoicemailNotificationRingtone.setVoicemailRingtoneNameChangeListener(this);
+        mVoicemailNotificationRingtone.init(mPhone, mOldVmRingtoneName);
 
         mVoicemailNotificationVibrate = (CheckBoxPreference) findPreference(
                 getResources().getString(R.string.voicemail_notification_vibrate_key));
@@ -261,13 +266,30 @@ public class VoicemailSettingsActivity extends PreferenceActivity
 
         mVoicemailVisualVoicemail = (SwitchPreference) findPreference(
                 getResources().getString(R.string.voicemail_visual_voicemail_key));
-        if (TelephonyManager.VVM_TYPE_OMTP.equals(mOmtpVvmCarrierConfigHelper.getVvmType()) ||
-                TelephonyManager.VVM_TYPE_CVVM.equals(mOmtpVvmCarrierConfigHelper.getVvmType())) {
+
+        mVoicemailChangePinPreference = findPreference(
+                getResources().getString(R.string.voicemail_change_pin_key));
+        Intent changePinIntent = new Intent(new Intent(this, VoicemailChangePinActivity.class));
+        changePinIntent.putExtra(VoicemailChangePinActivity.EXTRA_PHONE_ACCOUNT_HANDLE,
+                mPhoneAccountHandle);
+
+        mVoicemailChangePinPreference.setIntent(changePinIntent);
+        if (VoicemailChangePinActivity.isDefaultOldPinSet(this, mPhoneAccountHandle)) {
+            mVoicemailChangePinPreference.setTitle(R.string.voicemail_set_pin_dialog_title);
+        } else {
+            mVoicemailChangePinPreference.setTitle(R.string.voicemail_change_pin_dialog_title);
+        }
+
+        if (mOmtpVvmCarrierConfigHelper.isValid()) {
             mVoicemailVisualVoicemail.setOnPreferenceChangeListener(this);
             mVoicemailVisualVoicemail.setChecked(
-                    VisualVoicemailSettingsUtil.isVisualVoicemailEnabled(mPhone));
+                    VisualVoicemailSettingsUtil.isEnabled(this, mPhoneAccountHandle));
+            if (!isVisualVoicemailActivated()) {
+                prefSet.removePreference(mVoicemailChangePinPreference);
+            }
         } else {
             prefSet.removePreference(mVoicemailVisualVoicemail);
+            prefSet.removePreference(mVoicemailChangePinPreference);
         }
 
         updateVMPreferenceWidgets(mVoicemailProviders.getValue());
@@ -389,14 +411,14 @@ public class VoicemailSettingsActivity extends PreferenceActivity
             VoicemailNotificationSettingsUtil.setVibrationEnabled(
                     mPhone, Boolean.TRUE.equals(objValue));
         } else if (preference.getKey().equals(mVoicemailVisualVoicemail.getKey())) {
-            boolean isEnabled = (Boolean) objValue;
-            VisualVoicemailSettingsUtil.setVisualVoicemailEnabled(mPhone, isEnabled, true);
-            if (isEnabled) {
-                OmtpVvmSourceManager.getInstance(mPhone.getContext()).addPhoneStateListener(mPhone);
-                mOmtpVvmCarrierConfigHelper.startActivation();
+            boolean isEnabled = (boolean) objValue;
+            VisualVoicemailSettingsUtil
+                    .setEnabled(mPhone.getContext(), mPhoneAccountHandle, isEnabled);
+            PreferenceScreen prefSet = getPreferenceScreen();
+            if (isVisualVoicemailActivated()) {
+                prefSet.addPreference(mVoicemailChangePinPreference);
             } else {
-                OmtpVvmSourceManager.getInstance(mPhone.getContext()).removeSource(mPhone);
-                mOmtpVvmCarrierConfigHelper.startDeactivation();
+                prefSet.removePreference(mVoicemailChangePinPreference);
             }
         }
 
@@ -525,6 +547,11 @@ public class VoicemailSettingsActivity extends PreferenceActivity
         }
 
         super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    @Override
+    public void onVoicemailRingtoneNameChanged(CharSequence name) {
+        mOldVmRingtoneName = name;
     }
 
     /**
@@ -1126,6 +1153,16 @@ public class VoicemailSettingsActivity extends PreferenceActivity
             return false;
         }
         return true;
+    }
+
+    private boolean isVisualVoicemailActivated() {
+        if (!VisualVoicemailSettingsUtil.isEnabled(this, mPhoneAccountHandle)) {
+            return false;
+        }
+        VisualVoicemailPreferences preferences = new VisualVoicemailPreferences(this,
+                mPhoneAccountHandle);
+        return preferences.getString(OmtpConstants.SERVER_ADDRESS, null) != null;
+
     }
 
     private static void log(String msg) {

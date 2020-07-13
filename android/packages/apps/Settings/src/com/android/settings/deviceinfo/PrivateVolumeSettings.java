@@ -37,6 +37,7 @@ import android.os.storage.StorageManager;
 import android.os.storage.VolumeInfo;
 import android.os.storage.VolumeRecord;
 import android.provider.DocumentsContract;
+import android.provider.Settings;
 import android.support.v7.preference.Preference;
 import android.support.v7.preference.PreferenceCategory;
 import android.support.v7.preference.PreferenceGroup;
@@ -58,6 +59,7 @@ import com.android.settings.Settings.StorageUseActivity;
 import com.android.settings.SettingsPreferenceFragment;
 import com.android.settings.Utils;
 import com.android.settings.applications.ManageApplications;
+import com.android.settings.deletionhelper.AutomaticStorageManagerSettings;
 import com.android.settings.deviceinfo.StorageSettings.MountTask;
 import com.android.settingslib.deviceinfo.StorageMeasurement;
 import com.android.settingslib.deviceinfo.StorageMeasurement.MeasurementDetails;
@@ -69,8 +71,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
-import static com.android.settings.deviceinfo.StorageSettings.TAG;
-
 /**
  * Panel showing summary and actions for a {@link VolumeInfo#TYPE_PRIVATE}
  * storage volume.
@@ -79,15 +79,22 @@ public class PrivateVolumeSettings extends SettingsPreferenceFragment {
     // TODO: disable unmount when providing over MTP/PTP
     // TODO: warn when mounted read-only
 
+    private static final String TAG = "PrivateVolumeSettings";
+    private static final boolean LOGV = false;
+
     private static final String TAG_RENAME = "rename";
     private static final String TAG_OTHER_INFO = "otherInfo";
+    private static final String TAG_SYSTEM_INFO = "systemInfo";
     private static final String TAG_USER_INFO = "userInfo";
     private static final String TAG_CONFIRM_CLEAR_CACHE = "confirmClearCache";
+
+    private static final String EXTRA_VOLUME_SIZE = "volume_size";
 
     private static final String AUTHORITY_MEDIA = "com.android.providers.media.documents";
 
     private static final int[] ITEMS_NO_SHOW_SHARED = new int[] {
             R.string.storage_detail_apps,
+            R.string.storage_detail_system,
     };
 
     private static final int[] ITEMS_SHOW_SHARED = new int[] {
@@ -95,8 +102,12 @@ public class PrivateVolumeSettings extends SettingsPreferenceFragment {
             R.string.storage_detail_images,
             R.string.storage_detail_videos,
             R.string.storage_detail_audio,
-            R.string.storage_detail_other
+            R.string.storage_detail_system,
+            R.string.storage_detail_other,
     };
+
+    private static final int DELETION_HELPER_SETTINGS = 1;
+    private static final int DELETION_HELPER_CLEAR = 1;
 
     private StorageManager mStorageManager;
     private UserManager mUserManager;
@@ -104,6 +115,8 @@ public class PrivateVolumeSettings extends SettingsPreferenceFragment {
     private String mVolumeId;
     private VolumeInfo mVolume;
     private VolumeInfo mSharedVolume;
+    private long mTotalSize;
+    private long mSystemSize;
 
     private StorageMeasurement mMeasure;
 
@@ -116,6 +129,7 @@ public class PrivateVolumeSettings extends SettingsPreferenceFragment {
     private int mItemPoolIndex;
 
     private Preference mExplore;
+    private Preference mAutomaticStorageManagement;
 
     private boolean mNeedsUpdate;
 
@@ -145,6 +159,17 @@ public class PrivateVolumeSettings extends SettingsPreferenceFragment {
         mVolumeId = getArguments().getString(VolumeInfo.EXTRA_VOLUME_ID);
         mVolume = mStorageManager.findVolumeById(mVolumeId);
 
+        final long sharedDataSize = mVolume.getPath().getTotalSpace();
+        mTotalSize = getArguments().getLong(EXTRA_VOLUME_SIZE, 0);
+        mSystemSize = mTotalSize - sharedDataSize;
+        if (LOGV) Log.v(TAG,
+                "onCreate() mTotalSize: " + mTotalSize + " sharedDataSize: " + sharedDataSize);
+
+        if (mTotalSize <= 0) {
+            mTotalSize = sharedDataSize;
+            mSystemSize = 0;
+        }
+
         // Find the emulated shared storage layered above this private volume
         mSharedVolume = mStorageManager.findEmulatedForPrivate(mVolume);
 
@@ -163,6 +188,7 @@ public class PrivateVolumeSettings extends SettingsPreferenceFragment {
         mCurrentUser = mUserManager.getUserInfo(UserHandle.myUserId());
 
         mExplore = buildAction(R.string.storage_menu_explore);
+        mAutomaticStorageManagement = buildAction(R.string.storage_menu_manage);
 
         mNeedsUpdate = true;
 
@@ -189,6 +215,9 @@ public class PrivateVolumeSettings extends SettingsPreferenceFragment {
 
         screen.removeAll();
 
+        if (getResources().getBoolean(R.bool.config_storage_manager_settings_enabled)) {
+            addPreference(screen, mAutomaticStorageManagement);
+        }
         addPreference(screen, mSummary);
 
         List<UserInfo> allUsers = mUserManager.getUsers();
@@ -229,17 +258,17 @@ public class PrivateVolumeSettings extends SettingsPreferenceFragment {
             addPreference(screen, mExplore);
         }
 
-        final File file = mVolume.getPath();
-        final long totalBytes = file.getTotalSpace();
-        final long freeBytes = file.getFreeSpace();
-        final long usedBytes = totalBytes - freeBytes;
+        final long freeBytes = mVolume.getPath().getFreeSpace();
+        final long usedBytes = mTotalSize - freeBytes;
+
+        if (LOGV) Log.v(TAG, "update() freeBytes: " + freeBytes + " usedBytes: " + usedBytes);
 
         final BytesResult result = Formatter.formatBytes(getResources(), usedBytes, 0);
         mSummary.setTitle(TextUtils.expandTemplate(getText(R.string.storage_size_large),
                 result.value, result.units));
         mSummary.setSummary(getString(R.string.storage_volume_used,
-                Formatter.formatFileSize(context, totalBytes)));
-        mSummary.setPercent((int) ((usedBytes * 100) / totalBytes));
+                Formatter.formatFileSize(context, mTotalSize)));
+        mSummary.setPercent((int) ((usedBytes * 100) / mTotalSize));
 
         mMeasure.forceMeasure();
         mNeedsUpdate = false;
@@ -274,6 +303,16 @@ public class PrivateVolumeSettings extends SettingsPreferenceFragment {
     }
 
     private void addItem(PreferenceGroup group, int titleRes, CharSequence title, int userId) {
+        if (titleRes == R.string.storage_detail_system) {
+            if (mSystemSize <= 0) {
+                Log.w(TAG, "Skipping System storage because its size is " + mSystemSize);
+                return;
+            }
+            if (userId != UserHandle.myUserId()) {
+                // Only display system on current user.
+                return;
+            }
+        }
         StorageItemPreference item;
         if (mItemPoolIndex < mItemPreferencePool.size()) {
             item = mItemPreferencePool.get(mItemPoolIndex);
@@ -304,6 +343,10 @@ public class PrivateVolumeSettings extends SettingsPreferenceFragment {
         pref.setTitle(titleRes);
         pref.setKey(Integer.toString(titleRes));
         return pref;
+    }
+
+    static void setVolumeSize(Bundle args, long size) {
+        args.putLong(EXTRA_VOLUME_SIZE, size);
     }
 
     @Override
@@ -355,6 +398,7 @@ public class PrivateVolumeSettings extends SettingsPreferenceFragment {
         final MenuItem unmount = menu.findItem(R.id.storage_unmount);
         final MenuItem format = menu.findItem(R.id.storage_format);
         final MenuItem migrate = menu.findItem(R.id.storage_migrate);
+        final MenuItem manage = menu.findItem(R.id.storage_free);
 
         // Actions live in menu for non-internal private volumes; they're shown
         // as preference items for public volumes.
@@ -363,11 +407,14 @@ public class PrivateVolumeSettings extends SettingsPreferenceFragment {
             mount.setVisible(false);
             unmount.setVisible(false);
             format.setVisible(false);
+            manage.setVisible(getResources().getBoolean(
+                    R.bool.config_storage_manager_settings_enabled));
         } else {
             rename.setVisible(mVolume.getType() == VolumeInfo.TYPE_PRIVATE);
             mount.setVisible(mVolume.getState() == VolumeInfo.STATE_UNMOUNTED);
             unmount.setVisible(mVolume.isMountedReadable());
             format.setVisible(true);
+            manage.setVisible(false);
         }
 
         format.setTitle(R.string.storage_menu_format_public);
@@ -406,6 +453,11 @@ public class PrivateVolumeSettings extends SettingsPreferenceFragment {
                 intent.putExtra(VolumeInfo.EXTRA_VOLUME_ID, mVolume.getId());
                 startActivity(intent);
                 return true;
+            case R.id.storage_free:
+                final Intent deletion_helper_intent =
+                        new Intent(StorageManager.ACTION_MANAGE_STORAGE);
+                startActivity(deletion_helper_intent);
+                return true;
         }
         return super.onOptionsItemSelected(item);
     }
@@ -415,7 +467,7 @@ public class PrivateVolumeSettings extends SettingsPreferenceFragment {
         // TODO: launch better intents for specific volume
 
         final int userId = (pref instanceof StorageItemPreference ?
-                ((StorageItemPreference)pref).userHandle : -1);
+                ((StorageItemPreference) pref).userHandle : -1);
         int itemTitleId;
         try {
             itemTitleId = Integer.parseInt(pref.getKey());
@@ -453,9 +505,14 @@ public class PrivateVolumeSettings extends SettingsPreferenceFragment {
                 intent.addCategory(Intent.CATEGORY_DEFAULT);
 
             } break;
+            case R.string.storage_detail_system: {
+                SystemInfoFragment.show(this);
+                return true;
+
+            }
             case R.string.storage_detail_other: {
                 OtherInfoFragment.show(this, mStorageManager.getBestVolumeDescription(mVolume),
-                        mSharedVolume);
+                        mSharedVolume, userId);
                 return true;
 
             }
@@ -467,6 +524,11 @@ public class PrivateVolumeSettings extends SettingsPreferenceFragment {
             case R.string.storage_menu_explore: {
                 intent = mSharedVolume.buildBrowseIntent();
             } break;
+            case R.string.storage_menu_manage: {
+                startFragment(this, AutomaticStorageManagerSettings.class.getCanonicalName(),
+                        R.string.automatic_storage_manager_settings, 0, null);
+                return true;
+            }
             case 0: {
                 UserInfoFragment.show(this, pref.getTitle(), pref.getSummary());
                 return true;
@@ -474,15 +536,9 @@ public class PrivateVolumeSettings extends SettingsPreferenceFragment {
         }
 
         if (intent != null) {
-            try {
-                if (userId == -1) {
-                    startActivity(intent);
-                } else {
-                    getActivity().startActivityAsUser(intent, new UserHandle(userId));
-                }
-            } catch (ActivityNotFoundException e) {
-                Log.w(TAG, "No activity found for " + intent);
-            }
+            intent.putExtra(Intent.EXTRA_USER_ID, userId);
+
+            launchIntent(this, intent);
             return true;
         }
         return super.onPreferenceTreeClick(pref);
@@ -496,6 +552,11 @@ public class PrivateVolumeSettings extends SettingsPreferenceFragment {
     };
 
     private void updateDetails(MeasurementDetails details) {
+        StorageItemPreference otherItem = null;
+        long accountedSize = 0;
+        long totalMiscSize = 0;
+        long totalDownloadsSize = 0;
+
         for (int i = 0; i < mItemPoolIndex; ++i) {
             StorageItemPreference item = mItemPreferencePool.get(i);
             final int userId = item.userHandle;
@@ -506,19 +567,33 @@ public class PrivateVolumeSettings extends SettingsPreferenceFragment {
                 itemTitleId = 0;
             }
             switch (itemTitleId) {
+                case R.string.storage_detail_system: {
+                    updatePreference(item, mSystemSize);
+                    accountedSize += mSystemSize;
+                    if (LOGV) Log.v(TAG, "mSystemSize: " + mSystemSize
+                            + " accountedSize: " + accountedSize);
+                } break;
                 case R.string.storage_detail_apps: {
                     updatePreference(item, details.appsSize.get(userId));
+                    accountedSize += details.appsSize.get(userId);
+                    if (LOGV) Log.v(TAG, "appsSize: " + details.appsSize.get(userId)
+                            + " accountedSize: " + accountedSize);
                 } break;
                 case R.string.storage_detail_images: {
                     final long imagesSize = totalValues(details, userId,
-                            Environment.DIRECTORY_DCIM, Environment.DIRECTORY_MOVIES,
-                            Environment.DIRECTORY_PICTURES);
+                            Environment.DIRECTORY_DCIM, Environment.DIRECTORY_PICTURES);
                     updatePreference(item, imagesSize);
+                    accountedSize += imagesSize;
+                    if (LOGV) Log.v(TAG, "imagesSize: " + imagesSize
+                            + " accountedSize: " + accountedSize);
                 } break;
                 case R.string.storage_detail_videos: {
                     final long videosSize = totalValues(details, userId,
                             Environment.DIRECTORY_MOVIES);
                     updatePreference(item, videosSize);
+                    accountedSize += videosSize;
+                    if (LOGV) Log.v(TAG, "videosSize: " + videosSize
+                            + " accountedSize: " + accountedSize);
                 } break;
                 case R.string.storage_detail_audio: {
                     final long audioSize = totalValues(details, userId,
@@ -526,23 +601,58 @@ public class PrivateVolumeSettings extends SettingsPreferenceFragment {
                             Environment.DIRECTORY_ALARMS, Environment.DIRECTORY_NOTIFICATIONS,
                             Environment.DIRECTORY_RINGTONES, Environment.DIRECTORY_PODCASTS);
                     updatePreference(item, audioSize);
+                    accountedSize += audioSize;
+                    if (LOGV) Log.v(TAG, "audioSize: " + audioSize
+                            + " accountedSize: " + accountedSize);
                 } break;
                 case R.string.storage_detail_other: {
-                    updatePreference(item, details.miscSize.get(userId));
+                    final long downloadsSize = totalValues(details, userId,
+                            Environment.DIRECTORY_DOWNLOADS);
+                    final long miscSize = details.miscSize.get(userId);
+                    totalDownloadsSize += downloadsSize;
+                    totalMiscSize += miscSize;
+                    accountedSize += miscSize + downloadsSize;
+
+                    if (LOGV)
+                        Log.v(TAG, "miscSize for " + userId + ": " + miscSize + "(total: "
+                                + totalMiscSize + ") \ndownloadsSize: " + downloadsSize + "(total: "
+                                + totalDownloadsSize + ") accountedSize: " + accountedSize);
+
+                    // Cannot display 'Other' until all known items are accounted for.
+                    otherItem = item;
                 } break;
                 case R.string.storage_detail_cached: {
                     updatePreference(item, details.cacheSize);
+                    accountedSize += details.cacheSize;
+                    if (LOGV)
+                        Log.v(TAG, "cacheSize: " + details.cacheSize + " accountedSize: "
+                                + accountedSize);
                 } break;
                 case 0: {
                     final long userSize = details.usersSize.get(userId);
                     updatePreference(item, userSize);
+                    accountedSize += userSize;
+                    if (LOGV) Log.v(TAG, "userSize: " + userSize
+                            + " accountedSize: " + accountedSize);
                 } break;
             }
+        }
+        if (otherItem != null) {
+            final long usedSize = mTotalSize - details.availSize;
+            final long unaccountedSize = usedSize - accountedSize;
+            final long otherSize = totalMiscSize + totalDownloadsSize + unaccountedSize;
+            if (LOGV)
+                Log.v(TAG, "Other items: \n\tmTotalSize: " + mTotalSize + " availSize: "
+                        + details.availSize + " usedSize: " + usedSize + "\n\taccountedSize: "
+                        + accountedSize + " unaccountedSize size: " + unaccountedSize
+                        + "\n\ttotalMiscSize: " + totalMiscSize + " totalDownloadsSize: "
+                        + totalDownloadsSize + "\n\tdetails: " + details);
+            updatePreference(otherItem, otherSize);
         }
     }
 
     private void updatePreference(StorageItemPreference pref, long size) {
-        pref.setStorageSize(size, mVolume.getPath().getTotalSpace());
+        pref.setStorageSize(size, mTotalSize);
     }
 
     private boolean isProfileOf(UserInfo user, UserInfo profile) {
@@ -564,6 +674,20 @@ public class PrivateVolumeSettings extends SettingsPreferenceFragment {
             Log.w(TAG, "MeasurementDetails mediaSize array does not have key for user " + userId);
         }
         return total;
+    }
+
+    private static void launchIntent(Fragment fragment, Intent intent) {
+        try {
+            final int userId = intent.getIntExtra(Intent.EXTRA_USER_ID, -1);
+
+            if (userId == -1) {
+                fragment.startActivity(intent);
+            } else {
+                fragment.getActivity().startActivityAsUser(intent, new UserHandle(userId));
+            }
+        } catch (ActivityNotFoundException e) {
+            Log.w(TAG, "No activity found for " + intent);
+        }
     }
 
     private final StorageEventListener mStorageListener = new StorageEventListener() {
@@ -633,15 +757,36 @@ public class PrivateVolumeSettings extends SettingsPreferenceFragment {
         }
     }
 
+    public static class SystemInfoFragment extends DialogFragment {
+        public static void show(Fragment parent) {
+            if (!parent.isAdded()) return;
+
+            final SystemInfoFragment dialog = new SystemInfoFragment();
+            dialog.setTargetFragment(parent, 0);
+            dialog.show(parent.getFragmentManager(), TAG_SYSTEM_INFO);
+        }
+
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            return new AlertDialog.Builder(getActivity())
+                    .setMessage(R.string.storage_detail_dialog_system)
+                    .setPositiveButton(android.R.string.ok, null)
+                    .create();
+        }
+    }
+
     public static class OtherInfoFragment extends DialogFragment {
-        public static void show(Fragment parent, String title, VolumeInfo sharedVol) {
+        public static void show(Fragment parent, String title, VolumeInfo sharedVol, int userId) {
             if (!parent.isAdded()) return;
 
             final OtherInfoFragment dialog = new OtherInfoFragment();
             dialog.setTargetFragment(parent, 0);
             final Bundle args = new Bundle();
             args.putString(Intent.EXTRA_TITLE, title);
-            args.putParcelable(Intent.EXTRA_INTENT, sharedVol.buildBrowseIntent());
+
+            final Intent intent = sharedVol.buildBrowseIntent();
+            intent.putExtra(Intent.EXTRA_USER_ID, userId);
+            args.putParcelable(Intent.EXTRA_INTENT, intent);
             dialog.setArguments(args);
             dialog.show(parent.getFragmentManager(), TAG_OTHER_INFO);
         }
@@ -661,7 +806,7 @@ public class PrivateVolumeSettings extends SettingsPreferenceFragment {
                     new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            startActivity(intent);
+                            launchIntent(OtherInfoFragment.this, intent);
                         }
                     });
             builder.setNegativeButton(android.R.string.cancel, null);

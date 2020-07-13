@@ -42,7 +42,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * A simple server.
- * @author Damon Kohler (damonkohler@gmail.com)
  */
 public abstract class SimpleServer {
   private static int threadIndex = 0;

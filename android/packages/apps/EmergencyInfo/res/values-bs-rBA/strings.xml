@@ -96,7 +96,8 @@
     <string name="user_emergency_info_title" msgid="7827058167207376581">"Informacije za hitne slučajeve"</string>
     <string name="user_emergency_info_consent" msgid="5636028073450797246">"Informacije koje ovdje unesete mogu pomoći osobama koje prve reagiraju u hitnom slučaju. Pohranjene su samo na vašem uređaju, ali ih svako može pročitati sa brojčane tastature za hitne slučajave, bez otključavanja telefona."</string>
     <string name="emergency_info_continue" msgid="5453201508537906087">"Nastavi"</string>
-    <string name="no_info_provided" msgid="6775035037534954056">"Nema informacija za hitne slučajeve."</string>
+    <string name="no_info_provided" msgid="716200382010821001">"Nema informacija o vlasniku telefona"</string>
+    <string name="tap_pencil" msgid="2723698054265296934">"Ako je ovo vaš telefon, dodirnite ikonu olovke da dodate informacije koje će se ovdje prikazati u hitnom slučaju"</string>
     <string name="clear_all" msgid="8899013032870561633">"Obriši sve"</string>
     <string name="clear" msgid="3648880442502887163">"Obriši"</string>
     <string name="clear_all_message" msgid="1548432000373861295">"Želite li obrisati sve informacije i kontakte?"</string>

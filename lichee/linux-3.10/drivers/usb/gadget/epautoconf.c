@@ -147,6 +147,27 @@ ep_matches (
 		if (!gadget_is_dualspeed(gadget) && max > 64)
 			return 0;
 		/* FALLTHROUGH */
+		/*
+		 * LIMITS:
+		 * full speed:		64 bytes
+		 * high/super speed:  1024 bytes
+		 * multiple transactions per microframe only for super speed
+		 */
+		if (max == 0) {
+			if (gadget_is_dualspeed(gadget))
+				desc->wMaxPacketSize = cpu_to_le16(1024);
+			else
+				desc->wMaxPacketSize = cpu_to_le16(64);
+		} else {
+			if (max > 1024)
+				return 0;
+			if (!gadget_is_superspeed(gadget))
+				if ((desc->wMaxPacketSize & cpu_to_le16(3<<11)))
+					return 0;
+			if (!gadget_is_dualspeed(gadget) && max > 64)
+				return 0;
+		}
+		break;
 
 	case USB_ENDPOINT_XFER_ISOC:
 		/* ISO:  limit 1023 bytes full speed, 1024 high/super speed */

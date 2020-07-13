@@ -379,6 +379,11 @@ OMX_ERRORTYPE OMXVideoDecoderVP9Hybrid::ProcessorProcess(
             // drain the last frame, keep the current input buffer
             res = mDecoderDecode(mCtx,mHybridCtx,NULL,0,true);
             retains[INPORT_INDEX] = BUFFER_RETAIN_GETAGAIN;
+        } else if (res == -3) {
+            LOGW("on2 decoder skipped to decode the frame.");
+            (*pBuffers[OUTPORT_INDEX])->nOffset = 0;
+            (*pBuffers[OUTPORT_INDEX])->nFilledLen = 0;
+            return OMX_ErrorNone;
         } else {
             LOGE("on2 decoder failed to decode frame.");
             return OMX_ErrorBadParameter;

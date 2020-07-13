@@ -38,12 +38,14 @@ import android.view.accessibility.AccessibilityNodeInfo.AccessibilityAction;
 import android.support.test.uiautomator.UiDevice;
 import android.support.test.uiautomator.UiObject;
 import android.support.test.uiautomator.UiObject2;
+import android.support.test.uiautomator.UiScrollable;
 import android.support.test.uiautomator.UiSelector;
 import android.util.ArrayMap;
 import android.util.Log;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.Switch;
+import android.widget.ScrollView;
 import junit.framework.Assert;
 import org.junit.Before;
 import org.junit.runner.RunWith;
@@ -128,6 +130,7 @@ public abstract class BasePermissionsTest {
 
     private Context mContext;
     private Resources mPlatformResources;
+    private boolean mWatch;
 
     protected static Instrumentation getInstrumentation() {
         return InstrumentationRegistry.getInstrumentation();
@@ -172,6 +175,8 @@ public abstract class BasePermissionsTest {
             /* cannot happen */
         }
 
+        mWatch = mContext.getPackageManager().hasSystemFeature(PackageManager.FEATURE_WATCH);
+
         UiObject2 button = getUiDevice().findObject(By.text("Close"));
         if (button != null) {
             button.click();
@@ -205,11 +210,13 @@ public abstract class BasePermissionsTest {
     }
 
     protected void clickAllowButton() throws Exception {
+        scrollToBottomIfWatch();
         getUiDevice().findObject(new UiSelector().resourceId(
                 "com.android.packageinstaller:id/permission_allow_button")).click();
     }
 
     protected void clickDenyButton() throws Exception {
+        scrollToBottomIfWatch();
         getUiDevice().findObject(new UiSelector().resourceId(
                 "com.android.packageinstaller:id/permission_deny_button")).click();
     }
@@ -220,6 +227,7 @@ public abstract class BasePermissionsTest {
     }
 
     protected void clickDontAskAgainButton() throws Exception {
+        scrollToBottomIfWatch();
         getUiDevice().findObject(new UiSelector().resourceId(
                 "com.android.packageinstaller:id/permission_deny_dont_ask_again_button")).click();
     }
@@ -238,6 +246,16 @@ public abstract class BasePermissionsTest {
 
     protected void revokePermissions(String[] permissions, boolean legacyApp) throws Exception {
         setPermissionGrantState(permissions, false, legacyApp);
+    }
+
+    private void scrollToBottomIfWatch() throws Exception {
+        if (mWatch) {
+            UiScrollable scrollable =
+                    new UiScrollable(new UiSelector().className(ScrollView.class));
+            if (scrollable.exists()) {
+                scrollable.flingToEnd(10);
+            }
+        }
     }
 
     private void setPermissionGrantState(String[] permissions, boolean granted,

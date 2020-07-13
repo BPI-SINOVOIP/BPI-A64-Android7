@@ -976,10 +976,6 @@ public class ExtendedCameraCharacteristicsTest extends AndroidTestCase {
                     !config.isOutputSupportedFor(ImageFormat.JPEG));
             }
 
-            // Legacy YUV formats should not be listed
-            assertTrue("NV21 must not be supported",
-                    !config.isOutputSupportedFor(ImageFormat.NV21));
-
             // Check RAW
 
             if (arrayContains(actualCapabilities,

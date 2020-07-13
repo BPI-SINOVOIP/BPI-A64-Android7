@@ -1,0 +1,440 @@
+[
+  {
+    "cmd": [
+      "git",
+      "update-ref",
+      "refs/heads/master",
+      "refs/remotes/origin/master"
+    ],
+    "cwd": "[TMP_BASE]/fake_checkout_tmp_1",
+    "name": "git update-ref"
+  },
+  {
+    "cmd": [
+      "git",
+      "checkout",
+      "master"
+    ],
+    "cwd": "[TMP_BASE]/fake_checkout_tmp_1",
+    "name": "git checkout"
+  },
+  {
+    "cmd": [
+      "echo",
+      "{\n  \"bad_revision\": \"314017\", \n  \"bug_id\": \"\", \n  \"builder_host\": \"master4.golo.chromium.org\", \n  \"builder_port\": \"8341\", \n  \"command\": \"src/tools/perf/run_benchmark -v --browser=release smoothness.tough_scrolling_cases\", \n  \"dummy_builds\": \"True\", \n  \"good_revision\": \"314015\", \n  \"gs_bucket\": \"chrome-perf\", \n  \"max_time_minutes\": \"5\", \n  \"metric\": \"mean_input_event_latency/mean_input_event_latency\", \n  \"recipe_tester_name\": \"linux_perf_tester\", \n  \"repeat_count\": \"2\", \n  \"skip_gclient_ops\": \"True\", \n  \"test_type\": \"perf\"\n}"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "config",
+    "~followup_annotations": [
+      "@@@STEP_LOG_LINE@Bisect job configuration@{@@@",
+      "@@@STEP_LOG_LINE@Bisect job configuration@  \"bad_revision\": \"314017\", @@@",
+      "@@@STEP_LOG_LINE@Bisect job configuration@  \"bug_id\": \"\", @@@",
+      "@@@STEP_LOG_LINE@Bisect job configuration@  \"builder_host\": \"master4.golo.chromium.org\", @@@",
+      "@@@STEP_LOG_LINE@Bisect job configuration@  \"builder_port\": \"8341\", @@@",
+      "@@@STEP_LOG_LINE@Bisect job configuration@  \"command\": \"src/tools/perf/run_benchmark -v --browser=release smoothness.tough_scrolling_cases\", @@@",
+      "@@@STEP_LOG_LINE@Bisect job configuration@  \"dummy_builds\": \"True\", @@@",
+      "@@@STEP_LOG_LINE@Bisect job configuration@  \"good_revision\": \"314015\", @@@",
+      "@@@STEP_LOG_LINE@Bisect job configuration@  \"gs_bucket\": \"chrome-perf\", @@@",
+      "@@@STEP_LOG_LINE@Bisect job configuration@  \"max_time_minutes\": \"5\", @@@",
+      "@@@STEP_LOG_LINE@Bisect job configuration@  \"metric\": \"mean_input_event_latency/mean_input_event_latency\", @@@",
+      "@@@STEP_LOG_LINE@Bisect job configuration@  \"recipe_tester_name\": \"linux_perf_tester\", @@@",
+      "@@@STEP_LOG_LINE@Bisect job configuration@  \"repeat_count\": \"2\", @@@",
+      "@@@STEP_LOG_LINE@Bisect job configuration@  \"skip_gclient_ops\": \"True\", @@@",
+      "@@@STEP_LOG_LINE@Bisect job configuration@  \"test_type\": \"perf\"@@@",
+      "@@@STEP_LOG_LINE@Bisect job configuration@}@@@",
+      "@@@STEP_LOG_END@Bisect job configuration@@@"
+    ]
+  },
+  {
+    "cmd": [],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "Resolving reference range"
+  },
+  {
+    "cmd": [
+      "git",
+      "log",
+      "--format=hash:%H",
+      "--grep",
+      "^Cr-Commit-Position: refs/heads/master@{#314017}",
+      "-1",
+      "origin/master"
+    ],
+    "cwd": "[TMP_BASE]/fake_checkout_tmp_1",
+    "name": "Resolving reference range.resolving commit_pos 314017",
+    "stdout": "/path/to/tmp/",
+    "~followup_annotations": [
+      "@@@STEP_NEST_LEVEL@1@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "git",
+      "footers",
+      "--position",
+      "00316c9ddfb9d7b4e1ed2fff9fe6d964d2111111"
+    ],
+    "cwd": "[TMP_BASE]/fake_checkout_tmp_1",
+    "name": "Resolving reference range.resolving hash 00316c9ddfb9d7b4e1ed2fff9fe6d964d2111111",
+    "stdout": "/path/to/tmp/",
+    "~followup_annotations": [
+      "@@@STEP_NEST_LEVEL@1@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "git",
+      "fetch",
+      "origin",
+      "--tags"
+    ],
+    "cwd": "[TMP_BASE]/fake_checkout_tmp_1",
+    "name": "Resolving reference range.git fetch tags",
+    "stdout": "/path/to/tmp/",
+    "~followup_annotations": [
+      "@@@STEP_NEST_LEVEL@1@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "git",
+      "cat-file",
+      "blob",
+      "00316c9ddfb9d7b4e1ed2fff9fe6d964d2111111:DEPS"
+    ],
+    "cwd": "[TMP_BASE]/fake_checkout_tmp_1",
+    "name": "Resolving reference range.git cat-file 00316c9ddfb9d7b4e1ed2fff9fe6d964d2111111:DEPS",
+    "stdout": "/path/to/tmp/",
+    "~followup_annotations": [
+      "@@@STEP_NEST_LEVEL@1@@@",
+      "@@@STEP_LOG_LINE@Debug Bad Revision DEPS@v8: None@@@",
+      "@@@STEP_LOG_LINE@Debug Bad Revision DEPS@skia/src: None@@@",
+      "@@@STEP_LOG_END@Debug Bad Revision DEPS@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "git",
+      "log",
+      "--format=hash:%H",
+      "--grep",
+      "^Cr-Commit-Position: refs/heads/master@{#314015}",
+      "-1",
+      "origin/master"
+    ],
+    "cwd": "[TMP_BASE]/fake_checkout_tmp_1",
+    "name": "Resolving reference range.resolving commit_pos 314015",
+    "stdout": "/path/to/tmp/",
+    "~followup_annotations": [
+      "@@@STEP_NEST_LEVEL@1@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "git",
+      "footers",
+      "--position",
+      "a6298e4afedbf2cd461755ea6f45b0ad64222222"
+    ],
+    "cwd": "[TMP_BASE]/fake_checkout_tmp_1",
+    "name": "Resolving reference range.resolving hash a6298e4afedbf2cd461755ea6f45b0ad64222222",
+    "stdout": "/path/to/tmp/",
+    "~followup_annotations": [
+      "@@@STEP_NEST_LEVEL@1@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "git",
+      "fetch",
+      "origin",
+      "--tags"
+    ],
+    "cwd": "[TMP_BASE]/fake_checkout_tmp_1",
+    "name": "Resolving reference range.git fetch tags (2)",
+    "stdout": "/path/to/tmp/",
+    "~followup_annotations": [
+      "@@@STEP_NEST_LEVEL@1@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "git",
+      "cat-file",
+      "blob",
+      "a6298e4afedbf2cd461755ea6f45b0ad64222222:DEPS"
+    ],
+    "cwd": "[TMP_BASE]/fake_checkout_tmp_1",
+    "name": "Resolving reference range.git cat-file a6298e4afedbf2cd461755ea6f45b0ad64222222:DEPS",
+    "stdout": "/path/to/tmp/",
+    "~followup_annotations": [
+      "@@@STEP_NEST_LEVEL@1@@@",
+      "@@@STEP_LOG_LINE@Debug Good Revision DEPS@v8: None@@@",
+      "@@@STEP_LOG_LINE@Debug Good Revision DEPS@skia/src: None@@@",
+      "@@@STEP_LOG_END@Debug Good Revision DEPS@@@"
+    ]
+  },
+  {
+    "cmd": [],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "Expanding revision range"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "RECIPE_MODULE[auto_bisect]/resources/resolve_range.py",
+      "a6298e4afedbf2cd461755ea6f45b0ad64222222",
+      "00316c9ddfb9d7b4e1ed2fff9fe6d964d2111111"
+    ],
+    "cwd": "[SLAVE_BUILD]/src",
+    "name": "Expanding revision range.for revisions a6298e4afedbf2cd461755ea6f45b0ad64222222:00316c9ddfb9d7b4e1ed2fff9fe6d964d2111111",
+    "stdout": "/path/to/tmp/json",
+    "~followup_annotations": [
+      "@@@STEP_NEST_LEVEL@1@@@",
+      "@@@STEP_LOG_LINE@json.output@[@@@",
+      "@@@STEP_LOG_LINE@json.output@  [@@@",
+      "@@@STEP_LOG_LINE@json.output@    \"a6298e4afedbf2cd461755ea6f45b0ad64222222\", @@@",
+      "@@@STEP_LOG_LINE@json.output@    \"314015\"@@@",
+      "@@@STEP_LOG_LINE@json.output@  ]@@@",
+      "@@@STEP_LOG_LINE@json.output@]@@@",
+      "@@@STEP_LOG_END@json.output@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "RECIPE_MODULE[gsutil]/resources/gsutil_wrapper.py",
+      "--",
+      "[DEPOT_TOOLS]/gsutil.py",
+      "----",
+      "ls",
+      "gs://chrome-perf/Linux Builder/full-build-linux_a6298e4afedbf2cd461755ea6f45b0ad64222222.zip"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "gsutil ls"
+  },
+  {
+    "cmd": [
+      "git",
+      "-c",
+      "user.email=FAKE_PERF_PUMPKIN@chromium.org",
+      "try",
+      "--bot",
+      "linux_perf_bisect_builder",
+      "--revision",
+      "a6298e4afedbf2cd461755ea6f45b0ad64222222",
+      "--name",
+      "a6298e4afedbf2cd461755ea6f45b0ad64222222-build",
+      "--svn_repo",
+      "svn://svn.chromium.org/chrome-try/try-perf",
+      "--diff",
+      "/dev/null"
+    ],
+    "cwd": "[TMP_BASE]/fake_checkout_tmp_1",
+    "name": "Requesting build for a6298e4afedbf2cd461755ea6f45b0ad64222222 via git try."
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "RECIPE_MODULE[gsutil]/resources/gsutil_wrapper.py",
+      "--",
+      "[DEPOT_TOOLS]/gsutil.py",
+      "----",
+      "ls",
+      "gs://chrome-perf/Linux Builder/full-build-linux_00316c9ddfb9d7b4e1ed2fff9fe6d964d2111111.zip"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "gsutil ls (2)"
+  },
+  {
+    "cmd": [
+      "git",
+      "-c",
+      "user.email=FAKE_PERF_PUMPKIN@chromium.org",
+      "try",
+      "--bot",
+      "linux_perf_bisect_builder",
+      "--revision",
+      "00316c9ddfb9d7b4e1ed2fff9fe6d964d2111111",
+      "--name",
+      "00316c9ddfb9d7b4e1ed2fff9fe6d964d2111111-build",
+      "--svn_repo",
+      "svn://svn.chromium.org/chrome-try/try-perf",
+      "--diff",
+      "/dev/null"
+    ],
+    "cwd": "[TMP_BASE]/fake_checkout_tmp_1",
+    "name": "Requesting build for 00316c9ddfb9d7b4e1ed2fff9fe6d964d2111111 via git try."
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "RECIPE_MODULE[auto_bisect]/resources/wait_for_any.py",
+      "[DEPOT_TOOLS]/gsutil.py"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "Waiting for revision 314015 and 1 other revision(s).",
+    "stdin": "{\"jobs\": [{\"builder\": \"linux_perf_bisect_builder\", \"job_name\": \"a6298e4afedbf2cd461755ea6f45b0ad64222222-build\", \"master\": \"tryserver.chromium.perf\", \"type\": \"buildbot\"}, {\"builder\": \"linux_perf_bisect_builder\", \"job_name\": \"00316c9ddfb9d7b4e1ed2fff9fe6d964d2111111-build\", \"master\": \"tryserver.chromium.perf\", \"type\": \"buildbot\"}, {\"location\": \"gs://chrome-perf/Linux Builder/full-build-linux_a6298e4afedbf2cd461755ea6f45b0ad64222222.zip\", \"type\": \"gs\"}, {\"location\": \"gs://chrome-perf/Linux Builder/full-build-linux_00316c9ddfb9d7b4e1ed2fff9fe6d964d2111111.zip\", \"type\": \"gs\"}]}",
+    "stdout": "/path/to/tmp/json",
+    "~followup_annotations": [
+      "@@@STEP_LOG_LINE@json.output (invalid)@null@@@",
+      "@@@STEP_LOG_END@json.output (invalid)@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "RECIPE_MODULE[gsutil]/resources/gsutil_wrapper.py",
+      "--",
+      "[DEPOT_TOOLS]/gsutil.py",
+      "----",
+      "ls",
+      "gs://chrome-perf/Linux Builder/full-build-linux_a6298e4afedbf2cd461755ea6f45b0ad64222222.zip"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "gsutil ls (3)"
+  },
+  {
+    "cmd": [],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "Triggering test job for 314015",
+    "trigger_specs": [
+      {
+        "builder_name": "linux_perf_tester",
+        "properties": {
+          "bisect_config": {
+            "command": "src/tools/perf/run_benchmark -v --browser=release smoothness.tough_scrolling_cases",
+            "max_time_minutes": "5",
+            "metric": "mean_input_event_latency/mean_input_event_latency",
+            "repeat_count": "2",
+            "test_type": "perf"
+          },
+          "job_name": "a6298e4afedbf2cd461755ea6f45b0ad64222222-test",
+          "parent_build_archive_url": "gs://chrome-perf/Linux Builder/full-build-linux_a6298e4afedbf2cd461755ea6f45b0ad64222222.zip",
+          "parent_got_revision": "a6298e4afedbf2cd461755ea6f45b0ad64222222",
+          "revision": "a6298e4afedbf2cd461755ea6f45b0ad64222222"
+        }
+      }
+    ]
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "RECIPE_MODULE[gsutil]/resources/gsutil_wrapper.py",
+      "--",
+      "[DEPOT_TOOLS]/gsutil.py",
+      "----",
+      "ls",
+      "gs://chrome-perf/Linux Builder/full-build-linux_00316c9ddfb9d7b4e1ed2fff9fe6d964d2111111.zip"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "gsutil ls (4)"
+  },
+  {
+    "cmd": [],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "Triggering test job for 314017",
+    "trigger_specs": [
+      {
+        "builder_name": "linux_perf_tester",
+        "properties": {
+          "bisect_config": {
+            "command": "src/tools/perf/run_benchmark -v --browser=release smoothness.tough_scrolling_cases",
+            "max_time_minutes": "5",
+            "metric": "mean_input_event_latency/mean_input_event_latency",
+            "repeat_count": "2",
+            "test_type": "perf"
+          },
+          "job_name": "00316c9ddfb9d7b4e1ed2fff9fe6d964d2111111-test",
+          "parent_build_archive_url": "gs://chrome-perf/Linux Builder/full-build-linux_00316c9ddfb9d7b4e1ed2fff9fe6d964d2111111.zip",
+          "parent_got_revision": "00316c9ddfb9d7b4e1ed2fff9fe6d964d2111111",
+          "revision": "00316c9ddfb9d7b4e1ed2fff9fe6d964d2111111"
+        }
+      }
+    ]
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "RECIPE_MODULE[auto_bisect]/resources/wait_for_any.py",
+      "[DEPOT_TOOLS]/gsutil.py"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "Waiting for revision 314015 and 1 other revision(s). (2)",
+    "stdin": "{\"jobs\": [{\"builder\": \"linux_perf_tester\", \"job_name\": \"a6298e4afedbf2cd461755ea6f45b0ad64222222-test\", \"master\": \"tryserver.chromium.perf\", \"type\": \"buildbot\"}, {\"builder\": \"linux_perf_tester\", \"job_name\": \"00316c9ddfb9d7b4e1ed2fff9fe6d964d2111111-test\", \"master\": \"tryserver.chromium.perf\", \"type\": \"buildbot\"}, {\"location\": \"gs://chrome-perf/bisect-results/a6298e4afedbf2cd461755ea6f45b0ad64222222-test.results\", \"type\": \"gs\"}, {\"location\": \"gs://chrome-perf/bisect-results/00316c9ddfb9d7b4e1ed2fff9fe6d964d2111111-test.results\", \"type\": \"gs\"}]}",
+    "stdout": "/path/to/tmp/json",
+    "~followup_annotations": [
+      "@@@STEP_LOG_LINE@json.output@{@@@",
+      "@@@STEP_LOG_LINE@json.output@  \"failed\": [@@@",
+      "@@@STEP_LOG_LINE@json.output@    {@@@",
+      "@@@STEP_LOG_LINE@json.output@      \"builder\": \"linux_perf_tester\", @@@",
+      "@@@STEP_LOG_LINE@json.output@      \"job_name\": \"a6298e4afedbf2cd461755ea6f45b0ad64222222-test\", @@@",
+      "@@@STEP_LOG_LINE@json.output@      \"job_url\": \"http://tempuri.org/log\", @@@",
+      "@@@STEP_LOG_LINE@json.output@      \"master\": \"tryserver.chromium.perf\", @@@",
+      "@@@STEP_LOG_LINE@json.output@      \"type\": \"buildbot\"@@@",
+      "@@@STEP_LOG_LINE@json.output@    }@@@",
+      "@@@STEP_LOG_LINE@json.output@  ]@@@",
+      "@@@STEP_LOG_LINE@json.output@}@@@",
+      "@@@STEP_LOG_END@json.output@@@",
+      "@@@STEP_LINK@Failed build@http://tempuri.org/log@@@",
+      "@@@STEP_FAILURE@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "RECIPE_MODULE[auto_bisect]/resources/wait_for_any.py",
+      "[DEPOT_TOOLS]/gsutil.py"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "Waiting for revision 314017",
+    "stdin": "{\"jobs\": [{\"builder\": \"linux_perf_tester\", \"job_name\": \"00316c9ddfb9d7b4e1ed2fff9fe6d964d2111111-test\", \"master\": \"tryserver.chromium.perf\", \"type\": \"buildbot\"}, {\"location\": \"gs://chrome-perf/bisect-results/00316c9ddfb9d7b4e1ed2fff9fe6d964d2111111-test.results\", \"type\": \"gs\"}]}",
+    "stdout": "/path/to/tmp/json",
+    "~followup_annotations": [
+      "@@@STEP_LOG_LINE@json.output (invalid)@null@@@",
+      "@@@STEP_LOG_END@json.output (invalid)@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "RECIPE_MODULE[gsutil]/resources/gsutil_wrapper.py",
+      "--",
+      "[DEPOT_TOOLS]/gsutil.py",
+      "----",
+      "ls",
+      "gs://chrome-perf/bisect-results/00316c9ddfb9d7b4e1ed2fff9fe6d964d2111111-test.results"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "gsutil ls (5)"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "RECIPE_MODULE[gsutil]/resources/gsutil_wrapper.py",
+      "--",
+      "[DEPOT_TOOLS]/gsutil.py",
+      "----",
+      "cat",
+      "gs://chrome-perf/bisect-results/00316c9ddfb9d7b4e1ed2fff9fe6d964d2111111-test.results"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "gsutil Get test results for build 00316c9ddfb9d7b4e1ed2fff9fe6d964d2111111",
+    "stdout": "/path/to/tmp/"
+  },
+  {
+    "name": "$result",
+    "recipe_result": null,
+    "status_code": 0
+  }
+]

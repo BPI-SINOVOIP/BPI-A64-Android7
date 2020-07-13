@@ -1,0 +1,19 @@
+apply plugin: 'java'
+apply plugin: 'jacoco'
+apply plugin: 'sdk-java-lib'
+
+group = 'com.android.tools'
+archivesBaseName = 'asset-studio'
+version = rootProject.ext.baseVersion
+
+dependencies {
+    compile project(':base:layoutlib-api')
+    compile project(':base:sdk-common')
+
+    testCompile 'junit:junit:4.12'
+}
+
+sourceSets {
+    main.resources.srcDir 'src/main/java'
+    test.resources.srcDir 'src/test/java'
+}

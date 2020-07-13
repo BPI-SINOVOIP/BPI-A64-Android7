@@ -52,6 +52,10 @@
     <string name="keywords_reboot_recovery">"重启 清除 升级 恢复"</string>
 	
     <!-- kill background services -->
+	<string name="background_cleanup">后台清理</string>
+    <string name="background_cleanup_limit">允许%d个后台服务</string>
+    <string name="background_cleanup_list_not_available">无可用后台清理列表</string>
+	
     <string name="background_cleanup_list">后台清理列表</string>
     <string name="background_cleanup_select_all">全选</string>
     <string name="background_cleanup_select_inverse">反选</string>
@@ -59,5 +63,9 @@
     <!-- cpu type & firmware verison-->
     <string name="cpu_type">"处理器类型"</string>
     <string name="software_version">"固件版本号"</string>
+    
+    <!-- wifi captive portal detection -->
+    <string name="captive_portal_title">wifi热点互联网连通性检测</string>
+    <string name="captive_portal_summary">检测wifi热点是否可以访问互联网</string>
 	
 </resources>

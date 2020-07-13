@@ -38,8 +38,6 @@ import java.util.Queue;
 /**
  * AsyncTask for installing interpreters.
  *
- * @author Damon Kohler (damonkohler@gmail.com)
- * @author Alexey Reznichenko (alexey.reznichenko@gmail.com)
  */
 public abstract class InterpreterInstaller extends AsyncTask<Void, Void, Boolean> {
 

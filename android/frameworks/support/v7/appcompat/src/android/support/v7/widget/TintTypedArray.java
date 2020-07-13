@@ -22,9 +22,12 @@ import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
+import android.support.annotation.RestrictTo;
 import android.support.v7.content.res.AppCompatResources;
 import android.util.AttributeSet;
 import android.util.TypedValue;
+
+import static android.support.annotation.RestrictTo.Scope.GROUP_ID;
 
 /**
  * A class that wraps a {@link android.content.res.TypedArray} and provides the same public API
@@ -33,6 +36,7 @@ import android.util.TypedValue;
  *
  * @hide
  */
+@RestrictTo(GROUP_ID)
 public class TintTypedArray {
 
     private final Context mContext;
@@ -64,7 +68,7 @@ public class TintTypedArray {
         if (mWrapped.hasValue(index)) {
             final int resourceId = mWrapped.getResourceId(index, 0);
             if (resourceId != 0) {
-                return AppCompatDrawableManager.get().getDrawable(mContext, resourceId);
+                return AppCompatResources.getDrawable(mContext, resourceId);
             }
         }
         return mWrapped.getDrawable(index);

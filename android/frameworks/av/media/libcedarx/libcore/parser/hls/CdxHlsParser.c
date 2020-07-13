@@ -1928,6 +1928,11 @@ _NextSegment:
     pkt->pts -= hlsParser->ptsShift;
     hlsParser->streamPts[hlsParser->prefetchType] = pkt->pts;
     memcpy(&hlsParser->cdxPkt, pkt, sizeof(CdxPacketT));
+    if(hlsParser->firstPts < 0)
+    {
+        hlsParser->firstPts = pkt->pts;
+        logd("hlsParser->firstPts=%lld", hlsParser->firstPts);
+    }
 
     // CDX_LOGV("CdxParserPrefetch pkt->pts=%lld, pkt->type=%d, pkt->length=%d",
     //          pkt->pts, pkt->type, pkt->length);
@@ -3007,6 +3012,7 @@ static CdxParserT *HlsParserOpen(CdxStreamT *stream, cdx_uint32 flags)
     CDX_FORCE_CHECK(ret == 0);
 
     hlsParser->streamOpenTimeout = INT64_MAX;
+    hlsParser->firstPts = -1;
 
     return &hlsParser->base;
 open_error:

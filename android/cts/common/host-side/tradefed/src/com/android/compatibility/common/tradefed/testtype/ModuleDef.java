@@ -268,7 +268,7 @@ public class ModuleDef implements IModuleDef {
      * {@inheritDoc}
      */
     @Override
-    public void prepare(boolean skipPrep) throws DeviceNotAvailableException {
+    public boolean prepare(boolean skipPrep) throws DeviceNotAvailableException {
         for (ITargetPreparer preparer : mPreconditions) {
             CLog.d("Preparer: %s", preparer.getClass().getSimpleName());
             if (preparer instanceof IAbiReceiver) {
@@ -282,13 +282,16 @@ public class ModuleDef implements IModuleDef {
                 // This should only happen for flashing new build
                 CLog.e("Unexpected BuildError from precondition: %s",
                         preparer.getClass().getCanonicalName());
+                return false;
             } catch (TargetSetupError e) {
                 // log precondition class then rethrow & let caller handle
                 CLog.e("TargetSetupError in precondition: %s",
                         preparer.getClass().getCanonicalName());
-                throw new RuntimeException(e);
+                e.printStackTrace();
+                return false;
             }
         }
+        return true;
     }
 
     private void setOption(Object target, String option, String value) {

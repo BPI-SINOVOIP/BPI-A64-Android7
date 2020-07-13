@@ -1,0 +1,53 @@
+[
+  {
+    "cmd": [
+      "/bin/echo",
+      "foo/bar/baz"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "step1"
+  },
+  {
+    "cmd": [
+      "/bin/echo",
+      "foo/bar/baz"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "step2"
+  },
+  {
+    "cmd": [
+      "/bin/echo",
+      "foo/bar/baz"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "step3"
+  },
+  {
+    "cmd": [
+      "/bin/echo",
+      "foo/bar/baz"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "step4"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[BUILD]/scripts/tools/pycurl.py",
+      "fake://foo/bar",
+      "--outfile",
+      "/path/to/tmp/",
+      "--attempts",
+      "5"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "fetch fake://foo/bar"
+  },
+  {
+    "name": "$result",
+    "recipe_result": null,
+    "status_code": 0
+  }
+]

@@ -318,14 +318,35 @@ of the options discussed above affect only pre-optimization.</p>
   <li>dalvik.vm.image-dex2oat-Xms: initial heap size
   <li>dalvik.vm.image-dex2oat-Xmx: maximum heap size
   <li>dalvik.vm.image-dex2oat-filter: compiler filter option
+  <li>dalvik.vm.image-dex2oat-threads: number of threads to use
 </ul>
 
 <p>To control dex2oat while it’s compiling everything besides the boot image:</p>
 
 <ul>
-  <li> dalvik.vm.dex2oat-Xms: initial heap size
-  <li> dalvik.vm.dex2oat-Xmx: maximum heap size
-  <li> dalvik.vm.dex2oat-filter: compiler filter option
+  <li>dalvik.vm.dex2oat-Xms: initial heap size
+  <li>dalvik.vm.dex2oat-Xmx: maximum heap size
+  <li>dalvik.vm.dex2oat-filter: compiler filter option
+</ul>
+
+<p>On releases through Android 6.0, one additional option is provided for compiling everything
+besides the boot image:</p>
+<ul>
+  <li>dalvik.vm.dex2oat-threads: number of threads to use
+</ul>
+
+<p>Starting with Android 6.1, this becomes two additional options for compiling everything besides
+the boot image:</p>
+<ul>
+  <li>dalvik.vm.boot-dex2oat-threads: number of threads to use during boot time
+  <li>dalvik.vm.dex2oat-threads: number of threads to use after boot time
+</ul>
+
+<p>Starting with Android 7.1, two options are provided for controlling how memory is used when
+compiling everything besides the boot image:</p>
+<ul>
+  <li>dalvik.vm.dex2oat-very-large: minimum total dex file size in bytes to disable AOT compilation
+  <li>dalvik.vm.dex2oat-swap: use dex2oat swap file (for low-memory devices)
 </ul>
 
 <p>The options that control initial and maximum heap size for dex2oat should not

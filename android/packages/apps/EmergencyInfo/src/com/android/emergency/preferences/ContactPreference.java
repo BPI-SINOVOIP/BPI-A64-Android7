@@ -16,9 +16,12 @@
 package com.android.emergency.preferences;
 
 import android.app.AlertDialog;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
@@ -37,6 +40,8 @@ import com.android.internal.annotations.VisibleForTesting;
 import com.android.internal.logging.MetricsLogger;
 import com.android.internal.logging.MetricsProto.MetricsEvent;
 import com.android.settingslib.drawable.CircleFramedDrawable;
+
+import java.util.List;
 
 
 /**
@@ -176,6 +181,15 @@ public class ContactPreference extends Preference {
     public void callContact() {
         Intent callIntent =
                 new Intent(Intent.ACTION_CALL, Uri.parse("tel:" + mContact.getPhoneNumber()));
+        PackageManager packageManager = getContext().getPackageManager();
+        List<ResolveInfo> infos =
+                packageManager.queryIntentActivities(callIntent, PackageManager.MATCH_SYSTEM_ONLY);
+        if (infos == null || infos.isEmpty()) {
+            return;
+        }
+        callIntent.setComponent(new ComponentName(infos.get(0).activityInfo.packageName,
+                infos.get(0).activityInfo.name));
+
         MetricsLogger.action(getContext(), MetricsEvent.ACTION_CALL_EMERGENCY_CONTACT);
         getContext().startActivity(callIntent);
     }

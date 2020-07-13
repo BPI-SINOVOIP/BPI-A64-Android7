@@ -8,6 +8,7 @@ Eventually, this will be based on adb_wrapper.
 """
 # pylint: disable=unused-argument
 
+import calendar
 import collections
 import itertools
 import json
@@ -17,8 +18,11 @@ import os
 import posixpath
 import re
 import shutil
+import stat
 import tempfile
 import time
+import threading
+import uuid
 import zipfile
 
 from devil import base_error
@@ -32,6 +36,7 @@ from devil.android import device_temp_file
 from devil.android import install_commands
 from devil.android import logcat_monitor
 from devil.android import md5sum
+from devil.android.constants import chrome
 from devil.android.sdk import adb_wrapper
 from devil.android.sdk import gce_adb_wrapper
 from devil.android.sdk import intent
@@ -89,16 +94,15 @@ _PERMISSIONS_BLACKLIST = [
     'com.android.browser.permission.WRITE_HISTORY_BOOKMARKS',
     'com.android.launcher.permission.INSTALL_SHORTCUT',
     'com.chrome.permission.DEVICE_EXTRAS',
-    'com.google.android.apps.chrome.permission.C2D_MESSAGE',
-    'com.google.android.apps.chrome.permission.READ_WRITE_BOOKMARK_FOLDERS',
-    'com.google.android.apps.chrome.TOS_ACKED',
     'com.google.android.c2dm.permission.RECEIVE',
     'com.google.android.providers.gsf.permission.READ_GSERVICES',
     'com.sec.enterprise.knox.MDM_CONTENT_PROVIDER',
-    'org.chromium.chrome.permission.C2D_MESSAGE',
-    'org.chromium.chrome.permission.READ_WRITE_BOOKMARK_FOLDERS',
-    'org.chromium.chrome.TOS_ACKED',
 ]
+for package_info in chrome.PACKAGE_INFO.itervalues():
+  _PERMISSIONS_BLACKLIST.extend([
+      '%s.permission.C2D_MESSAGE' % package_info.package,
+      '%s.permission.READ_WRITE_BOOKMARK_FOLDERS' % package_info.package,
+      '%s.TOS_ACKED' % package_info.package])
 
 _CURRENT_FOCUS_CRASH_RE = re.compile(
     r'\s*mCurrentFocus.*Application (Error|Not Responding): (\S+)}')
@@ -106,6 +110,40 @@ _CURRENT_FOCUS_CRASH_RE = re.compile(
 _GETPROP_RE = re.compile(r'\[(.*?)\]: \[(.*?)\]')
 _IPV4_ADDRESS_RE = re.compile(r'([0-9]{1,3}\.){3}[0-9]{1,3}\:[0-9]{4,5}')
 
+# Regex to parse the long (-l) output of 'ls' command, c.f.
+# https://github.com/landley/toybox/blob/master/toys/posix/ls.c#L446
+_LONG_LS_OUTPUT_RE = re.compile(
+    r'(?P<st_mode>[\w-]{10})\s+'                  # File permissions
+    r'(?:(?P<st_nlink>\d+)\s+)?'                  # Number of links (optional)
+    r'(?P<st_owner>\w+)\s+'                       # Name of owner
+    r'(?P<st_group>\w+)\s+'                       # Group of owner
+    r'(?:'                                        # Either ...
+      r'(?P<st_rdev_major>\d+),\s+'                 # Device major, and
+      r'(?P<st_rdev_minor>\d+)\s+'                  # Device minor
+    r'|'                                          # .. or
+      r'(?P<st_size>\d+)\s+'                        # Size in bytes
+    r')?'                                         # .. or nothing
+    r'(?P<st_mtime>\d{4}-\d\d-\d\d \d\d:\d\d)\s+' # Modification date/time
+    r'(?P<filename>.+?)'                          # File name
+    r'(?: -> (?P<symbolic_link_to>.+))?'          # Symbolic link (optional)
+    r'$'                                          # End of string
+)
+_LS_DATE_FORMAT = '%Y-%m-%d %H:%M'
+_FILE_MODE_RE = re.compile(r'[dbclps-](?:[r-][w-][xSs-]){2}[r-][w-][xTt-]$')
+_FILE_MODE_KIND = {
+    'd': stat.S_IFDIR, 'b': stat.S_IFBLK, 'c': stat.S_IFCHR,
+    'l': stat.S_IFLNK, 'p': stat.S_IFIFO, 's': stat.S_IFSOCK,
+    '-': stat.S_IFREG}
+_FILE_MODE_PERMS = [
+    stat.S_IRUSR, stat.S_IWUSR, stat.S_IXUSR,
+    stat.S_IRGRP, stat.S_IWGRP, stat.S_IXGRP,
+    stat.S_IROTH, stat.S_IWOTH, stat.S_IXOTH,
+]
+_FILE_MODE_SPECIAL = [
+    ('s', stat.S_ISUID),
+    ('s', stat.S_ISGID),
+    ('t', stat.S_ISVTX),
+]
 
 @decorators.WithExplicitTimeoutAndRetries(
     _DEFAULT_TIMEOUT, _DEFAULT_RETRIES)
@@ -152,6 +190,24 @@ def RestartServer():
     raise device_errors.CommandFailedError('Failed to start adb server')
 
 
+def _ParseModeString(mode_str):
+  """Parse a mode string, e.g. 'drwxrwxrwx', into a st_mode value.
+
+  Effectively the reverse of |mode_to_string| in, e.g.:
+  https://github.com/landley/toybox/blob/master/lib/lib.c#L896
+  """
+  if not _FILE_MODE_RE.match(mode_str):
+    raise ValueError('Unexpected file mode %r', mode_str)
+  mode = _FILE_MODE_KIND[mode_str[0]]
+  for c, flag in zip(mode_str[1:], _FILE_MODE_PERMS):
+    if c != '-' and c.islower():
+      mode |= flag
+  for c, (t, flag) in zip(mode_str[3::3], _FILE_MODE_SPECIAL):
+    if c.lower() == t:
+      mode |= flag
+  return mode
+
+
 def _GetTimeStamp():
   """Return a basic ISO 8601 time stamp with the current local time."""
   return time.strftime('%Y%m%dT%H%M%S', time.localtime())
@@ -176,6 +232,18 @@ def _CreateAdbWrapper(device):
       return device
     else:
       return adb_wrapper.AdbWrapper(device)
+
+
+def _FormatPartialOutputError(output):
+  lines = output.splitlines() if isinstance(output, basestring) else output
+  message = ['Partial output found:']
+  if len(lines) > 11:
+    message.extend('- %s' % line for line in lines[:5])
+    message.extend('<snip>')
+    message.extend('- %s' % line for line in lines[-5:])
+  else:
+    message.extend('- %s' % line for line in lines)
+  return '\n'.join(message)
 
 
 class DeviceUtils(object):
@@ -219,6 +287,7 @@ class DeviceUtils(object):
     self._enable_device_files_cache = enable_device_files_cache
     self._cache = {}
     self._client_caches = {}
+    self._cache_lock = threading.RLock()
     assert hasattr(self, decorators.DEFAULT_TIMEOUT_ATTR)
     assert hasattr(self, decorators.DEFAULT_RETRIES_ATTR)
 
@@ -287,7 +356,7 @@ class DeviceUtils(object):
       DeviceUnreachableError on missing device.
     """
     try:
-      self.RunShellCommand('ls /root', check_return=True)
+      self.RunShellCommand(['ls', '/root'], check_return=True)
       return True
     except device_errors.AdbCommandFailedError:
       return False
@@ -379,17 +448,11 @@ class DeviceUtils(object):
       CommandTimeoutError on timeout.
       DeviceUnreachableError on missing device.
     """
-    if 'external_storage' in self._cache:
-      return self._cache['external_storage']
-
-    value = self.RunShellCommand('echo $EXTERNAL_STORAGE',
-                                 single_line=True,
-                                 check_return=True)
-    if not value:
+    self._EnsureCacheInitialized()
+    if not self._cache['external_storage']:
       raise device_errors.CommandFailedError('$EXTERNAL_STORAGE is not set',
                                              str(self))
-    self._cache['external_storage'] = value
-    return value
+    return self._cache['external_storage']
 
   @decorators.WithTimeoutAndRetriesFromInstance()
   def GetApplicationPaths(self, package, timeout=None, retries=None):
@@ -426,6 +489,12 @@ class DeviceUtils(object):
     apks = []
     for line in output:
       if not line.startswith('package:'):
+        # KitKat on x86 may show following warnings that is safe to ignore.
+        if (line.startswith('WARNING: linker: libdvm.so has text relocations.')
+            and version_codes.KITKAT <= self.build_version_sdk
+            and self.build_version_sdk <= version_codes.KITKAT_WATCH
+            and self.product_cpu_abi == 'x86'):
+          continue
         raise device_errors.CommandFailedError(
             'pm path returned: %r' % '\n'.join(output), str(self))
       apks.append(line[len('package:'):])
@@ -509,7 +578,10 @@ class DeviceUtils(object):
         return False
 
     def boot_completed():
-      return self.GetProp('sys.boot_completed', cache=False) == '1'
+      try:
+        return self.GetProp('sys.boot_completed', cache=False) == '1'
+      except device_errors.CommandFailedError:
+        return False
 
     def wifi_enabled():
       return 'Wi-Fi is enabled' in self.RunShellCommand(['dumpsys', 'wifi'],
@@ -716,7 +788,7 @@ class DeviceUtils(object):
   @decorators.WithTimeoutAndRetriesFromInstance()
   def RunShellCommand(self, cmd, check_return=False, cwd=None, env=None,
                       as_root=False, single_line=False, large_output=False,
-                      timeout=None, retries=None):
+                      raw_output=False, timeout=None, retries=None):
     """Run an ADB shell command.
 
     The command to run |cmd| should be a sequence of program arguments or else
@@ -751,6 +823,8 @@ class DeviceUtils(object):
         expected.
       large_output: Uses a work-around for large shell command output. Without
         this large output will be truncated.
+      raw_output: Whether to only return the raw output
+          (no splitting into lines).
       timeout: timeout in seconds
       retries: number of retries
 
@@ -808,7 +882,7 @@ class DeviceUtils(object):
           return handle_large_command(cmd)
         except device_errors.AdbCommandFailedError as exc:
           if exc.status is None:
-            logging.exception('No output found for %s', cmd)
+            logging.error(_FormatPartialOutputError(exc.output))
             logging.warning('Attempting to run in large_output mode.')
             logging.warning('Use RunShellCommand(..., large_output=True) for '
                             'shell commands that expect a lot of output.')
@@ -827,8 +901,12 @@ class DeviceUtils(object):
       # "su -c sh -c" allows using shell features in |cmd|
       cmd = self._Su('sh -c %s' % cmd_helper.SingleQuote(cmd))
 
-    output = handle_large_output(cmd, large_output).splitlines()
+    output = handle_large_output(cmd, large_output)
 
+    if raw_output:
+      return output
+
+    output = output.splitlines()
     if single_line:
       if not output:
         return ''
@@ -1130,13 +1208,14 @@ class DeviceUtils(object):
       all_changed_files += changed_files
       all_stale_files += stale_files
       cache_commit_funcs.append(cache_commit_func)
-      if (os.path.isdir(h) and changed_files and not up_to_date_files
-          and not stale_files):
-        missing_dirs.append(d)
+      if changed_files and not up_to_date_files and not stale_files:
+        if os.path.isdir(h):
+          missing_dirs.append(d)
+        else:
+          missing_dirs.append(posixpath.dirname(d))
 
     if delete_device_stale and all_stale_files:
-      self.RunShellCommand(['rm', '-f'] + all_stale_files,
-                             check_return=True)
+      self.RunShellCommand(['rm', '-f'] + all_stale_files, check_return=True)
 
     if all_changed_files:
       if missing_dirs:
@@ -1154,11 +1233,12 @@ class DeviceUtils(object):
       track_stale: whether to bother looking for stale files (slower)
 
     Returns:
-      a three-element tuple
+      a four-element tuple
       1st element: a list of (host_files_path, device_files_path) tuples to push
       2nd element: a list of host_files_path that are up-to-date
       3rd element: a list of stale files under device_path, or [] when
         track_stale == False
+      4th element: a cache commit function.
     """
     try:
       # Length calculations below assume no trailing /.
@@ -1268,7 +1348,10 @@ class DeviceUtils(object):
         len(host_device_tuples), dir_file_count, dir_size, False)
     zip_duration = self._ApproximateDuration(1, 1, size, True)
 
-    if dir_push_duration < push_duration and dir_push_duration < zip_duration:
+    if (dir_push_duration < push_duration and dir_push_duration < zip_duration
+        # TODO(jbudorick): Resume directory pushing once clients have switched
+        # to 1.0.36-compatible syntax.
+        and False):
       self._PushChangedFilesIndividually(host_device_tuples)
     elif push_duration < zip_duration:
       self._PushChangedFilesIndividually(files)
@@ -1435,10 +1518,6 @@ class DeviceUtils(object):
       if os.path.exists(d):
         shutil.rmtree(d)
 
-  _LS_RE = re.compile(
-      r'(?P<perms>\S+) (?:(?P<inodes>\d+) +)?(?P<owner>\S+) +(?P<group>\S+) +'
-      r'(?:(?P<size>\d+) +)?(?P<date>\S+) +(?P<time>\S+) +(?P<name>.+)$')
-
   @decorators.WithTimeoutAndRetriesFromInstance()
   def ReadFile(self, device_path, as_root=False, force_pull=False,
                timeout=None, retries=None):
@@ -1466,17 +1545,7 @@ class DeviceUtils(object):
       DeviceUnreachableError on missing device.
     """
     def get_size(path):
-      # TODO(jbudorick): Implement a generic version of Stat() that handles
-      # as_root=True, then switch this implementation to use that.
-      ls_out = self.RunShellCommand(['ls', '-l', device_path], as_root=as_root,
-                                    check_return=True)
-      file_name = posixpath.basename(device_path)
-      for line in ls_out:
-        m = self._LS_RE.match(line)
-        if m and file_name == posixpath.basename(m.group('name')):
-          return int(m.group('size'))
-      logging.warning('Could not determine size of %s.', device_path)
-      return None
+      return self.FileSize(path, as_root=as_root)
 
     if (not force_pull
         and 0 < get_size(device_path) <= self._MAX_ADB_OUTPUT_LENGTH):
@@ -1540,19 +1609,43 @@ class DeviceUtils(object):
       # If root is not needed, we can push directly to the desired location.
       self._WriteFileWithPush(device_path, contents)
 
-  @decorators.WithTimeoutAndRetriesFromInstance()
-  def Ls(self, device_path, timeout=None, retries=None):
-    """Lists the contents of a directory on the device.
+  def _ParseLongLsOutput(self, device_path, as_root=False, **kwargs):
+    """Run and scrape the output of 'ls -a -l' on a device directory."""
+    device_path = posixpath.join(device_path, '')  # Force trailing '/'.
+    output = self.RunShellCommand(
+        ['ls', '-a', '-l', device_path], as_root=as_root,
+        check_return=True, env={'TZ': 'utc'}, **kwargs)
+    if output and output[0].startswith('total '):
+      output.pop(0) # pylint: disable=maybe-no-member
+
+    entries = []
+    for line in output:
+      m = _LONG_LS_OUTPUT_RE.match(line)
+      if m:
+        if m.group('filename') not in ['.', '..']:
+          entries.append(m.groupdict())
+      else:
+        logging.info('Skipping: %s', line)
+
+    return entries
+
+  def ListDirectory(self, device_path, as_root=False, **kwargs):
+    """List all files on a device directory.
+
+    Mirroring os.listdir (and most client expectations) the resulting list
+    does not include the special entries '.' and '..' even if they are present
+    in the directory.
 
     Args:
       device_path: A string containing the path of the directory on the device
                    to list.
+      as_root: A boolean indicating whether the to use root privileges to list
+               the directory contents.
       timeout: timeout in seconds
       retries: number of retries
 
     Returns:
-      A list of pairs (filename, stat) for each file found in the directory,
-      where the stat object has the properties: st_mode, st_size, and st_time.
+      A list of filenames for all entries contained in the directory.
 
     Raises:
       AdbCommandFailedError if |device_path| does not specify a valid and
@@ -1560,32 +1653,119 @@ class DeviceUtils(object):
       CommandTimeoutError on timeout.
       DeviceUnreachableError on missing device.
     """
-    return self.adb.Ls(device_path)
+    entries = self._ParseLongLsOutput(device_path, as_root=as_root, **kwargs)
+    return [d['filename'] for d in entries]
 
-  @decorators.WithTimeoutAndRetriesFromInstance()
-  def Stat(self, device_path, timeout=None, retries=None):
-    """Get the stat attributes of a file or directory on the device.
+  def StatDirectory(self, device_path, as_root=False, **kwargs):
+    """List file and stat info for all entries on a device directory.
+
+    Implementation notes: this is currently implemented by parsing the output
+    of 'ls -a -l' on the device. Whether possible and convenient, we attempt to
+    make parsing strict and return values mirroring those of the standard |os|
+    and |stat| Python modules.
+
+    Mirroring os.listdir (and most client expectations) the resulting list
+    does not include the special entries '.' and '..' even if they are present
+    in the directory.
 
     Args:
-      device_path: A string containing the path of from which to get attributes
-                   on the device.
+      device_path: A string containing the path of the directory on the device
+                   to list.
+      as_root: A boolean indicating whether the to use root privileges to list
+               the directory contents.
       timeout: timeout in seconds
       retries: number of retries
 
     Returns:
-      A stat object with the properties: st_mode, st_size, and st_time
+      A list of dictionaries, each containing the following keys:
+        filename: A string with the file name.
+        st_mode: File permissions, use the stat module to interpret these.
+        st_nlink: Number of hard links (may be missing).
+        st_owner: A string with the user name of the owner.
+        st_group: A string with the group name of the owner.
+        st_rdev_pair: Device type as (major, minior) (only if inode device).
+        st_size: Size of file, in bytes (may be missing for non-regular files).
+        st_mtime: Time of most recent modification, in seconds since epoch
+          (although resolution is in minutes).
+        symbolic_link_to: If entry is a symbolic link, path where it points to;
+          missing otherwise.
+
+    Raises:
+      AdbCommandFailedError if |device_path| does not specify a valid and
+          accessible directory in the device.
+      CommandTimeoutError on timeout.
+      DeviceUnreachableError on missing device.
+    """
+    entries = self._ParseLongLsOutput(device_path, as_root=as_root, **kwargs)
+    for d in entries:
+      for key, value in d.items():
+        if value is None:
+          del d[key]  # Remove missing fields.
+      d['st_mode'] = _ParseModeString(d['st_mode'])
+      d['st_mtime'] = calendar.timegm(
+          time.strptime(d['st_mtime'], _LS_DATE_FORMAT))
+      for key in ['st_nlink', 'st_size', 'st_rdev_major', 'st_rdev_minor']:
+        if key in d:
+          d[key] = int(d[key])
+      if 'st_rdev_major' in d and 'st_rdev_minor' in d:
+        d['st_rdev_pair'] = (d.pop('st_rdev_major'), d.pop('st_rdev_minor'))
+    return entries
+
+  def StatPath(self, device_path, as_root=False, **kwargs):
+    """Get the stat attributes of a file or directory on the device.
+
+    Args:
+      device_path: A string containing the path of a file or directory from
+                   which to get attributes.
+      as_root: A boolean indicating whether the to use root privileges to
+               access the file information.
+      timeout: timeout in seconds
+      retries: number of retries
+
+    Returns:
+      A dictionary with the stat info collected; see StatDirectory for details.
 
     Raises:
       CommandFailedError if device_path cannot be found on the device.
       CommandTimeoutError on timeout.
       DeviceUnreachableError on missing device.
     """
-    dirname, target = device_path.rsplit('/', 1)
-    for filename, stat in self.adb.Ls(dirname):
-      if filename == target:
-        return stat
+    dirname, filename = posixpath.split(posixpath.normpath(device_path))
+    for entry in self.StatDirectory(dirname, as_root=as_root, **kwargs):
+      if entry['filename'] == filename:
+        return entry
     raise device_errors.CommandFailedError(
         'Cannot find file or directory: %r' % device_path, str(self))
+
+  def FileSize(self, device_path, as_root=False, **kwargs):
+    """Get the size of a file on the device.
+
+    Note: This is implemented by parsing the output of the 'ls' command on
+    the device. On some Android versions, when passing a directory or special
+    file, the size is *not* reported and this function will throw an exception.
+
+    Args:
+      device_path: A string containing the path of a file on the device.
+      as_root: A boolean indicating whether the to use root privileges to
+               access the file information.
+      timeout: timeout in seconds
+      retries: number of retries
+
+    Returns:
+      The size of the file in bytes.
+
+    Raises:
+      CommandFailedError if device_path cannot be found on the device, or
+        its size cannot be determited for some reason.
+      CommandTimeoutError on timeout.
+      DeviceUnreachableError on missing device.
+    """
+    entry = self.StatPath(device_path, as_root=as_root, **kwargs)
+    try:
+      return entry['st_size']
+    except KeyError:
+      raise device_errors.CommandFailedError(
+          'Could not determine the size of: %s' % device_path, str(self))
 
   @decorators.WithTimeoutAndRetriesFromInstance()
   def SetJavaAsserts(self, enabled, timeout=None, retries=None):
@@ -1749,8 +1929,37 @@ class DeviceUtils(object):
     """Returns the product board name of the device (e.g. 'shamu')."""
     return self.GetProp('ro.product.board', cache=True)
 
-  def GetProp(self, property_name, cache=False, timeout=DEFAULT,
-              retries=DEFAULT):
+  def _EnsureCacheInitialized(self):
+    """Populates cache token, runs getprop and fetches $EXTERNAL_STORAGE."""
+    if self._cache['token']:
+      return
+    with self._cache_lock:
+      if self._cache['token']:
+        return
+      # Change the token every time to ensure that it will match only the
+      # previously dumped cache.
+      token = str(uuid.uuid1())
+      cmd = (
+          'c=/data/local/tmp/cache_token;'
+          'echo $EXTERNAL_STORAGE;'
+          'cat $c 2>/dev/null||echo;'
+          'echo "%s">$c &&' % token +
+          'getprop'
+      )
+      output = self.RunShellCommand(cmd, check_return=True, large_output=True)
+      # Error-checking for this existing is done in GetExternalStoragePath().
+      self._cache['external_storage'] = output[0]
+      self._cache['prev_token'] = output[1]
+      output = output[2:]
+
+      prop_cache = self._cache['getprop']
+      prop_cache.clear()
+      for key, value in _GETPROP_RE.findall(''.join(output)):
+        prop_cache[key] = value
+      self._cache['token'] = token
+
+  @decorators.WithTimeoutAndRetriesFromInstance()
+  def GetProp(self, property_name, cache=False, timeout=None, retries=None):
     """Gets a property from the device.
 
     Args:
@@ -1769,29 +1978,19 @@ class DeviceUtils(object):
     assert isinstance(property_name, basestring), (
         "property_name is not a string: %r" % property_name)
 
-    prop_cache = self._cache['getprop']
     if cache:
-      if property_name not in prop_cache:
-        # It takes ~120ms to query a single property, and ~130ms to query all
-        # properties. So, when caching we always query all properties.
-        output = self.RunShellCommand(
-            ['getprop'], check_return=True, large_output=True,
-            timeout=self._default_timeout if timeout is DEFAULT else timeout,
-            retries=self._default_retries if retries is DEFAULT else retries)
-        prop_cache.clear()
-        for key, value in _GETPROP_RE.findall(''.join(output)):
-          prop_cache[key] = value
-        if property_name not in prop_cache:
-          prop_cache[property_name] = ''
+      # It takes ~120ms to query a single property, and ~130ms to query all
+      # properties. So, when caching we always query all properties.
+      self._EnsureCacheInitialized()
     else:
       # timeout and retries are handled down at run shell, because we don't
       # want to apply them in the other branch when reading from the cache
       value = self.RunShellCommand(
           ['getprop', property_name], single_line=True, check_return=True,
-          timeout=self._default_timeout if timeout is DEFAULT else timeout,
-          retries=self._default_retries if retries is DEFAULT else retries)
-      prop_cache[property_name] = value
-    return prop_cache[property_name]
+          timeout=timeout, retries=retries)
+      self._cache['getprop'][property_name] = value
+    # Non-existent properties are treated as empty strings by getprop.
+    return self._cache['getprop'].get(property_name, '')
 
   @decorators.WithTimeoutAndRetriesFromInstance()
   def SetProp(self, property_name, value, check=False, timeout=None,
@@ -2031,11 +2230,36 @@ class DeviceUtils(object):
         'getprop': {},
         # Map of device_path -> [ignore_other_files, map of path->checksum]
         'device_path_checksums': {},
+        # Location of sdcard ($EXTERNAL_STORAGE).
+        'external_storage': None,
+        # Token used to detect when LoadCacheData is stale.
+        'token': None,
+        'prev_token': None,
     }
 
-  def LoadCacheData(self, data):
-    """Initializes the cache from data created using DumpCacheData."""
+  @decorators.WithTimeoutAndRetriesFromInstance()
+  def LoadCacheData(self, data, timeout=None, retries=None):
+    """Initializes the cache from data created using DumpCacheData.
+
+    The cache is used only if its token matches the one found on the device.
+    This prevents a stale cache from being used (which can happen when sharing
+    devices).
+
+    Args:
+      data: A previously serialized cache (string).
+      timeout: timeout in seconds
+      retries: number of retries
+
+    Returns:
+      Whether the cache was loaded.
+    """
     obj = json.loads(data)
+    self._EnsureCacheInitialized()
+    given_token = obj.get('token')
+    if not given_token or self._cache['prev_token'] != given_token:
+      logging.warning('Stale cache detected. Not using it.')
+      return False
+
     self._cache['package_apk_paths'] = obj.get('package_apk_paths', {})
     # When using a cache across script invokations, verify that apps have
     # not been uninstalled.
@@ -2048,10 +2272,22 @@ class DeviceUtils(object):
     self._cache['package_apk_checksums'] = package_apk_checksums
     device_path_checksums = obj.get('device_path_checksums', {})
     self._cache['device_path_checksums'] = device_path_checksums
+    return True
 
-  def DumpCacheData(self):
-    """Dumps the current cache state to a string."""
+  @decorators.WithTimeoutAndRetriesFromInstance()
+  def DumpCacheData(self, timeout=None, retries=None):
+    """Dumps the current cache state to a string.
+
+    Args:
+      timeout: timeout in seconds
+      retries: number of retries
+
+    Returns:
+      A serialized cache as a string.
+    """
+    self._EnsureCacheInitialized()
     obj = {}
+    obj['token'] = self._cache['token']
     obj['package_apk_paths'] = self._cache['package_apk_paths']
     obj['package_apk_checksums'] = self._cache['package_apk_checksums']
     # JSON can't handle sets.
@@ -2073,13 +2309,7 @@ class DeviceUtils(object):
 
     Returns:
       A Parallelizer operating over |devices|.
-
-    Raises:
-      device_errors.NoDevicesError: If no devices are passed.
     """
-    if not devices:
-      raise device_errors.NoDevicesError()
-
     devices = [d if isinstance(d, cls) else cls(d) for d in devices]
     if async:
       return parallelizer.Parallelizer(devices)
@@ -2087,20 +2317,76 @@ class DeviceUtils(object):
       return parallelizer.SyncParallelizer(devices)
 
   @classmethod
-  def HealthyDevices(cls, blacklist=None, **kwargs):
+  def HealthyDevices(cls, blacklist=None, device_arg='default', **kwargs):
+    """Returns a list of DeviceUtils instances.
+
+    Returns a list of DeviceUtils instances that are attached, not blacklisted,
+    and optionally filtered by --device flags or ANDROID_SERIAL environment
+    variable.
+
+    Args:
+      blacklist: A DeviceBlacklist instance (optional). Device serials in this
+          blacklist will never be returned, but a warning will be logged if they
+          otherwise would have been.
+      device_arg: The value of the --device flag. This can be:
+          'default' -> Same as [], but returns an empty list rather than raise a
+              NoDevicesError.
+          [] -> Returns all devices, unless $ANDROID_SERIAL is set.
+          None -> Use $ANDROID_SERIAL if set, otherwise looks for a single
+              attached device. Raises an exception if multiple devices are
+              attached.
+          'serial' -> Returns an instance for the given serial, if not
+              blacklisted.
+          ['A', 'B', ...] -> Returns instances for the subset that is not
+              blacklisted.
+      A device serial, or a list of device serials (optional).
+
+    Returns:
+      A list of one or more DeviceUtils instances.
+
+    Raises:
+      NoDevicesError: Raised when no non-blacklisted devices exist and
+          device_arg is passed.
+      MultipleDevicesError: Raise when multiple devices exist, but |device_arg|
+          is None.
+    """
+    allow_no_devices = False
+    if device_arg == 'default':
+      allow_no_devices = True
+      device_arg = ()
+
+    select_multiple = True
+    if not (isinstance(device_arg, tuple) or isinstance(device_arg, list)):
+      select_multiple = False
+      if device_arg:
+        device_arg = (device_arg,)
+
     blacklisted_devices = blacklist.Read() if blacklist else []
 
-    def blacklisted(adb):
-      if adb.GetDeviceSerial() in blacklisted_devices:
-        logging.warning('Device %s is blacklisted.', adb.GetDeviceSerial())
+    # adb looks for ANDROID_SERIAL, so support it as well.
+    android_serial = os.environ.get('ANDROID_SERIAL')
+    if not device_arg and android_serial:
+      device_arg = (android_serial,)
+
+    def blacklisted(serial):
+      if serial in blacklisted_devices:
+        logging.warning('Device %s is blacklisted.', serial)
         return True
       return False
 
-    devices = []
-    for adb in adb_wrapper.AdbWrapper.Devices():
-      if not blacklisted(adb):
-        devices.append(cls(_CreateAdbWrapper(adb), **kwargs))
-    return devices
+    if device_arg:
+      devices = [cls(x, **kwargs) for x in device_arg if not blacklisted(x)]
+    else:
+      devices = []
+      for adb in adb_wrapper.AdbWrapper.Devices():
+        if not blacklisted(adb.GetDeviceSerial()):
+          devices.append(cls(_CreateAdbWrapper(adb), **kwargs))
+
+    if len(devices) == 0 and not allow_no_devices:
+      raise device_errors.NoDevicesError()
+    if len(devices) > 1 and not select_multiple:
+      raise device_errors.MultipleDevicesError(devices)
+    return sorted(devices)
 
   @decorators.WithTimeoutAndRetriesFromInstance()
   def RestartAdbd(self, timeout=None, retries=None):

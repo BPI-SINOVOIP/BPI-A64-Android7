@@ -1,0 +1,27 @@
+[
+  {
+    "cmd": [
+      "echo",
+      "testa"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "testa",
+    "~followup_annotations": [
+      "step returned non-zero exit code: 1",
+      "@@@STEP_FAILURE@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "echo",
+      "testb"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "testb"
+  },
+  {
+    "name": "$result",
+    "recipe_result": null,
+    "status_code": 0
+  }
+]

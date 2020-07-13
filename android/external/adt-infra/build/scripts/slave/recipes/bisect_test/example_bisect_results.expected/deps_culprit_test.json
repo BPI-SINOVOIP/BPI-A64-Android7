@@ -1,0 +1,202 @@
+[
+  {
+    "cmd": [
+      "git",
+      "update-ref",
+      "refs/heads/master",
+      "refs/remotes/origin/master"
+    ],
+    "cwd": "[TMP_BASE]/bogus_tmp_1",
+    "name": "git update-ref"
+  },
+  {
+    "cmd": [
+      "git",
+      "checkout",
+      "master"
+    ],
+    "cwd": "[TMP_BASE]/bogus_tmp_1",
+    "name": "git checkout"
+  },
+  {
+    "cmd": [
+      "echo",
+      "{\n  \"bad_revision\": \"314017\", \n  \"bug_id\": \"\", \n  \"builder_host\": \"master4.golo.chromium.org\", \n  \"builder_port\": \"8341\", \n  \"command\": \"src/tools/perf/run_benchmark -v --browser=release smoothness.tough_scrolling_cases\", \n  \"dummy_builds\": \"True\", \n  \"good_revision\": \"314015\", \n  \"gs_bucket\": \"chrome-perf\", \n  \"max_time_minutes\": \"5\", \n  \"metric\": \"mean_input_event_latency/mean_input_event_latency\", \n  \"repeat_count\": \"2\", \n  \"skip_gclient_ops\": \"True\", \n  \"test_type\": \"perf\", \n  \"truncate_percent\": \"0\"\n}"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "config",
+    "~followup_annotations": [
+      "@@@STEP_LOG_LINE@Bisect job configuration@{@@@",
+      "@@@STEP_LOG_LINE@Bisect job configuration@  \"bad_revision\": \"314017\", @@@",
+      "@@@STEP_LOG_LINE@Bisect job configuration@  \"bug_id\": \"\", @@@",
+      "@@@STEP_LOG_LINE@Bisect job configuration@  \"builder_host\": \"master4.golo.chromium.org\", @@@",
+      "@@@STEP_LOG_LINE@Bisect job configuration@  \"builder_port\": \"8341\", @@@",
+      "@@@STEP_LOG_LINE@Bisect job configuration@  \"command\": \"src/tools/perf/run_benchmark -v --browser=release smoothness.tough_scrolling_cases\", @@@",
+      "@@@STEP_LOG_LINE@Bisect job configuration@  \"dummy_builds\": \"True\", @@@",
+      "@@@STEP_LOG_LINE@Bisect job configuration@  \"good_revision\": \"314015\", @@@",
+      "@@@STEP_LOG_LINE@Bisect job configuration@  \"gs_bucket\": \"chrome-perf\", @@@",
+      "@@@STEP_LOG_LINE@Bisect job configuration@  \"max_time_minutes\": \"5\", @@@",
+      "@@@STEP_LOG_LINE@Bisect job configuration@  \"metric\": \"mean_input_event_latency/mean_input_event_latency\", @@@",
+      "@@@STEP_LOG_LINE@Bisect job configuration@  \"repeat_count\": \"2\", @@@",
+      "@@@STEP_LOG_LINE@Bisect job configuration@  \"skip_gclient_ops\": \"True\", @@@",
+      "@@@STEP_LOG_LINE@Bisect job configuration@  \"test_type\": \"perf\", @@@",
+      "@@@STEP_LOG_LINE@Bisect job configuration@  \"truncate_percent\": \"0\"@@@",
+      "@@@STEP_LOG_LINE@Bisect job configuration@}@@@",
+      "@@@STEP_LOG_END@Bisect job configuration@@@"
+    ]
+  },
+  {
+    "cmd": [],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "Resolving reference range"
+  },
+  {
+    "cmd": [
+      "git",
+      "log",
+      "--format=hash:%H",
+      "--grep",
+      "^Cr-Commit-Position: refs/heads/master@{#314017}",
+      "-1",
+      "origin/master"
+    ],
+    "cwd": "[TMP_BASE]/bogus_tmp_1",
+    "name": "Resolving reference range.resolving commit_pos 314017",
+    "stdout": "/path/to/tmp/",
+    "~followup_annotations": [
+      "@@@STEP_NEST_LEVEL@1@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "git",
+      "footers",
+      "--position",
+      "deadbeef"
+    ],
+    "cwd": "[TMP_BASE]/bogus_tmp_1",
+    "name": "Resolving reference range.resolving hash deadbeef",
+    "stdout": "/path/to/tmp/",
+    "~followup_annotations": [
+      "@@@STEP_NEST_LEVEL@1@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "git",
+      "fetch",
+      "origin",
+      "--tags"
+    ],
+    "cwd": "[TMP_BASE]/bogus_tmp_1",
+    "name": "Resolving reference range.git fetch tags",
+    "stdout": "/path/to/tmp/",
+    "~followup_annotations": [
+      "@@@STEP_NEST_LEVEL@1@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "git",
+      "cat-file",
+      "blob",
+      "deadbeef:DEPS"
+    ],
+    "cwd": "[TMP_BASE]/bogus_tmp_1",
+    "name": "Resolving reference range.git cat-file deadbeef:DEPS",
+    "stdout": "/path/to/tmp/",
+    "~followup_annotations": [
+      "@@@STEP_NEST_LEVEL@1@@@",
+      "@@@STEP_LOG_LINE@Debug Bad Revision DEPS@v8: None@@@",
+      "@@@STEP_LOG_LINE@Debug Bad Revision DEPS@skia/src: None@@@",
+      "@@@STEP_LOG_END@Debug Bad Revision DEPS@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "git",
+      "log",
+      "--format=hash:%H",
+      "--grep",
+      "^Cr-Commit-Position: refs/heads/master@{#314015}",
+      "-1",
+      "origin/master"
+    ],
+    "cwd": "[TMP_BASE]/bogus_tmp_1",
+    "name": "Resolving reference range.resolving commit_pos 314015",
+    "stdout": "/path/to/tmp/",
+    "~followup_annotations": [
+      "@@@STEP_NEST_LEVEL@1@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "git",
+      "footers",
+      "--position",
+      "c001c0de"
+    ],
+    "cwd": "[TMP_BASE]/bogus_tmp_1",
+    "name": "Resolving reference range.resolving hash c001c0de",
+    "stdout": "/path/to/tmp/",
+    "~followup_annotations": [
+      "@@@STEP_NEST_LEVEL@1@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "git",
+      "fetch",
+      "origin",
+      "--tags"
+    ],
+    "cwd": "[TMP_BASE]/bogus_tmp_1",
+    "name": "Resolving reference range.git fetch tags (2)",
+    "stdout": "/path/to/tmp/",
+    "~followup_annotations": [
+      "@@@STEP_NEST_LEVEL@1@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "git",
+      "cat-file",
+      "blob",
+      "c001c0de:DEPS"
+    ],
+    "cwd": "[TMP_BASE]/bogus_tmp_1",
+    "name": "Resolving reference range.git cat-file c001c0de:DEPS",
+    "stdout": "/path/to/tmp/",
+    "~followup_annotations": [
+      "@@@STEP_NEST_LEVEL@1@@@",
+      "@@@STEP_LOG_LINE@Debug Good Revision DEPS@v8: None@@@",
+      "@@@STEP_LOG_LINE@Debug Good Revision DEPS@skia/src: None@@@",
+      "@@@STEP_LOG_END@Debug Good Revision DEPS@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "git",
+      "log",
+      "--format=%aNS3P4R4T0R%aES3P4R4T0R%sS3P4R4T0R%cDS3P4R4T0R%b",
+      "-1",
+      "deadbeef"
+    ],
+    "cwd": "[TMP_BASE]/bogus_tmp_1",
+    "name": "Reading culprit cl information.",
+    "stdout": "/path/to/tmp/"
+  },
+  {
+    "cmd": [
+      "cat"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "Results",
+    "stdin": "---bisect results start here---\n\n===== BISECT JOB RESULTS =====\nStatus: Negative: Completed, but no culprit was found with high confidence.\n\nTest Command: src/tools/perf/run_benchmark -v --browser=release smoothness.tough_scrolling_cases\nTest Metric: mean_input_event_latency/mean_input_event_latency\nRelative Change: None\nScore: 0.99\nRetested CL with revert: Not Implemented.\n\n\n===== WARNINGS =====\nThe following warnings were raised by the bisect job:\n\n * This is a demo warning\n\n\n===== SUSPECTED CL(s) =====\nSubject : Some random CL\nAuthor  : DummyAuthor, dummy@nowhere.com\nCommit description:\n  A long description for a CL.\nContaining multiple lines\nCommit  : deadbeef\nDate    : 01/01/2015\n\n\n===== TESTED REVISIONS =====\nDepot Revision Mean Value Std. Err. Good?  \n\n\n\n| O O | Visit http://www.chromium.org/developers/speed-infra/perf-bug-faq\n|  X  | for more information addressing perf regression bugs. For feedback,\n| / \\ | file a bug with label Cr-Tests-AutoBisect.  Thank you!"
+  },
+  {
+    "name": "$result",
+    "recipe_result": null,
+    "status_code": 0
+  }
+]

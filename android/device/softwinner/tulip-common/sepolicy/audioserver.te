@@ -1,1 +1,3 @@
 allow audioserver sysfs:file {open read};
+allow audioserver bootanim:binder call;
+allow audioserver rootfs:lnk_file getattr;

@@ -44,7 +44,6 @@ import com.googlecode.android_scripting.rpc.MethodDescriptor;
  * This activity is started by {@link ApiBrowser} to prompt user for RPC call parameters.
  * Input/output interface is RPC name and explicit parameter values.
  *
- * @author igor.v.karp@gmail.com (Igor Karp)
  */
 public class ApiPrompt extends Activity {
   private MethodDescriptor mRpc;

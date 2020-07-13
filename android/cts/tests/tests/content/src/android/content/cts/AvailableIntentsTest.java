@@ -24,9 +24,11 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.media.RingtoneManager;
 import android.net.Uri;
+import android.os.storage.StorageManager;
 import android.provider.AlarmClock;
 import android.provider.MediaStore;
 import android.provider.Settings;
+import android.telecom.TelecomManager;
 import android.test.AndroidTestCase;
 
 import java.util.List;
@@ -137,6 +139,50 @@ public class AvailableIntentsTest extends AndroidTestCase {
     }
 
     /**
+     * Test ACTION_CHANGE_PHONE_ACCOUNTS, it will display the phone account preferences.
+     */
+    public void testChangePhoneAccounts() {
+        PackageManager packageManager = mContext.getPackageManager();
+        if (packageManager.hasSystemFeature(PackageManager.FEATURE_TELEPHONY)) {
+            Intent intent = new Intent(TelecomManager.ACTION_CHANGE_PHONE_ACCOUNTS);
+            assertCanBeHandled(intent);
+        }
+    }
+
+    /**
+     * Test ACTION_SHOW_CALL_ACCESSIBILITY_SETTINGS, it will display the call accessibility preferences.
+     */
+    public void testShowCallAccessibilitySettings() {
+        PackageManager packageManager = mContext.getPackageManager();
+        if (packageManager.hasSystemFeature(PackageManager.FEATURE_TELEPHONY)) {
+            Intent intent = new Intent(TelecomManager.ACTION_SHOW_CALL_ACCESSIBILITY_SETTINGS);
+            assertCanBeHandled(intent);
+        }
+    }
+
+    /**
+     * Test ACTION_SHOW_CALL_SETTINGS, it will display the call preferences.
+     */
+    public void testShowCallSettings() {
+        PackageManager packageManager = mContext.getPackageManager();
+        if (packageManager.hasSystemFeature(PackageManager.FEATURE_TELEPHONY)) {
+            Intent intent = new Intent(TelecomManager.ACTION_SHOW_CALL_SETTINGS);
+            assertCanBeHandled(intent);
+        }
+    }
+
+    /**
+     * Test ACTION_SHOW_RESPOND_VIA_SMS_SETTINGS, it will display the respond by SMS preferences.
+     */
+    public void testShowRespondViaSmsSettings() {
+        PackageManager packageManager = mContext.getPackageManager();
+        if (packageManager.hasSystemFeature(PackageManager.FEATURE_TELEPHONY)) {
+            Intent intent = new Intent(TelecomManager.ACTION_SHOW_RESPOND_VIA_SMS_SETTINGS);
+            assertCanBeHandled(intent);
+        }
+    }
+
+    /**
      * Test start camera by intent
      */
     public void testCamera() {
@@ -241,5 +287,9 @@ public class AvailableIntentsTest extends AndroidTestCase {
 
     public void testViewDownloads() {
         assertCanBeHandled(new Intent(DownloadManager.ACTION_VIEW_DOWNLOADS));
+    }
+
+    public void testManageStorage() {
+        assertCanBeHandled(new Intent(StorageManager.ACTION_MANAGE_STORAGE));
     }
 }

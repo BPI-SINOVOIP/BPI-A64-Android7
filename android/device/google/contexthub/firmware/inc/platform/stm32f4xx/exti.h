@@ -68,6 +68,8 @@ int extiChainIsr(IRQn_Type n, struct ChainedIsr *isr);
 int extiUnchainIsr(IRQn_Type n, struct ChainedIsr *isr);
 int extiUnchainAll(uint32_t tid);
 
+int extiSetMaxLatency(struct ChainedIsr *isr, uint32_t maxLatencyNs);
+
 static inline void extiEnableIntGpio(const struct Gpio *__restrict gpioHandle, enum ExtiTrigger trigger)
 {
     if (gpioHandle) {

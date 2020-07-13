@@ -28,6 +28,7 @@
 #include <linux/debugfs.h>
 #include <linux/err.h>
 #include <linux/cpu.h>
+#include <linux/sunxi-sid.h>
 #ifdef CONFIG_SUNXI_ARISC
 #include <linux/arisc/arisc.h>
 #endif
@@ -407,11 +408,28 @@ static int __init_freq_dt(void)
 	char name[16] = {0};
 	int i;
 #endif
+	char vf_table_name[64];
+	u32 value;
 
-	np = of_find_node_by_path("/dvfs_table");
+	sprintf(vf_table_name, "/dvfs_table");
+	np = of_find_node_by_path(vf_table_name);
 	if (!np) {
 		CPUFREQ_ERR("No dvfs table node found\n");
 		return -ENODEV;
+	}
+
+	if (of_property_read_u32(np, "vf_table_count", &value))
+		CPUFREQ_DBG(DEBUG_FREQ, "only support one vf_table\n");
+	else {
+		ret = sunxi_get_soc_bin();
+		if (ret != 1 && ret != 2)
+			ret = 1;
+		sprintf(vf_table_name, "%s%d", "/vf_table", ret);
+		np = of_find_node_by_path(vf_table_name);
+		if (!np) {
+			CPUFREQ_ERR("No %s node found\n", vf_table_name);
+			return -ENODEV;
+		}
 	}
 
 	if (of_property_read_u32(np, "max_freq", &sunxi_cpufreq.max_freq)) {

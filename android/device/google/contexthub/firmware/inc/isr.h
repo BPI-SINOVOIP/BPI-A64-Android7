@@ -34,6 +34,9 @@ struct ChainedInterrupt {
 
 struct ChainedIsr {
     link_t node;
+
+    uint32_t maxLatencyNs;
+
     bool (*func)(struct ChainedIsr *);
     uint16_t tid;
 };
@@ -86,6 +89,20 @@ static inline int unchainIsrAll(struct ChainedInterrupt *interrupt, uint32_t tid
     }
 
     return count;
+}
+
+static inline uint32_t maxLatencyIsr(struct ChainedInterrupt *interrupt)
+{
+    struct link_t *cur, *tmp;
+    uint32_t latency = 0;
+
+    list_iterate(&interrupt->isrs, cur, tmp) {
+        struct ChainedIsr *curIsr = container_of(cur, struct ChainedIsr, node);
+        if (!latency || (curIsr->maxLatencyNs && curIsr->maxLatencyNs < latency))
+            latency = curIsr->maxLatencyNs;
+    }
+
+    return latency;
 }
 
 #endif /* __ISR_H */

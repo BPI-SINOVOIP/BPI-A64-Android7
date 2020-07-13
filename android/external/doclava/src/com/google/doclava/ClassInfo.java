@@ -312,6 +312,19 @@ public class ClassInfo extends DocInfo implements ContainerInfo, Comparable, Sco
     return result;
   }
 
+  public TypeInfo getTypeParameter(String qualifiedTypeName) {
+      List<TypeInfo> parameters = mTypeInfo.typeArguments();
+      if (parameters == null) {
+          return null;
+      }
+      for (TypeInfo parameter : parameters) {
+          if (parameter.qualifiedTypeName().equals(qualifiedTypeName)) {
+              return parameter;
+          }
+      }
+      return null;
+  }
+
   /**
    * List of only direct interface's classes, without worrying about type param mapping.
    * This can't be lazy loaded, because its overloads depend on changing type parameters
@@ -2232,6 +2245,17 @@ public class ClassInfo extends DocInfo implements ContainerInfo, Comparable, Sco
       }
     }
 
+    if (hasTypeParameters() && cl.hasTypeParameters()) {
+      ArrayList<TypeInfo> oldParams = typeParameters();
+      ArrayList<TypeInfo> newParams = cl.typeParameters();
+      if (oldParams.size() != newParams.size()) {
+        consistent = false;
+        Errors.error(Errors.CHANGED_TYPE, cl.position(), "Class " + qualifiedName()
+            + " changed number of type parameters from " + oldParams.size()
+            + " to " + newParams.size());
+      }
+    }
+
     return consistent;
   }
 
@@ -2282,6 +2306,20 @@ public class ClassInfo extends DocInfo implements ContainerInfo, Comparable, Sco
 
   public TypeInfo type() {
       return mTypeInfo;
+  }
+
+  public boolean hasTypeParameters() {
+      if (mTypeInfo != null && mTypeInfo.typeArguments() != null) {
+          return !mTypeInfo.typeArguments().isEmpty();
+      }
+      return false;
+  }
+
+  public ArrayList<TypeInfo> typeParameters() {
+      if (hasTypeParameters()) {
+          return mTypeInfo.typeArguments();
+      }
+      return null;
   }
 
   public void addInnerClass(ClassInfo innerClass) {

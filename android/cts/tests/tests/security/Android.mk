@@ -55,7 +55,8 @@ LOCAL_JNI_SHARED_LIBRARIES := libctssecurity_jni libcts_jni libnativehelper_comp
 		libstagefright_foundation
 
 LOCAL_SRC_FILES := $(call all-java-files-under, src)\
-                   src/android/security/cts/activity/ISecureRandomService.aidl
+                   src/android/security/cts/activity/ISecureRandomService.aidl\
+                   aidl/android/security/cts/IIsolatedService.aidl
 
 LOCAL_PACKAGE_NAME := CtsSecurityTestCases
 

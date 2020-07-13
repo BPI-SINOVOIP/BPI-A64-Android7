@@ -96,7 +96,8 @@
     <string name="user_emergency_info_title" msgid="7827058167207376581">"Informacioni i urgjencës"</string>
     <string name="user_emergency_info_consent" msgid="5636028073450797246">"Informacionet që fut këtu mund t\'i ndihmojnë personat e parë që përgjigjen në rast urgjence. Ato ruhen vetëm në pajisjen tënde dhe çdo person mund t\'i lexojë nga formuesi i numrit i urgjencës pa e shkyçur telefonin."</string>
     <string name="emergency_info_continue" msgid="5453201508537906087">"Vazhdo"</string>
-    <string name="no_info_provided" msgid="6775035037534954056">"Nuk është dhënë informacion urgjence"</string>
+    <string name="no_info_provided" msgid="716200382010821001">"Nuk ka informacione mbi zotëruesin e telefonit"</string>
+    <string name="tap_pencil" msgid="2723698054265296934">"Nëse ky është telefoni yt, trokit tek ikona e lapsit për të shtuar informacione që do të shfaqen këtu në rast urgjence"</string>
     <string name="clear_all" msgid="8899013032870561633">"Pastroji të gjitha"</string>
     <string name="clear" msgid="3648880442502887163">"Pastro"</string>
     <string name="clear_all_message" msgid="1548432000373861295">"Të pastrohen të gjitha informacionet dhe kontaktet?"</string>

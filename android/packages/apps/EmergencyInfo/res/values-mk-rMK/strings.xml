@@ -96,7 +96,8 @@
     <string name="user_emergency_info_title" msgid="7827058167207376581">"Информации за итни случаи"</string>
     <string name="user_emergency_info_consent" msgid="5636028073450797246">"Информациите што ќе ги внесете тука може да им помогнат на првите лица што ќе реагираат при итен случај. Се чуваат само на вашиот уред и секој ќе може да ги прочита од бирачот за итни случаи без да го отклучи телефонот."</string>
     <string name="emergency_info_continue" msgid="5453201508537906087">"Продолжи"</string>
-    <string name="no_info_provided" msgid="6775035037534954056">"Нема информации за итни случаи"</string>
+    <string name="no_info_provided" msgid="716200382010821001">"Нема информации за сопственикот на телефонот"</string>
+    <string name="tap_pencil" msgid="2723698054265296934">"Ако ова е вашиот телефон, допрете ја иконата со молив за да додадете информации што ќе се прикажат тука во итен случај"</string>
     <string name="clear_all" msgid="8899013032870561633">"Исчисти ги сите"</string>
     <string name="clear" msgid="3648880442502887163">"Исчисти"</string>
     <string name="clear_all_message" msgid="1548432000373861295">"Да се исчистат сите информации и контакти?"</string>

@@ -35,8 +35,8 @@ android {
 Pre-requisites
 --------------
 
-- Android SDK 21
-- Android Build Tools v23.0.3
+- Android SDK 24
+- Android Build Tools v24.0.2
 - Android Support Repository
 
 Screenshots

@@ -1,0 +1,117 @@
+[
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "RECIPE_MODULE[cipd]/resources/bootstrap.py"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "install cipd",
+    "stdin": "{\"bin_path\": \"[SLAVE_BUILD]/cipd\", \"platform\": \"linux-amd64\"}"
+  },
+  {
+    "cmd": [
+      "[SLAVE_BUILD]/cipd/cipd",
+      "ensure",
+      "--root",
+      "[TMP_BASE]/cipd-example_tmp_1/bin",
+      "--list",
+      "infra/monitoring/dispatcher/linux-amd64 7f751b2237df2fdf3c1405be00590fefffbaea2d"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "ensure_installed"
+  },
+  {
+    "cmd": [
+      "[SLAVE_BUILD]/cipd/cipd",
+      "ensure",
+      "--root",
+      "[TMP_BASE]/cipd-example_tmp_1/bin",
+      "--list",
+      "infra/monitoring/dispatcher/linux-amd64 7f751b2237df2fdf3c1405be00590fefffbaea2d",
+      "-service-account-json",
+      "fake-credentials.json"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "ensure_installed (2)"
+  },
+  {
+    "cmd": [
+      "[SLAVE_BUILD]/cipd/cipd",
+      "pkg-build",
+      "-in",
+      "fake-input-dir",
+      "-json-output",
+      "/path/to/tmp/json",
+      "-name",
+      "infra/fake-package",
+      "-out",
+      "fake-output-path"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "build fake-package",
+    "~followup_annotations": [
+      "@@@STEP_LOG_LINE@json.output@{@@@",
+      "@@@STEP_LOG_LINE@json.output@  \"result\": {@@@",
+      "@@@STEP_LOG_LINE@json.output@    \"instance_id\": \"fake-inst\", @@@",
+      "@@@STEP_LOG_LINE@json.output@    \"package\": \"infra/fake-package\"@@@",
+      "@@@STEP_LOG_LINE@json.output@  }@@@",
+      "@@@STEP_LOG_LINE@json.output@}@@@",
+      "@@@STEP_LOG_END@json.output@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "[SLAVE_BUILD]/cipd/cipd",
+      "pkg-register",
+      "-json-output",
+      "/path/to/tmp/json",
+      "-service-account-json",
+      "fake-credentials.json",
+      "-ref",
+      "fake-ref-1",
+      "-ref",
+      "fake-ref-2",
+      "-tag",
+      "fake_tag_1:fake_value_1",
+      "-tag",
+      "fake_tag_2:fake_value_2",
+      "fake-package-path"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "register fake-package-path",
+    "~followup_annotations": [
+      "@@@STEP_LOG_LINE@json.output@{@@@",
+      "@@@STEP_LOG_LINE@json.output@  \"result\": {@@@",
+      "@@@STEP_LOG_LINE@json.output@    \"instance_id\": \"fake-inst\", @@@",
+      "@@@STEP_LOG_LINE@json.output@    \"package\": \"fake-package-path\"@@@",
+      "@@@STEP_LOG_LINE@json.output@  }@@@",
+      "@@@STEP_LOG_LINE@json.output@}@@@",
+      "@@@STEP_LOG_END@json.output@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "\nimport os, sys\nfrom common import chromium_utils\n\nif os.path.exists(sys.argv[1]):\n  chromium_utils.RemoveDirectory(sys.argv[1])\n",
+      "[TMP_BASE]/cipd-example_tmp_1"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "rmtree cleanup",
+    "~followup_annotations": [
+      "@@@STEP_LOG_LINE@python.inline@@@@",
+      "@@@STEP_LOG_LINE@python.inline@import os, sys@@@",
+      "@@@STEP_LOG_LINE@python.inline@from common import chromium_utils@@@",
+      "@@@STEP_LOG_LINE@python.inline@@@@",
+      "@@@STEP_LOG_LINE@python.inline@if os.path.exists(sys.argv[1]):@@@",
+      "@@@STEP_LOG_LINE@python.inline@  chromium_utils.RemoveDirectory(sys.argv[1])@@@",
+      "@@@STEP_LOG_END@python.inline@@@"
+    ]
+  },
+  {
+    "name": "$result",
+    "recipe_result": null,
+    "status_code": 0
+  }
+]

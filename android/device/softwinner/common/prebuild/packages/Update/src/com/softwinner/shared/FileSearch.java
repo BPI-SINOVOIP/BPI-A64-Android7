@@ -21,6 +21,7 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.util.Log;
 
 public class FileSearch extends Activity implements OnItemClickListener{
 
@@ -38,12 +39,12 @@ public class FileSearch extends Activity implements OnItemClickListener{
 		setContentView(R.layout.file_list);
 		mInflater = LayoutInflater.from(this);
 		mListView = (ListView) findViewById(R.id.file_list);
-        mListView.setOnItemClickListener(this);
+        	mListView.setOnItemClickListener(this);
 		backLayout = (RelativeLayout)findViewById(R.id.back_btn);
 		backLayout.setOnClickListener(new OnClickListener() {
-			public void onClick(View v) {
-				finish();
-			}
+		public void onClick(View v) {
+			finish();
+		}
         });
 		
 		selectBtn = (RelativeLayout)findViewById(R.id.select_btn);
@@ -67,6 +68,7 @@ public class FileSearch extends Activity implements OnItemClickListener{
 	}
 	
 	private void initList(){
+		Log.e("Update", "path=" + Environment.getExternalStorageDirectory().getPath());
 		File file = new File(Environment.getExternalStorageDirectory().getPath());
 		mFiles = file.listFiles(new FileNameSelector("zip"));
 		mListView.setAdapter(mAdapter);

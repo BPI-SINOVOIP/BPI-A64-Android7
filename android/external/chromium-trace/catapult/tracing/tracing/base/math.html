@@ -31,6 +31,13 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.b', function() {
+  /* Returns true when x and y are within delta of each other. */
+  function approximately(x, y, delta) {
+    if (delta === undefined)
+      delta = 1e-9;
+    return Math.abs(x - y) < delta;
+  }
+
   function clamp(x, lo, hi) {
     return Math.min(Math.max(x, lo), hi);
   }
@@ -46,6 +53,38 @@ tr.exportTo('tr.b', function() {
 
   function deg2rad(deg) {
     return (Math.PI * deg) / 180.0;
+  }
+
+  /* The Gauss error function gives the probability that a measurement (which is
+   * under the influence of normally distributed errors with standard deviation
+   * sigma = 1) is less than x from the mean value of the standard normal
+   * distribution.
+   * https://www.desmos.com/calculator/t1v4bdpske
+   *
+   * @param {number} x A tolerance for error.
+   * @return {number} The probability that a measurement is less than |x| from
+   * the mean value of the standard normal distribution.
+   */
+  function erf(x) {
+    // save the sign of x
+    // erf(-x) = -erf(x);
+    var sign = (x >= 0) ? 1 : -1;
+    x = Math.abs(x);
+
+    // constants
+    var a1 = 0.254829592;
+    var a2 = -0.284496736;
+    var a3 = 1.421413741;
+    var a4 = -1.453152027;
+    var a5 = 1.061405429;
+    var p = 0.3275911;
+
+    // Abramowitz and Stegun formula 7.1.26
+    // maximum error: 1.5e-7
+    var t = 1.0 / (1.0 + p * x);
+    var y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t *
+      Math.exp(-x * x);
+    return sign * y;
   }
 
   var tmp_vec2 = vec2.create();
@@ -124,11 +163,12 @@ tr.exportTo('tr.b', function() {
   };
 
   return {
+    approximately: approximately,
     clamp: clamp,
     lerp: lerp,
     normalize: normalize,
-    deg2rad: deg2rad
+    deg2rad: deg2rad,
+    erf: erf
   };
-
 });
 </script>

@@ -36,7 +36,6 @@ namespace internal {
     if (!valid_) return;            \
   } while (false)
 
-
 AsmTyper::AsmTyper(Isolate* isolate, Zone* zone, Script* script,
                    FunctionLiteral* root)
     : zone_(zone),
@@ -45,7 +44,7 @@ AsmTyper::AsmTyper(Isolate* isolate, Zone* zone, Script* script,
       root_(root),
       valid_(true),
       allow_simd_(false),
-      property_info_(NULL),
+      property_info_(nullptr),
       intish_(0),
       stdlib_types_(zone),
       stdlib_heap_types_(zone),
@@ -54,15 +53,17 @@ AsmTyper::AsmTyper(Isolate* isolate, Zone* zone, Script* script,
   stdlib_simd_##name##_types_(zone),
       SIMD128_TYPES(V)
 #undef V
-          global_variable_type_(HashMap::PointersMatch,
+          global_variable_type_(base::HashMap::PointersMatch,
                                 ZoneHashMap::kDefaultHashMapCapacity,
                                 ZoneAllocationPolicy(zone)),
-      local_variable_type_(HashMap::PointersMatch,
+      local_variable_type_(base::HashMap::PointersMatch,
                            ZoneHashMap::kDefaultHashMapCapacity,
                            ZoneAllocationPolicy(zone)),
       in_function_(false),
       building_function_tables_(false),
-      cache_(TypeCache::Get()) {
+      visiting_exports_(false),
+      cache_(TypeCache::Get()),
+      bounds_(zone) {
   InitializeAstVisitor(isolate);
   InitializeStdlib();
 }
@@ -79,24 +80,24 @@ void AsmTyper::VisitAsmModule(FunctionLiteral* fun) {
   if (!scope->is_function_scope()) FAIL(fun, "not at function scope");
 
   ExpressionStatement* use_asm = fun->body()->first()->AsExpressionStatement();
-  if (use_asm == NULL) FAIL(fun, "missing \"use asm\"");
+  if (use_asm == nullptr) FAIL(fun, "missing \"use asm\"");
   Literal* use_asm_literal = use_asm->expression()->AsLiteral();
-  if (use_asm_literal == NULL) FAIL(fun, "missing \"use asm\"");
+  if (use_asm_literal == nullptr) FAIL(fun, "missing \"use asm\"");
   if (!use_asm_literal->raw_value()->AsString()->IsOneByteEqualTo("use asm"))
     FAIL(fun, "missing \"use asm\"");
 
   // Module parameters.
   for (int i = 0; i < scope->num_parameters(); ++i) {
     Variable* param = scope->parameter(i);
-    DCHECK(GetType(param) == NULL);
-    SetType(param, Type::None(zone()));
+    DCHECK(GetType(param) == nullptr);
+    SetType(param, Type::None());
   }
 
   ZoneList<Declaration*>* decls = scope->declarations();
 
   // Set all globals to type Any.
   VariableDeclaration* decl = scope->function();
-  if (decl != NULL) SetType(decl->proxy()->var(), Type::None());
+  if (decl != nullptr) SetType(decl->proxy()->var(), Type::None());
   RECURSE(VisitDeclarations(scope->declarations()));
 
   // Validate global variables.
@@ -105,15 +106,15 @@ void AsmTyper::VisitAsmModule(FunctionLiteral* fun) {
   // Validate function annotations.
   for (int i = 0; i < decls->length(); ++i) {
     FunctionDeclaration* decl = decls->at(i)->AsFunctionDeclaration();
-    if (decl != NULL) {
+    if (decl != nullptr) {
       RECURSE(VisitFunctionAnnotation(decl->fun()));
       Variable* var = decl->proxy()->var();
-      if (property_info_ != NULL) {
+      if (property_info_ != nullptr) {
         SetVariableInfo(var, property_info_);
-        property_info_ = NULL;
+        property_info_ = nullptr;
       }
       SetType(var, computed_type_);
-      DCHECK(GetType(var) != NULL);
+      DCHECK(GetType(var) != nullptr);
     }
   }
 
@@ -125,9 +126,8 @@ void AsmTyper::VisitAsmModule(FunctionLiteral* fun) {
   // Validate function bodies.
   for (int i = 0; i < decls->length(); ++i) {
     FunctionDeclaration* decl = decls->at(i)->AsFunctionDeclaration();
-    if (decl != NULL) {
-      RECURSE(
-          VisitWithExpectation(decl->fun(), Type::Any(zone()), "UNREACHABLE"));
+    if (decl != nullptr) {
+      RECURSE(VisitWithExpectation(decl->fun(), Type::Any(), "UNREACHABLE"));
       if (!computed_type_->IsFunction()) {
         FAIL(decl->fun(), "function literal expected to be a function");
       }
@@ -135,6 +135,7 @@ void AsmTyper::VisitAsmModule(FunctionLiteral* fun) {
   }
 
   // Validate exports.
+  visiting_exports_ = true;
   ReturnStatement* stmt = fun->body()->last()->AsReturnStatement();
   if (stmt == nullptr) {
     FAIL(fun->body()->last(), "last statement in module is not a return");
@@ -147,13 +148,13 @@ void AsmTyper::VisitAsmModule(FunctionLiteral* fun) {
 void AsmTyper::VisitVariableDeclaration(VariableDeclaration* decl) {
   Variable* var = decl->proxy()->var();
   if (var->location() != VariableLocation::PARAMETER) {
-    if (GetType(var) == NULL) {
-      SetType(var, Type::Any(zone()));
+    if (GetType(var) == nullptr) {
+      SetType(var, Type::Any());
     } else {
       DCHECK(!GetType(var)->IsFunction());
     }
   }
-  DCHECK(GetType(var) != NULL);
+  DCHECK(GetType(var) != nullptr);
   intish_ = 0;
 }
 
@@ -165,32 +166,35 @@ void AsmTyper::VisitFunctionDeclaration(FunctionDeclaration* decl) {
   // Set function type so global references to functions have some type
   // (so they can give a more useful error).
   Variable* var = decl->proxy()->var();
-  SetType(var, Type::Function(zone()));
+  if (GetVariableInfo(var)) {
+    // Detect previously-seen functions.
+    FAIL(decl->fun(), "function repeated in module");
+  }
+  SetType(var, Type::Function());
 }
 
 
 void AsmTyper::VisitFunctionAnnotation(FunctionLiteral* fun) {
   // Extract result type.
   ZoneList<Statement*>* body = fun->body();
-  Type* result_type = Type::Undefined(zone());
+  Type* result_type = Type::Undefined();
   if (body->length() > 0) {
     ReturnStatement* stmt = body->last()->AsReturnStatement();
-    if (stmt != NULL) {
+    if (stmt != nullptr) {
       Literal* literal = stmt->expression()->AsLiteral();
       Type* old_expected = expected_type_;
       expected_type_ = Type::Any();
       if (literal) {
         RECURSE(VisitLiteral(literal, true));
       } else {
-        RECURSE(VisitExpressionAnnotation(stmt->expression(), NULL, true));
+        RECURSE(VisitExpressionAnnotation(stmt->expression(), nullptr, true));
       }
       expected_type_ = old_expected;
       result_type = computed_type_;
     }
   }
-  Type::FunctionType* type =
-      Type::Function(result_type, Type::Any(), fun->parameter_count(), zone())
-          ->AsFunction();
+  Type* type =
+      Type::Function(result_type, Type::Any(), fun->parameter_count(), zone());
 
   // Extract parameter types.
   bool good = true;
@@ -198,21 +202,21 @@ void AsmTyper::VisitFunctionAnnotation(FunctionLiteral* fun) {
     good = false;
     if (i >= body->length()) break;
     ExpressionStatement* stmt = body->at(i)->AsExpressionStatement();
-    if (stmt == NULL) break;
+    if (stmt == nullptr) break;
     Assignment* expr = stmt->expression()->AsAssignment();
-    if (expr == NULL || expr->is_compound()) break;
+    if (expr == nullptr || expr->is_compound()) break;
     VariableProxy* proxy = expr->target()->AsVariableProxy();
-    if (proxy == NULL) break;
+    if (proxy == nullptr) break;
     Variable* var = proxy->var();
     if (var->location() != VariableLocation::PARAMETER || var->index() != i)
       break;
     RECURSE(VisitExpressionAnnotation(expr->value(), var, false));
-    if (property_info_ != NULL) {
+    if (property_info_ != nullptr) {
       SetVariableInfo(var, property_info_);
-      property_info_ = NULL;
+      property_info_ = nullptr;
     }
     SetType(var, computed_type_);
-    type->InitParameter(i, computed_type_);
+    type->AsFunction()->InitParameter(i, computed_type_);
     good = true;
   }
   if (!good) FAIL(fun, "missing parameter type annotations");
@@ -225,10 +229,10 @@ void AsmTyper::VisitExpressionAnnotation(Expression* expr, Variable* var,
                                          bool is_return) {
   // Normal +x or x|0 annotations.
   BinaryOperation* bin = expr->AsBinaryOperation();
-  if (bin != NULL) {
-    if (var != NULL) {
+  if (bin != nullptr) {
+    if (var != nullptr) {
       VariableProxy* proxy = bin->left()->AsVariableProxy();
-      if (proxy == NULL) {
+      if (proxy == nullptr) {
         FAIL(bin->left(), "expected variable for type annotation");
       }
       if (proxy->var() != var) {
@@ -236,7 +240,7 @@ void AsmTyper::VisitExpressionAnnotation(Expression* expr, Variable* var,
       }
     }
     Literal* right = bin->right()->AsLiteral();
-    if (right != NULL) {
+    if (right != nullptr) {
       switch (bin->op()) {
         case Token::MUL:  // We encode +x as x*1.0
           if (right->raw_value()->ContainsDot() &&
@@ -270,10 +274,10 @@ void AsmTyper::VisitExpressionAnnotation(Expression* expr, Variable* var,
   }
 
   Call* call = expr->AsCall();
-  if (call != NULL) {
+  if (call != nullptr) {
     VariableProxy* proxy = call->expression()->AsVariableProxy();
-    if (proxy != NULL) {
-      VariableInfo* info = GetVariableInfo(proxy->var(), false);
+    if (proxy != nullptr) {
+      VariableInfo* info = GetVariableInfo(proxy->var());
       if (!info ||
           (!info->is_check_function && !info->is_constructor_function)) {
         if (allow_simd_) {
@@ -449,14 +453,14 @@ void AsmTyper::VisitForStatement(ForStatement* stmt) {
   if (!in_function_) {
     FAIL(stmt, "for statement inside module body");
   }
-  if (stmt->init() != NULL) {
+  if (stmt->init() != nullptr) {
     RECURSE(Visit(stmt->init()));
   }
-  if (stmt->cond() != NULL) {
+  if (stmt->cond() != nullptr) {
     RECURSE(VisitWithExpectation(stmt->cond(), cache_.kAsmSigned,
                                  "for condition expected to be integer"));
   }
-  if (stmt->next() != NULL) {
+  if (stmt->next() != nullptr) {
     RECURSE(Visit(stmt->next()));
   }
   RECURSE(Visit(stmt->body()));
@@ -489,26 +493,26 @@ void AsmTyper::VisitDebuggerStatement(DebuggerStatement* stmt) {
 
 
 void AsmTyper::VisitFunctionLiteral(FunctionLiteral* expr) {
-  Scope* scope = expr->scope();
-  DCHECK(scope->is_function_scope());
   if (in_function_) {
     FAIL(expr, "invalid nested function");
   }
+  Scope* scope = expr->scope();
+  DCHECK(scope->is_function_scope());
 
-  if (!expr->bounds().upper->IsFunction()) {
+  if (!bounds_.get(expr).upper->IsFunction()) {
     FAIL(expr, "invalid function literal");
   }
 
-  Type::FunctionType* type = expr->bounds().upper->AsFunction();
+  Type* type = bounds_.get(expr).upper;
   Type* save_return_type = return_type_;
-  return_type_ = type->Result();
+  return_type_ = type->AsFunction()->Result();
   in_function_ = true;
   local_variable_type_.Clear();
   RECURSE(VisitDeclarations(scope->declarations()));
   RECURSE(VisitStatements(expr->body()));
   in_function_ = false;
   return_type_ = save_return_type;
-  IntersectResult(expr, type);
+  RECURSE(IntersectResult(expr, type));
 }
 
 
@@ -523,6 +527,9 @@ void AsmTyper::VisitDoExpression(DoExpression* expr) {
 
 
 void AsmTyper::VisitConditional(Conditional* expr) {
+  if (!in_function_) {
+    FAIL(expr, "ternary operator inside module body");
+  }
   RECURSE(VisitWithExpectation(expr->condition(), Type::Number(),
                                "condition expected to be integer"));
   if (!computed_type_->Is(cache_.kAsmInt)) {
@@ -549,34 +556,35 @@ void AsmTyper::VisitConditional(Conditional* expr) {
     FAIL(expr, "then and else expressions in ? must have the same type");
   }
 
-  IntersectResult(expr, then_type);
+  RECURSE(IntersectResult(expr, then_type));
 }
 
 
 void AsmTyper::VisitVariableProxy(VariableProxy* expr) {
   Variable* var = expr->var();
-  VariableInfo* info = GetVariableInfo(var, false);
-  if (info == NULL || info->type == NULL) {
+  VariableInfo* info = GetVariableInfo(var);
+  if (!in_function_ && !building_function_tables_ && !visiting_exports_) {
+    if (var->location() != VariableLocation::PARAMETER || var->index() >= 3) {
+      FAIL(expr, "illegal variable reference in module body");
+    }
+  }
+  if (info == nullptr || info->type == nullptr) {
     if (var->mode() == TEMPORARY) {
-      SetType(var, Type::Any(zone()));
-      info = GetVariableInfo(var, false);
+      SetType(var, Type::Any());
+      info = GetVariableInfo(var);
     } else {
       FAIL(expr, "unbound variable");
     }
   }
-  if (property_info_ != NULL) {
+  if (property_info_ != nullptr) {
     SetVariableInfo(var, property_info_);
-    property_info_ = NULL;
+    property_info_ = nullptr;
   }
   Type* type = Type::Intersect(info->type, expected_type_, zone());
-  if (type->Is(cache_.kAsmInt)) {
-    type = cache_.kAsmInt;
-  }
-  info->type = type;
+  if (type->Is(cache_.kAsmInt)) type = cache_.kAsmInt;
   intish_ = 0;
-  IntersectResult(expr, type);
+  RECURSE(IntersectResult(expr, type));
 }
-
 
 void AsmTyper::VisitLiteral(Literal* expr, bool is_return) {
   intish_ = 0;
@@ -585,22 +593,22 @@ void AsmTyper::VisitLiteral(Literal* expr, bool is_return) {
     int32_t i;
     uint32_t u;
     if (expr->raw_value()->ContainsDot()) {
-      IntersectResult(expr, cache_.kAsmDouble);
+      RECURSE(IntersectResult(expr, cache_.kAsmDouble));
     } else if (!is_return && value->ToUint32(&u)) {
       if (u <= 0x7fffffff) {
-        IntersectResult(expr, cache_.kAsmFixnum);
+        RECURSE(IntersectResult(expr, cache_.kAsmFixnum));
       } else {
-        IntersectResult(expr, cache_.kAsmUnsigned);
+        RECURSE(IntersectResult(expr, cache_.kAsmUnsigned));
       }
     } else if (value->ToInt32(&i)) {
-      IntersectResult(expr, cache_.kAsmSigned);
+      RECURSE(IntersectResult(expr, cache_.kAsmSigned));
     } else {
       FAIL(expr, "illegal number");
     }
   } else if (!is_return && value->IsString()) {
-    IntersectResult(expr, Type::String());
-  } else if (value->IsUndefined()) {
-    IntersectResult(expr, Type::Undefined());
+    RECURSE(IntersectResult(expr, Type::String()));
+  } else if (value->IsUndefined(isolate_)) {
+    RECURSE(IntersectResult(expr, Type::Undefined()));
   } else {
     FAIL(expr, "illegal literal");
   }
@@ -623,13 +631,13 @@ void AsmTyper::VisitObjectLiteral(ObjectLiteral* expr) {
   ZoneList<ObjectLiteralProperty*>* props = expr->properties();
   for (int i = 0; i < props->length(); ++i) {
     ObjectLiteralProperty* prop = props->at(i);
-    RECURSE(VisitWithExpectation(prop->value(), Type::Any(zone()),
+    RECURSE(VisitWithExpectation(prop->value(), Type::Any(),
                                  "object property expected to be a function"));
     if (!computed_type_->IsFunction()) {
       FAIL(prop->value(), "non-function in function table");
     }
   }
-  IntersectResult(expr, Type::Object(zone()));
+  RECURSE(IntersectResult(expr, Type::Object()));
 }
 
 
@@ -639,7 +647,7 @@ void AsmTyper::VisitArrayLiteral(ArrayLiteral* expr) {
   }
   // Allowed for function tables.
   ZoneList<Expression*>* values = expr->values();
-  Type* elem_type = Type::None(zone());
+  Type* elem_type = Type::None();
   for (int i = 0; i < values->length(); ++i) {
     Expression* value = values->at(i);
     RECURSE(VisitWithExpectation(value, Type::Any(), "UNREACHABLE"));
@@ -649,7 +657,7 @@ void AsmTyper::VisitArrayLiteral(ArrayLiteral* expr) {
     elem_type = Type::Union(elem_type, computed_type_, zone());
   }
   array_size_ = values->length();
-  IntersectResult(expr, Type::Array(elem_type, zone()));
+  RECURSE(IntersectResult(expr, Type::Array(elem_type, zone())));
 }
 
 
@@ -671,22 +679,51 @@ void AsmTyper::VisitAssignment(Assignment* expr) {
   RECURSE(VisitWithExpectation(
       expr->value(), type, "assignment value expected to match surrounding"));
   Type* target_type = StorageType(computed_type_);
-  if (intish_ != 0) {
-    FAIL(expr, "intish or floatish assignment");
-  }
+
   if (expr->target()->IsVariableProxy()) {
-    RECURSE(VisitWithExpectation(expr->target(), target_type,
-                                 "assignment target expected to match value"));
+    // Assignment to a local or context variable.
+    VariableProxy* proxy = expr->target()->AsVariableProxy();
+    if (intish_ != 0) {
+      FAIL(expr, "intish or floatish assignment");
+    }
+    if (in_function_ && target_type->IsArray()) {
+      FAIL(expr, "assignment to array variable");
+    }
+    expected_type_ = target_type;
+    Variable* var = proxy->var();
+    VariableInfo* info = GetVariableInfo(var);
+    if (info == nullptr || info->type == nullptr) {
+      if (var->mode() == TEMPORARY) {
+        SetType(var, Type::Any());
+        info = GetVariableInfo(var);
+      } else {
+        FAIL(proxy, "unbound variable");
+      }
+    }
+    if (property_info_ != nullptr) {
+      SetVariableInfo(var, property_info_);
+      property_info_ = nullptr;
+    }
+    Type* type = Type::Intersect(info->type, expected_type_, zone());
+    if (type->Is(cache_.kAsmInt)) type = cache_.kAsmInt;
+    info->type = type;
+    intish_ = 0;
+    RECURSE(IntersectResult(proxy, type));
   } else if (expr->target()->IsProperty()) {
+    // Assignment to a property: should be a heap assignment {H[x] = y}.
+    int32_t value_intish = intish_;
     Property* property = expr->target()->AsProperty();
     RECURSE(VisitWithExpectation(property->obj(), Type::Any(),
                                  "bad propety object"));
     if (!computed_type_->IsArray()) {
       FAIL(property->obj(), "array expected");
     }
+    if (value_intish != 0 && computed_type_->Is(cache_.kFloat64Array)) {
+      FAIL(expr, "floatish assignment to double array");
+    }
     VisitHeapAccess(property, true, target_type);
   }
-  IntersectResult(expr, target_type);
+  RECURSE(IntersectResult(expr, target_type));
 }
 
 
@@ -720,54 +757,61 @@ Type* AsmTyper::StorageType(Type* type) {
 
 void AsmTyper::VisitHeapAccess(Property* expr, bool assigning,
                                Type* assignment_type) {
-  Type::ArrayType* array_type = computed_type_->AsArray();
-  size_t size = array_size_;
-  Type* type = array_type->AsArray()->Element();
+  ArrayType* array_type = computed_type_->AsArray();
+  //  size_t size = array_size_;
+  Type* type = array_type->Element();
   if (type->IsFunction()) {
     if (assigning) {
       FAIL(expr, "assigning to function table is illegal");
     }
-    BinaryOperation* bin = expr->key()->AsBinaryOperation();
-    if (bin == NULL || bin->op() != Token::BIT_AND) {
-      FAIL(expr->key(), "expected & in call");
-    }
-    RECURSE(VisitWithExpectation(bin->left(), cache_.kAsmSigned,
-                                 "array index expected to be integer"));
-    Literal* right = bin->right()->AsLiteral();
-    if (right == NULL || right->raw_value()->ContainsDot()) {
-      FAIL(right, "call mask must be integer");
-    }
-    RECURSE(VisitWithExpectation(bin->right(), cache_.kAsmSigned,
-                                 "call mask expected to be integer"));
-    if (static_cast<size_t>(right->raw_value()->AsNumber()) != size - 1) {
-      FAIL(right, "call mask must match function table");
-    }
-    bin->set_bounds(Bounds(cache_.kAsmSigned));
-    IntersectResult(expr, type);
+    // TODO(bradnelson): Fix the parser and then un-comment this part
+    // BinaryOperation* bin = expr->key()->AsBinaryOperation();
+    // if (bin == nullptr || bin->op() != Token::BIT_AND) {
+    //   FAIL(expr->key(), "expected & in call");
+    // }
+    // RECURSE(VisitWithExpectation(bin->left(), cache_.kAsmSigned,
+    //                              "array index expected to be integer"));
+    // Literal* right = bin->right()->AsLiteral();
+    // if (right == nullptr || right->raw_value()->ContainsDot()) {
+    //   FAIL(right, "call mask must be integer");
+    // }
+    // RECURSE(VisitWithExpectation(bin->right(), cache_.kAsmSigned,
+    //                              "call mask expected to be integer"));
+    // if (static_cast<size_t>(right->raw_value()->AsNumber()) != size - 1) {
+    //   FAIL(right, "call mask must match function table");
+    // }
+    // bin->set_bounds(Bounds(cache_.kAsmSigned));
+    RECURSE(VisitWithExpectation(expr->key(), cache_.kAsmSigned,
+                                 "must be integer"));
+    RECURSE(IntersectResult(expr, type));
   } else {
     Literal* literal = expr->key()->AsLiteral();
     if (literal) {
       RECURSE(VisitWithExpectation(literal, cache_.kAsmSigned,
                                    "array index expected to be integer"));
     } else {
-      BinaryOperation* bin = expr->key()->AsBinaryOperation();
-      if (bin == NULL || bin->op() != Token::SAR) {
-        FAIL(expr->key(), "expected >> in heap access");
-      }
-      RECURSE(VisitWithExpectation(bin->left(), cache_.kAsmSigned,
-                                   "array index expected to be integer"));
-      Literal* right = bin->right()->AsLiteral();
-      if (right == NULL || right->raw_value()->ContainsDot()) {
-        FAIL(right, "heap access shift must be integer");
-      }
-      RECURSE(VisitWithExpectation(bin->right(), cache_.kAsmSigned,
-                                   "array shift expected to be integer"));
-      int n = static_cast<int>(right->raw_value()->AsNumber());
       int expected_shift = ElementShiftSize(type);
-      if (expected_shift < 0 || n != expected_shift) {
-        FAIL(right, "heap access shift must match element size");
+      if (expected_shift == 0) {
+        RECURSE(Visit(expr->key()));
+      } else {
+        BinaryOperation* bin = expr->key()->AsBinaryOperation();
+        if (bin == nullptr || bin->op() != Token::SAR) {
+          FAIL(expr->key(), "expected >> in heap access");
+        }
+        RECURSE(VisitWithExpectation(bin->left(), cache_.kAsmSigned,
+                                     "array index expected to be integer"));
+        Literal* right = bin->right()->AsLiteral();
+        if (right == nullptr || right->raw_value()->ContainsDot()) {
+          FAIL(bin->right(), "heap access shift must be integer");
+        }
+        RECURSE(VisitWithExpectation(bin->right(), cache_.kAsmSigned,
+                                     "array shift expected to be integer"));
+        int n = static_cast<int>(right->raw_value()->AsNumber());
+        if (expected_shift < 0 || n != expected_shift) {
+          FAIL(right, "heap access shift must match element size");
+        }
       }
-      bin->set_bounds(Bounds(cache_.kAsmSigned));
+      bounds_.set(expr->key(), Bounds(cache_.kAsmSigned));
     }
     Type* result_type;
     if (type->Is(cache_.kAsmIntArrayElement)) {
@@ -798,8 +842,8 @@ void AsmTyper::VisitHeapAccess(Property* expr, bool assigning,
         FAIL(expr, "illegal type in assignment");
       }
     } else {
-      IntersectResult(expr, expected_type_);
-      IntersectResult(expr, result_type);
+      RECURSE(IntersectResult(expr, expected_type_));
+      RECURSE(IntersectResult(expr, result_type));
     }
   }
 }
@@ -807,18 +851,18 @@ void AsmTyper::VisitHeapAccess(Property* expr, bool assigning,
 
 bool AsmTyper::IsStdlibObject(Expression* expr) {
   VariableProxy* proxy = expr->AsVariableProxy();
-  if (proxy == NULL) {
+  if (proxy == nullptr) {
     return false;
   }
   Variable* var = proxy->var();
-  VariableInfo* info = GetVariableInfo(var, false);
+  VariableInfo* info = GetVariableInfo(var);
   if (info) {
     if (info->standard_member == kStdlib) return true;
   }
   if (var->location() != VariableLocation::PARAMETER || var->index() != 0) {
     return false;
   }
-  info = GetVariableInfo(var, true);
+  info = MakeVariableInfo(var);
   info->type = Type::Object();
   info->standard_member = kStdlib;
   return true;
@@ -828,13 +872,13 @@ bool AsmTyper::IsStdlibObject(Expression* expr) {
 Expression* AsmTyper::GetReceiverOfPropertyAccess(Expression* expr,
                                                   const char* name) {
   Property* property = expr->AsProperty();
-  if (property == NULL) {
-    return NULL;
+  if (property == nullptr) {
+    return nullptr;
   }
   Literal* key = property->key()->AsLiteral();
-  if (key == NULL || !key->IsPropertyName() ||
+  if (key == nullptr || !key->IsPropertyName() ||
       !key->AsPropertyName()->IsUtf8EqualTo(CStrVector(name))) {
-    return NULL;
+    return nullptr;
   }
   return property->obj();
 }
@@ -881,25 +925,29 @@ void AsmTyper::VisitProperty(Property* expr) {
     return;
   }
 
-  property_info_ = NULL;
+  property_info_ = nullptr;
 
   // Only recurse at this point so that we avoid needing
   // stdlib.Math to have a real type.
-  RECURSE(VisitWithExpectation(expr->obj(), Type::Any(), "bad propety object"));
+  RECURSE(
+      VisitWithExpectation(expr->obj(), Type::Any(), "bad property object"));
 
   // For heap view or function table access.
   if (computed_type_->IsArray()) {
-    VisitHeapAccess(expr, false, NULL);
+    VisitHeapAccess(expr, false, nullptr);
     return;
   }
 
-  // stdlib.x or foreign.x
   VariableProxy* proxy = expr->obj()->AsVariableProxy();
-  if (proxy != NULL) {
+  if (proxy != nullptr) {
     Variable* var = proxy->var();
     if (var->location() == VariableLocation::PARAMETER && var->index() == 1) {
-      // foreign.x is ok.
-      SetResult(expr, expected_type_);
+      // foreign.x - Function represent as () -> Any
+      if (Type::Any()->Is(expected_type_)) {
+        SetResult(expr, Type::Function(Type::Any(), zone()));
+      } else {
+        SetResult(expr, expected_type_);
+      }
       return;
     }
   }
@@ -907,8 +955,57 @@ void AsmTyper::VisitProperty(Property* expr) {
   FAIL(expr, "invalid property access");
 }
 
+void AsmTyper::CheckPolymorphicStdlibArguments(
+    enum StandardMember standard_member, ZoneList<Expression*>* args) {
+  if (args->length() == 0) {
+    return;
+  }
+  // Handle polymorphic stdlib functions specially.
+  Expression* arg0 = args->at(0);
+  Type* arg0_type = bounds_.get(arg0).upper;
+  switch (standard_member) {
+    case kMathFround: {
+      if (!arg0_type->Is(cache_.kAsmFloat) &&
+          !arg0_type->Is(cache_.kAsmDouble) &&
+          !arg0_type->Is(cache_.kAsmSigned) &&
+          !arg0_type->Is(cache_.kAsmUnsigned)) {
+        FAIL(arg0, "illegal function argument type");
+      }
+      break;
+    }
+    case kMathCeil:
+    case kMathFloor:
+    case kMathSqrt: {
+      if (!arg0_type->Is(cache_.kAsmFloat) &&
+          !arg0_type->Is(cache_.kAsmDouble)) {
+        FAIL(arg0, "illegal function argument type");
+      }
+      break;
+    }
+    case kMathAbs:
+    case kMathMin:
+    case kMathMax: {
+      if (!arg0_type->Is(cache_.kAsmFloat) &&
+          !arg0_type->Is(cache_.kAsmDouble) &&
+          !arg0_type->Is(cache_.kAsmSigned)) {
+        FAIL(arg0, "illegal function argument type");
+      }
+      if (args->length() > 1) {
+        Type* other = Type::Intersect(bounds_.get(args->at(0)).upper,
+                                      bounds_.get(args->at(1)).upper, zone());
+        if (!other->Is(cache_.kAsmFloat) && !other->Is(cache_.kAsmDouble) &&
+            !other->Is(cache_.kAsmSigned)) {
+          FAIL(arg0, "function arguments types don't match");
+        }
+      }
+      break;
+    }
+    default: { break; }
+  }
+}
 
 void AsmTyper::VisitCall(Call* expr) {
+  Type* expected_type = expected_type_;
   RECURSE(VisitWithExpectation(expr->expression(), Type::Any(),
                                "callee expected to be any"));
   StandardMember standard_member = kNone;
@@ -916,64 +1013,53 @@ void AsmTyper::VisitCall(Call* expr) {
   if (proxy) {
     standard_member = VariableAsStandardMember(proxy->var());
   }
-  if (!in_function_ && (proxy == NULL || standard_member != kMathFround)) {
+  if (!in_function_ && (proxy == nullptr || standard_member != kMathFround)) {
     FAIL(expr, "calls forbidden outside function bodies");
   }
-  if (proxy == NULL && !expr->expression()->IsProperty()) {
+  if (proxy == nullptr && !expr->expression()->IsProperty()) {
     FAIL(expr, "calls must be to bound variables or function tables");
   }
   if (computed_type_->IsFunction()) {
-    Type::FunctionType* fun_type = computed_type_->AsFunction();
+    FunctionType* fun_type = computed_type_->AsFunction();
     Type* result_type = fun_type->Result();
     ZoneList<Expression*>* args = expr->arguments();
-    if (fun_type->Arity() != args->length()) {
-      FAIL(expr, "call with wrong arity");
-    }
-    for (int i = 0; i < args->length(); ++i) {
-      Expression* arg = args->at(i);
-      RECURSE(VisitWithExpectation(
-          arg, fun_type->Parameter(i),
-          "call argument expected to match callee parameter"));
-      if (standard_member != kNone && standard_member != kMathFround &&
-          i == 0) {
-        result_type = computed_type_;
-      }
-    }
-    // Handle polymorphic stdlib functions specially.
-    if (standard_member == kMathCeil || standard_member == kMathFloor ||
-        standard_member == kMathSqrt) {
-      if (!args->at(0)->bounds().upper->Is(cache_.kAsmFloat) &&
-          !args->at(0)->bounds().upper->Is(cache_.kAsmDouble)) {
-        FAIL(expr, "illegal function argument type");
-      }
-    } else if (standard_member == kMathAbs || standard_member == kMathMin ||
-               standard_member == kMathMax) {
-      if (!args->at(0)->bounds().upper->Is(cache_.kAsmFloat) &&
-          !args->at(0)->bounds().upper->Is(cache_.kAsmDouble) &&
-          !args->at(0)->bounds().upper->Is(cache_.kAsmSigned)) {
-        FAIL(expr, "illegal function argument type");
-      }
-      if (args->length() > 1) {
-        Type* other = Type::Intersect(args->at(0)->bounds().upper,
-                                      args->at(1)->bounds().upper, zone());
-        if (!other->Is(cache_.kAsmFloat) && !other->Is(cache_.kAsmDouble) &&
-            !other->Is(cache_.kAsmSigned)) {
-          FAIL(expr, "function arguments types don't match");
+    if (Type::Any()->Is(result_type)) {
+      // For foreign calls.
+      for (int i = 0; i < args->length(); ++i) {
+        Expression* arg = args->at(i);
+        RECURSE(VisitWithExpectation(
+            arg, Type::Any(), "foreign call argument expected to be any"));
+        // Checking for asm extern types explicitly, as the type system
+        // doesn't correctly check their inheritance relationship.
+        if (!computed_type_->Is(cache_.kAsmSigned) &&
+            !computed_type_->Is(cache_.kAsmFixnum) &&
+            !computed_type_->Is(cache_.kAsmDouble)) {
+          FAIL(arg,
+               "foreign call argument expected to be int, double, or fixnum");
         }
       }
+      intish_ = 0;
+      bounds_.set(expr->expression(),
+                  Bounds(Type::Function(Type::Any(), zone())));
+      RECURSE(IntersectResult(expr, expected_type));
+    } else {
+      if (fun_type->Arity() != args->length()) {
+        FAIL(expr, "call with wrong arity");
+      }
+      for (int i = 0; i < args->length(); ++i) {
+        Expression* arg = args->at(i);
+        RECURSE(VisitWithExpectation(
+            arg, fun_type->Parameter(i),
+            "call argument expected to match callee parameter"));
+        if (standard_member != kNone && standard_member != kMathFround &&
+            i == 0) {
+          result_type = computed_type_;
+        }
+      }
+      RECURSE(CheckPolymorphicStdlibArguments(standard_member, args));
+      intish_ = 0;
+      RECURSE(IntersectResult(expr, result_type));
     }
-    intish_ = 0;
-    IntersectResult(expr, result_type);
-  } else if (computed_type_->Is(Type::Any())) {
-    // For foreign calls.
-    ZoneList<Expression*>* args = expr->arguments();
-    for (int i = 0; i < args->length(); ++i) {
-      Expression* arg = args->at(i);
-      RECURSE(VisitWithExpectation(arg, Type::Any(),
-                                   "foreign call argument expected to be any"));
-    }
-    intish_ = kMaxUncombinedAdditiveSteps;
-    IntersectResult(expr, Type::Number());
   } else {
     FAIL(expr, "invalid callee");
   }
@@ -987,7 +1073,7 @@ void AsmTyper::VisitCallNew(CallNew* expr) {
   RECURSE(VisitWithExpectation(expr->expression(), Type::Any(),
                                "expected stdlib function"));
   if (computed_type_->IsFunction()) {
-    Type::FunctionType* fun_type = computed_type_->AsFunction();
+    FunctionType* fun_type = computed_type_->AsFunction();
     ZoneList<Expression*>* args = expr->arguments();
     if (fun_type->Arity() != args->length())
       FAIL(expr, "call with wrong arity");
@@ -997,7 +1083,7 @@ void AsmTyper::VisitCallNew(CallNew* expr) {
           arg, fun_type->Parameter(i),
           "constructor argument expected to match callee parameter"));
     }
-    IntersectResult(expr, fun_type->Result());
+    RECURSE(IntersectResult(expr, fun_type->Result()));
     return;
   }
 
@@ -1006,16 +1092,19 @@ void AsmTyper::VisitCallNew(CallNew* expr) {
 
 
 void AsmTyper::VisitCallRuntime(CallRuntime* expr) {
-  // Allow runtime calls for now.
+  FAIL(expr, "runtime call not allowed");
 }
 
 
 void AsmTyper::VisitUnaryOperation(UnaryOperation* expr) {
+  if (!in_function_) {
+    FAIL(expr, "unary operator inside module body");
+  }
   switch (expr->op()) {
     case Token::NOT:  // Used to encode != and !==
       RECURSE(VisitWithExpectation(expr->expression(), cache_.kAsmInt,
                                    "operand expected to be integer"));
-      IntersectResult(expr, cache_.kAsmSigned);
+      RECURSE(IntersectResult(expr, cache_.kAsmSigned));
       return;
     case Token::DELETE:
       FAIL(expr, "delete operator encountered");
@@ -1040,7 +1129,7 @@ void AsmTyper::VisitIntegerBitwiseOperator(BinaryOperation* expr,
                                            Type* result_type, bool conversion) {
   RECURSE(VisitWithExpectation(expr->left(), Type::Number(),
                                "left bitwise operand expected to be a number"));
-  int left_intish = intish_;
+  int32_t left_intish = intish_;
   Type* left_type = computed_type_;
   if (!left_type->Is(left_expected)) {
     FAIL(expr->left(), "left bitwise operand expected to be an integer");
@@ -1052,7 +1141,7 @@ void AsmTyper::VisitIntegerBitwiseOperator(BinaryOperation* expr,
   RECURSE(
       VisitWithExpectation(expr->right(), Type::Number(),
                            "right bitwise operand expected to be a number"));
-  int right_intish = intish_;
+  int32_t right_intish = intish_;
   Type* right_type = computed_type_;
   if (!right_type->Is(right_expected)) {
     FAIL(expr->right(), "right bitwise operand expected to be an integer");
@@ -1070,22 +1159,43 @@ void AsmTyper::VisitIntegerBitwiseOperator(BinaryOperation* expr,
     right_type = left_type;
   }
   if (!conversion) {
-    if (!left_type->Is(right_type) || !right_type->Is(left_type)) {
+    if (!left_type->Is(cache_.kAsmIntQ) || !right_type->Is(cache_.kAsmIntQ)) {
       FAIL(expr, "ill-typed bitwise operation");
     }
   }
-  IntersectResult(expr, result_type);
+  RECURSE(IntersectResult(expr, result_type));
 }
 
 
 void AsmTyper::VisitBinaryOperation(BinaryOperation* expr) {
+  if (!in_function_) {
+    if (expr->op() != Token::BIT_OR && expr->op() != Token::MUL) {
+      FAIL(expr, "illegal binary operator inside module body");
+    }
+    if (!(expr->left()->IsProperty() || expr->left()->IsVariableProxy()) ||
+        !expr->right()->IsLiteral()) {
+      FAIL(expr, "illegal computation inside module body");
+    }
+    DCHECK(expr->right()->AsLiteral() != nullptr);
+    const AstValue* right_value = expr->right()->AsLiteral()->raw_value();
+    if (expr->op() == Token::BIT_OR) {
+      if (right_value->AsNumber() != 0.0 || right_value->ContainsDot()) {
+        FAIL(expr, "illegal integer annotation value");
+      }
+    }
+    if (expr->op() == Token::MUL) {
+      if (right_value->AsNumber() != 1.0 && right_value->ContainsDot()) {
+        FAIL(expr, "illegal double annotation value");
+      }
+    }
+  }
   switch (expr->op()) {
     case Token::COMMA: {
       RECURSE(VisitWithExpectation(expr->left(), Type::Any(),
                                    "left comma operand expected to be any"));
       RECURSE(VisitWithExpectation(expr->right(), Type::Any(),
                                    "right comma operand expected to be any"));
-      IntersectResult(expr, computed_type_);
+      RECURSE(IntersectResult(expr, computed_type_));
       return;
     }
     case Token::OR:
@@ -1093,8 +1203,17 @@ void AsmTyper::VisitBinaryOperation(BinaryOperation* expr) {
       FAIL(expr, "illegal logical operator");
     case Token::BIT_OR: {
       // BIT_OR allows Any since it is used as a type coercion.
-      VisitIntegerBitwiseOperator(expr, Type::Any(), cache_.kAsmInt,
-                                  cache_.kAsmSigned, true);
+      RECURSE(VisitIntegerBitwiseOperator(expr, Type::Any(), cache_.kAsmIntQ,
+                                          cache_.kAsmSigned, true));
+      if (expr->left()->IsCall() && expr->op() == Token::BIT_OR &&
+          Type::Number()->Is(bounds_.get(expr->left()).upper)) {
+        // Force the return types of foreign functions.
+        bounds_.set(expr->left(), Bounds(cache_.kAsmSigned));
+      }
+      if (in_function_ &&
+          !bounds_.get(expr->left()).upper->Is(cache_.kAsmIntQ)) {
+        FAIL(expr->left(), "intish required");
+      }
       return;
     }
     case Token::BIT_XOR: {
@@ -1102,30 +1221,30 @@ void AsmTyper::VisitBinaryOperation(BinaryOperation* expr) {
       Literal* left = expr->left()->AsLiteral();
       if (left && left->value()->IsBoolean()) {
         if (left->ToBooleanIsTrue()) {
-          left->set_bounds(Bounds(cache_.kSingletonOne));
-          RECURSE(VisitWithExpectation(expr->right(), cache_.kAsmInt,
+          bounds_.set(left, Bounds(cache_.kSingletonOne));
+          RECURSE(VisitWithExpectation(expr->right(), cache_.kAsmIntQ,
                                        "not operator expects an integer"));
-          IntersectResult(expr, cache_.kAsmSigned);
+          RECURSE(IntersectResult(expr, cache_.kAsmSigned));
           return;
         } else {
           FAIL(left, "unexpected false");
         }
       }
-      // BIT_XOR allows Number since it is used as a type coercion (via ~~).
-      VisitIntegerBitwiseOperator(expr, Type::Number(), cache_.kAsmInt,
-                                  cache_.kAsmSigned, true);
+      // BIT_XOR allows Any since it is used as a type coercion (via ~~).
+      RECURSE(VisitIntegerBitwiseOperator(expr, Type::Any(), cache_.kAsmIntQ,
+                                          cache_.kAsmSigned, true));
       return;
     }
     case Token::SHR: {
-      VisitIntegerBitwiseOperator(expr, cache_.kAsmInt, cache_.kAsmInt,
-                                  cache_.kAsmUnsigned, false);
+      RECURSE(VisitIntegerBitwiseOperator(
+          expr, cache_.kAsmIntQ, cache_.kAsmIntQ, cache_.kAsmUnsigned, false));
       return;
     }
     case Token::SHL:
     case Token::SAR:
     case Token::BIT_AND: {
-      VisitIntegerBitwiseOperator(expr, cache_.kAsmInt, cache_.kAsmInt,
-                                  cache_.kAsmSigned, false);
+      RECURSE(VisitIntegerBitwiseOperator(
+          expr, cache_.kAsmIntQ, cache_.kAsmIntQ, cache_.kAsmSigned, false));
       return;
     }
     case Token::ADD:
@@ -1137,32 +1256,37 @@ void AsmTyper::VisitBinaryOperation(BinaryOperation* expr) {
           expr->left(), Type::Number(),
           "left arithmetic operand expected to be number"));
       Type* left_type = computed_type_;
-      int left_intish = intish_;
+      int32_t left_intish = intish_;
       RECURSE(VisitWithExpectation(
           expr->right(), Type::Number(),
           "right arithmetic operand expected to be number"));
       Type* right_type = computed_type_;
-      int right_intish = intish_;
+      int32_t right_intish = intish_;
       Type* type = Type::Union(left_type, right_type, zone());
       if (type->Is(cache_.kAsmInt)) {
         if (expr->op() == Token::MUL) {
-          Literal* right = expr->right()->AsLiteral();
-          if (!right) {
-            FAIL(expr, "direct integer multiply forbidden");
-          }
-          if (!right->value()->IsNumber()) {
-            FAIL(expr, "multiply must be by an integer");
-          }
           int32_t i;
-          if (!right->value()->ToInt32(&i)) {
-            FAIL(expr, "multiply must be a signed integer");
+          Literal* left = expr->left()->AsLiteral();
+          Literal* right = expr->right()->AsLiteral();
+          if (left != nullptr && left->value()->IsNumber() &&
+              left->value()->ToInt32(&i)) {
+            if (right_intish != 0) {
+              FAIL(expr, "intish not allowed in multiply");
+            }
+          } else if (right != nullptr && right->value()->IsNumber() &&
+                     right->value()->ToInt32(&i)) {
+            if (left_intish != 0) {
+              FAIL(expr, "intish not allowed in multiply");
+            }
+          } else {
+            FAIL(expr, "multiply must be by an integer literal");
           }
           i = abs(i);
-          if (i >= 1 << 20) {
+          if (i >= (1 << 20)) {
             FAIL(expr, "multiply must be by value in -2^20 < n < 2^20");
           }
           intish_ = i;
-          IntersectResult(expr, cache_.kAsmInt);
+          RECURSE(IntersectResult(expr, cache_.kAsmInt));
           return;
         } else {
           intish_ = left_intish + right_intish + 1;
@@ -1175,23 +1299,51 @@ void AsmTyper::VisitBinaryOperation(BinaryOperation* expr) {
               FAIL(expr, "too many consecutive multiplicative ops");
             }
           }
-          IntersectResult(expr, cache_.kAsmInt);
+          RECURSE(IntersectResult(expr, cache_.kAsmInt));
           return;
         }
       } else if (expr->op() == Token::MUL && expr->right()->IsLiteral() &&
-                 right_type->Is(cache_.kAsmDouble)) {
+                 right_type->Is(cache_.kAsmDouble) &&
+                 expr->right()->AsLiteral()->raw_value()->ContainsDot() &&
+                 expr->right()->AsLiteral()->raw_value()->AsNumber() == 1.0) {
         // For unary +, expressed as x * 1.0
-        IntersectResult(expr, cache_.kAsmDouble);
+        if (expr->left()->IsCall() &&
+            Type::Number()->Is(bounds_.get(expr->left()).upper)) {
+          // Force the return types of foreign functions.
+          bounds_.set(expr->left(), Bounds(cache_.kAsmDouble));
+          left_type = bounds_.get(expr->left()).upper;
+        }
+        if (!(expr->left()->IsProperty() &&
+              Type::Number()->Is(bounds_.get(expr->left()).upper))) {
+          if (!left_type->Is(cache_.kAsmSigned) &&
+              !left_type->Is(cache_.kAsmUnsigned) &&
+              !left_type->Is(cache_.kAsmFixnum) &&
+              !left_type->Is(cache_.kAsmFloatQ) &&
+              !left_type->Is(cache_.kAsmDoubleQ)) {
+            FAIL(
+                expr->left(),
+                "unary + only allowed on signed, unsigned, float?, or double?");
+          }
+        }
+        RECURSE(IntersectResult(expr, cache_.kAsmDouble));
+        return;
+      } else if (expr->op() == Token::MUL && left_type->Is(cache_.kAsmDouble) &&
+                 expr->right()->IsLiteral() &&
+                 !expr->right()->AsLiteral()->raw_value()->ContainsDot() &&
+                 expr->right()->AsLiteral()->raw_value()->AsNumber() == -1.0) {
+        // For unary -, expressed as x * -1
+        bounds_.set(expr->right(), Bounds(cache_.kAsmDouble));
+        RECURSE(IntersectResult(expr, cache_.kAsmDouble));
         return;
       } else if (type->Is(cache_.kAsmFloat) && expr->op() != Token::MOD) {
         if (left_intish != 0 || right_intish != 0) {
           FAIL(expr, "float operation before required fround");
         }
-        IntersectResult(expr, cache_.kAsmFloat);
+        RECURSE(IntersectResult(expr, cache_.kAsmFloat));
         intish_ = 1;
         return;
       } else if (type->Is(cache_.kAsmDouble)) {
-        IntersectResult(expr, cache_.kAsmDouble);
+        RECURSE(IntersectResult(expr, cache_.kAsmDouble));
         return;
       } else {
         FAIL(expr, "ill-typed arithmetic operation");
@@ -1204,6 +1356,9 @@ void AsmTyper::VisitBinaryOperation(BinaryOperation* expr) {
 
 
 void AsmTyper::VisitCompareOperation(CompareOperation* expr) {
+  if (!in_function_) {
+    FAIL(expr, "comparison inside module body");
+  }
   Token::Value op = expr->op();
   if (op != Token::EQ && op != Token::NE && op != Token::LT &&
       op != Token::LTE && op != Token::GT && op != Token::GTE) {
@@ -1230,7 +1385,7 @@ void AsmTyper::VisitCompareOperation(CompareOperation* expr) {
     FAIL(expr, "left and right side of comparison must match");
   }
 
-  IntersectResult(expr, cache_.kAsmSigned);
+  RECURSE(IntersectResult(expr, cache_.kAsmSigned));
 }
 
 
@@ -1295,7 +1450,7 @@ void AsmTyper::InitializeStdlib() {
   if (allow_simd_) {
     InitializeStdlibSIMD();
   }
-  Type* number_type = Type::Number(zone());
+  Type* number_type = Type::Number();
   Type* double_type = cache_.kAsmDouble;
   Type* double_fn1_type = Type::Function(double_type, double_type, zone());
   Type* double_fn2_type =
@@ -1352,7 +1507,7 @@ void AsmTyper::InitializeStdlib() {
   stdlib_types_["Infinity"]->standard_member = kInfinity;
   stdlib_types_["NaN"] = new (zone()) VariableInfo(double_type);
   stdlib_types_["NaN"]->standard_member = kNaN;
-  Type* buffer_type = Type::Any(zone());
+  Type* buffer_type = Type::Any();
 #define TYPED_ARRAY(TypeName, type_name, TYPE_NAME, ctype, size) \
   stdlib_types_[#TypeName "Array"] = new (zone()) VariableInfo(  \
       Type::Function(cache_.k##TypeName##Array, buffer_type, zone()));
@@ -1369,11 +1524,12 @@ void AsmTyper::InitializeStdlib() {
 
 void AsmTyper::VisitLibraryAccess(ObjectTypeMap* map, Property* expr) {
   Literal* key = expr->key()->AsLiteral();
-  if (key == NULL || !key->IsPropertyName())
+  if (key == nullptr || !key->IsPropertyName())
     FAIL(expr, "invalid key used on stdlib member");
   Handle<String> name = key->AsPropertyName();
   VariableInfo* info = LibType(map, name);
-  if (info == NULL || info->type == NULL) FAIL(expr, "unknown stdlib function");
+  if (info == nullptr || info->type == nullptr)
+    FAIL(expr, "unknown stdlib function");
   SetResult(expr, info->type);
   property_info_ = info;
 }
@@ -1384,57 +1540,47 @@ AsmTyper::VariableInfo* AsmTyper::LibType(ObjectTypeMap* map,
   base::SmartArrayPointer<char> aname = name->ToCString();
   ObjectTypeMap::iterator i = map->find(std::string(aname.get()));
   if (i == map->end()) {
-    return NULL;
+    return nullptr;
   }
   return i->second;
 }
 
 
 void AsmTyper::SetType(Variable* variable, Type* type) {
-  VariableInfo* info = GetVariableInfo(variable, true);
+  VariableInfo* info = MakeVariableInfo(variable);
   info->type = type;
 }
 
 
 Type* AsmTyper::GetType(Variable* variable) {
-  VariableInfo* info = GetVariableInfo(variable, false);
-  if (!info) return NULL;
+  VariableInfo* info = GetVariableInfo(variable);
+  if (!info) return nullptr;
   return info->type;
 }
 
+AsmTyper::VariableInfo* AsmTyper::GetVariableInfo(Variable* variable) {
+  ZoneHashMap* map =
+      in_function_ ? &local_variable_type_ : &global_variable_type_;
+  ZoneHashMap::Entry* entry =
+      map->Lookup(variable, ComputePointerHash(variable));
+  if (!entry && in_function_) {
+    entry =
+        global_variable_type_.Lookup(variable, ComputePointerHash(variable));
+  }
+  return entry ? reinterpret_cast<VariableInfo*>(entry->value) : nullptr;
+}
 
-AsmTyper::VariableInfo* AsmTyper::GetVariableInfo(Variable* variable,
-                                                  bool setting) {
-  ZoneHashMap::Entry* entry;
-  ZoneHashMap* map;
-  if (in_function_) {
-    map = &local_variable_type_;
-  } else {
-    map = &global_variable_type_;
-  }
-  if (setting) {
-    entry = map->LookupOrInsert(variable, ComputePointerHash(variable),
-                                ZoneAllocationPolicy(zone()));
-  } else {
-    entry = map->Lookup(variable, ComputePointerHash(variable));
-    if (!entry && in_function_) {
-      entry =
-          global_variable_type_.Lookup(variable, ComputePointerHash(variable));
-      if (entry && entry->value) {
-      }
-    }
-  }
-  if (!entry) return NULL;
-  if (!entry->value) {
-    if (!setting) return NULL;
-    entry->value = new (zone()) VariableInfo;
-  }
+AsmTyper::VariableInfo* AsmTyper::MakeVariableInfo(Variable* variable) {
+  ZoneHashMap* map =
+      in_function_ ? &local_variable_type_ : &global_variable_type_;
+  ZoneHashMap::Entry* entry = map->LookupOrInsert(
+      variable, ComputePointerHash(variable), ZoneAllocationPolicy(zone()));
+  if (!entry->value) entry->value = new (zone()) VariableInfo;
   return reinterpret_cast<VariableInfo*>(entry->value);
 }
 
-
 void AsmTyper::SetVariableInfo(Variable* variable, const VariableInfo* info) {
-  VariableInfo* dest = GetVariableInfo(variable, true);
+  VariableInfo* dest = MakeVariableInfo(variable);
   dest->type = info->type;
   dest->is_check_function = info->is_check_function;
   dest->is_constructor_function = info->is_constructor_function;
@@ -1444,7 +1590,7 @@ void AsmTyper::SetVariableInfo(Variable* variable, const VariableInfo* info) {
 
 AsmTyper::StandardMember AsmTyper::VariableAsStandardMember(
     Variable* variable) {
-  VariableInfo* info = GetVariableInfo(variable, false);
+  VariableInfo* info = GetVariableInfo(variable);
   if (!info) return kNone;
   return info->standard_member;
 }
@@ -1452,14 +1598,23 @@ AsmTyper::StandardMember AsmTyper::VariableAsStandardMember(
 
 void AsmTyper::SetResult(Expression* expr, Type* type) {
   computed_type_ = type;
-  expr->set_bounds(Bounds(computed_type_));
+  bounds_.set(expr, Bounds(computed_type_));
 }
 
 
 void AsmTyper::IntersectResult(Expression* expr, Type* type) {
   computed_type_ = type;
   Type* bounded_type = Type::Intersect(computed_type_, expected_type_, zone());
-  expr->set_bounds(Bounds(bounded_type));
+  if (Type::Representation(bounded_type, zone())->Is(Type::None())) {
+#ifdef DEBUG
+    PrintF("Computed type: ");
+    computed_type_->Print();
+    PrintF("Expected type: ");
+    expected_type_->Print();
+#endif
+    FAIL(expr, "type mismatch");
+  }
+  bounds_.set(expr, Bounds(bounded_type));
 }
 
 
@@ -1469,7 +1624,7 @@ void AsmTyper::VisitWithExpectation(Expression* expr, Type* expected_type,
   expected_type_ = expected_type;
   RECURSE(Visit(expr));
   Type* bounded_type = Type::Intersect(computed_type_, expected_type_, zone());
-  if (bounded_type->Is(Type::None(zone()))) {
+  if (Type::Representation(bounded_type, zone())->Is(Type::None())) {
 #ifdef DEBUG
     PrintF("Computed type: ");
     computed_type_->Print();
@@ -1482,8 +1637,7 @@ void AsmTyper::VisitWithExpectation(Expression* expr, Type* expected_type,
 }
 
 
-void AsmTyper::VisitRewritableAssignmentExpression(
-    RewritableAssignmentExpression* expr) {
+void AsmTyper::VisitRewritableExpression(RewritableExpression* expr) {
   RECURSE(Visit(expr->expression()));
 }
 

@@ -18,6 +18,8 @@
 #include "RenderScript.h"
 #include "rsCppInternal.h"
 
+#define NELEM(m) (sizeof(m) / sizeof((m)[0]))
+
 using namespace android;
 using namespace RSC;
 
@@ -104,7 +106,7 @@ nScriptIntrinsicBLAS_Single(RS* mRS, RsContext con, RsScript id, RsBlasFunction 
                                     M, N, K, incX, incY, KL, KU, alpha, beta, 0.0, 0.0,
                                     0.0f, 0.0f, 0.0f, 0.0f, 0.0, 0.0, 0.0, 0.0);
     RsAllocation in_allocs[3] = {A, B, C};
-    tryDispatch(mRS, RS::dispatch->ScriptForEachMulti(con, id, 0, in_allocs, sizeof(in_allocs), nullptr,
+    tryDispatch(mRS, RS::dispatch->ScriptForEachMulti(con, id, 0, in_allocs, NELEM(in_allocs), nullptr,
                                                       &call, sizeof(call), nullptr, 0));
 }
 
@@ -118,7 +120,7 @@ nScriptIntrinsicBLAS_Double(RS* mRS, RsContext con, RsScript id, RsBlasFunction 
                                     M, N, K, incX, incY, KL, KU, 0.0f, 0.0f, alpha, beta,
                                     0.0f, 0.0f, 0.0f, 0.0f, 0.0, 0.0, 0.0, 0.0);
     RsAllocation in_allocs[3] = {A, B, C};
-    tryDispatch(mRS, RS::dispatch->ScriptForEachMulti(con, id, 0, in_allocs, sizeof(in_allocs), nullptr,
+    tryDispatch(mRS, RS::dispatch->ScriptForEachMulti(con, id, 0, in_allocs, NELEM(in_allocs), nullptr,
                                                       &call, sizeof(call), nullptr, 0));
 }
 
@@ -131,7 +133,7 @@ nScriptIntrinsicBLAS_Complex(RS* mRS, RsContext con, RsScript id, RsBlasFunction
                                     M, N, K, incX, incY, KL, KU, 0.0f, 0.0f, 0.0, 0.0,
                                     alphaX, alphaY, betaX, betaY, 0.0, 0.0, 0.0, 0.0);
     RsAllocation in_allocs[3] = {A, B, C};
-    tryDispatch(mRS, RS::dispatch->ScriptForEachMulti(con, id, 0, in_allocs, sizeof(in_allocs), nullptr,
+    tryDispatch(mRS, RS::dispatch->ScriptForEachMulti(con, id, 0, in_allocs, NELEM(in_allocs), nullptr,
                                                       &call, sizeof(call), nullptr, 0));
 }
 
@@ -144,7 +146,7 @@ nScriptIntrinsicBLAS_Z(RS* mRS, RsContext con, RsScript id, RsBlasFunction func,
                                     M, N, K, incX, incY, KL, KU, 0.0f, 0.0f, 0.0, 0.0,
                                     0.0f, 0.0f, 0.0f, 0.0f, alphaX, alphaY, betaX, betaY);
     RsAllocation in_allocs[3] = {A, B, C};
-    tryDispatch(mRS, RS::dispatch->ScriptForEachMulti(con, id, 0, in_allocs, sizeof(in_allocs), nullptr,
+    tryDispatch(mRS, RS::dispatch->ScriptForEachMulti(con, id, 0, in_allocs, NELEM(in_allocs), nullptr,
                                                       &call, sizeof(call), nullptr, 0));
 }
 
@@ -165,7 +167,7 @@ nScriptIntrinsicBLAS_BNNM(RS* mRS, RsContext con, RsScript id, int M, int N, int
     call.c_mult_int = c_mult_int;
 
     RsAllocation in_allocs[3] = {A, B, C};
-    tryDispatch(mRS, RS::dispatch->ScriptForEachMulti(con, id, 0, in_allocs, sizeof(in_allocs), nullptr,
+    tryDispatch(mRS, RS::dispatch->ScriptForEachMulti(con, id, 0, in_allocs, NELEM(in_allocs), nullptr,
                                                       &call, sizeof(call), nullptr, 0));
 }
 

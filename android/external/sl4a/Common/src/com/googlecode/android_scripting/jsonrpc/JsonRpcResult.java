@@ -24,7 +24,6 @@ import org.json.JSONObject;
  *
  * @see http://json-rpc.org/wiki/specification
  *
- * @author Damon Kohler (damonkohler@gmail.com)
  */
 public class JsonRpcResult {
 

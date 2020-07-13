@@ -96,7 +96,8 @@
     <string name="user_emergency_info_title" msgid="7827058167207376581">"Informasi darurat"</string>
     <string name="user_emergency_info_consent" msgid="5636028073450797246">"Informasi yang Anda masukkan di sini dapat membantu perespons pertama dalam situasi darurat. Informasi tersebut hanya disimpan di perangkat, tetapi semua orang dapat membacanya dari telepon darurat tanpa membuka kunci ponsel."</string>
     <string name="emergency_info_continue" msgid="5453201508537906087">"Lanjutkan"</string>
-    <string name="no_info_provided" msgid="6775035037534954056">"Informasi darurat tidak tersedia"</string>
+    <string name="no_info_provided" msgid="716200382010821001">"Tidak ada informasi tentang pemilik ponsel"</string>
+    <string name="tap_pencil" msgid="2723698054265296934">"Jika ini ponsel Anda, ketuk ikon pensil untuk menambahkan informasi yang akan ditampilkan di sini jika terjadi keadaan darurat"</string>
     <string name="clear_all" msgid="8899013032870561633">"Hapus semua"</string>
     <string name="clear" msgid="3648880442502887163">"Hapus"</string>
     <string name="clear_all_message" msgid="1548432000373861295">"Hapus semua informasi dan kontak?"</string>

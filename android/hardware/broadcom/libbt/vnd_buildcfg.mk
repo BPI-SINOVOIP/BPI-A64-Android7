@@ -3,6 +3,7 @@ generated_sources := $(local-generated-sources-dir)
 #SRC := $(call my-dir)/include/$(addprefix vnd_, $(addsuffix .txt,$(basename $(TARGET_DEVICE))))
 SRC := $(TOP_DIR)device/softwinner/$(basename $(TARGET_DEVICE))/configs/bluetooth/$(addprefix vnd_, $(addsuffix .txt,$(basename $(TARGET_DEVICE))))
 ifeq (,$(wildcard $(SRC)))
+$(error "allwinner target bluetooth vnd_xx.txt not found")
 # configuration file does not exist. Use default one
 SRC := $(call my-dir)/include/vnd_generic.txt
 endif

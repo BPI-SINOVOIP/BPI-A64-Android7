@@ -16,8 +16,12 @@
 
 package android.support.v7.widget;
 
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
+import static android.support.annotation.RestrictTo.Scope.GROUP_ID;
+import static android.support.v4.graphics.ColorUtils.compositeColors;
+import static android.support.v7.content.res.AppCompatResources.getColorStateList;
+import static android.support.v7.widget.ThemeUtils.getDisabledThemeAttrColor;
+import static android.support.v7.widget.ThemeUtils.getThemeAttrColor;
+import static android.support.v7.widget.ThemeUtils.getThemeAttrColorStateList;
 
 import android.content.Context;
 import android.content.res.ColorStateList;
@@ -28,39 +32,36 @@ import android.graphics.PorterDuffColorFilter;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.Drawable.ConstantState;
 import android.graphics.drawable.LayerDrawable;
-import android.graphics.drawable.StateListDrawable;
 import android.os.Build;
 import android.support.annotation.ColorInt;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.RestrictTo;
 import android.support.graphics.drawable.AnimatedVectorDrawableCompat;
 import android.support.graphics.drawable.VectorDrawableCompat;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.graphics.ColorUtils;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v4.util.ArrayMap;
 import android.support.v4.util.LongSparseArray;
 import android.support.v4.util.LruCache;
 import android.support.v7.appcompat.R;
-import android.support.v7.widget.VectorEnabledTintResources;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.SparseArray;
 import android.util.TypedValue;
 import android.util.Xml;
 
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
+
 import java.lang.ref.WeakReference;
 import java.util.WeakHashMap;
-
-import static android.support.v7.content.res.AppCompatResources.getColorStateList;
-import static android.support.v7.widget.ThemeUtils.getDisabledThemeAttrColor;
-import static android.support.v7.widget.ThemeUtils.getThemeAttrColor;
-import static android.support.v7.widget.ThemeUtils.getThemeAttrColorStateList;
 
 /**
  * @hide
  */
+@RestrictTo(GROUP_ID)
 public final class AppCompatDrawableManager {
 
     private interface InflateDelegate {
@@ -87,11 +88,11 @@ public final class AppCompatDrawableManager {
 
     private static void installDefaultInflateDelegates(@NonNull AppCompatDrawableManager manager) {
         final int sdk = Build.VERSION.SDK_INT;
-        if (sdk < 23) {
-            // We only want to use the automatic VectorDrawableCompat handling where it's
-            // needed: on devices running before Lollipop
+        // This sdk version check will affect src:appCompat code path.
+        // Although VectorDrawable exists in Android framework from Lollipop, AppCompat will use the
+        // VectorDrawableCompat before Nougat to utilize the bug fixes in VectorDrawableCompat.
+        if (sdk < 24) {
             manager.addDelegate("vector", new VdcInflateDelegate());
-
             if (sdk >= 11) {
                 // AnimatedVectorDrawableCompat only works on API v11+
                 manager.addDelegate("animated-vector", new AvdcInflateDelegate());
@@ -133,7 +134,13 @@ public final class AppCompatDrawableManager {
             R.drawable.abc_textfield_activated_mtrl_alpha,
             R.drawable.abc_textfield_search_activated_mtrl_alpha,
             R.drawable.abc_cab_background_top_mtrl_alpha,
-            R.drawable.abc_text_cursor_material
+            R.drawable.abc_text_cursor_material,
+            R.drawable.abc_text_select_handle_left_mtrl_dark,
+            R.drawable.abc_text_select_handle_middle_mtrl_dark,
+            R.drawable.abc_text_select_handle_right_mtrl_dark,
+            R.drawable.abc_text_select_handle_left_mtrl_light,
+            R.drawable.abc_text_select_handle_middle_mtrl_light,
+            R.drawable.abc_text_select_handle_right_mtrl_light
     };
 
     /**
@@ -181,7 +188,7 @@ public final class AppCompatDrawableManager {
         return getDrawable(context, resId, false);
     }
 
-    public Drawable getDrawable(@NonNull Context context, @DrawableRes int resId,
+    Drawable getDrawable(@NonNull Context context, @DrawableRes int resId,
             boolean failIfNotKnown) {
         checkVectorDrawableSetup(context);
 
@@ -202,6 +209,16 @@ public final class AppCompatDrawableManager {
             DrawableUtils.fixDrawable(drawable);
         }
         return drawable;
+    }
+
+    public void onConfigurationChanged(@NonNull Context context) {
+        synchronized (mDrawableCacheLock) {
+            LongSparseArray<WeakReference<ConstantState>> cache = mDrawableCaches.get(context);
+            if (cache != null) {
+                // Crude, but we'll just clear the cache when the configuration changes
+                cache.clear();
+            }
+        }
     }
 
     private static long createCacheKey(TypedValue tv) {
@@ -411,7 +428,7 @@ public final class AppCompatDrawableManager {
         return false;
     }
 
-    public final Drawable onDrawableLoadedFromResources(@NonNull Context context,
+    Drawable onDrawableLoadedFromResources(@NonNull Context context,
             @NonNull VectorEnabledTintResources resources, @DrawableRes final int resId) {
         Drawable drawable = loadDrawableFromDelegates(context, resId);
         if (drawable == null) {
@@ -493,7 +510,7 @@ public final class AppCompatDrawableManager {
         return false;
     }
 
-    final PorterDuff.Mode getTintMode(final int resId) {
+    static PorterDuff.Mode getTintMode(final int resId) {
         PorterDuff.Mode mode = null;
 
         if (resId == R.drawable.abc_switch_thumb_material) {
@@ -503,9 +520,18 @@ public final class AppCompatDrawableManager {
         return mode;
     }
 
-    public final ColorStateList getTintList(@NonNull Context context, @DrawableRes int resId) {
+    ColorStateList getTintList(@NonNull Context context, @DrawableRes int resId) {
+        return getTintList(context, resId, null);
+    }
+
+    ColorStateList getTintList(@NonNull Context context, @DrawableRes int resId,
+            @Nullable ColorStateList customTint) {
+        // We only want to use the cache for the standard tints, not ones created using custom
+        // tints
+        final boolean useCache = customTint == null;
+
         // Try the cache first (if it exists)
-        ColorStateList tint = getTintListFromCache(context, resId);
+        ColorStateList tint = useCache ? getTintListFromCache(context, resId) : null;
 
         if (tint == null) {
             // ...if the cache did not contain a color state list, try and create one
@@ -516,11 +542,11 @@ public final class AppCompatDrawableManager {
             } else if (resId == R.drawable.abc_switch_thumb_material) {
                 tint = getColorStateList(context, R.color.abc_tint_switch_thumb);
             } else if (resId == R.drawable.abc_btn_default_mtrl_shape) {
-                tint = createDefaultButtonColorStateList(context);
+                tint = createDefaultButtonColorStateList(context, customTint);
             } else if (resId == R.drawable.abc_btn_borderless_material) {
-                tint = createBorderlessButtonColorStateList(context);
+                tint = createBorderlessButtonColorStateList(context, customTint);
             } else if (resId == R.drawable.abc_btn_colored_material) {
-                tint = createColoredButtonColorStateList(context);
+                tint = createColoredButtonColorStateList(context, customTint);
             } else if (resId == R.drawable.abc_spinner_mtrl_am_alpha
                     || resId == R.drawable.abc_spinner_textfield_background_material) {
                 tint = getColorStateList(context, R.color.abc_tint_spinner);
@@ -534,7 +560,7 @@ public final class AppCompatDrawableManager {
                 tint = getColorStateList(context, R.color.abc_tint_seek_thumb);
             }
 
-            if (tint != null) {
+            if (useCache && tint != null) {
                 addTintListToCache(context, resId, tint);
             }
         }
@@ -562,42 +588,51 @@ public final class AppCompatDrawableManager {
         themeTints.append(resId, tintList);
     }
 
-    private ColorStateList createDefaultButtonColorStateList(Context context) {
+    private ColorStateList createDefaultButtonColorStateList(@NonNull Context context,
+            @Nullable ColorStateList customTint) {
         return createButtonColorStateList(context,
-                getThemeAttrColor(context, R.attr.colorButtonNormal));
+                getThemeAttrColor(context, R.attr.colorButtonNormal), customTint);
     }
 
-    private ColorStateList createBorderlessButtonColorStateList(Context context) {
-        return createButtonColorStateList(context, Color.TRANSPARENT);
+    private ColorStateList createBorderlessButtonColorStateList(@NonNull Context context,
+            @Nullable ColorStateList customTint) {
+        // We ignore the custom tint for borderless buttons
+        return createButtonColorStateList(context, Color.TRANSPARENT, null);
     }
 
-    private ColorStateList createColoredButtonColorStateList(Context context) {
-        return createButtonColorStateList(context, getThemeAttrColor(context, R.attr.colorAccent));
+    private ColorStateList createColoredButtonColorStateList(@NonNull Context context,
+            @Nullable ColorStateList customTint) {
+        return createButtonColorStateList(context,
+                getThemeAttrColor(context, R.attr.colorAccent), customTint);
     }
 
-    private ColorStateList createButtonColorStateList(Context context, @ColorInt int baseColor) {
+    private ColorStateList createButtonColorStateList(@NonNull final Context context,
+            @ColorInt final int baseColor, final @Nullable ColorStateList tint) {
         final int[][] states = new int[4][];
         final int[] colors = new int[4];
         int i = 0;
 
         final int colorControlHighlight = getThemeAttrColor(context, R.attr.colorControlHighlight);
+        final int disabledColor = getDisabledThemeAttrColor(context, R.attr.colorButtonNormal);
 
         // Disabled state
         states[i] = ThemeUtils.DISABLED_STATE_SET;
-        colors[i] = getDisabledThemeAttrColor(context, R.attr.colorButtonNormal);
+        colors[i] = tint == null ? disabledColor : tint.getColorForState(states[i], 0);
         i++;
 
         states[i] = ThemeUtils.PRESSED_STATE_SET;
-        colors[i] = ColorUtils.compositeColors(colorControlHighlight, baseColor);
+        colors[i] = compositeColors(colorControlHighlight,
+                tint == null ? baseColor : tint.getColorForState(states[i], 0));
         i++;
 
         states[i] = ThemeUtils.FOCUSED_STATE_SET;
-        colors[i] = ColorUtils.compositeColors(colorControlHighlight, baseColor);
+        colors[i] = compositeColors(colorControlHighlight,
+                tint == null ? baseColor : tint.getColorForState(states[i], 0));
         i++;
 
         // Default enabled state
         states[i] = ThemeUtils.EMPTY_STATE_SET;
-        colors[i] = baseColor;
+        colors[i] = tint == null ? baseColor : tint.getColorForState(states[i], 0);
         i++;
 
         return new ColorStateList(states, colors);
@@ -625,7 +660,7 @@ public final class AppCompatDrawableManager {
         }
     }
 
-    public static void tintDrawable(Drawable drawable, TintInfo tint, int[] state) {
+    static void tintDrawable(Drawable drawable, TintInfo tint, int[] state) {
         if (DrawableUtils.canSafelyMutateDrawable(drawable)
                 && drawable.mutate() != drawable) {
             Log.d(TAG, "Mutated drawable is not the same instance as the input.");
@@ -683,10 +718,9 @@ public final class AppCompatDrawableManager {
             return;
         }
         // Here we will check that a known Vector drawable resource inside AppCompat can be
-        // correctly decoded. We use one that will almost definitely be used in the future to
-        // negate any wasted work
+        // correctly decoded
         mHasCheckedVectorDrawableSetup = true;
-        final Drawable d = getDrawable(context, R.drawable.abc_ic_ab_back_material);
+        final Drawable d = getDrawable(context, R.drawable.abc_vector_test);
         if (d == null || !isVectorDrawable(d)) {
             mHasCheckedVectorDrawableSetup = false;
             throw new IllegalStateException("This app has been built with an incorrect "
@@ -700,6 +734,9 @@ public final class AppCompatDrawableManager {
     }
 
     private static class VdcInflateDelegate implements InflateDelegate {
+        VdcInflateDelegate() {
+        }
+
         @Override
         public Drawable createFromXmlInner(@NonNull Context context, @NonNull XmlPullParser parser,
                 @NonNull AttributeSet attrs, @Nullable Resources.Theme theme) {
@@ -714,6 +751,9 @@ public final class AppCompatDrawableManager {
     }
 
     private static class AvdcInflateDelegate implements InflateDelegate {
+        AvdcInflateDelegate() {
+        }
+
         @Override
         public Drawable createFromXmlInner(@NonNull Context context, @NonNull XmlPullParser parser,
                 @NonNull AttributeSet attrs, @Nullable Resources.Theme theme) {

@@ -29,7 +29,6 @@ import java.io.Serializable;
 /**
  * Allows you to return results to a startActivityForResult call.
  *
- * @author Alexey Reznichenko (alexey.reznichenko@gmail.com)
  */
 public class ActivityResultFacade extends RpcReceiver {
 

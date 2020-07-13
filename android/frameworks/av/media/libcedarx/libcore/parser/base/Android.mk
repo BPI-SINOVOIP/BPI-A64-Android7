@@ -8,6 +8,12 @@ include $(CEDARX_ROOT)/config.mk
 LOCAL_SRC_FILES = \
                 $(notdir $(wildcard $(LOCAL_PATH)/*.c))
 
+LOCAL_SRC_FILES += \
+    id3base/Id3Base.c \
+    id3base/StringContainer.c \
+    id3base/CdxUtfCode.c \
+    id3base/CdxMetaData.c
+
 LOCAL_C_INCLUDES:= \
     $(CEDARX_ROOT)/ \
     $(CEDARX_ROOT)/libcore \
@@ -15,7 +21,8 @@ LOCAL_C_INCLUDES:= \
     $(CEDARX_ROOT)/libcore/parser/include \
     $(CEDARX_ROOT)/libcore/stream/include \
     $(CEDARX_ROOT)/external/include/adecoder \
-    $(TOP)/frameworks/av/media/libcedarc/include
+    $(TOP)/frameworks/av/media/libcedarc/include \
+    $(LOCAL_PATH)/id3base/
 
 LOCAL_CFLAGS += $(CDX_CFLAGS)
 
@@ -27,8 +34,14 @@ LOCAL_MODULE:= libcdx_parser
 LOCAL_SHARED_LIBRARIES = libcdx_stream libcdx_base
 
 ## CONF_ANDROID_VERSION is set in libcedarx/config.mk
-ifneq ($(CONF_ANDROID_VERSION), 7.0)
-LOCAL_SHARED_LIBRARIES += libaw_wvm
+ifeq ($(CONF_ANDROID_VERSION), 4.4)
+    LOCAL_SHARED_LIBRARIES += libaw_wvm
+else ifeq ($(CONF_ANDROID_VERSION), 5.0)
+    LOCAL_SHARED_LIBRARIES += libaw_wvm
+else ifeq ($(CONF_ANDROID_VERSION), 5.1)
+    LOCAL_SHARED_LIBRARIES += libaw_wvm
+else ifeq ($(CONF_ANDROID_VERSION), 6.0)
+    LOCAL_SHARED_LIBRARIES += libaw_wvm
 endif
 
 LOCAL_SHARED_LIBRARIES += libicuuc libutils libcutils libz libdl libssl libcrypto libcdx_common
@@ -63,7 +76,7 @@ LOCAL_STATIC_LIBRARIES = \
 	libcdx_sstr_parser \
 	libcdx_caf_parser \
 	libcdx_g729_parser \
-	libcdx_id3_parser \
+	libcdx_id3v2_parser \
 	libcdx_dsd_parser \
 	libcdx_aiff_parser \
 	libcdx_awrawstream_parser\

@@ -224,13 +224,42 @@ public class AudioTrackSurroundTest extends CtsAndroidTestCase {
             boolean gotTimestamp = track.getTimestamp(timestamp);
             if (gotTimestamp) {
                 // Only save timestamps after the data is flowing.
-                if (mPreviousTimestamp != null) {
-                    if ((timestamp.framePosition > 0)
-                            && (timestamp.nanoTime != mPreviousTimestamp.nanoTime)) {
-                        mTimestamps.add(timestamp);
-                    }
+                if (mPreviousTimestamp != null
+                    && timestamp.framePosition > 0
+                    && (timestamp.nanoTime != mPreviousTimestamp.nanoTime
+                            || timestamp.framePosition != mPreviousTimestamp.framePosition)) {
+                    mTimestamps.add(timestamp);
                 }
                 mPreviousTimestamp = timestamp;
+            }
+        }
+
+        void checkIndividualTimestamps(int sampleRate) {
+            AudioTimestamp previous = null;
+            // Make sure the timestamps are smooth and don't go retrograde.
+            for (AudioTimestamp timestamp : mTimestamps) {
+                if (previous != null) {
+                    final double TOLERANCE_MILLIS = 2.0;
+
+                    assertTrue("framePosition should be monotonic",
+                            timestamp.framePosition >= previous.framePosition);
+                    assertTrue("nanoTime should be monotonic",
+                            timestamp.nanoTime >= previous.nanoTime);
+
+                    if (timestamp.framePosition > previous.framePosition) {
+                        // Calculate predicted duration based on measured rate and compare
+                        // it with actual duration.
+                        long elapsedFrames = timestamp.framePosition - previous.framePosition;
+                        long elapsedNanos = timestamp.nanoTime - previous.nanoTime;
+                        double expectedNanos = elapsedFrames * (double) NANOS_PER_SECOND / sampleRate;
+                        assertEquals("elapsed time should match predicted duration"
+                                + ", sampleRate = " + sampleRate
+                                + ", framePosition = " + timestamp.framePosition,
+                                expectedNanos, (double) elapsedNanos,
+                                TOLERANCE_MILLIS * NANOS_PER_MILLISECOND);
+                    }
+                }
+                previous = timestamp;
             }
         }
 
@@ -241,24 +270,7 @@ public class AudioTrackSurroundTest extends CtsAndroidTestCase {
             // Use first and last timestamp to get the most accurate rate.
             AudioTimestamp first = mTimestamps.get(0);
             AudioTimestamp last = mTimestamps.get(mTimestamps.size() - 1);
-            double measuredRate = calculateSampleRate(first, last);
-
-            AudioTimestamp previous = null;
-            // Make sure the timestamps are smooth and don't go retrograde.
-            for (AudioTimestamp timestamp : mTimestamps) {
-                if (previous != null) {
-                    double instantaneousRate = calculateSampleRate(previous, timestamp);
-                    assertEquals("instantaneous sample rate should match long term rate",
-                            measuredRate, instantaneousRate,
-                            measuredRate * MAX_INSTANTANEOUS_RATE_TOLERANCE_FRACTION);
-                    assertTrue("framePosition should be monotonic",
-                            timestamp.framePosition > previous.framePosition);
-                    assertTrue("nanoTime should be monotonic",
-                            timestamp.nanoTime > previous.nanoTime);
-                }
-                previous = timestamp;
-            }
-            return measuredRate;
+            return calculateSampleRate(first, last);
         }
 
         /**
@@ -403,6 +415,10 @@ public class AudioTrackSurroundTest extends CtsAndroidTestCase {
                 double estimatedRate = mTimestampAnalyzer.estimateSampleRate();
                 assertEquals(TEST_NAME + ": measured sample rate" + getPcmWarning(),
                         mSampleRate, estimatedRate, mSampleRate * MAX_RATE_TOLERANCE_FRACTION);
+
+                // Check for jitter of retrograde motion in each timestamp.
+                mTimestampAnalyzer.checkIndividualTimestamps(mSampleRate);
+
             } finally {
                 mTrack.release();
             }

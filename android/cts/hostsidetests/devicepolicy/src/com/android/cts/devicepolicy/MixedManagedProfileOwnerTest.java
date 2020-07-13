@@ -16,6 +16,10 @@
 
 package com.android.cts.devicepolicy;
 
+import com.android.tradefed.log.LogUtil.CLog;
+
+import java.lang.AssertionError;
+
 /**
  * Set of tests for managed profile owner use cases that also apply to device owners.
  * Tests that should be run identically in both cases are added in DeviceAndProfileOwnerTest.
@@ -69,12 +73,12 @@ public class MixedManagedProfileOwnerTest extends DeviceAndProfileOwnerTest {
         if (!mHasFeature) {
             return;
         }
-        executeDeviceTestMethod(".ScreenCaptureDisabledTest", "testSetScreenCaptureDisabled_true");
+        // disable screen capture in profile
+        setScreenCaptureDisabled(mUserId, true);
+
         // start the ScreenCaptureDisabledActivity in the parent
         installAppAsUser(DEVICE_ADMIN_APK, mParentUserId);
-        String command = "am start -W --user " + mParentUserId + " " + DEVICE_ADMIN_PKG + "/"
-                + DEVICE_ADMIN_PKG + ".ScreenCaptureDisabledActivity";
-        getDevice().executeShellCommand(command);
+        startScreenCaptureDisabledActivity(mParentUserId);
         executeDeviceTestMethod(".ScreenCaptureDisabledTest", "testScreenCapturePossible");
     }
 

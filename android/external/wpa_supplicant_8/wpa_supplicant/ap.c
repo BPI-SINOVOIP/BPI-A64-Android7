@@ -681,6 +681,18 @@ int wpa_supplicant_create_ap(struct wpa_supplicant *wpa_s,
 	os_memcpy(wpa_s->ap_iface->conf->wmm_ac_params,
 		  wpa_s->conf->wmm_ac_params,
 		  sizeof(wpa_s->conf->wmm_ac_params));
+#ifdef ENABLE_XR_CHANGES
+	conf->bss[0]->wmm_enabled = wpa_s->conf->wmm_enabled;
+	conf->bss[0]->wmm_enabled |= wpa_s->parent->conf->wmm_enabled;
+	conf->bss[0]->wmm_uapsd = wpa_s->conf->uapsd_enabled;
+	conf->bss[0]->wmm_uapsd |= wpa_s->parent->set_ap_uapsd;
+	conf->bss[0]->wmm_uapsd |= wpa_s->parent->conf->uapsd_enabled;
+	wpa_printf(MSG_DEBUG, "SoftAP: wmm: %d, uapsd: %d, cmd_uapsd: %d",
+		   conf->bss[0]->wmm_enabled, conf->bss[0]->wmm_uapsd,
+		   wpa_s->parent->set_ap_uapsd);
+	if (conf->bss[0]->wmm_uapsd)
+		params.uapsd = conf->bss[0]->wmm_uapsd;
+#endif /* ENABLE_XR_CHANGES */
 
 	if (params.uapsd > 0) {
 		conf->bss[0]->wmm_enabled = 1;

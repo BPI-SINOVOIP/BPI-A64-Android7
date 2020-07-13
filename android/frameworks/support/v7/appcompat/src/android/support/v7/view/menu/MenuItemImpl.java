@@ -21,10 +21,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
+import android.support.annotation.RestrictTo;
 import android.support.v4.internal.view.SupportMenuItem;
 import android.support.v4.view.ActionProvider;
 import android.support.v4.view.MenuItemCompat;
-import android.support.v7.widget.AppCompatDrawableManager;
+import android.support.v7.content.res.AppCompatResources;
 import android.util.Log;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
@@ -34,9 +35,12 @@ import android.view.View;
 import android.view.ViewDebug;
 import android.widget.LinearLayout;
 
+import static android.support.annotation.RestrictTo.Scope.GROUP_ID;
+
 /**
  * @hide
  */
+@RestrictTo(GROUP_ID)
 public final class MenuItemImpl implements SupportMenuItem {
 
     private static final String TAG = "MenuItemImpl";
@@ -66,7 +70,7 @@ public final class MenuItemImpl implements SupportMenuItem {
     private int mIconResId = NO_ICON;
 
     /** The menu to which this item belongs */
-    private MenuBuilder mMenu;
+    MenuBuilder mMenu;
     /** If this item should launch a sub menu, this is the sub menu to launch */
     private SubMenuBuilder mSubMenu;
 
@@ -418,8 +422,7 @@ public final class MenuItemImpl implements SupportMenuItem {
         }
 
         if (mIconResId != NO_ICON) {
-            Drawable icon = AppCompatDrawableManager.get()
-                    .getDrawable(mMenu.getContext(), mIconResId);
+            Drawable icon = AppCompatResources.getDrawable(mMenu.getContext(), mIconResId);
             mIconResId = NO_ICON;
             mIconDrawable = icon;
             return icon;

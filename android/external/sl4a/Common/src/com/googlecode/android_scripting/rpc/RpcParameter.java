@@ -25,7 +25,6 @@ import java.lang.annotation.Target;
 /**
  * An annotation that is used to document the parameters of an RPC.
  *
- * @author Felix Arends (felix.arends@gmail.com)
  *
  */
 @Retention(RetentionPolicy.RUNTIME)

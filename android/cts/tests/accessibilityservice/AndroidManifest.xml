@@ -67,8 +67,7 @@
 
         <activity
             android:label="@string/accessibility_soft_keyboard_modes_activity"
-            android:name=".AccessibilitySoftKeyboardModesTest$SoftKeyboardModesActivity"
-            android:windowSoftInputMode="stateAlwaysVisible" />
+            android:name=".AccessibilitySoftKeyboardModesTest$SoftKeyboardModesActivity" />
 
         <service
             android:name=".InstrumentedAccessibilityService"

@@ -47,6 +47,11 @@
     <string name="callFailed_unobtainable_number" msgid="124621797631734731">"Nomor tidak valid"</string>
     <string name="incall_error_missing_voicemail_number" msgid="3651090591812220874">"Nomor pesan suara tidak diketahui."</string>
     <string name="callFailed_video_call_tty_enabled" msgid="186585701668604271">"Tidak dapat melakukan panggilan video jika TTY diaktifkan."</string>
+    <string name="callEnded_pulled" msgid="437630601519502587">"Panggilan telepon dialihkan ke perangkat lain."</string>
     <string name="ringtone_silent" msgid="249805466934178869">"Tidak ada"</string>
     <string name="ringtone_unknown" msgid="2303463713486734520">"Nada dering tidak dikenal"</string>
+    <string name="callFailed_maximum_reached" msgid="4823790040422765056">"Semua saluran yang tersedia sedang digunakan. Untuk melakukan panggilan, putuskan salah satu panggilan pada perangkat ini atau pada salah satu perangkat Anda yang lain."</string>
+    <string name="callFailed_data_disabled" msgid="3885826754435317856">"Panggilan berakhir karena data seluler dinonaktifkan."</string>
+    <string name="callFailed_data_limit_reached_description" msgid="1439284832802552582">"Panggilan berakhir karena batas data seluler telah tercapai."</string>
+    <string name="callFailed_data_limit_reached" msgid="7045770594965160282">"Batas data tercapai. Panggilan berakhir."</string>
 </resources>

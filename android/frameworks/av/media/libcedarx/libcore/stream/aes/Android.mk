@@ -15,10 +15,11 @@ LOCAL_C_INCLUDES:= \
 	$(LIB_ROOT)/include/     \
     $(LIB_ROOT)/../
 
-ifeq ($(CONF_ANDROID_VERSION), 6.0)
+android_version = $(shell echo $(PLATFORM_VERSION) | cut -c 1)
+ifeq ($(android_version), 6)
 LOCAL_C_INCLUDES += \
     $(TOP)/external/boringssl/src/include
-else ifeq ($(CONF_ANDROID_VERSION), 7.0)
+else ifeq ($(android_version), 7)
 LOCAL_C_INCLUDES += \
 	$(TOP)/external/boringssl/src/include
 else

@@ -60,6 +60,8 @@ int axp81_probe(void)
 		return -1;
 	}
 	
+	printf("bpi set ac current\n");
+	
 	acin_path &= 0xf8;
 	acin_path |= 0x04;
 	if(axp_i2c_write(AXP81X_ADDR, BOOT_POWER81X_ACIN_PATH, acin_path))

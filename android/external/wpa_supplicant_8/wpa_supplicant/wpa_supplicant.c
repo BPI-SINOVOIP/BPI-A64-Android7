@@ -3530,6 +3530,20 @@ wpa_supplicant_alloc(struct wpa_supplicant *parent)
 	return wpa_s;
 }
 
+#ifdef ENABLE_XR_CHANGES
+static int wpa_supplicant_init_wowlan(struct wpa_supplicant *wpa_s)
+{
+	struct wpa_driver_wowlan_params wowlan;
+	os_memset(&wowlan, 0, sizeof(wowlan));
+	wowlan.any = 1;
+	if (wpa_drv_set_wowlan(wpa_s, &wowlan) < 0) {
+		wpa_printf(MSG_ERROR, "wowlan configuration failed.");
+		return -1;
+	}
+
+	return 0;
+}
+#endif
 
 #ifdef CONFIG_HT_OVERRIDES
 
@@ -4801,9 +4815,15 @@ static int wpa_supplicant_init_iface(struct wpa_supplicant *wpa_s,
 	 * Note: We don't restore/remove the triggers on shutdown (it doesn't
 	 * have effect anyway when the interface is down).
 	 */
+#ifdef ENABLE_XR_CHANGES
+	if (wpa_supplicant_init_wowlan(wpa_s) < 0) {
+		wpa_printf(MSG_ERROR, "Failed to set WoWLAN triggers.");
+		return -1;
+	}
+#else
 	if (capa_res == 0 && wpas_set_wowlan_triggers(wpa_s, &capa) < 0)
 		return -1;
-
+#endif
 #ifdef CONFIG_EAP_PROXY
 {
 	size_t len;

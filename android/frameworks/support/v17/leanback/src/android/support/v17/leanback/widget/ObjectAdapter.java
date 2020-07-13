@@ -72,6 +72,9 @@ public abstract class ObjectAdapter {
 
     private static final class DataObservable extends Observable<DataObserver> {
 
+        DataObservable() {
+        }
+
         public void notifyChanged() {
             for (int i = mObservers.size() - 1; i >= 0; i--) {
                 mObservers.get(i).onChanged();
@@ -246,5 +249,13 @@ public abstract class ObjectAdapter {
      */
     public long getId(int position) {
         return NO_ID;
+    }
+
+    /**
+     * Returns true if the adapter pairs each underlying data change with a call to notify and
+     * false otherwise.
+     */
+    public boolean isImmediateNotifySupported() {
+        return false;
     }
 }

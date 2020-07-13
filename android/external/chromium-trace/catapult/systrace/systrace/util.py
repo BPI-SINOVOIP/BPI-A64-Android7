@@ -1,8 +1,11 @@
-# Copyright (c) 2015 The Chromium Authors. All rights reserved.
+# Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
 import optparse
+import os
+import random
+import string
 import subprocess
 import sys
 
@@ -27,30 +30,39 @@ class OptionParserIgnoreErrors(optparse.OptionParser):
 
 
 def add_adb_serial(adb_command, device_serial):
+  """Add serial number to ADB shell command.
+
+  ADB shell command is given as list, e.g.
+  ['adb','shell','some_command','some_args'].
+  This replaces it with:
+  ['adb','shell',-s',device_serial,'some_command','some_args']
+
+  Args:
+     adb_command: ADB command list.
+     device_serial: Device serial number.
+
+  Returns:
+     ADB command list with serial number added.
+  """
   if device_serial is not None:
     adb_command.insert(1, device_serial)
     adb_command.insert(1, '-s')
 
 
 def construct_adb_shell_command(shell_args, device_serial):
+  """Construct an ADB shell command with given device serial and arguments.
+
+  Args:
+     shell_args: array of arguments to pass to adb shell.
+     device_serial: if not empty, will add the appropriate command-line
+        parameters so that adb targets the given device.
+  """
   adb_command = ['adb', 'shell', ' '.join(shell_args)]
   add_adb_serial(adb_command, device_serial)
   return adb_command
 
 
-def run_adb_shell(shell_args, device_serial):
-  """Runs "adb shell" with the given arguments.
-
-  Args:
-    shell_args: array of arguments to pass to adb shell.
-    device_serial: if not empty, will add the appropriate command-line
-        parameters so that adb targets the given device.
-  Returns:
-    A tuple containing the adb output (stdout & stderr) and the return code
-    from adb.  Will exit if adb fails to start.
-  """
-  adb_command = construct_adb_shell_command(shell_args, device_serial)
-
+def run_adb_command(adb_command):
   adb_output = []
   adb_return_code = 0
   try:
@@ -70,6 +82,21 @@ def run_adb_shell(shell_args, device_serial):
     adb_output = error.output
 
   return (adb_output, adb_return_code)
+
+
+def run_adb_shell(shell_args, device_serial):
+  """Runs "adb shell" with the given arguments.
+
+  Args:
+    shell_args: array of arguments to pass to adb shell.
+    device_serial: if not empty, will add the appropriate command-line
+        parameters so that adb targets the given device.
+  Returns:
+    A tuple containing the adb output (stdout & stderr) and the return code
+    from adb.  Will exit if adb fails to start.
+  """
+  adb_command = construct_adb_shell_command(shell_args, device_serial)
+  return run_adb_command(adb_command)
 
 
 def get_device_sdk_version():
@@ -107,10 +134,19 @@ def get_device_sdk_version():
           success = True
 
   if not success:
-    print >> sys.stderr, (
-        '\nThe command "%s" failed with the following message:'
-        % ' '.join(getprop_args))
-    print >> sys.stderr, adb_output
     sys.exit(1)
 
   return version
+
+
+def generate_random_filename_for_test():
+  """Used for temporary files used in tests.
+
+  Files created from 'NamedTemporaryFile' have inconsistent reuse support across
+  platforms, so it's not guaranteed that they can be reopened. Since many tests
+  communicate files via path, we typically use this method, as well as
+  manual file removal."""
+  name = ''.join(random.choice(string.ascii_uppercase +
+              string.digits) for _ in range(10))
+  return os.path.abspath(name)
+

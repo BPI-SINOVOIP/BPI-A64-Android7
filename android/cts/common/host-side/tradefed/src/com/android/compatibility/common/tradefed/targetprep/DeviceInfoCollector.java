@@ -18,6 +18,7 @@ package com.android.compatibility.common.tradefed.targetprep;
 
 import com.android.compatibility.common.tradefed.build.CompatibilityBuildHelper;
 import com.android.compatibility.common.tradefed.testtype.CompatibilityTest;
+import com.android.compatibility.common.tradefed.util.CollectorUtil;
 import com.android.tradefed.build.IBuildInfo;
 import com.android.tradefed.config.Option;
 import com.android.tradefed.device.DeviceNotAvailableException;
@@ -26,6 +27,7 @@ import com.android.tradefed.log.LogUtil.CLog;
 import com.android.tradefed.targetprep.BuildError;
 import com.android.tradefed.targetprep.TargetSetupError;
 import com.android.tradefed.util.ArrayUtil;
+import com.android.tradefed.util.FileUtil;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -74,8 +76,17 @@ public class DeviceInfoCollector extends ApkInstrumentationPreparer {
     @Option(name = "dest-dir", description = "The directory under the result to store the files")
     private String mDestDir;
 
+    @Option(name = "temp-dir", description = "The directory containing host-side device info files")
+    private String mTempDir;
+
+    // Temp directory for host-side device info files.
+    private File mHostDir;
+
+    // Destination result directory for all device info files.
+    private File mResultDir;
+
     public DeviceInfoCollector() {
-        mWhen = When.BEFORE;
+        mWhen = When.BOTH;
     }
 
     @Override
@@ -88,39 +99,57 @@ public class DeviceInfoCollector extends ApkInstrumentationPreparer {
         if (mSkipDeviceInfo) {
             return;
         }
+
+        createTempHostDir();
+        createResultDir(buildInfo);
         run(device, buildInfo);
-        getDeviceInfoFiles(device, buildInfo);
+        getDeviceInfoFiles(device);
     }
 
-    private void getDeviceInfoFiles(ITestDevice device, IBuildInfo buildInfo) {
-        CompatibilityBuildHelper buildHelper = new CompatibilityBuildHelper(buildInfo);
+    @Override
+    public void tearDown(ITestDevice device, IBuildInfo buildInfo, Throwable e) {
+        if (mSkipDeviceInfo) {
+            return;
+        }
+        if (mHostDir != null && mHostDir.isDirectory() &&
+                    mResultDir != null && mResultDir.isDirectory()) {
+            CollectorUtil.pullFromHost(mHostDir, mResultDir);
+        }
+    }
+
+    private void createTempHostDir() {
         try {
-            File resultDir = buildHelper.getResultDir();
-            if (mDestDir != null) {
-                resultDir = new File(resultDir, mDestDir);
-            }
-            resultDir.mkdirs();
-            if (!resultDir.isDirectory()) {
-                CLog.e("%s is not a directory", resultDir.getAbsolutePath());
+            mHostDir = FileUtil.createNamedTempDir(mTempDir);
+            if (!mHostDir.isDirectory()) {
+                CLog.e("%s is not a directory", mHostDir.getAbsolutePath());
                 return;
             }
-            String resultPath = resultDir.getAbsolutePath();
-            pull(device, mSrcDir, resultPath);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void createResultDir(IBuildInfo buildInfo) {
+        CompatibilityBuildHelper buildHelper = new CompatibilityBuildHelper(buildInfo);
+        try {
+            mResultDir = buildHelper.getResultDir();
+            if (mDestDir != null) {
+                mResultDir = new File(mResultDir, mDestDir);
+            }
+            mResultDir.mkdirs();
+            if (!mResultDir.isDirectory()) {
+                CLog.e("%s is not a directory", mResultDir.getAbsolutePath());
+                return;
+            }
         } catch (FileNotFoundException fnfe) {
             fnfe.printStackTrace();
         }
     }
 
-    private void pull(ITestDevice device, String src, String dest) {
-        String command = String.format("adb -s %s pull %s %s", device.getSerialNumber(), src, dest);
-        try {
-            Process p = Runtime.getRuntime().exec(new String[] {"/bin/bash", "-c", command});
-            if (p.waitFor() != 0) {
-                CLog.e("Failed to run %s", command);
-            }
-        } catch (Exception e) {
-            CLog.e("Caught exception during pull.");
-            CLog.e(e);
+    private void getDeviceInfoFiles(ITestDevice device) {
+        if (mResultDir != null && mResultDir.isDirectory()) {
+            String mResultPath = mResultDir.getAbsolutePath();
+            CollectorUtil.pullFromDevice(device, mSrcDir, mResultPath);
         }
     }
 }

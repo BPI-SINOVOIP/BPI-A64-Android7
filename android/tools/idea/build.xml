@@ -1,0 +1,75 @@
+<project name="IntelliJ IDEA Community Edition" default="all">
+  <property name="project.home" value="${basedir}"/>
+
+  <!--
+    Sets the out folder. Defaults to ${basedir}/out.
+    To override, use command line arg "out": e.g. -Dout=/path/
+  -->
+  <condition property="out.dir" value="${out}" else="${project.home}/out">
+    <isset property="out" />
+  </condition>
+
+  <property name="tmp.dir" value="${out.dir}/tmp"/>
+
+  <!--
+    Sets the build number. Defaults to SNAPSHOT.
+    To override, use command line arg "buildNumber": e.g. -DbuildNumber=777
+  -->
+  <condition property="buildId" value="${buildNumber}" else="SNAPSHOT">
+    <isset property="buildNumber" />
+  </condition>
+
+  <target name="cleanup">
+    <delete dir="${out.dir}" failonerror="false"/>
+  </target>
+
+  <target name="init">
+    <mkdir dir="${out.dir}"/>
+    <mkdir dir="${tmp.dir}"/>
+  </target>
+
+  <macrodef name="call_gant">
+    <attribute name="script" />
+    <attribute name="test.patterns" default="" />
+    <sequential>
+      <java failonerror="true" jar="${project.home}/lib/ant/lib/ant-launcher.jar" fork="true">
+        <jvmarg line="-Xmx2048m -XX:MaxPermSize=512m"/>
+        <jvmarg value="-Dout=${out.dir}" />
+        <jvmarg value="-DbuildNumber=${buildId}" />
+        <sysproperty key="java.awt.headless" value="true"/>
+        <arg line="&quot;-Dgant.script=@{script}&quot;"/>
+        <arg line="&quot;-Dteamcity.build.tempDir=${tmp.dir}&quot;"/>
+        <arg line="&quot;-Didea.test.patterns=@{test.patterns}&quot;"/>
+        <arg line="&quot;-Didea.test.group=ALL_EXCLUDE_DEFINED&quot;"/>
+        <arg value="-f"/>
+        <arg value="${project.home}/build/gant.xml"/>
+      </java>
+    </sequential>
+  </macrodef>
+
+  <target name="build" depends="init">
+    <call_gant script="${project.home}/build/scripts/dist.gant"/>
+  </target>
+
+  <target name="test" depends="init">
+    <call_gant script="${project.home}/build/scripts/tests.gant" test.patterns="org.jetbrains.android.*;com.android.tools.idea.*;com.google.gct.*"/>
+  </target>
+
+  <target name="guiTests" depends="init">
+    <delete>
+      <fileset dir="${project.home}/build" includes="TEST-com.android.tools.idea.tests.gui.*"/>
+    </delete>
+    <call_gant script="${project.home}/build/scripts/gui_tests.gant"/>
+  </target>
+
+  <!-- The build task creates an updater.jar in ${out.dir}. This task bundles log4j & the updater into a single jar -->
+  <taskdef name="jarjar" classname="com.tonicsystems.jarjar.JarJarTask" classpath="${project.home}/build/lib/jarjar-1.0.jar"/>
+  <target name="fullupdater" depends="build">
+    <jarjar jarfile="${out.dir}/updater-full.jar">
+        <zipfileset src="${out.dir}/updater.jar" />
+        <zipfileset src="lib/log4j.jar" />
+    </jarjar>
+  </target>
+
+  <target name="all" depends="cleanup,build,fullupdater"/>
+</project>

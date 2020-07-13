@@ -168,7 +168,7 @@ int load_fip(int *use_monitor)
 			toc1_flash_read(toc1_item->data_offset/512, CONFIG_SYS_SRAMA2_SIZE/512, (void *)SCP_SRAM_BASE);
 			toc1_flash_read((toc1_item->data_offset+0x18000)/512, SCP_DRAM_SIZE/512, (void *)SCP_DRAM_BASE);
 			memcpy((void *)(SCP_SRAM_BASE+HEADER_OFFSET+DRAM_PARA_OFFSET),dram_para_addr,DARM_PARA_NUM * sizeof(int));
-			sunxi_deassert_arisc();
+//			sunxi_deassert_arisc();
 		}
 		else if(strncmp(toc1_item->name, ITEM_LOGO_NAME, sizeof(ITEM_LOGO_NAME)) == 0) {
 			*(uint *)(SUNXI_LOGO_COMPRESSED_LOGO_SIZE_ADDR) = toc1_item->data_len;

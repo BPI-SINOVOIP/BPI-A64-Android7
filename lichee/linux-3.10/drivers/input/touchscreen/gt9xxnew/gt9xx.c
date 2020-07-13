@@ -653,7 +653,7 @@ static void gtp_touch_down(struct goodix_ts_data* ts,s32 id,s32 x,s32 y,s32 w)
         if(1 == revert_y_flag){
                 y = SCREEN_MAX_Y - y;
         }
-        dprintk(DEBUG_X_Y_INFO,"report data:ID:%d, X:%d, Y:%d, W:%d\n", id, x, y, w);
+        dprintk(DEBUG_X_Y_INFO, "report data:ID:%d, X:%d, Y:%d, W:%d\n", id, x, y, w);
 
 #if GTP_ICS_SLOT_REPORT
     input_mt_slot(ts->input_dev, id);
@@ -1753,7 +1753,9 @@ static s32 gtp_init_panel(struct goodix_ts_data *ts)
     #if GTP_COMPATIBLE_MODE
         msleep(50);
     #endif
- //       ret = gtp_i2c_read_dbl_check(ts->client, GTP_REG_SENSOR_ID, &sensor_id, 1);
+        ret = gtp_i2c_read_dbl_check(ts->client, GTP_REG_SENSOR_ID, &sensor_id, 1);
+	dprintk(DEBUG_INIT,"gt9xx: hardware sensor_id = %d\n",sensor_id);
+
 	dprintk(DEBUG_INIT,"CTP name : %s\n",config_info.name);
         if (!strcmp(config_info.name,"gt9271_mb976a9")){
             sensor_id = 0;
@@ -1763,7 +1765,7 @@ static s32 gtp_init_panel(struct goodix_ts_data *ts)
             sensor_id = 1;
             dprintk(DEBUG_INIT,"gt9xx:sensor_id = %d\n",sensor_id);
 			
-		} else if (!strcmp(config_info.name,"gt9271_wt097")){
+		} else if (!strcmp(config_info.name,"bpi_lcd10")){
             sensor_id = 2;
             dprintk(DEBUG_INIT,"gt9xx:sensor_id = %d\n",sensor_id);
 			

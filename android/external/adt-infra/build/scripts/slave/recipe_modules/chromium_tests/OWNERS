@@ -1,0 +1,12 @@
+set noparent
+akuegel@chromium.org
+phajdan.jr@chromium.org
+sergeyberezin@chromium.org
+sergiyb@chromium.org
+tandrii@chromium.org
+per-file chromium_perf*=eakuefner@chromium.org
+per-file chromium_perf*=fmeawad@chromium.org
+per-file tryserver_chromium_perf.py=prasadv@chromium.org
+per-file tryserver_chromium_perf.py=robertocn@chromium.org
+per-file chromium_android.py=jbudorick@chromium.org
+per-file chromium_android.py=stip@chromium.org

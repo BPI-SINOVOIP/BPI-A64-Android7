@@ -18,5 +18,6 @@
 <boolean name="enabledNotifyWapMMSC" value="true" />
 <boolean name="enableMultipartSMS" value="false" />
 <boolean name="show_apn_setting_cdma_bool" value="true" />
+<boolean name="support_swap_after_merge_bool" value="false" />
 </carrier_config>
 </carrier_config_list>

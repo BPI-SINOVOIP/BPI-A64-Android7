@@ -25,6 +25,8 @@ import com.android.compatibility.common.util.ResultType;
 import com.android.compatibility.common.util.ResultUnit;
 import com.android.compatibility.common.util.Stat;
 
+import com.android.compatibility.common.util.CddTest;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -44,6 +46,7 @@ public class SequentialRWTest extends CtsAndroidTestCase {
         super.tearDown();
     }
 
+    @CddTest(requirement="8.2")
     public void testSingleSequentialWrite() throws Exception {
         final long fileSize = FileUtil.getFileSizeExceedingMemory(getContext(), BUFFER_SIZE);
         if (fileSize == 0) { // not enough space, give up
@@ -85,6 +88,7 @@ public class SequentialRWTest extends CtsAndroidTestCase {
                 NUMBER_REPETITION, REPORT_LOG_NAME, streamName);
     }
 
+    @CddTest(requirement="8.2")
     public void testSingleSequentialRead() throws Exception {
         final long fileSize = FileUtil.getFileSizeExceedingMemory(getContext(), BUFFER_SIZE);
         if (fileSize == 0) { // not enough space, give up

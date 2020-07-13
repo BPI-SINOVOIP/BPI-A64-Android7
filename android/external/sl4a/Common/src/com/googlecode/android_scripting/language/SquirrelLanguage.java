@@ -20,7 +20,6 @@ package com.googlecode.android_scripting.language;
  * Represents the Squirrel programming language, by Alberto Demichelis
  * this file adapted by Andy Tai, atai@atai.org
  * based on the Python version by
- * @author igor.v.karp@gmail.com (Igor Karp)
  */
 public class SquirrelLanguage extends Language {
 

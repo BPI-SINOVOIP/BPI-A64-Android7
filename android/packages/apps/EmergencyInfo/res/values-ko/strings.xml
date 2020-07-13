@@ -96,7 +96,8 @@
     <string name="user_emergency_info_title" msgid="7827058167207376581">"긴급 상황 정보"</string>
     <string name="user_emergency_info_consent" msgid="5636028073450797246">"이곳에 입력하는 정보는 긴급 상황의 초기 대처에 도움이 됩니다. 이 정보는 사용자의 기기에만 저장되지만, 누구나 스마트폰을 잠금 해제하지 않고도 긴급 다이얼러에서 이 정보를 볼 수 있습니다."</string>
     <string name="emergency_info_continue" msgid="5453201508537906087">"계속"</string>
-    <string name="no_info_provided" msgid="6775035037534954056">"긴급 상황 정보가 없습니다."</string>
+    <string name="no_info_provided" msgid="716200382010821001">"휴대전화 소유자 정보 없음"</string>
+    <string name="tap_pencil" msgid="2723698054265296934">"본인 휴대전화인 경우 연필 아이콘을 탭하여 정보를 추가하세요. 긴급 상황 시 여기 표시됩니다."</string>
     <string name="clear_all" msgid="8899013032870561633">"모두 삭제"</string>
     <string name="clear" msgid="3648880442502887163">"삭제"</string>
     <string name="clear_all_message" msgid="1548432000373861295">"모든 정보 및 연락처를 삭제하시겠습니까?"</string>

@@ -1,0 +1,263 @@
+[
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[BUILD]/scripts/slave/bot_update.py",
+      "--master",
+      "chromium.infra",
+      "--builder",
+      "infra-continuous-64",
+      "--slave",
+      "TestSlavename",
+      "--spec",
+      "cache_dir = '[ROOT]/git_cache'\nsolutions = [{'deps_file': '.DEPS.git', 'managed': True, 'name': 'infra', 'url': 'https://chromium.googlesource.com/infra/infra.git'}]",
+      "--root",
+      "infra",
+      "--revision_mapping_file",
+      "{\"infra\": \"got_revision\"}",
+      "--output_json",
+      "/path/to/tmp/json",
+      "--revision",
+      "infra@c14d891d44f0afff64e56ed7c9702df1d807b1ee",
+      "--force",
+      "--output_manifest"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "bot_update",
+    "~followup_annotations": [
+      "@@@STEP_TEXT@Some step text@@@",
+      "@@@STEP_LOG_LINE@json.output@{@@@",
+      "@@@STEP_LOG_LINE@json.output@  \"did_run\": true, @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"manifest\": {@@@",
+      "@@@STEP_LOG_LINE@json.output@    \"infra\": {@@@",
+      "@@@STEP_LOG_LINE@json.output@      \"repository\": \"https://fake.org/infra.git\", @@@",
+      "@@@STEP_LOG_LINE@json.output@      \"revision\": \"5e03a58dc0850e5137a8ebbce29610670c756aed\"@@@",
+      "@@@STEP_LOG_LINE@json.output@    }@@@",
+      "@@@STEP_LOG_LINE@json.output@  }, @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"patch_failure\": false, @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"patch_root\": \"infra\", @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"properties\": {@@@",
+      "@@@STEP_LOG_LINE@json.output@    \"got_revision\": \"5e03a58dc0850e5137a8ebbce29610670c756aed\", @@@",
+      "@@@STEP_LOG_LINE@json.output@    \"got_revision_cp\": \"refs/heads/master@{#197293}\"@@@",
+      "@@@STEP_LOG_LINE@json.output@  }, @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"root\": \"infra\", @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"step_text\": \"Some step text\"@@@",
+      "@@@STEP_LOG_LINE@json.output@}@@@",
+      "@@@STEP_LOG_END@json.output@@@",
+      "@@@SET_BUILD_PROPERTY@got_revision@\"5e03a58dc0850e5137a8ebbce29610670c756aed\"@@@",
+      "@@@SET_BUILD_PROPERTY@got_revision_cp@\"refs/heads/master@{#197293}\"@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[DEPOT_TOOLS]/gclient.py",
+      "runhooks"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "gclient runhooks"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "test.py",
+      "test"
+    ],
+    "cwd": "[SLAVE_BUILD]/infra",
+    "name": "infra python tests"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "testjs.py"
+    ],
+    "cwd": "[SLAVE_BUILD]/infra",
+    "name": "infra javascript tests"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[SLAVE_BUILD]/infra/glyco/tests/run_all_tests.py"
+    ],
+    "cwd": "[SLAVE_BUILD]/infra",
+    "name": "Glyco tests"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[SLAVE_BUILD]/infra/go/env.py",
+      "go",
+      "version"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "go third parties"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[SLAVE_BUILD]/infra/go/env.py",
+      "python",
+      "[SLAVE_BUILD]/infra/go/test.py"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "infra go tests"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[SLAVE_BUILD]/infra/build/build.py",
+      "--builder",
+      "infra-continuous-64"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "cipd - build packages"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[SLAVE_BUILD]/infra/build/test_packages.py"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "cipd - test packages integrity"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[SLAVE_BUILD]/infra/build/build.py",
+      "--no-rebuild",
+      "--upload",
+      "--service-account-json",
+      "/creds/service_accounts/service-account-cipd-builder.json",
+      "--json-output",
+      "/path/to/tmp/json",
+      "--builder",
+      "infra-continuous-64",
+      "--tags",
+      "buildbot_build:chromium.infra/infra-continuous-64/123",
+      "git_repository:https://chromium.googlesource.com/infra/infra",
+      "git_revision:5e03a58dc0850e5137a8ebbce29610670c756aed"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "cipd - upload packages",
+    "~followup_annotations": [
+      "@@@STEP_LOG_LINE@json.output (invalid)@null@@@",
+      "@@@STEP_LOG_END@json.output (invalid)@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "\nimport os, sys\nfrom common import chromium_utils\n\npath = sys.argv[1]\nif os.path.exists(path):\n  for p in (os.path.join(path, x) for x in os.listdir(path)):\n    if os.path.isdir(p):\n      chromium_utils.RemoveDirectory(p)\n    else:\n      os.unlink(p)\n",
+      "[SLAVE_BUILD]/infra/go/bin"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "rmcontents clean go bin",
+    "~followup_annotations": [
+      "@@@STEP_LOG_LINE@python.inline@@@@",
+      "@@@STEP_LOG_LINE@python.inline@import os, sys@@@",
+      "@@@STEP_LOG_LINE@python.inline@from common import chromium_utils@@@",
+      "@@@STEP_LOG_LINE@python.inline@@@@",
+      "@@@STEP_LOG_LINE@python.inline@path = sys.argv[1]@@@",
+      "@@@STEP_LOG_LINE@python.inline@if os.path.exists(path):@@@",
+      "@@@STEP_LOG_LINE@python.inline@  for p in (os.path.join(path, x) for x in os.listdir(path)):@@@",
+      "@@@STEP_LOG_LINE@python.inline@    if os.path.isdir(p):@@@",
+      "@@@STEP_LOG_LINE@python.inline@      chromium_utils.RemoveDirectory(p)@@@",
+      "@@@STEP_LOG_LINE@python.inline@    else:@@@",
+      "@@@STEP_LOG_LINE@python.inline@      os.unlink(p)@@@",
+      "@@@STEP_LOG_END@python.inline@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[SLAVE_BUILD]/infra/go/env.py",
+      "go",
+      "install",
+      "github.com/luci/luci-go/client/cmd/..."
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "build luci-go"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "\nimport json, os, sys\nif os.path.exists(sys.argv[1]) and os.path.isdir(sys.argv[1]):\n  with open(sys.argv[2], 'w') as f:\n    json.dump(os.listdir(sys.argv[1]), f)\n",
+      "[SLAVE_BUILD]/infra/go/bin",
+      "/path/to/tmp/json"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "listdir listing go bin",
+    "~followup_annotations": [
+      "@@@STEP_LOG_LINE@json.output@[@@@",
+      "@@@STEP_LOG_LINE@json.output@  \"file 1\", @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"file 2\"@@@",
+      "@@@STEP_LOG_LINE@json.output@]@@@",
+      "@@@STEP_LOG_END@json.output@@@",
+      "@@@STEP_LOG_LINE@python.inline@@@@",
+      "@@@STEP_LOG_LINE@python.inline@import json, os, sys@@@",
+      "@@@STEP_LOG_LINE@python.inline@if os.path.exists(sys.argv[1]) and os.path.isdir(sys.argv[1]):@@@",
+      "@@@STEP_LOG_LINE@python.inline@  with open(sys.argv[2], 'w') as f:@@@",
+      "@@@STEP_LOG_LINE@python.inline@    json.dump(os.listdir(sys.argv[1]), f)@@@",
+      "@@@STEP_LOG_END@python.inline@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[DEPOT_TOOLS]/upload_to_google_storage.py",
+      "-b",
+      "chromium-luci",
+      "[SLAVE_BUILD]/infra/go/bin/file 1",
+      "[SLAVE_BUILD]/infra/go/bin/file 2"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "upload go bin"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "\nimport shutil\nimport sys\nshutil.copy(sys.argv[1], sys.argv[2])\n",
+      "[SLAVE_BUILD]/infra/go/bin/file 1.sha1",
+      "/path/to/tmp/"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "file 1 sha1",
+    "~followup_annotations": [
+      "@@@STEP_TEXT@0123456789abcdeffedcba987654321012345678@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "\nimport shutil\nimport sys\nshutil.copy(sys.argv[1], sys.argv[2])\n",
+      "[SLAVE_BUILD]/infra/go/bin/file 2.sha1",
+      "/path/to/tmp/"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "file 2 sha1",
+    "~followup_annotations": [
+      "@@@STEP_TEXT@0123456789abcdeffedcba987654321012345678@@@"
+    ]
+  },
+  {
+    "name": "$result",
+    "recipe_result": null,
+    "status_code": 0
+  }
+]

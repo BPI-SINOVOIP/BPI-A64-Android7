@@ -1,4 +1,4 @@
-# Copyright 2014 the V8 project authors. All rights reserved.
+# Copyright 2013 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
@@ -33,7 +33,7 @@ def IsWindows():
 
 @memoize()
 def IsLinux():
-  return sys.platform.startswith(('linux', 'freebsd'))
+  return sys.platform.startswith(('linux', 'freebsd', 'openbsd'))
 
 
 @memoize()
@@ -47,18 +47,15 @@ def gyp_defines():
   return dict(arg.split('=', 1)
       for arg in shlex.split(os.environ.get('GYP_DEFINES', '')))
 
-
 @memoize()
 def gyp_generator_flags():
   """Parses and returns GYP_GENERATOR_FLAGS env var as a dictionary."""
   return dict(arg.split('=', 1)
       for arg in shlex.split(os.environ.get('GYP_GENERATOR_FLAGS', '')))
 
-
 @memoize()
 def gyp_msvs_version():
   return os.environ.get('GYP_MSVS_VERSION', '')
-
 
 @memoize()
 def distributor():
@@ -110,14 +107,14 @@ def builder():
   else:
     if platform() == 'android':
       # Good enough for now? Do any android bots use make?
-      return 'make'
+      return 'ninja'
     elif platform() == 'ios':
       return 'xcode'
     elif IsWindows():
-      return 'msvs'
+      return 'ninja'
     elif IsLinux():
-      return 'make'
+      return 'ninja'
     elif IsMac():
-      return 'xcode'
+      return 'ninja'
     else:
       assert False, 'Don\'t know what builder we\'re using!'

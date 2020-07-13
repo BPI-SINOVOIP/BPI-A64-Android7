@@ -26,6 +26,6 @@ touch "$2.txt"
 # Find all of the various API files and append them to our
 # API file
 
-for API_FILE in `find $1 -name "$2.txt" -print | sort`; do
+for API_FILE in `find $1 -name "current.txt" -print | sort`; do
   cat $API_FILE >> "$2.txt"
 done

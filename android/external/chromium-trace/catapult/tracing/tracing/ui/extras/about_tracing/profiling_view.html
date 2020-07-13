@@ -6,17 +6,18 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/base64.html">
-<link rel="import"
-      href="/tracing/ui/extras/about_tracing/record_controller.html">
+<link rel="import" href="/tracing/importer/import.html">
+<link rel="import" href="/tracing/ui/base/file.html">
+<link rel="import" href="/tracing/ui/base/hotkey_controller.html">
+<link rel="import" href="/tracing/ui/base/info_bar_group.html">
+<link rel="import" href="/tracing/ui/base/overlay.html">
+<link rel="import" href="/tracing/ui/base/utils.html">
 <link rel="import"
       href="/tracing/ui/extras/about_tracing/inspector_tracing_controller_client.html">
 <link rel="import"
+      href="/tracing/ui/extras/about_tracing/record_controller.html">
+<link rel="import"
       href="/tracing/ui/extras/about_tracing/xhr_based_tracing_controller_client.html">
-<link rel="import" href="/tracing/importer/import.html">
-<link rel="import" href="/tracing/ui/base/info_bar_group.html">
-<link rel="import" href="/tracing/ui/base/hotkey_controller.html">
-<link rel="import" href="/tracing/ui/base/overlay.html">
-<link rel="import" href="/tracing/ui/base/utils.html">
 <link rel="import" href="/tracing/ui/timeline_view.html">
 
 <style>
@@ -65,53 +66,36 @@ x-timeline-view-buttons {
  * TracingController.
  */
 tr.exportTo('tr.ui.e.about_tracing', function() {
-  function readFile(file) {
-    return new Promise(function(resolve, reject) {
-      var reader = new FileReader();
-      var filename = file.name;
-      reader.onload = function(data) {
-        resolve(data.target.result);
-      };
-      reader.onerror = function(err) {
-        reject(err);
-      };
-
-      var is_binary = /[.]gz$/.test(filename) || /[.]zip$/.test(filename);
-      if (is_binary)
-        reader.readAsArrayBuffer(file);
-      else
-        reader.readAsText(file);
-    });
-  }
-
   /**
    * ProfilingView
    * @constructor
-   * @extends {HTMLUnknownElement}
+   * @extends {HTMLDivElement}
    */
   var ProfilingView = tr.ui.b.define('x-profiling-view');
   var THIS_DOC = document.currentScript.ownerDocument;
 
   ProfilingView.prototype = {
-    __proto__: HTMLUnknownElement.prototype,
+    __proto__: HTMLDivElement.prototype,
 
     decorate: function(tracingControllerClient) {
-      this.appendChild(tr.ui.b.instantiateTemplate('#profiling-view-template',
-          THIS_DOC));
+      Polymer.dom(this).appendChild(
+          tr.ui.b.instantiateTemplate('#profiling-view-template', THIS_DOC));
 
-      this.timelineView_ = this.querySelector('tr-ui-timeline-view');
-      this.infoBarGroup_ = this.querySelector('tr-ui-b-info-bar-group');
+      this.timelineView_ =
+          Polymer.dom(this).querySelector('tr-ui-timeline-view');
+      this.infoBarGroup_ =
+          Polymer.dom(this).querySelector('tr-ui-b-info-bar-group');
 
       // Detach the buttons. We will reattach them to the timeline view.
       // TODO(nduca): Make timeline-view have a content select="x-buttons"
       // that pulls in any buttons.
-      this.recordButton_ = this.querySelector('#record-button');
-      this.loadButton_ = this.querySelector('#load-button');
-      this.saveButton_ = this.querySelector('#save-button');
+      this.recordButton_ = Polymer.dom(this).querySelector('#record-button');
+      this.loadButton_ = Polymer.dom(this).querySelector('#load-button');
+      this.saveButton_ = Polymer.dom(this).querySelector('#save-button');
 
-      var buttons = this.querySelector('x-timeline-view-buttons');
-      buttons.parentElement.removeChild(buttons);
-      this.timelineView_.leftControls.appendChild(buttons);
+      var buttons = Polymer.dom(this).querySelector('x-timeline-view-buttons');
+      Polymer.dom(buttons.parentElement).removeChild(buttons);
+      Polymer.dom(this.timelineView_.leftControls).appendChild(buttons);
       this.initButtons_();
 
       this.timelineView_.hotkeyController.addHotKey(new tr.ui.b.HotKey({
@@ -318,7 +302,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
             changeFired = true;
 
             var file = inputElement.files[0];
-            readFile(file).then(
+            tr.ui.b.readFile(file).then(
                 function(data) {
                   this.setActiveTrace(file.name, data);
                 }.bind(this),
@@ -369,7 +353,7 @@ tr.exportTo('tr.ui.e.about_tracing', function() {
         return;
       }
 
-      readFile(files[0]).then(
+      tr.ui.b.readFile(files[0]).then(
           function(data) {
             this.setActiveTrace(files[0].name, data);
           }.bind(this),

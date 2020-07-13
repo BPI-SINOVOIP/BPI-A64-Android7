@@ -4,28 +4,37 @@ Copyright 2016 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
+
+<link rel="import" href="/tracing/base/range.html">
 <link rel="import" href="/tracing/metrics/metric_registry.html">
-<link rel="import" href="/tracing/value/numeric.html">
-<link rel="import" href="/tracing/value/value.html">
+<link rel="import" href="/tracing/value/histogram.html">
 
 <script>
 'use strict';
 
 tr.exportTo('tr.metrics', function() {
+  function sampleMetric(values, model) {
+    var hist = new tr.v.Histogram(
+        'foo', tr.b.Unit.byName.sizeInBytes_smallerIsBetter);
+    hist.addSample(9);
+    hist.addSample(91, {bar: new tr.v.d.Generic({hello: 42})});
 
-  function sampleMetric(valueList, model) {
-    var unit = tr.v.Unit.byName.sizeInBytes_smallerIsBetter;
-    var n1 = new tr.v.ScalarNumeric(unit, 1);
-    var n2 = new tr.v.ScalarNumeric(unit, 2);
-    valueList.addValue(new tr.v.NumericValue(
-        model.canonicalUrlThatCreatedThisTrace, 'foo', n1));
-    valueList.addValue(new tr.v.NumericValue(
-        model.canonicalUrlThatCreatedThisTrace, 'bar', n2));
+    for (var expectation of model.userModel.expectations) {
+      if (expectation instanceof tr.model.um.ResponseExpectation) {
+      } else if (expectation instanceof tr.model.um.AnimationExpectation) {
+      } else if (expectation instanceof tr.model.um.IdleExpectation) {
+      } else if (expectation instanceof tr.model.um.LoadExpectation) {
+      }
+    }
+
+    var chromeHelper = model.getOrCreateHelper(
+        tr.model.helpers.ChromeModelHelper);
+
+    tr.b.iterItems(model.processes, function(pid, process) {
+    });
+
+    values.addHistogram(hist);
   }
-
-  sampleMetric.prototype = {
-    __proto__: Function.prototype
-  };
 
   tr.metrics.MetricRegistry.register(sampleMetric);
 

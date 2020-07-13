@@ -80,6 +80,8 @@ public class WifiLastResortWatchdog {
 
     private WifiMetrics mWifiMetrics;
 
+    private WifiController mWifiController = null;
+
     WifiLastResortWatchdog(WifiMetrics wifiMetrics) {
         mWifiMetrics = wifiMetrics;
     }
@@ -207,6 +209,12 @@ public class WifiLastResortWatchdog {
     public void connectedStateTransition(boolean isEntering) {
         if (VDBG) Log.v(TAG, "connectedStateTransition: isEntering = " + isEntering);
         mWifiIsConnected = isEntering;
+
+        if (!mWatchdogAllowedToTrigger) {
+            // WiFi has connected after a Watchdog trigger, without any new networks becoming
+            // available, log a Watchdog success in wifi metrics
+            mWifiMetrics.incrementNumLastResortWatchdogSuccesses();
+        }
         if (isEntering) {
             // We connected to something! Reset failure counts for everything
             clearAllFailureCounts();
@@ -324,13 +332,21 @@ public class WifiLastResortWatchdog {
     }
 
     /**
-     * Restart Supplicant, Driver & return WifiStateMachine to InitialState
+     * Trigger a restart of the wifi stack.
      */
     private void restartWifiStack() {
         if (VDBG) Log.v(TAG, "restartWifiStack.");
-        Log.i(TAG, "Triggered.");
+
+        // First verify that we can send the trigger message.
+        if (mWifiController == null) {
+            Log.e(TAG, "WifiLastResortWatchdog unable to trigger: WifiController is null");
+            return;
+        }
+
         if (DBG) Log.d(TAG, toString());
-        // <TODO>
+
+        mWifiController.sendMessage(WifiController.CMD_RESTART_WIFI);
+        Log.i(TAG, "Triggered WiFi stack restart.");
     }
 
     /**
@@ -536,5 +552,15 @@ public class WifiLastResortWatchdog {
                     + "}"
                     + ", Age: " + age;
         }
+    }
+
+    /**
+     * Method used to set the WifiController for the this watchdog.
+     *
+     * The WifiController is used to send the restart wifi command to carry out the wifi restart.
+     * @param wifiController WifiController instance that will be sent the CMD_RESTART_WIFI message.
+     */
+    public void setWifiController(WifiController wifiController) {
+        mWifiController = wifiController;
     }
 }

@@ -62,7 +62,6 @@ import com.googlecode.android_scripting.rpc.RpcParameter;
  * The Event Queue provides a useful means of recording background events (such as sensor data) when
  * the phone is busy with foreground activities.
  *
- * @author Felix Arends (felix.arends@gmail.com)
  */
 public class EventFacade extends RpcReceiver {
     /**

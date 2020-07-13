@@ -1372,6 +1372,7 @@ public class EncodeVirtualDisplayWithCompositionTest extends AndroidTestCase {
         MediaCodecList mcl = new MediaCodecList(MediaCodecList.REGULAR_CODECS);
         MediaFormat testFormat = MediaFormat.createVideoFormat(MIME_TYPE, w, h);
         testFormat.setInteger(MediaFormat.KEY_BIT_RATE, bitRate);
+        testFormat.setInteger(MediaFormat.KEY_FRAME_RATE, 30);
         if (mcl.findDecoderForFormat(testFormat) == null
                 || mcl.findEncoderForFormat(testFormat) == null) {
             return false;

@@ -5,13 +5,12 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/ui/analysis/analysis_sub_view.html">
 <link rel="import" href="/tracing/ui/analysis/frame_power_usage_chart.html">
 <link rel="import" href="/tracing/ui/analysis/power_sample_summary_table.html">
-<link rel="import" href="/tracing/ui/analysis/power_sample_table.html">
 
-<polymer-element name="tr-ui-a-multi-power-sample-sub-view"
-    extends="tr-ui-a-sub-view">
+<dom-module id='tr-ui-a-multi-power-sample-sub-view'>
   <template>
     <style>
     :host {
@@ -30,20 +29,21 @@ found in the LICENSE file.
     <div id="tables">
       <tr-ui-a-power-sample-summary-table id="summaryTable">
       </tr-ui-a-power-sample-summary-table>
-      <tr-ui-a-power-sample-table id="samplesTable">
-      </tr-ui-a-power-sample-table>
     </div>
     <tr-ui-a-frame-power-usage-chart id="chart">
     </tr-ui-a-frame-power-usage-chart>
   </template>
-</polymer-element>
+</dom-module>
 
 <script>
 'use strict';
 
 // TODO(charliea): Add a dropdown that allows the user to select which type of
 // power sample analysis view they want (e.g. table of samples, graph).
-Polymer('tr-ui-a-multi-power-sample-sub-view', {
+Polymer({
+  is: 'tr-ui-a-multi-power-sample-sub-view',
+  behaviors: [tr.ui.analysis.AnalysisSubView],
+
   ready: function() {
     this.currentSelection_ = undefined;
   },
@@ -59,12 +59,19 @@ Polymer('tr-ui-a-multi-power-sample-sub-view', {
 
   updateContents_: function() {
     var samples = this.selection;
-    var vSyncTimestamps = (this.selection === undefined) ?
-        [] : this.selection[0].series.device.vSyncTimestamps;
+    var vSyncTimestamps = (!samples ? [] :
+        tr.b.getFirstElement(samples).series.device.vSyncTimestamps);
 
     this.$.summaryTable.samples = samples;
-    this.$.samplesTable.samples = samples;
     this.$.chart.setData(this.selection, vSyncTimestamps);
   }
 });
+
+tr.ui.analysis.AnalysisSubView.register(
+    'tr-ui-a-multi-power-sample-sub-view',
+    tr.model.PowerSample,
+    {
+      multi: true,
+      title: 'Power Samples',
+    });
 </script>

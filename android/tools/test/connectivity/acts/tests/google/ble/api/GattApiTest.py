@@ -19,7 +19,6 @@ Test script to exercise Gatt Apis.
 
 from acts.controllers.android import SL4AAPIError
 from acts.test_utils.bt.BluetoothBaseTest import BluetoothBaseTest
-from acts.test_utils.bt.bt_test_utils import log_energy_info
 from acts.test_utils.bt.bt_test_utils import setup_multiple_devices_for_bt_test
 
 
@@ -33,13 +32,11 @@ class GattApiTest(BluetoothBaseTest):
         return setup_multiple_devices_for_bt_test(self.android_devices)
 
     def setup_test(self):
-        self.log.debug(log_energy_info(self.android_devices, "Start"))
         for a in self.android_devices:
             a.ed.clear_all_events()
         return True
 
     def teardown_test(self):
-        self.log.debug(log_energy_info(self.android_devices, "End"))
         return True
 
     @BluetoothBaseTest.bt_test_wrap

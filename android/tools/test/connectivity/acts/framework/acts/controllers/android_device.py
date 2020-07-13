@@ -59,31 +59,45 @@ def create(configs, logger):
         # Configs is a list of dicts.
         ads = get_instances_with_configs(configs, logger)
     connected_ads = list_adb_devices()
+
     for ad in ads:
         if ad.serial not in connected_ads:
             raise DoesNotExistError(("Android device %s is specified in config"
                                      " but is not attached.") % ad.serial)
-        ad.start_adb_logcat()
-        try:
-            ad.get_droid()
-            ad.ed.start()
-        except:
-            # This exception is logged here to help with debugging under py2,
-            # because "exception raised while processing another exception" is
-            # only printed under py3.
-            msg = "Failed to start sl4a on %s" % ad.serial
-            logger.exception(msg)
-            raise AndroidDeviceError(msg)
+    _start_services_on_ads(ads)
     return ads
 
+
 def destroy(ads):
+    """Cleans up AndroidDevice objects.
+
+    Args:
+        ads: A list of AndroidDevice objects.
+    """
     for ad in ads:
         try:
-            ad.terminate_all_sessions()
+            ad.clean_up()
         except:
-            pass
-        if ad.adb_logcat_process:
-            ad.stop_adb_logcat()
+            ad.log.exception("Failed to clean up properly.")
+
+def _start_services_on_ads(ads):
+    """Starts long running services on multiple AndroidDevice objects.
+
+    If any one AndroidDevice object fails to start services, cleans up all
+    existing AndroidDevice objects and their services.
+
+    Args:
+        ads: A list of AndroidDevice objects whose services to start.
+    """
+    running_ads = []
+    for ad in ads:
+        running_ads.append(ad)
+        try:
+            ad.start_services(skip_sl4a=getattr(ad, "skip_sl4a", False))
+        except:
+            ad.log.exception("Failed to start some services, abort!")
+            destroy(running_ads)
+            raise
 
 def _parse_device_list(device_list_str, key):
     """Parses a byte string representing a list of devices. The string is
@@ -295,11 +309,46 @@ class AndroidDevice:
         if not self.is_bootloader:
             self.root_adb()
 
-    def __del__(self):
+    def clean_up(self):
+        """Cleans up the AndroidDevice object and releases any resources it
+        claimed.
+        """
+        self.stop_services()
         if self.h_port:
             self.adb.forward("--remove tcp:%d" % self.h_port)
+
+    # TODO(angli): This function shall be refactored to accommodate all services
+    # and not have hard coded switch for SL4A when b/29157104 is done.
+    def start_services(self, skip_sl4a=False):
+        """Starts long running services on the android device.
+
+        1. Start adb logcat capture.
+        2. Start SL4A if not skipped.
+
+        Args:
+            skip_sl4a: Does not attempt to start SL4A if True.
+        """
+        try:
+            self.start_adb_logcat()
+        except:
+            self.log.exception("Failed to start adb logcat!")
+            raise
+        if not skip_sl4a:
+            try:
+                self.get_droid()
+                self.ed.start()
+            except:
+                self.log.exception("Failed to start sl4a!")
+                raise
+
+    def stop_services(self):
+        """Stops long running services on the android device.
+
+        Stop adb logcat and terminate sl4a sessions if exist.
+        """
         if self.adb_logcat_process:
             self.stop_adb_logcat()
+        self.terminate_all_sessions()
 
     @property
     def is_bootloader(self):
@@ -311,7 +360,12 @@ class AndroidDevice:
     def is_adb_root(self):
         """True if adb is running as root for this device.
         """
-        return "root" in self.adb.shell("id -u").decode("utf-8")
+        try:
+            return "0" == self.adb.shell("id -u").decode("utf-8").strip()
+        except adb.AdbError:
+            # Wait a bit and retry to work around adb flakiness for this cmd.
+            time.sleep(0.2)
+            return "0" == self.adb.shell("id -u").decode("utf-8").strip()
 
     @property
     def model(self):
@@ -409,13 +463,13 @@ class AndroidDevice:
             setattr(self, k, v)
 
     def root_adb(self):
-        """Change adb to root mode for this device.
+        """Change adb to root mode for this device if allowed.
+
+        If executed on a production build, adb will not be switched to root
+        mode per security restrictions.
         """
-        if not self.is_adb_root:
-            self.adb.root()
-            self.adb.wait_for_device()
-            self.adb.remount()
-            self.adb.wait_for_device()
+        self.adb.root()
+        self.adb.wait_for_device()
 
     def get_droid(self, handle_event=True):
         """Create an sl4a connection to the device.
@@ -570,15 +624,33 @@ class AndroidDevice:
             test_name: Name of the test case that triggered this bug report.
             begin_time: Logline format timestamp taken when the test started.
         """
+        new_br = True
+        try:
+            self.adb.shell("bugreportz -v")
+        except adb.AdbError:
+            new_br = False
         br_path = os.path.join(self.log_path, "BugReports")
         utils.create_dir(br_path)
         base_name = ",{},{}.txt".format(begin_time, self.serial)
+        if new_br:
+            base_name = base_name.replace(".txt", ".zip")
         test_name_len = utils.MAX_FILENAME_LEN - len(base_name)
         out_name = test_name[:test_name_len] + base_name
         full_out_path = os.path.join(br_path, out_name.replace(' ', '\ '))
-        self.log.info("Taking bugreport for %s on %s", test_name, self.serial)
-        self.adb.bugreport(" > {}".format(full_out_path))
-        self.log.info("Bugreport for %s taken at %s", test_name, full_out_path)
+        # in case device restarted, wait for adb interface to return
+        self.wait_for_boot_completion()
+        self.log.info("Taking bugreport for %s.", test_name)
+        if new_br:
+            out = self.adb.shell("bugreportz").decode("utf-8")
+            if not out.startswith("OK"):
+                raise AndroidDeviceError("Failed to take bugreport on %s" %
+                                         self.serial)
+            br_out_path = out.split(':')[1].strip()
+            self.adb.pull("%s %s" % (br_out_path, full_out_path))
+        else:
+            self.adb.bugreport(" > {}".format(full_out_path))
+        self.log.info("Bugreport for %s taken at %s.", test_name,
+                      full_out_path)
 
     def start_new_session(self):
         """Start a new session in sl4a.

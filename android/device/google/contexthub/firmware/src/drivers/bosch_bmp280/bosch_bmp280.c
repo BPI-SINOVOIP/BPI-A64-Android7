@@ -26,8 +26,11 @@
 #include <sensors.h>
 #include <seos.h>
 #include <timer.h>
+#include <util.h>
 
 #define BMP280_APP_ID APP_ID_MAKE(APP_ID_VENDOR_GOOGLE, 5)
+
+#define BMP280_APP_VERSION 2
 
 #define I2C_BUS_ID                      0
 #define I2C_SPEED                       400000
@@ -41,6 +44,9 @@
 #define BOSCH_BMP280_REG_CTRL_MEAS      0xf4
 #define BOSCH_BMP280_REG_CONFIG         0xf5
 #define BOSCH_BMP280_REG_PRES_MSB       0xf7
+
+#define BOSCH_BMP280_MAX_PENDING_I2C_REQUESTS   4
+#define BOSCH_BMP280_MAX_I2C_TRANSFER_SIZE      6
 
 // temp: 2x oversampling, baro: 16x oversampling, power: normal
 #define CTRL_ON    ((2 << 5) | (5 << 2) | 3)
@@ -77,6 +83,16 @@ struct BMP280CompParams
     int16_t dig_P2, dig_P3, dig_P4, dig_P5, dig_P6, dig_P7, dig_P8, dig_P9;
 } __attribute__((packed));
 
+struct I2cTransfer
+{
+    size_t tx;
+    size_t rx;
+    int err;
+    uint8_t txrxBuf[BOSCH_BMP280_MAX_I2C_TRANSFER_SIZE];
+    uint8_t state;
+    bool inUse;
+};
+
 static struct BMP280Task
 {
     struct BMP280CompParams comp;
@@ -89,7 +105,7 @@ static struct BMP280Task
 
     float offset;
 
-    uint8_t txrxBuf[24];
+    struct I2cTransfer transfers[BOSCH_BMP280_MAX_PENDING_I2C_REQUESTS];
 
     bool baroOn;
     bool tempOn;
@@ -140,14 +156,55 @@ static const uint64_t rateTimerValsBaro[] = //should match "supported rates in l
     1000000000ULL / 10,
 };
 
+static void i2cCallback(void *cookie, size_t tx, size_t rx, int err);
+
+// Allocate a buffer and mark it as in use with the given state, or return NULL
+// if no buffers available. Must *not* be called from interrupt context.
+static struct I2cTransfer *allocXfer(uint8_t state)
+{
+    size_t i;
+
+    for (i = 0; i < ARRAY_SIZE(mTask.transfers); i++) {
+        if (!mTask.transfers[i].inUse) {
+            mTask.transfers[i].inUse = true;
+            mTask.transfers[i].state = state;
+            return &mTask.transfers[i];
+        }
+    }
+
+    osLog(LOG_ERROR, "[BMP280]: Ran out of i2c buffers!");
+    return NULL;
+}
+
+// Helper function to write a one byte register. Returns true if we got a
+// successful return value from i2cMasterTx().
+static bool writeRegister(uint8_t reg, uint8_t value, uint8_t state)
+{
+    struct I2cTransfer *xfer = allocXfer(state);
+    int ret = -1;
+
+    if (xfer != NULL) {
+        xfer->txrxBuf[0] = reg;
+        xfer->txrxBuf[1] = value;
+        ret = i2cMasterTx(I2C_BUS_ID, I2C_ADDR, xfer->txrxBuf, 2, i2cCallback, xfer);
+    }
+
+    return (ret == 0);
+}
+
 /* sensor callbacks from nanohub */
 
 static void i2cCallback(void *cookie, size_t tx, size_t rx, int err)
 {
-    if (err == 0)
-        osEnqueuePrivateEvt(EVT_SENSOR_I2C, cookie, NULL, mTask.id);
-    else
-        osLog(LOG_INFO, "BMP280: i2c error (%d)\n", err);
+    struct I2cTransfer *xfer = cookie;
+
+    xfer->tx = tx;
+    xfer->rx = rx;
+    xfer->err = err;
+
+    osEnqueuePrivateEvt(EVT_SENSOR_I2C, cookie, NULL, mTask.id);
+    if (err != 0)
+        osLog(LOG_INFO, "[BMP280] i2c error (tx: %d, rx: %d, err: %d)\n", tx, rx, err);
 }
 
 static void baroTimerCallback(uint32_t timerId, void *cookie)
@@ -160,18 +217,15 @@ static void tempTimerCallback(uint32_t timerId, void *cookie)
     osEnqueuePrivateEvt(EVT_SENSOR_TEMP_TIMER, cookie, NULL, mTask.id);
 }
 
-static void setMode(bool on, void *cookie)
+static void setMode(bool on, uint8_t state)
 {
-    mTask.txrxBuf[0] = BOSCH_BMP280_REG_CTRL_MEAS;
-    mTask.txrxBuf[1] = (on) ? CTRL_ON : CTRL_SLEEP;
-    i2cMasterTx(I2C_BUS_ID, I2C_ADDR, mTask.txrxBuf, 2, &i2cCallback,
-                cookie);
+    writeRegister(BOSCH_BMP280_REG_CTRL_MEAS, (on) ? CTRL_ON : CTRL_SLEEP, state);
 }
 
 static void sendCalibrationResult(uint8_t status, float value) {
     struct CalibrationData *data = heapAlloc(sizeof(struct CalibrationData));
     if (!data) {
-        osLog(LOG_WARN, "Couldn't alloc cal result pkt");
+        osLog(LOG_WARN, "[BMP280] Couldn't alloc cal result pkt");
         return;
     }
 
@@ -184,7 +238,7 @@ static void sendCalibrationResult(uint8_t status, float value) {
     data->value = value;
 
     if (!osEnqueueEvtOrFree(EVT_APP_TO_HOST, data, heapFree))
-        osLog(LOG_WARN, "Couldn't send cal result evt");
+        osLog(LOG_WARN, "[BMP280] Couldn't send cal result evt");
 }
 
 // TODO: only turn on the timer when enabled
@@ -200,7 +254,7 @@ static bool sensorPowerBaro(bool on, void *cookie)
     }
 
     if (oldMode != newMode)
-        setMode(newMode, (void*)(on ? STATE_ENABLING_BARO : STATE_DISABLING_BARO));
+        setMode(newMode, (on ? STATE_ENABLING_BARO : STATE_DISABLING_BARO));
     else
         sensorSignalInternalEvt(mTask.baroHandle, SENSOR_INTERNAL_EVT_POWER_STATE_CHG, on, 0);
 
@@ -230,7 +284,7 @@ static bool sensorFlushBaro(void *cookie)
 static bool sensorCalibrateBaro(void *cookie)
 {
     if (mTask.baroOn || mTask.tempOn) {
-        osLog(LOG_ERROR, "BMP280: cannot calibrate while baro or temp are active\n");
+        osLog(LOG_ERROR, "[BMP280] cannot calibrate while baro or temp are active\n");
         sendCalibrationResult(SENSOR_APP_EVT_STATUS_BUSY, 0.0f);
         return false;
     }
@@ -243,11 +297,7 @@ static bool sensorCalibrateBaro(void *cookie)
     mTask.baroOn = true;
     mTask.baroCalibrating = true;
 
-    mTask.txrxBuf[0] = BOSCH_BMP280_REG_CTRL_MEAS;
-    mTask.txrxBuf[1] = CTRL_ON;
-    i2cMasterTx(I2C_BUS_ID, I2C_ADDR, mTask.txrxBuf, 2, &i2cCallback, (void*)STATE_IDLE);
-
-    return true;
+    return writeRegister(BOSCH_BMP280_REG_CTRL_MEAS, CTRL_ON, STATE_IDLE);
 }
 
 static bool sensorCfgDataBaro(void *data, void *cookie)
@@ -268,7 +318,7 @@ static bool sensorPowerTemp(bool on, void *cookie)
     }
 
     if (oldMode != newMode)
-        setMode(newMode, (void*)(on ? STATE_ENABLING_TEMP : STATE_DISABLING_TEMP));
+        setMode(newMode, (on ? STATE_ENABLING_TEMP : STATE_DISABLING_TEMP));
     else
         sensorSignalInternalEvt(mTask.tempHandle, SENSOR_INTERNAL_EVT_POWER_STATE_CHG, on, 0);
 
@@ -381,49 +431,46 @@ static void getTempAndBaro(const uint8_t *tmp, float *pressure_Pa, float *temp_c
     *pressure_Pa = pres * (1.0f / 256.0f) + mTask.offset;
 }
 
-static void handleI2cEvent(enum BMP280TaskState state)
+static void handleI2cEvent(struct I2cTransfer *xfer)
 {
     union EmbeddedDataPoint sample;
+    struct I2cTransfer *newXfer;
 
-    switch (state) {
+    switch (xfer->state) {
         case STATE_RESET: {
-            mTask.txrxBuf[0] = BOSCH_BMP280_REG_ID;
-            i2cMasterTxRx(I2C_BUS_ID, I2C_ADDR, mTask.txrxBuf, 1,
-                            mTask.txrxBuf, 1, &i2cCallback,
-                            (void*)STATE_VERIFY_ID);
+            newXfer = allocXfer(STATE_VERIFY_ID);
+            if (newXfer != NULL) {
+                newXfer->txrxBuf[0] = BOSCH_BMP280_REG_ID;
+                i2cMasterTxRx(I2C_BUS_ID, I2C_ADDR, newXfer->txrxBuf, 1, newXfer->txrxBuf, 1, i2cCallback, newXfer);
+            }
             break;
         }
 
         case STATE_VERIFY_ID: {
             /* Check the sensor ID */
-            if (mTask.txrxBuf[0] != BOSCH_BMP280_ID) {
-                osLog(LOG_INFO, "BMP280: not detected\n");
+            if (xfer->err != 0 || xfer->txrxBuf[0] != BOSCH_BMP280_ID) {
+                osLog(LOG_INFO, "[BMP280] not detected\n");
                 break;
             }
 
             /* Get compensation parameters */
-            mTask.txrxBuf[0] = BOSCH_BMP280_REG_DIG_T1;
-            i2cMasterTxRx(I2C_BUS_ID, I2C_ADDR, mTask.txrxBuf, 1,
-                            (uint8_t*)&mTask.comp, 24, &i2cCallback,
-                            (void*)STATE_AWAITING_COMP_PARAMS);
+            newXfer = allocXfer(STATE_AWAITING_COMP_PARAMS);
+            if (newXfer != NULL) {
+                newXfer->txrxBuf[0] = BOSCH_BMP280_REG_DIG_T1;
+                i2cMasterTxRx(I2C_BUS_ID, I2C_ADDR, newXfer->txrxBuf, 1, (uint8_t*)&mTask.comp, 24, i2cCallback, newXfer);
+            }
 
             break;
         }
 
         case STATE_AWAITING_COMP_PARAMS: {
-            mTask.txrxBuf[0] = BOSCH_BMP280_REG_CTRL_MEAS;
-            mTask.txrxBuf[1] = CTRL_SLEEP;
-            i2cMasterTx(I2C_BUS_ID, I2C_ADDR, mTask.txrxBuf, 2,
-                              &i2cCallback, (void*)STATE_CONFIG);
+            writeRegister(BOSCH_BMP280_REG_CTRL_MEAS, CTRL_SLEEP, STATE_CONFIG);
             break;
         }
 
         case STATE_CONFIG: {
-            mTask.txrxBuf[0] = BOSCH_BMP280_REG_CONFIG;
             // standby time: 62.5ms, IIR filter coefficient: 4
-            mTask.txrxBuf[1] = (1 << 5) | (2 << 2);
-            i2cMasterTx(I2C_BUS_ID, I2C_ADDR, mTask.txrxBuf, 2,
-                              &i2cCallback, (void*)STATE_FINISH_INIT);
+            writeRegister(BOSCH_BMP280_REG_CONFIG, (1 << 5) | (2 << 2), STATE_FINISH_INIT);
         }
 
         case STATE_ENABLING_BARO: {
@@ -449,13 +496,12 @@ static void handleI2cEvent(enum BMP280TaskState state)
         case STATE_FINISH_INIT: {
             sensorRegisterInitComplete(mTask.baroHandle);
             sensorRegisterInitComplete(mTask.tempHandle);
-            osLog(LOG_INFO, "BMP280: idle\n");
             break;
         }
 
         case STATE_SAMPLING: {
             float pressure_Pa, temp_centigrade;
-            getTempAndBaro(mTask.txrxBuf, &pressure_Pa, &temp_centigrade);
+            getTempAndBaro(xfer->txrxBuf, &pressure_Pa, &temp_centigrade);
 
             if (mTask.baroOn && mTask.baroReading) {
                 if (mTask.baroCalibrating) {
@@ -467,9 +513,7 @@ static void handleI2cEvent(enum BMP280TaskState state)
                     mTask.baroOn = false;
                     mTask.baroCalibrating = false;
 
-                    mTask.txrxBuf[0] = BOSCH_BMP280_REG_CTRL_MEAS;
-                    mTask.txrxBuf[1] = CTRL_SLEEP;
-                    i2cMasterTx(I2C_BUS_ID, I2C_ADDR, mTask.txrxBuf, 2, &i2cCallback, (void*)STATE_IDLE);
+                    writeRegister(BOSCH_BMP280_REG_CTRL_MEAS, CTRL_SLEEP, STATE_IDLE);
                 } else {
                     sample.fdata = pressure_Pa * 0.01f;
                     osEnqueueEvt(sensorGetMyEventType(SENS_TYPE_BARO), sample.vptr, NULL);
@@ -490,10 +534,14 @@ static void handleI2cEvent(enum BMP280TaskState state)
         default:
             break;
     }
+
+    xfer->inUse = false;
 }
 
 static void handleEvent(uint32_t evtType, const void* evtData)
 {
+    struct I2cTransfer *newXfer;
+
     switch (evtType) {
         case EVT_APP_START:
         {
@@ -501,16 +549,13 @@ static void handleEvent(uint32_t evtType, const void* evtData)
             i2cMasterRequest(I2C_BUS_ID, I2C_SPEED);
 
             /* Reset chip */
-            mTask.txrxBuf[0] = BOSCH_BMP280_REG_RESET;
-            mTask.txrxBuf[1] = 0xB6;
-            i2cMasterTx(I2C_BUS_ID, I2C_ADDR, mTask.txrxBuf, 2,
-                        &i2cCallback, (void*)STATE_RESET);
+            writeRegister(BOSCH_BMP280_REG_RESET, 0xB6, STATE_RESET);
             break;
         }
 
         case EVT_SENSOR_I2C:
         {
-            handleI2cEvent((enum BMP280TaskState)evtData);
+            handleI2cEvent((struct I2cTransfer *)evtData);
             break;
         }
 
@@ -518,10 +563,11 @@ static void handleEvent(uint32_t evtType, const void* evtData)
         {
             /* Start sampling for a value */
             if (!mTask.baroReading && !mTask.tempReading) {
-                mTask.txrxBuf[0] = BOSCH_BMP280_REG_PRES_MSB;
-                i2cMasterTxRx(I2C_BUS_ID, I2C_ADDR, mTask.txrxBuf, 1,
-                              mTask.txrxBuf, 6, &i2cCallback,
-                              (void*)STATE_SAMPLING);
+                newXfer = allocXfer(STATE_SAMPLING);
+                if (newXfer != NULL) {
+                    newXfer->txrxBuf[0] = BOSCH_BMP280_REG_PRES_MSB;
+                    i2cMasterTxRx(I2C_BUS_ID, I2C_ADDR, newXfer->txrxBuf, 1, newXfer->txrxBuf, 6, i2cCallback, newXfer);
+                }
             }
 
             mTask.baroReading = true;
@@ -532,11 +578,11 @@ static void handleEvent(uint32_t evtType, const void* evtData)
         {
             /* Start sampling for a value */
             if (!mTask.baroReading && !mTask.tempReading) {
-                mTask.txrxBuf[0] = BOSCH_BMP280_REG_PRES_MSB;
-                i2cMasterTxRx(I2C_BUS_ID, I2C_ADDR, mTask.txrxBuf, 1,
-                              mTask.txrxBuf, 6, &i2cCallback,
-                              (void*)STATE_SAMPLING);
-
+                newXfer = allocXfer(STATE_SAMPLING);
+                if (newXfer != NULL) {
+                    newXfer->txrxBuf[0] = BOSCH_BMP280_REG_PRES_MSB;
+                    i2cMasterTxRx(I2C_BUS_ID, I2C_ADDR, newXfer->txrxBuf, 1, newXfer->txrxBuf, 6, i2cCallback, newXfer);
+                }
             }
 
             mTask.tempReading = true;
@@ -547,8 +593,6 @@ static void handleEvent(uint32_t evtType, const void* evtData)
 
 static bool startTask(uint32_t taskId)
 {
-    osLog(LOG_INFO, "BMP280: task starting\n");
-
     mTask.id = taskId;
     mTask.offset = 0.0f;
 
@@ -566,4 +610,4 @@ static void endTask(void)
 
 }
 
-INTERNAL_APP_INIT(BMP280_APP_ID, 0, startTask, endTask, handleEvent);
+INTERNAL_APP_INIT(BMP280_APP_ID, BMP280_APP_VERSION, startTask, endTask, handleEvent);

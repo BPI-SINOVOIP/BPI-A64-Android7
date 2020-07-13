@@ -24,7 +24,6 @@ from queue import Empty
 from acts.test_utils.bt.BluetoothBaseTest import BluetoothBaseTest
 from acts.test_utils.bt.BtEnum import BluetoothScanModeType
 from acts.test_utils.bt.bt_test_utils import check_device_supported_profiles
-from acts.test_utils.bt.bt_test_utils import log_energy_info
 from acts.test_utils.bt.bt_test_utils import reset_bluetooth
 from acts.test_utils.bt.bt_test_utils import set_device_name
 from acts.test_utils.bt.bt_test_utils import set_bt_scan_mode
@@ -45,13 +44,11 @@ class BtBasicFunctionalityTest(BluetoothBaseTest):
         return setup_multiple_devices_for_bt_test(self.android_devices)
 
     def setup_test(self):
-        self.log.debug(log_energy_info(self.android_devices, "Start"))
         for a in self.android_devices:
             a.ed.clear_all_events()
         return True
 
     def teardown_test(self):
-        self.log.debug(log_energy_info(self.android_devices, "End"))
         return True
 
     def on_fail(self, test_name, begin_time):
@@ -107,7 +104,7 @@ class BtBasicFunctionalityTest(BluetoothBaseTest):
         self.droid_ad.droid.bluetoothMakeDiscoverable()
         scan_mode = self.droid_ad.droid.bluetoothGetScanMode()
         if (scan_mode ==
-                BluetoothScanModeType.SCAN_MODE_CONNECTABLE_DISCOVERABLE.value):
+                BluetoothScanModeType.SCAN_MODE_CONNECTABLE_DISCOVERABLE):
             self.log.debug("Android device1 scan mode is "
                            "SCAN_MODE_CONNECTABLE_DISCOVERABLE")
         else:
@@ -170,9 +167,9 @@ class BtBasicFunctionalityTest(BluetoothBaseTest):
         """
         self.droid_ad.droid.bluetoothMakeUndiscoverable()
         set_bt_scan_mode(self.droid1_ad,
-                         BluetoothScanModeType.SCAN_MODE_NONE.value)
+                         BluetoothScanModeType.SCAN_MODE_NONE)
         scan_mode = self.droid1_ad.droid.bluetoothGetScanMode()
-        if scan_mode == BluetoothScanModeType.SCAN_MODE_NONE.value:
+        if scan_mode == BluetoothScanModeType.SCAN_MODE_NONE:
             self.log.debug("Android device1 scan mode is SCAN_MODE_NONE")
         else:
             self.log.debug("Android device1 scan mode is not SCAN_MODE_NONE")
@@ -252,7 +249,7 @@ class BtBasicFunctionalityTest(BluetoothBaseTest):
         """
         self.log.debug("Test scan mode STATE_OFF.")
         return set_bt_scan_mode(self.droid_ad,
-                                BluetoothScanModeType.STATE_OFF.value)
+                                BluetoothScanModeType.STATE_OFF)
 
     @BluetoothBaseTest.bt_test_wrap
     def test_scan_mode_none(self):
@@ -277,7 +274,7 @@ class BtBasicFunctionalityTest(BluetoothBaseTest):
         """
         self.log.debug("Test scan mode SCAN_MODE_NONE.")
         return set_bt_scan_mode(self.droid_ad,
-                                BluetoothScanModeType.SCAN_MODE_NONE.value)
+                                BluetoothScanModeType.SCAN_MODE_NONE)
 
     @BluetoothBaseTest.bt_test_wrap
     def test_scan_mode_connectable(self):
@@ -302,7 +299,7 @@ class BtBasicFunctionalityTest(BluetoothBaseTest):
         """
         self.log.debug("Test scan mode SCAN_MODE_CONNECTABLE.")
         return set_bt_scan_mode(
-            self.droid_ad, BluetoothScanModeType.SCAN_MODE_CONNECTABLE.value)
+            self.droid_ad, BluetoothScanModeType.SCAN_MODE_CONNECTABLE)
 
     @BluetoothBaseTest.bt_test_wrap
     def test_scan_mode_connectable_discoverable(self):
@@ -328,7 +325,7 @@ class BtBasicFunctionalityTest(BluetoothBaseTest):
         self.log.debug("Test scan mode SCAN_MODE_CONNECTABLE_DISCOVERABLE.")
         return set_bt_scan_mode(
             self.droid_ad,
-            BluetoothScanModeType.SCAN_MODE_CONNECTABLE_DISCOVERABLE.value)
+            BluetoothScanModeType.SCAN_MODE_CONNECTABLE_DISCOVERABLE)
 
     @BluetoothBaseTest.bt_test_wrap
     def test_if_support_hid_profile(self):
@@ -381,20 +378,5 @@ class BtBasicFunctionalityTest(BluetoothBaseTest):
         profiles = check_device_supported_profiles(self.droid_ad.droid)
         if not profiles['a2dp']:
             self.log.debug("Android device do not support A2DP profile.")
-            return False
-        return True
-
-    @BluetoothBaseTest.bt_test_wrap
-    def test_if_support_avrcp_profile(self):
-        """ Test that a single device can support AVRCP profile.
-        Steps
-        1. Initialize one android devices
-        2. Check devices support profiles and return a dictionary
-        3. Check the value of key 'avrcp'
-        :return: test_result: bool
-        """
-        profiles = check_device_supported_profiles(self.droid_ad.droid)
-        if not profiles['avrcp']:
-            self.log.debug("Android device do not support AVRCP profile.")
             return False
         return True

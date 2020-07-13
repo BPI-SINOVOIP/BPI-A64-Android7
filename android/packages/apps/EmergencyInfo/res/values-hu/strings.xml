@@ -96,7 +96,8 @@
     <string name="user_emergency_info_title" msgid="7827058167207376581">"Segélyhívási információk"</string>
     <string name="user_emergency_info_consent" msgid="5636028073450797246">"Az Ön által itt megadott információk segíthetnek az elsőként a helyszínre érkezőknek vészhelyzet esetén. Az információkat kizárólag a telefon tárolja, és bárki elolvashatja őket a segélyhívó tárcsázóján a telefon feloldása nélkül."</string>
     <string name="emergency_info_continue" msgid="5453201508537906087">"Tovább"</string>
-    <string name="no_info_provided" msgid="6775035037534954056">"Nincsenek megadva vészhelyzeti információk"</string>
+    <string name="no_info_provided" msgid="716200382010821001">"Nincs információ a telefon tulajdonosáról"</string>
+    <string name="tap_pencil" msgid="2723698054265296934">"Ha ez az Ön telefonja, koppintson a ceruza ikonra, és adja meg azokat az adatokat, amelyeket vészhelyzet esetén itt megjeleníthetünk."</string>
     <string name="clear_all" msgid="8899013032870561633">"Összes törlése"</string>
     <string name="clear" msgid="3648880442502887163">"Törlés"</string>
     <string name="clear_all_message" msgid="1548432000373861295">"Törli az összes információt és névjegyet?"</string>

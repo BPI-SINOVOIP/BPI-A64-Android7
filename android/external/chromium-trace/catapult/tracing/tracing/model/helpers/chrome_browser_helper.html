@@ -5,6 +5,7 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
+<link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/model/helpers/chrome_process_helper.html">
 
 <script>
@@ -17,7 +18,11 @@ tr.exportTo('tr.model.helpers', function() {
   function ChromeBrowserHelper(modelHelper, process) {
     tr.model.helpers.ChromeProcessHelper.call(this, modelHelper, process);
     this.mainThread_ = process.findAtMostOneThreadNamed('CrBrowserMain');
+    if (!process.name)
+      process.name = ChromeBrowserHelper.PROCESS_NAME;
   }
+
+  ChromeBrowserHelper.PROCESS_NAME = 'Browser';
 
   ChromeBrowserHelper.isBrowserProcess = function(process) {
     return !!process.findAtMostOneThreadNamed('CrBrowserMain');
@@ -25,6 +30,14 @@ tr.exportTo('tr.model.helpers', function() {
 
   ChromeBrowserHelper.prototype = {
     __proto__: tr.model.helpers.ChromeProcessHelper.prototype,
+
+    // TODO(petrcermak): Pass browser name in a metadata event (see
+    // crbug.com/605088).
+    get browserName() {
+      var hasInProcessRendererThread = this.process.findAllThreadsNamed(
+          'Chrome_InProcRendererThread').length > 0;
+      return hasInProcessRendererThread ? 'webview' : 'chrome';
+    },
 
     get rendererHelpers() {
       return this.modelHelper.rendererHelpers;
@@ -48,16 +61,14 @@ tr.exportTo('tr.model.helpers', function() {
 
     get hasLatencyEvents() {
       var hasLatency = false;
-      this.modelHelper.model.getAllThreads().some(function(thread) {
-        thread.iterateAllEvents(function(event) {
+      for (var thread of this.modelHelper.model.getAllThreads())
+        for (var event of thread.getDescendantEvents()) {
           if (!event.isTopLevel)
-            return;
+            continue;
           if (!(event instanceof tr.e.cc.InputLatencyAsyncSlice))
-            return;
+            continue;
           hasLatency = true;
-        });
-        return hasLatency;
-      });
+        }
       return hasLatency;
     },
 
@@ -72,10 +83,9 @@ tr.exportTo('tr.model.helpers', function() {
     getAllAsyncSlicesMatching: function(pred, opt_this) {
       var events = [];
       this.iterAllThreads(function(thread) {
-        thread.iterateAllEvents(function(slice) {
+        for (var slice of thread.getDescendantEvents())
           if (pred.call(opt_this, slice))
             events.push(slice);
-        });
       });
       return events;
     },

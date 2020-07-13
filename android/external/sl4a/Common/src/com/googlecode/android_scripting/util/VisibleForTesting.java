@@ -20,7 +20,6 @@ package com.googlecode.android_scripting.util;
  * An annotation that indicates that the visibility of a type or member has been relaxed from
  * private to package to make the code testable.
  *
- * @author igor.v.karp@gmail.com (Igor Karp)
  */
 // TODO(igor.v.karp): Consider replacing this annotation by one from Guava or GCL
 public @interface VisibleForTesting {

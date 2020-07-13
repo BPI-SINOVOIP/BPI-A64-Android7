@@ -19,7 +19,7 @@ include $(CLEAR_VARS)
 
 LOCAL_MODULE := AuptLib
 LOCAL_SDK_VERSION := 21
-LOCAL_STATIC_JAVA_LIBRARIES := ub-uiautomator
+LOCAL_JAVA_LIBRARIES := ub-uiautomator
 LOCAL_SRC_FILES := $(call all-java-files-under, src)
 
 include $(BUILD_STATIC_JAVA_LIBRARY)

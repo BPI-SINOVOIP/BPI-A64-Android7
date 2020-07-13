@@ -1,0 +1,33 @@
+{%- macro page_header(pageTitle, path_to_root, texturl) -%}
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+  <html>
+  <head><title>{{ pageTitle }}</title>
+  <link rel="stylesheet" href="{{ path_to_root }}default.css" type="text/css" />
+  <script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', 'UA-55762617-2', {'siteSpeedSampleRate': 100});
+    ga('send', 'pageview');
+
+  </script>
+  </head>
+  <body class='log'>
+    <a href="{{ texturl }}">(view as text)</a><br/>
+    <pre>  
+{%- endmacro -%}
+
+{%- macro chunks(entries) -%}
+{%- for entry in entries -%}
+    <span class="{{ entry.type }}">{{ entry.text|e }}</span>
+{%- endfor -%}
+{%- endmacro -%}
+
+{%- macro page_footer() -%}
+</pre>
+</body>
+</html>
+{%- endmacro -%}

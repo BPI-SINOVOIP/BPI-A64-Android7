@@ -5,8 +5,8 @@ LOCAL_CFLAGS += -DCONF_ARMV8_A
 endif
 
 ifeq ($(TARGET_ARCH_VARIANT), armv7-a-neon)
-os_version = $(shell echo $(PLATFORM_VERSION) | cut -c 1-3)
-ifeq ($(os_version), 7.0)
+os_version = $(shell echo $(PLATFORM_VERSION) | cut -c 1)
+ifeq ($(os_version), 7)
 LOCAL_CFLAGS +=
 else
 LOCAL_CFLAGS += -DCONF_ARMV7_A_NEON

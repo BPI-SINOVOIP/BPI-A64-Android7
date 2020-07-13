@@ -87,6 +87,10 @@ public class MediaMetadataRetrieverTest extends AndroidTestCase {
         assertEquals("Year was other than expected",
                 "2013", mRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_YEAR));
 
+        assertEquals("Date was other than expected",
+                "19040101T000000.000Z",
+                mRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DATE));
+
         assertNull("Writer was unexpected present",
                 mRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_WRITER));
     }
@@ -112,8 +116,18 @@ public class MediaMetadataRetrieverTest extends AndroidTestCase {
         assertEquals("Year was other than expected",
                 "2013", mRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_YEAR));
 
+        assertEquals("Date was other than expected",
+                "19700101T000000.000Z",
+                mRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DATE));
+
         assertNull("Writer was unexpectedly present",
                 mRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_WRITER));
+    }
+
+    public void testLargeAlbumArt() {
+        setDataSourceFd(R.raw.largealbumart);
+
+        assertNotNull("couldn't retrieve album art", mRetriever.getEmbeddedPicture());
     }
 
     public void testSetDataSourceNullPath() {

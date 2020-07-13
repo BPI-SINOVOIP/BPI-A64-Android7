@@ -17,6 +17,7 @@ import re
 from google.appengine.ext import ndb
 
 from dashboard import alerts
+from dashboard import can_bisect
 from dashboard import datastore_hooks
 from dashboard import list_tests
 from dashboard import request_handler
@@ -30,7 +31,7 @@ _DEFAULT_NUM_POINTS = 150
 
 # If data for more than this many tests is requested for unselected tests,
 # an empty response will be returned.
-_MAX_UNSELECTED_TESTS = 50
+_MAX_UNSELECTED_TESTS = 55
 
 # Dictionary mapping improvement directions constants to strings.
 _BETTER_DICT = {
@@ -165,14 +166,13 @@ def _PositiveIntOrNone(input_str):
 
 def _GetAnomalyAnnotationMap(test):
   """Gets a map of revision numbers to Anomaly entities."""
-  anomalies = anomaly.Anomaly.query().filter(
-      anomaly.Anomaly.test == test).fetch()
+  anomalies = anomaly.Anomaly.GetAlertsForTest(test)
   return dict((a.end_revision, a) for a in anomalies)
 
 
 def _UpdateRevisionMap(revision_map, parent_test, rev, num_points,
                        start_rev=None, end_rev=None):
-  """Updates a dict of revisions to data point information for one Test.
+  """Updates a dict of revisions to data point information for one test.
 
   Depending on which arguments are given, there are several ways that
   this function can update the dict of revisions:
@@ -185,7 +185,7 @@ def _UpdateRevisionMap(revision_map, parent_test, rev, num_points,
   Args:
     revision_map: A dict mapping revision numbers to dicts of point info.
         Each point info dict contains information from a Row entity.
-    parent_test: A Test entity with Row children.
+    parent_test: A TestMetadata entity with Row children.
     rev: The middle revision in the revision map (could be None).
     num_points: The number of points to include in the revision map.
     start_rev: Start revision number (optional).
@@ -196,13 +196,16 @@ def _UpdateRevisionMap(revision_map, parent_test, rev, num_points,
          not parent_test.internal_only)
 
   if start_rev and end_rev:
-    rows = _GetRowsForTestInRange(parent_test.key, start_rev, end_rev, True)
+    rows = graph_data.GetRowsForTestInRange(
+        parent_test.key, start_rev, end_rev, True)
   elif rev:
     assert num_points
-    rows = _GetRowsForTestAroundRev(parent_test.key, rev, num_points, True)
+    rows = graph_data.GetRowsForTestAroundRev(
+        parent_test.key, rev, num_points, True)
   else:
     assert num_points
-    rows = _GetLatestRowsForTest(parent_test.key, num_points, True)
+    rows = graph_data.GetLatestRowsForTest(
+        parent_test.key, num_points, privileged=True)
 
   parent_test_key = parent_test.key.urlsafe()
   for row in rows:
@@ -228,7 +231,25 @@ def _PointInfoDict(row, anomaly_annotation_map):
   if anomaly_annotation_map.get(row.revision):
     anomaly_entity = anomaly_annotation_map.get(row.revision)
     point_info['g_anomaly'] = alerts.GetAnomalyDict(anomaly_entity)
-  for name, val in row.to_dict().iteritems():
+  row_dict = row.to_dict()
+  for name, val in row_dict.iteritems():
+    # TODO(sullivan): Remove this hack when data containing these broken links
+    # is sufficiently stale, after June 2016.
+    if (_IsMarkdownLink(val) and
+        val.find('(None') != -1 and
+        'a_stdio_uri_prefix' in row_dict):
+      # Many data points have been added with a stdio prefix expanded out to
+      # 'None' when 'a_stdio_uri_prefix' is set correctly. Fix them up.
+      # Add in the master name as well; if the waterfall is 'CamelCase' it
+      # should be 'camel.client.case'.
+      master_camel_case = utils.TestPath(row.parent_test).split('/')[0]
+      master_parts = re.findall('([A-Z][a-z0-9]+)', master_camel_case)
+      if master_parts and len(master_parts) == 2:
+        master_name = '%s.client.%s' % (
+            master_parts[1].lower(), master_parts[0].lower())
+        val = val.replace('(None', '(%s/%s/' % (
+            row_dict['a_stdio_uri_prefix'], master_name))
+
     if name.startswith('r_'):
       point_info[name] = val
     elif name == 'a_default_rev':
@@ -252,55 +273,11 @@ def _CreateLinkProperty(name, label, url):
   return {'a_' + name: '[%s](%s)' % (label, url)}
 
 
-def _GetRowsForTestInRange(test_key, start_rev, end_rev, privileged=False):
-  """Gets all the Row entities for a Test between a given start and end."""
-  if privileged:
-    datastore_hooks.SetSinglePrivilegedRequest()
-  query = graph_data.Row.query(
-      graph_data.Row.parent_test == test_key,
-      graph_data.Row.revision >= start_rev,
-      graph_data.Row.revision <= end_rev)
-  return query.fetch(batch_size=100)
-
-
-def _GetRowsForTestAroundRev(test_key, rev, num_points, privileged=False):
-  """Gets up to |num_points| Row entities for a Test centered on a revision."""
-  num_rows_before = int(num_points / 2) + 1
-  num_rows_after = int(num_points / 2)
-
-  if privileged:
-    datastore_hooks.SetSinglePrivilegedRequest()
-  query_up_to_rev = graph_data.Row.query(
-      graph_data.Row.parent_test == test_key,
-      graph_data.Row.revision <= rev)
-  query_up_to_rev = query_up_to_rev.order(-graph_data.Row.revision)
-  rows_up_to_rev = query_up_to_rev.fetch(limit=num_rows_before, batch_size=100)
-
-  if privileged:
-    datastore_hooks.SetSinglePrivilegedRequest()
-  query_after_rev = graph_data.Row.query(
-      graph_data.Row.parent_test == test_key,
-      graph_data.Row.revision > rev)
-  query_after_rev = query_after_rev.order(graph_data.Row.revision)
-  rows_after_rev = query_after_rev.fetch(limit=num_rows_after, batch_size=100)
-
-  return rows_up_to_rev + rows_after_rev
-
-
-def _GetLatestRowsForTest(test_key, num_points, privileged=False):
-  """Gets the latest num_points Row entities for a Test."""
-  if privileged:
-    datastore_hooks.SetSinglePrivilegedRequest()
-  query = graph_data.Row.query(graph_data.Row.parent_test == test_key)
-  query = query.order(-graph_data.Row.revision)
-  return query.fetch(limit=num_points, batch_size=100)
-
-
 def _GetSeriesAnnotations(tests):
   """Makes a list of metadata about each series (i.e. each test).
 
   Args:
-    tests: List of Test entities.
+    tests: List of TestMetadata entities.
 
   Returns:
     A list of dicts of metadata about each series. One dict for each test.
@@ -308,11 +285,12 @@ def _GetSeriesAnnotations(tests):
   series_annotations = {}
   for i, test in enumerate(tests):
     series_annotations[i] = {
-        'name': test.key.string_id(),
+        'name': test.test_name,
         'path': test.test_path,
         'units': test.units,
         'better': _BETTER_DICT[test.improvement_direction],
-        'description': test.description
+        'description': test.description,
+        'can_bisect': can_bisect.IsValidTestForBisect(test.test_path),
     }
   return series_annotations
 
@@ -385,7 +363,7 @@ def _GetFlotJson(revision_map, tests):
 
   Args:
     revision_map: A dict which maps revision numbers to data point info.
-    tests: A list of Test entities.
+    tests: A list of TestMetadata entities.
 
   Returns:
     JSON serialization of a dict with line data, annotations, error range data,
@@ -401,7 +379,7 @@ def _GetFlotJson(revision_map, tests):
   flot_annotations = {}
   flot_annotations['series'] = _GetSeriesAnnotations(tests)
 
-  # For each Test (which corresponds to a trace line), the shaded error
+  # For each TestMetadata (which corresponds to a trace line), the shaded error
   # region is specified by two series objects. For a demo, see:
   # http://www.flotcharts.org/flot/examples/percentiles/index.html
   error_bars = {x: [

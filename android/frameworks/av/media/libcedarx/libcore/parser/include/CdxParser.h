@@ -64,7 +64,7 @@ enum CdxParserTypeE
     CDX_PARSER_G729,
     CDX_PARSER_DSD,
     CDX_PARSER_AIFF,
-    CDX_PARSER_ID3,
+    CDX_PARSER_ID3V2,
     CDX_PARSER_ENV,
     CDX_PARSER_SSTR_PLAYREADY,
     CDX_PARSER_AWRAWSTREAM,
@@ -124,7 +124,7 @@ enum EPARSERNOTIFY  //* notify.
     PARSER_NOTIFY_VIDEO_STREAM_CHANGE = PARSER_NOTIFY_VALID_RANGE_MIN,
     PARSER_NOTIFY_AUDIO_STREAM_CHANGE,
     PARSER_NOTIFY_TIMESHIFT_END_INFO,
-
+    PARSER_NOTIFY_META_DATA,
     PARSER_NOTIFY_MAX,
 };
 CHECK_PARSER_NOTIFY_MAX_VALID(PARSER_NOTIFY_MAX)
@@ -227,6 +227,7 @@ struct CdxProgramS
     SubtitleStreamInfo subtitle[SUBTITLE_STREAM_LIMIT];
     cdx_uint64 audioIndexMask;
     cdx_uint64 videoIndexMask;
+    cdx_int32 metadataNum;
 };
 
 #define PROGRAM_LIMIT 1 //no switch program interface now, so limit 1
@@ -244,35 +245,47 @@ struct CdxMediaInfoS
 
     cdx_uint8   album[64];
     cdx_int32   albumsz;
-    cdx_int32    albumCharEncode;
 
     cdx_uint8   author[64];
     cdx_int32   authorsz;
-    cdx_int32   authorCharEncode;
 
     cdx_uint8   genre[64];
     cdx_int32   genresz;
-    cdx_int32   genreCharEncode;
 
     cdx_uint8   title[64];
     cdx_int32   titlesz;
-    cdx_int32   titleCharEncode;
 
     cdx_uint8   year[64];
     cdx_int32   yearsz;
-    cdx_int32   yearCharEncode;
 
     cdx_uint8   composer[64];
+    cdx_int32   composersz;
+
     cdx_uint8   date[64];
+    cdx_int32   datesz;
+
     cdx_uint8   artist[64];
+    cdx_int32   artistsz;
+
     cdx_uint8   writer[64];
+    cdx_int32   writersz;
+
     cdx_uint8   albumArtist[64];
+    cdx_int32   albumArtistsz;
+
     cdx_uint8   compilation[64];
+    cdx_int32   compilationsz;
+
+    cdx_uint8   cdTrackNumber[64];
+    cdx_int32   cdTrackNumbersz;
+
     cdx_uint8   location[64];
     cdx_uint8   rotate[4];
     cdx_int32   discNumber;
     cdx_uint8   *pAlbumArtBuf;
     cdx_int32    nAlbumArtBufSize;
+
+    int         id3v2HadParsed;
 };
 
 #define MUTIL_AUDIO         0x0001U /*will disable switch audio*/

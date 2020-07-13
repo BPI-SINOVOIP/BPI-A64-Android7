@@ -167,10 +167,14 @@ function pack4dist()
 	    JOBS=`expr ${cpu_cores} / 2`
 	fi
 
-	DATE=`date +%Y%m%d`
+        BUILD_NUMBER_OUT=$(get_build_var OUT_DIR)
+        FILE_NAME=$(cat $BUILD_NUMBER_OUT/build_number.txt)
+        DATE=$FILE_NAME
+	
 	keys_dir="./vendor/security"
 	target_files="$OUT/obj/PACKAGING/target_files_intermediates/$TARGET_PRODUCT-target_files-$DATE.zip"
 	signed_target_files="$OUT/$TARGET_PRODUCT-signed_target_files-$DATE.zip"
+        full_ota="$OUT/$TARGET_PRODUCT-full_ota-$DATE.zip"
 	target_images="$OUT/target_images.zip"
 
 	verity_data_init
@@ -199,7 +203,9 @@ function pack4dist()
 	pack $@
 
 	update_uboot $final_target_files $@
-	echo -e "ota package: \033[31m$final_target_files\033[0m"
+        ./build/tools/releasetools/ota_from_target_files --block $final_target_files $full_ota
+        echo -e "target files package: \033[31m$final_target_files\033[0m"
+        echo -e "full ota zip: \033[31m$full_ota\033[0m"
 }
 
 

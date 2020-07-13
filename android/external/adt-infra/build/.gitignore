@@ -1,0 +1,3 @@
+*.pyc
+scripts/slave/.recipe_deps
+site_config/.*

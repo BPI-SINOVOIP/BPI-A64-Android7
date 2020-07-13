@@ -42,8 +42,6 @@ import org.apache.commons.codec.binary.Base64Codec;
  * observers of arriving text messages etc. This class is responsible for serializing the list of
  * triggers to the shared preferences store, and retrieving it from there.
  *
- * @author Felix Arends (felix.arends@gmail.com)
- * @author Damon Kohler (damonkohler@gmail.com)
  */
 public class TriggerRepository {
   /**

@@ -33,7 +33,7 @@ public class FreeformActivity extends Activity {
         intent.setFlags(FLAG_ACTIVITY_CLEAR_TASK | FLAG_ACTIVITY_NEW_TASK);
 
         final ActivityOptions options = ActivityOptions.makeBasic();
-        options.setLaunchBounds(new Rect(0, 0, 500, 500));
+        options.setLaunchBounds(new Rect(0, 0, 900, 900));
         this.startActivity(intent, options.toBundle());
     }
 }

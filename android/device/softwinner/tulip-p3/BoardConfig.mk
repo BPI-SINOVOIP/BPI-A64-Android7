@@ -60,20 +60,26 @@ ifeq ($(BOARD_WIFI_VENDOR), broadcom)
     include hardware/broadcom/wlan/bcmdhd/firmware/$(BOARD_USR_WIFI)/device-bcm.mk
 endif
 
-#1.3 eag wifi config
-#BOARD_WIFI_VENDOR := eagle
-ifeq ($(BOARD_WIFI_VENDOR), eagle)
+#1.3 xradio wifi config
+#BOARD_WIFI_VENDOR := xr_wlan
+ifeq ($(BOARD_WIFI_VENDOR), xr_wlan)
+    # WiFi Configuration
     WPA_SUPPLICANT_VERSION := VER_0_8_X
     BOARD_WPA_SUPPLICANT_DRIVER := NL80211
-    BOARD_WPA_SUPPLICANT_PRIVATE_LIB := lib_driver_cmd_eagle
+    BOARD_WPA_SUPPLICANT_PRIVATE_LIB := lib_driver_cmd_xr
     BOARD_HOSTAPD_DRIVER        := NL80211
-    BOARD_HOSTAPD_PRIVATE_LIB   := lib_driver_cmd_eagle
+    BOARD_HOSTAPD_PRIVATE_LIB   := lib_driver_cmd_xr
 
-    BOARD_USR_WIFI := esp8089
-    BOARD_WLAN_DEVICE := esp8089
-
+    WLAN_ENABLE_OPEN_MAC_SOLUTION := true
+    BOARD_WLAN_DEVICE           := xradio
+    xr_wlan_DRIVER := true
+    ifeq ($(WLAN_ENABLE_OPEN_MAC_SOLUTION), true)
+        WIFI_DRIVER_MODULE_PATH := "/system/vendor/modules/%s.ko"
+        WLAN_SET_DRIVER_MODULE_CORE_NAME := "xradio_core"
+    endif
+    WIFI_DRIVER_MODULE_NAME := "xradio_wlan"
+    include hardware/xradio/kernel-firmware/xradiofw_cfg.mk
 endif
-
 # 2. Bluetooth Configuration
 # make sure BOARD_HAVE_BLUETOOTH is true for every bt vendor
 # BOARD_HAVE_BLUETOOTH_NAME:rtl8723bs/rtl8723bs_vq0/rtl8723cs/ap6210/ap6212/ap6330/ap6335/

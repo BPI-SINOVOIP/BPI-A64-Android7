@@ -90,6 +90,8 @@ LOCAL_CFLAGS += \
 	-Wno-import \
 	-Wno-format \
 	-Wno-unused-parameter \
+	-Wno-sign-compare \
+	-Wno-missing-field-initializers \
 	-fno-exceptions \
 	-fvisibility=hidden \
 	-DENABLE_DEBUGGER_SUPPORT \

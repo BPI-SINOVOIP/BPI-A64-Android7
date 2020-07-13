@@ -138,6 +138,8 @@ typedef struct {
     int64_t ptsShift;
 
     int64_t streamOpenTimeout;
+
+    int64_t firstPts;
 }CdxHlsParser;
 
 #endif

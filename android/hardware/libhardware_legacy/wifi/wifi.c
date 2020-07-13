@@ -147,7 +147,7 @@ static char primary_iface[PROPERTY_VALUE_MAX];
 #ifndef WIFI_FIRMWARE_LOADER
 #define WIFI_FIRMWARE_LOADER		""
 #endif
-#define WIFI_TEST_INTERFACE		"sta"
+#define WIFI_TEST_INTERFACE		"wlan0" // setprop wifi.interface wlan0
 
 #ifndef WIFI_DRIVER_FW_PATH_STA
 #define WIFI_DRIVER_FW_PATH_STA		NULL
@@ -168,7 +168,29 @@ static char primary_iface[PROPERTY_VALUE_MAX];
 #endif
 
 #ifndef WIFI_DRIVER_FW_PATH_PARAM
+#if defined(XR_WIFI_VENDOR)
+#define WIFI_DRIVER_FW_PATH_PARAM	"/system/etc/firmware"
+#else
 #define WIFI_DRIVER_FW_PATH_PARAM	"/sys/module/wlan/parameters/fwpath"
+#endif
+#endif
+#if defined(XR_WIFI_VENDOR)
+#undef WIFI_DRIVER_FW_PATH_STA
+#define WIFI_DRIVER_FW_PATH_STA         "STA"
+#undef WIFI_DRIVER_FW_PATH_AP
+#define WIFI_DRIVER_FW_PATH_AP          "AP"
+#undef WIFI_DRIVER_FW_PATH_P2P
+#define WIFI_DRIVER_FW_PATH_P2P         "P2P"
+#define WIFI_DRIVER_FW_PATH_PARAM	"/system/etc/firmware"
+#ifndef WIFI_FIRMWARE_DELAY_COUNT
+#define WIFI_FIRMWARE_DELAY_COUNT       20
+#endif
+#ifndef WIFI_FIRMWARE_LOADER_DELAY
+#define WIFI_FIRMWARE_LOADER_DELAY      250000
+#endif
+#ifndef WIFI_NET_DEVICE_STATUS_PATH
+#define WIFI_NET_DEVICE_STATUS_PATH     "/proc/net/dev"
+#endif
 #endif
 
 #define WIFI_DRIVER_LOADER_DELAY	1000000
@@ -177,7 +199,12 @@ static const char IFACE_DIR[]           = "/data/system/wpa_supplicant";
 #ifdef WIFI_DRIVER_MODULE_PATH
 static const char DRIVER_MODULE_NAME[]  = WIFI_DRIVER_MODULE_NAME;
 static const char DRIVER_MODULE_TAG[]   = WIFI_DRIVER_MODULE_NAME " ";
+#if defined(XR_WIFI_VENDOR)
+#define MAX_STRING_LENGTH 255
+static  char DRIVER_MODULE_PATH[MAX_STRING_LENGTH];
+#else
 static const char DRIVER_MODULE_PATH[]  = WIFI_DRIVER_MODULE_PATH;
+#endif
 static const char DRIVER_MODULE_ARG[]   = WIFI_DRIVER_MODULE_ARG;
 #endif
 static const char FIRMWARE_LOADER[]     = WIFI_FIRMWARE_LOADER;
@@ -325,6 +352,32 @@ int is_wifi_driver_loaded() {
     return 1;
 #endif
 }
+#if defined(XR_WIFI_VENDOR)
+static int waiting_for_wlan_interface() {
+    FILE *proc;
+    char line[sizeof(WIFI_TEST_INTERFACE)+10];
+    int count = WIFI_FIRMWARE_DELAY_COUNT;
+
+	//usleep(WIFI_FIRMWARE_LOADER_DELAY);
+    while (count--) {
+        if ((proc = fopen(WIFI_NET_DEVICE_STATUS_PATH, "r")) == NULL) {
+            return -1;
+        }
+
+        while ((fgets(line, sizeof(line), proc)) != NULL) {
+            if (strstr(line, WIFI_TEST_INTERFACE) != NULL) {
+                fclose(proc);
+                return 0;
+            }
+        }
+
+        fclose(proc);
+        usleep(WIFI_FIRMWARE_LOADER_DELAY);
+    }
+exit:
+	return -1;
+}
+#endif
 
 #define TIME_COUNT 20 // 200ms*20 = 4 seconds for completion
 #if defined(RTL_WIFI_VENDOR)
@@ -372,6 +425,55 @@ int wifi_load_driver()
         return -1;
    }
    return 0;
+}
+#elif defined(XR_WIFI_VENDOR)
+int wifi_load_driver()
+{
+#ifdef WIFI_DRIVER_MODULE_PATH
+    char driver_status[PROPERTY_VALUE_MAX];
+    int count = 100; /* wait at most 20 seconds for completion */
+
+    if (is_wifi_driver_loaded()) {
+        return 0;
+    }
+	snprintf(DRIVER_MODULE_PATH,MAX_STRING_LENGTH,WIFI_DRIVER_MODULE_PATH, DRIVER_MODULE_NAME);
+
+
+    if (insmod(DRIVER_MODULE_PATH, DRIVER_MODULE_ARG) < 0)
+	{
+        rmmod(DRIVER_MODULE_NAME);//it may be load driver already,try remove it.
+        return -1;
+	}
+
+    if (strcmp(FIRMWARE_LOADER,"") == 0) {
+        if (waiting_for_wlan_interface() != 0)//check /proc/net/dev has wlan0 file node
+		{
+            return -1;
+		}
+        property_set(DRIVER_PROP_NAME, "ok");
+    }
+    else {
+        property_set("ctl.start", FIRMWARE_LOADER);
+    }
+    sched_yield();
+    while (count-- > 0) {
+        if (property_get(DRIVER_PROP_NAME, driver_status, NULL)) {
+            if (strcmp(driver_status, "ok") == 0)
+                return 0;
+            else if (strcmp(DRIVER_PROP_NAME, "failed") == 0) {
+                wifi_unload_driver();
+                return -1;
+            }
+        }
+        usleep(200000);
+    }
+    property_set(DRIVER_PROP_NAME, "timeout");
+    wifi_unload_driver();
+    return -1;
+#else
+    property_set(DRIVER_PROP_NAME, "ok");
+    return 0;
+#endif
 }
 #else
 int wifi_load_driver()
@@ -800,6 +902,9 @@ int wifi_ctrl_recv(char *reply, size_t *reply_len)
     } while (res == 0);
 
     if (rfds[0].revents & POLLIN) {
+        #if defined(XR_WIFI_VENDOR)
+        if(NULL != monitor_conn)
+        #endif
         return wpa_ctrl_recv(monitor_conn, reply, reply_len);
     }
 
@@ -953,6 +1058,8 @@ int wifi_change_fw_path(const char *fwpath)
     ALOGD("Eneter: %s, fwpath = %s.\n", __FUNCTION__, fwpath);
 #ifndef RTL_WIFI_VENDOR
 #ifndef ESP_WIFI_VENDOR
+#ifndef XR_WIFI_VENDOR //for ap mode,have loaded fw in the loading driver,
+
     if (!fwpath)
         return ret;
     fd = TEMP_FAILURE_RETRY(open(WIFI_DRIVER_FW_PATH_PARAM, O_WRONLY));
@@ -968,5 +1075,7 @@ int wifi_change_fw_path(const char *fwpath)
     close(fd);
 #endif
 #endif
+#endif
+
     return ret;
 }

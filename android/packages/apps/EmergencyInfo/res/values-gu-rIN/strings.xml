@@ -96,7 +96,8 @@
     <string name="user_emergency_info_title" msgid="7827058167207376581">"કટોકટીની માહિતી"</string>
     <string name="user_emergency_info_consent" msgid="5636028073450797246">"તમે અહીં દાખલ કરો છો તે માહિતી કટોકટીમાં પ્રથમ જવાબ આપનારા વપરાશકર્તાઓની સહાય કરી શકે છે. તે તમારા ઉપકરણ પર જ સંગ્રહિત કરવામાં આવે છે અને કોઈપણ વ્યક્તિ તમારા ફોનને અનલૉક કર્યા વિના કટોકટી ડાયલરમાંથી તેને વાંચી શકે છે."</string>
     <string name="emergency_info_continue" msgid="5453201508537906087">"ચાલુ રાખો"</string>
-    <string name="no_info_provided" msgid="6775035037534954056">"કટોકટીની માહિતી પ્રદાન કરવામાં આવી નથી"</string>
+    <string name="no_info_provided" msgid="716200382010821001">"ફોનના માલિક વિશે કોઈ માહિતી નથી"</string>
+    <string name="tap_pencil" msgid="2723698054265296934">"જો આ તમારો ફોન છે, તો તે માહિતી ઉમેરવા માટે પેન્સિલ આઇકનને ટૅપ કરો કે જે કટોકટીની સ્થિતિમાં અહીં પ્રદર્શિત કરવામાં આવશે"</string>
     <string name="clear_all" msgid="8899013032870561633">"બધું સાફ કરો"</string>
     <string name="clear" msgid="3648880442502887163">"સાફ કરો"</string>
     <string name="clear_all_message" msgid="1548432000373861295">"તમામ માહિતી અને સંપર્કો સાફ કરીએ?"</string>

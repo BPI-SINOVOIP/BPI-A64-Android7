@@ -13,3 +13,5 @@ allow system_server storage_stub_file:dir getattr;
 type_transition system_server system_data_file:{ dir file } media_rw_data_file;
 allow system_server media_rw_data_file:dir { create_dir_perms relabelfrom };
 allow system_server media_rw_data_file:file { create_file_perms relabelfrom };
+allow system_server user_profile_data_file:dir { read open };
+allow system_server system_data_file:file relabelto;

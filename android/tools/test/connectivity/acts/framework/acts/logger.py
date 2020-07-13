@@ -155,6 +155,7 @@ def _get_test_logger(log_path, TAG, prefix=None, filename=None):
     log.addHandler(ch)
     log.addHandler(fh)
     log.log_path = log_path
+    log.info("Current path to ACTS: {}".format(os.getcwd()))
     return log
 
 def kill_test_logger(logger):

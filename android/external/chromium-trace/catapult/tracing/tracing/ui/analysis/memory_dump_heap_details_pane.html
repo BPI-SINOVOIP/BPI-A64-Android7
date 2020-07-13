@@ -8,16 +8,15 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/base/color_scheme.html">
 <link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/base/multi_dimensional_view.html">
+<link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/ui/analysis/memory_dump_sub_view_util.html">
 <link rel="import" href="/tracing/ui/analysis/stacked_pane.html">
 <link rel="import" href="/tracing/ui/base/dom_helpers.html">
-<link rel='import' href='/tracing/ui/base/info_bar.html'>
+<link rel="import" href="/tracing/ui/base/info_bar.html">
 <link rel="import" href="/tracing/ui/base/table.html">
 <link rel="import" href="/tracing/value/numeric.html">
-<link rel="import" href="/tracing/value/unit.html">
 
-<polymer-element name="tr-ui-a-memory-dump-heap-details-pane"
-    extends="tr-ui-a-stacked-pane">
+<dom-module id='tr-ui-a-memory-dump-heap-details-pane'>
   <template>
     <style>
       :host {
@@ -83,7 +82,7 @@ found in the LICENSE file.
       <tr-ui-b-table id="table"></tr-ui-b-table>
     </div>
   </template>
-</polymer-element>
+</dom-module>
 <script>
 'use strict';
 
@@ -91,7 +90,11 @@ tr.exportTo('tr.ui.analysis', function() {
 
   var ScalarNumeric = tr.v.ScalarNumeric;
   var sizeInBytes_smallerIsBetter =
-      tr.v.Unit.byName.sizeInBytes_smallerIsBetter;
+      tr.b.Unit.byName.sizeInBytes_smallerIsBetter;
+  var unitlessNumber_smallerIsBetter =
+      tr.b.Unit.byName.unitlessNumber_smallerIsBetter;
+  var MultiDimensionalViewBuilder = tr.b.MultiDimensionalViewBuilder;
+  var TotalState = tr.b.MultiDimensionalViewNode.TotalState;
 
   /** @{enum} */
   var RowDimension = {
@@ -139,11 +142,11 @@ tr.exportTo('tr.ui.analysis', function() {
       var symbolEl = document.createElement('span');
       var symbolColorName;
       if (dimension === RowDimension.STACK_FRAME) {
-        symbolEl.textContent = LATIN_SMALL_LETTER_F_WITH_HOOK;
+        Polymer.dom(symbolEl).textContent = LATIN_SMALL_LETTER_F_WITH_HOOK;
         symbolEl.title = 'Stack frame';
         symbolColorName = 'heap_dump_stack_frame';
       } else {
-        symbolEl.textContent = CIRCLED_LATIN_CAPITAL_LETTER_T;
+        Polymer.dom(symbolEl).textContent = CIRCLED_LATIN_CAPITAL_LETTER_T;
         symbolEl.title = 'Object type';
         symbolColorName = 'heap_dump_object_type';
       }
@@ -152,22 +155,54 @@ tr.exportTo('tr.ui.analysis', function() {
       symbolEl.style.paddingRight = '4px';
       symbolEl.style.cursor = 'help';
       symbolEl.style.weight = 'bold';
-      titleEl.appendChild(symbolEl);
+      Polymer.dom(titleEl).appendChild(symbolEl);
 
-      titleEl.appendChild(document.createTextNode(title));
+      Polymer.dom(titleEl).appendChild(document.createTextNode(title));
 
       return titleEl;
     }
   };
 
+  /** @constructor */
+  function AllocationCountColumn(name, cellPath, aggregationMode) {
+    tr.ui.analysis.DetailsNumericMemoryColumn.call(
+        this, name, cellPath, aggregationMode);
+  }
+
+  AllocationCountColumn.prototype = {
+    __proto__: tr.ui.analysis.DetailsNumericMemoryColumn.prototype,
+
+    getFormattingContext: function(unit) {
+      return { minimumFractionDigits: 0 };
+    }
+  };
+
   var COLUMN_RULES = [
     {
+      condition: 'Size',
+      importance: 3,
+      columnConstructor: tr.ui.analysis.DetailsNumericMemoryColumn
+    },
+    {
+      condition: 'Count',
+      importance: 2,
+      columnConstructor: AllocationCountColumn
+    },
+    {
+      condition: 'Average size per allocation',
+      importance: 1,
+      columnConstructor: tr.ui.analysis.DetailsNumericMemoryColumn
+    },
+    {
       importance: 0,
-      columnConstructor: tr.ui.analysis.NumericMemoryColumn
+      columnConstructor: tr.ui.analysis.DetailsNumericMemoryColumn
     }
   ];
 
-  Polymer('tr-ui-a-memory-dump-heap-details-pane', {
+  Polymer({
+    is: 'tr-ui-a-memory-dump-heap-details-pane',
+    behaviors: [tr.ui.analysis.StackedPane],
+
     created: function() {
       this.heapDumps_ = undefined;
       this.aggregationMode_ = undefined;
@@ -179,23 +214,26 @@ tr.exportTo('tr.ui.analysis', function() {
       this.$.info_bar.message = 'Note: Values displayed in the heavy view ' +
           'are lower bounds (except for the root).';
 
-      this.$.view_mode_container.appendChild(tr.ui.b.createSelector(
-          this, 'viewMode', 'memoryDumpHeapDetailsPane.viewMode',
-          tr.b.MultiDimensionalViewType.TOP_DOWN_TREE_VIEW,
-          [
-            {
-              label: 'Top-down (Tree)',
-              value: tr.b.MultiDimensionalViewType.TOP_DOWN_TREE_VIEW
-            },
-            {
-              label: 'Top-down (Heavy)',
-              value: tr.b.MultiDimensionalViewType.TOP_DOWN_HEAVY_VIEW
-            },
-            {
-              label: 'Bottom-up (Heavy)',
-              value: tr.b.MultiDimensionalViewType.BOTTOM_UP_HEAVY_VIEW
-            }
-          ]));
+      Polymer.dom(this.$.view_mode_container).appendChild(
+          tr.ui.b.createSelector(
+              this, 'viewMode', 'memoryDumpHeapDetailsPane.viewMode',
+              MultiDimensionalViewBuilder.ViewType.TOP_DOWN_TREE_VIEW,
+              [
+                {
+                  label: 'Top-down (Tree)',
+                  value: MultiDimensionalViewBuilder.ViewType.TOP_DOWN_TREE_VIEW
+                },
+                {
+                  label: 'Top-down (Heavy)',
+                  value: MultiDimensionalViewBuilder.ViewType
+                      .TOP_DOWN_HEAVY_VIEW
+                },
+                {
+                  label: 'Bottom-up (Heavy)',
+                  value: MultiDimensionalViewBuilder.ViewType
+                      .BOTTOM_UP_HEAVY_VIEW
+                }
+              ]));
     },
 
     /**
@@ -213,7 +251,7 @@ tr.exportTo('tr.ui.analysis', function() {
      */
     set heapDumps(heapDumps) {
       this.heapDumps_ = heapDumps;
-      this.scheduleRebuildPane_();
+      this.scheduleRebuild_();
     },
 
     get heapDumps() {
@@ -222,7 +260,7 @@ tr.exportTo('tr.ui.analysis', function() {
 
     set aggregationMode(aggregationMode) {
       this.aggregationMode_ = aggregationMode;
-      this.scheduleRebuildPane_();
+      this.scheduleRebuild_();
     },
 
     get aggregationMode() {
@@ -231,7 +269,7 @@ tr.exportTo('tr.ui.analysis', function() {
 
     set viewMode(viewMode) {
       this.viewMode_ = viewMode;
-      this.scheduleRebuildPane_();
+      this.scheduleRebuild_();
     },
 
     get viewMode() {
@@ -240,15 +278,15 @@ tr.exportTo('tr.ui.analysis', function() {
 
     get heavyView() {
       switch (this.viewMode) {
-        case tr.b.MultiDimensionalViewType.TOP_DOWN_HEAVY_VIEW:
-        case tr.b.MultiDimensionalViewType.BOTTOM_UP_HEAVY_VIEW:
+        case MultiDimensionalViewBuilder.ViewType.TOP_DOWN_HEAVY_VIEW:
+        case MultiDimensionalViewBuilder.ViewType.BOTTOM_UP_HEAVY_VIEW:
           return true;
         default:
           return false;
       }
     },
 
-    rebuildPane_: function() {
+    onRebuild_: function() {
       if (this.heapDumps_ === undefined ||
           this.heapDumps_.length === 0) {
         // Show the info text (hide the table and the view mode selector).
@@ -285,7 +323,9 @@ tr.exportTo('tr.ui.analysis', function() {
         if (heapDump === undefined)
           return undefined;
 
-        var builder = new tr.b.MultiDimensionalViewBuilder(2 /* dimensions */);
+        var builder = new MultiDimensionalViewBuilder(
+            2 /* dimensions (stack frames, object type) */,
+            2 /* valueCount (size, count) */);
 
         // Build the heap tree.
         heapDump.entries.forEach(function(entry) {
@@ -297,8 +337,9 @@ tr.exportTo('tr.ui.analysis', function() {
           var objectTypeNamePath = objectTypeName === undefined ?
               [] : [objectTypeName];
 
-          builder.addPath([stackTracePath, objectTypeNamePath], entry.size,
-              tr.b.MultiDimensionalViewBuilder.ValueKind.TOTAL);
+          builder.addPath([stackTracePath, objectTypeNamePath],
+              [entry.size, entry.count],
+              MultiDimensionalViewBuilder.ValueKind.TOTAL);
         }, this);
 
         return builder.buildView(this.viewMode);
@@ -321,10 +362,20 @@ tr.exportTo('tr.ui.analysis', function() {
       // dictionary of cells (where each cell contains a chronological list
       // of the values of its numeric).
       var cells = tr.ui.analysis.createCells(nodes, function(node) {
-        return {
-          'Size': new ScalarNumeric(sizeInBytes_smallerIsBetter, node.total)
+        var size = node.values[0].total;
+        var row = {
+          'Size': new ScalarNumeric(sizeInBytes_smallerIsBetter, size)
         };
-      });
+        var countValue = node.values[1];
+        if (countValue.totalState >= this.minDisplayedTotalState_) {
+          var count = countValue.total;
+          row['Count'] = new ScalarNumeric(unitlessNumber_smallerIsBetter,
+              count);
+          row['Average size per allocation'] = new ScalarNumeric(
+              sizeInBytes_smallerIsBetter, count === 0 ? 0 : size / count);
+        }
+        return row;
+      }, this);
 
       var row = {
         dimension: dimension,
@@ -345,31 +396,66 @@ tr.exportTo('tr.ui.analysis', function() {
       return row;
     },
 
+    get minDisplayedTotalState_() {
+      if (this.heavyView) {
+        // Show lower-bound and exact values in heavy views.
+        return TotalState.LOWER_BOUND;
+      } else {
+        // Show only exact values in tree view.
+        return TotalState.EXACT;
+      }
+    },
+
     createHeapDimensionSubRowsRecursively_: function(nodes, dimension) {
       // Sub-row name (list index) -> Timestamp (list index) -> Child
       // MultiDimensionalViewNode.
       var dimensionGroupedChildNodes = tr.b.dictionaryValues(
           tr.b.invertArrayOfDicts(nodes, function(node) {
             var childDict = {};
-            var displayedChildrenTotal = 0;
+            var displayedChildrenTotalSize = 0;
+            var displayedChildrenTotalCount = 0;
             var hasDisplayedChildren = false;
+            var allDisplayedChildrenHaveDisplayedCounts = true;
             for (var child of node.children[dimension].values()) {
-              // Don't show lower-bound sub-rows in tree-view.
-              if (!this.heavyView && child.isLowerBound)
+              if (child.values[0].totalState < this.minDisplayedTotalState_)
                 continue;
+              if (child.values[1].totalState < this.minDisplayedTotalState_)
+                allDisplayedChildrenHaveDisplayedCounts = false;
               childDict[child.title[dimension]] = child;
-              displayedChildrenTotal += child.total;
+              displayedChildrenTotalSize += child.values[0].total;
+              displayedChildrenTotalCount += child.values[1].total;
               hasDisplayedChildren = true;
             }
 
+            var nodeTotalSize = node.values[0].total;
+            var nodeTotalCount = node.values[1].total;
+
             // Add '<other>' node if necessary in tree-view.
-            if (!this.heavyView && displayedChildrenTotal < node.total &&
+            var hasUnclassifiedSizeOrCount =
+                displayedChildrenTotalSize < nodeTotalSize ||
+                displayedChildrenTotalCount < nodeTotalCount;
+            if (!this.heavyView && hasUnclassifiedSizeOrCount &&
                 hasDisplayedChildren) {
               var otherTitle = node.title.slice();
               otherTitle[dimension] = '<other>';
               childDict['<other>'] = {
                 title: otherTitle,
-                total: node.total - displayedChildrenTotal,
+                values: [
+                  {
+                    self: 0,
+                    total: nodeTotalSize - displayedChildrenTotalSize,
+                    totalState: this.minDisplayedTotalState_
+                  },
+                  {
+                    self: 0,
+                    total: nodeTotalCount - displayedChildrenTotalCount,
+                    // Don't show allocation count of the '<other>' node if
+                    // there is a displayed child node that did NOT display
+                    // allocation count.
+                    totalState: allDisplayedChildrenHaveDisplayedCounts ?
+                        this.minDisplayedTotalState_ : TotalState.NOT_PROVIDED
+                  }
+                ],
                 children: [new Map(), new Map()]
               };
             }
@@ -399,7 +485,9 @@ tr.exportTo('tr.ui.analysis', function() {
   });
 
   return {
-    RowDimension: RowDimension  // Exported for testing.
+    // Exported for testing.
+    RowDimension: RowDimension,
+    AllocationCountColumn: AllocationCountColumn
   };
 });
 </script>

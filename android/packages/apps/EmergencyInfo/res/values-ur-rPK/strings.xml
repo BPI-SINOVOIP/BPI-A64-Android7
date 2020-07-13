@@ -96,7 +96,8 @@
     <string name="user_emergency_info_title" msgid="7827058167207376581">"ہنگامی معلومات"</string>
     <string name="user_emergency_info_consent" msgid="5636028073450797246">"جو معلومات آپ یہاں درج کرتے ہیں وہ ہنگامی صورتحال میں ابتدائی رضاکاروں کیلئے مددگار ہو سکتی ہیں۔ یہ صرف آپ کے آلہ پر محفوظ ہوتی ہے اور آپ کا فون غیر مقفل کئے بغیر کوئی بھی اسے ہنگامی ڈائلر سے پڑھ سکتا ہے۔"</string>
     <string name="emergency_info_continue" msgid="5453201508537906087">"جاری رکھیں"</string>
-    <string name="no_info_provided" msgid="6775035037534954056">"کوئی ہنگامی معلومات فراہم نہیں کی گئیں"</string>
+    <string name="no_info_provided" msgid="716200382010821001">"فون کے مالک کے بارے میں کوئی معلومات نہیں ہے"</string>
+    <string name="tap_pencil" msgid="2723698054265296934">"اگر یہ آپ کا فون ہے تو پینسل آئیکن کو تھپتھپا کر معلومات شامل کریں جو ایمرجنسی کی صورت میں یہاں ظاہر ہو گی"</string>
     <string name="clear_all" msgid="8899013032870561633">"سبھی کو صاف کریں"</string>
     <string name="clear" msgid="3648880442502887163">"صاف کریں"</string>
     <string name="clear_all_message" msgid="1548432000373861295">"تمام معلومات اور رابطے صاف کریں؟"</string>

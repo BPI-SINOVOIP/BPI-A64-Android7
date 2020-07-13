@@ -96,7 +96,8 @@
     <string name="user_emergency_info_title" msgid="7827058167207376581">"Өзгөчө кырдаал маалыматы"</string>
     <string name="user_emergency_info_consent" msgid="5636028073450797246">"Бул жерде көрсөтүлгөн маалымат түзмөгүңүздө гана сакталат, бирок аны өзгөчө кырдаалда телефон кулпуланып турса да каалаган адам окуй алат."</string>
     <string name="emergency_info_continue" msgid="5453201508537906087">"Улантуу"</string>
-    <string name="no_info_provided" msgid="6775035037534954056">"Өзгөчө кырдаал маалыматы берилген жок"</string>
+    <string name="no_info_provided" msgid="716200382010821001">"Телефондун ээси жөнүндө эч кандай маалымат жок"</string>
+    <string name="tap_pencil" msgid="2723698054265296934">"Эгер бул сиздин телефонуңуз болсо, өзгөчө кырдаалда бул жерде көрсөтүлө турган маалыматты кошуу үчүн калем сүрөтчөсүн таптаңыз"</string>
     <string name="clear_all" msgid="8899013032870561633">"Баарын тазалоо"</string>
     <string name="clear" msgid="3648880442502887163">"Тазалоо"</string>
     <string name="clear_all_message" msgid="1548432000373861295">"Бардык маалымат жана байланыштар тазалансынбы?"</string>

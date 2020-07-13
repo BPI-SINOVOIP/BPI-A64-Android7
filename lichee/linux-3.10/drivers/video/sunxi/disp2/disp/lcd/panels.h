@@ -79,5 +79,6 @@ extern __lcd_panel_t inet_dsi_panel;
 extern __lcd_panel_t gg1p4062utsw_panel;
 extern __lcd_panel_t LHR050H41_MIPI_RGB_panel;
 extern __lcd_panel_t S070WV20_MIPI_RGB_panel;
+extern __lcd_panel_t LW101MFN4_MIPI_RGB_panel;
 
 #endif

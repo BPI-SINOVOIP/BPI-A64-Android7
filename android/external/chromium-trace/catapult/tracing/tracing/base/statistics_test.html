@@ -46,6 +46,61 @@ tr.b.unittest.testSuite(function() {
     return samples;
   }
 
+  test('normalDistribution', function() {
+    for (var mean = -100; mean <= 100; mean += 25) {
+      for (var stddev = 0.1; stddev < 2; stddev += 0.2) {
+        var dist = new Statistics.NormalDistribution(mean, stddev * stddev);
+        assert.closeTo(mean, dist.mean, 1e-6);
+        assert.closeTo(stddev, dist.standardDeviation, 1e-6);
+        assert.closeTo(0, dist.standardDeviation * dist.computeDensity(
+            -1e10), 1e-5);
+        assert.closeTo(0.05399, dist.standardDeviation * dist.computeDensity(
+            dist.mean - 2 * dist.standardDeviation), 1e-5);
+        assert.closeTo(0.24197, dist.standardDeviation * dist.computeDensity(
+            dist.mean - dist.standardDeviation), 1e-5);
+        assert.closeTo(0.39894, dist.standardDeviation * dist.computeDensity(
+            dist.mean), 1e-5);
+        assert.closeTo(0.24197, dist.standardDeviation * dist.computeDensity(
+            dist.mean + dist.standardDeviation), 1e-5);
+        assert.closeTo(0.054, dist.standardDeviation * dist.computeDensity(
+            dist.mean + 2 * dist.standardDeviation), 1e-5);
+        assert.closeTo(0, dist.standardDeviation * dist.computeDensity(
+            1e10), 1e-5);
+
+        assert.closeTo(0, dist.computePercentile(-1e10), 1e-5);
+        assert.closeTo(0.02275, dist.computePercentile(
+            dist.mean - 2 * dist.standardDeviation), 1e-5);
+        assert.closeTo(0.15866, dist.computePercentile(
+            dist.mean - dist.standardDeviation), 1e-5);
+        assert.closeTo(0.5, dist.computePercentile(dist.mean), 1e-5);
+        assert.closeTo(0.841344, dist.computePercentile(
+            dist.mean + dist.standardDeviation), 1e-5);
+        assert.closeTo(0.97725, dist.computePercentile(
+            dist.mean + 2 * dist.standardDeviation), 1e-5);
+        assert.closeTo(1, dist.computePercentile(1e10), 1e-5);
+      }
+    }
+  });
+
+  test('logNormalDistribution', function() {
+    // Unlike the Normal distribution, the LogNormal distribution can look very
+    // different depending on its parameters, and it's defined in terms of the
+    // Normal distribution anyway, so only test the standard LogNormal
+    // distribution.
+    var dist = new Statistics.LogNormalDistribution(0, 1);
+    assert.closeTo(0.3678, dist.mode, 1e-4);
+    assert.closeTo(1, dist.median, 1e-6);
+    assert.closeTo(1.6487, dist.mean, 1e-4);
+    assert.closeTo(0.65774, dist.computeDensity(dist.mode), 1e-5);
+    assert.closeTo(0.39894, dist.computeDensity(dist.median), 1e-5);
+    assert.closeTo(0.21354, dist.computeDensity(dist.mean), 1e-5);
+    assert.closeTo(0, dist.computePercentile(1e-10), 1e-6);
+    assert.closeTo(0.15865, dist.computePercentile(dist.mode), 1e-5);
+    assert.closeTo(0.5, dist.computePercentile(dist.median), 1e-6);
+    assert.closeTo(0.69146, dist.computePercentile(dist.mean), 1e-5);
+    assert.closeTo(1, dist.computePercentile(1e100), 1e-5);
+  });
+
   test('divideIfPossibleOrZero', function() {
     assert.equal(Statistics.divideIfPossibleOrZero(1, 2), 0.5);
     assert.equal(Statistics.divideIfPossibleOrZero(0, 2), 0);
@@ -90,7 +145,33 @@ tr.b.unittest.testSuite(function() {
   });
 
   test('meanBasic', function() {
-    assert.equal(Statistics.mean([1, 2, 3]), 2);
+    assert.closeTo(Statistics.mean([1, 2, 3]), 2, 1e-6);
+    assert.closeTo(Statistics.mean(new Set([1, 2, 3])), 2, 1e-6);
+  });
+
+  test('geometricMean', function() {
+    assert.strictEqual(1, Statistics.geometricMean([]));
+    assert.strictEqual(1, Statistics.geometricMean([1]));
+    assert.strictEqual(0, Statistics.geometricMean([-1]));
+    assert.strictEqual(0, Statistics.geometricMean([0]));
+    assert.strictEqual(0, Statistics.geometricMean([1, 2, 3, 0]));
+    assert.strictEqual(0, Statistics.geometricMean([1, 2, 3, -1]));
+    assert.strictEqual(1, Statistics.geometricMean([1, 1, 1]));
+    assert.strictEqual(2, Statistics.geometricMean([2]));
+    assert.closeTo(Math.sqrt(6), Statistics.geometricMean([2, 3]), 1e-6);
+    assert.closeTo(6, Statistics.geometricMean(new Set([4, 9])), 1e-6);
+
+    var samples = [];
+    for (var i = 0; i < 1e3; ++i)
+      samples.push(Number.MAX_SAFE_INTEGER);
+    assert.closeTo(Number.MAX_SAFE_INTEGER, Statistics.geometricMean(samples),
+        Number.MAX_SAFE_INTEGER * 1e-13);
+
+    samples = [];
+    for (var i = 0; i < 1e3; ++i)
+      samples.push(Number.MAX_VALUE / 1e3);
+    assert.closeTo(Number.MAX_VALUE / 1e3, Statistics.geometricMean(samples),
+        Number.MAX_VALUE * 1e-13);
   });
 
   test('weightedMean', function() {
@@ -121,6 +202,28 @@ tr.b.unittest.testSuite(function() {
       {value: 30, weight: 5}
     ];
     assert.equal(undefined, Statistics.weightedMean(data, getWeight, getValue));
+  });
+
+  test('weightedMean_positionDependent', function() {
+    function getWeight(element, idx) {
+      return idx;
+    }
+    // 3 has weight of 0, 6 has weight of 1, 9 has weight of 2
+    assert.equal(8, Statistics.weightedMean([3, 6, 9], getWeight));
+  });
+
+  test('max_positionDependent', function() {
+    function getValue(element, idx) {
+      return element * idx;
+    }
+    assert.equal(6, Statistics.max([1, 2, 3], getValue));
+  });
+
+  test('min_positionDependent', function() {
+    function getValue(element, idx) {
+      return element * idx;
+    }
+    assert.equal(-6, Statistics.min([1, 2, -3], getValue));
   });
 
   test('varianceBasic', function() {
@@ -181,6 +284,29 @@ tr.b.unittest.testSuite(function() {
     assert.equal(Statistics.percentile(ary, .5, func, ctx), 4);
     assert.equal(Statistics.percentile(ary, .75, func, ctx), 6);
     assert.equal(Statistics.percentile(ary, 1, func, ctx), 9);
+  });
+
+  test('percentile_positionDependent', function() {
+    var ctx = {};
+    var ary = [{x: 0},
+               {x: 1},
+               {x: 2},
+               {x: 3},
+               {x: 4},
+               {x: 5},
+               {x: 6},
+               {x: 7},
+               {x: 8},
+               {x: 9}];
+    function func(d, i) {
+      assert.equal(ctx, this);
+      assert.equal(d.x, i);
+      return d.x * i;
+    }
+    assert.equal(Statistics.percentile(ary, 0, func, ctx), 0);
+    assert.equal(Statistics.percentile(ary, .5, func, ctx), 16);
+    assert.equal(Statistics.percentile(ary, .75, func, ctx), 36);
+    assert.equal(Statistics.percentile(ary, 1, func, ctx), 81);
   });
 
   test('normalizeSamples', function() {
@@ -377,5 +503,65 @@ tr.b.unittest.testSuite(function() {
     Statistics.mergeSampledStreams(samples, 2, ['F', 'G', 'H', 'I', 'J'], 7, 5);
     assert.equal(samples.length, 5);
   });
+
+  test('mannWhitneyUTestSmokeTest', function() {
+   // x < 0.01
+    var sampleA = [1, 2, 2.1, 2.2, 2, 1];
+    var sampleB = [12, 13, 13.1, 13.2, 13, 12];
+    var results = Statistics.mwu.test(sampleA, sampleB);
+    assert.isBelow(results.p, 0.1);
+
+    // 0.01 < x < 0.1
+    sampleA = [1, 2, 2.1, 2.2, 2, 1];
+    sampleB = [2, 3, 3.1, 3.2, 3, 2];
+    results = Statistics.mwu.test(sampleA, sampleB);
+    assert.isBelow(results.p, 0.1);
+    assert.isAbove(results.p, 0.01);
+
+    // 0.1 < x
+    sampleA = [1, 2, 2.1, 2.2, 2, 1];
+    sampleB = [1, 2, 2.1, 2.2, 2, 1];
+    results = Statistics.mwu.test(sampleA, sampleB);
+    assert.isAbove(results.p, 0.1);
+  });
+
+  test('mannWhitneyUEdgeCases', function() {
+    var longRepeatingSample = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
+    var emptySample = [];
+    var singleLargeValue = [1000000];
+    // mean 10, std 2
+    var normallyDistributedSample = [
+        8.341540e+0, 7.216640e+0, 8.844310e+0, 9.801980e+0, 1.048760e+1,
+        6.915150e+0, 7.881740e+0, 1.131160e+1, 9.959400e+0, 9.030880e+0
+    ];
+    // Identical samples should not cause the null to be rejected.
+    var results = Statistics.mwu.test(longRepeatingSample, longRepeatingSample);
+    assert.isAbove(results.p, 0.05);
+    results = Statistics.mwu.test(normallyDistributedSample,
+        normallyDistributedSample);
+    assert.isAbove(results.p, 0.05);
+    results = Statistics.mwu.test(singleLargeValue, singleLargeValue);
+
+    // A single value is generally not sufficient to reject the null, no matter
+    // how far off it is.
+    results = Statistics.mwu.test(normallyDistributedSample, singleLargeValue);
+    assert.isAbove(results.p, 0.05);
+
+    // A single value way outside the first sample may be enough to reject,
+    // if the first sample is large enough.
+    results = Statistics.mwu.test(longRepeatingSample, singleLargeValue);
+    assert.isBelow(results.p, 0.005);
+
+    // Empty samples should not be comparable.
+    results = Statistics.mwu.test(emptySample, emptySample);
+    assert(isNaN(results.p));
+
+    // The result of comparing a sample against an empty sample should not be a
+    // valid p value. NOTE: The current implementation returns 0, it is up to
+    // the caller to interpret this.
+    results = Statistics.mwu.test(normallyDistributedSample, emptySample);
+    assert(!results.p);
+  });
+
 });
 </script>

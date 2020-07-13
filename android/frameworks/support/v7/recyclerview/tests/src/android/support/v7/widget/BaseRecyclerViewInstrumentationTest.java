@@ -27,6 +27,7 @@ import org.junit.Rule;
 import android.app.Instrumentation;
 import android.graphics.Rect;
 import android.os.Looper;
+import android.support.annotation.Nullable;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.rule.ActivityTestRule;
 import android.support.v4.view.ViewCompat;
@@ -108,6 +109,7 @@ abstract public class BaseRecyclerViewInstrumentationTest {
     @Before
     public final void setUpInsThread() throws Exception {
         mInstrumentationThread = Thread.currentThread();
+        Item.idCounter.set(0);
     }
 
     void setHasTransientState(final View view, final boolean value) {
@@ -416,6 +418,25 @@ abstract public class BaseRecyclerViewInstrumentationTest {
         }
     }
 
+    public void smoothScrollBy(final int dt) {
+        try {
+            runTestOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    if (mRecyclerView.getLayoutManager().canScrollHorizontally()) {
+                        mRecyclerView.smoothScrollBy(dt, 0);
+                    } else {
+                        mRecyclerView.smoothScrollBy(0, dt);
+                    }
+
+                }
+            });
+        } catch (Throwable throwable) {
+            Log.e(TAG, "", throwable);
+        }
+        getInstrumentation().waitForIdleSync();
+    }
+
     void scrollToPosition(final int position) throws Throwable {
         runTestOnUiThread(new Runnable() {
             @Override
@@ -507,6 +528,7 @@ abstract public class BaseRecyclerViewInstrumentationTest {
     public class TestViewHolder extends RecyclerView.ViewHolder {
 
         Item mBoundItem;
+        Object mData;
 
         public TestViewHolder(View itemView) {
             super(itemView);
@@ -515,7 +537,15 @@ abstract public class BaseRecyclerViewInstrumentationTest {
 
         @Override
         public String toString() {
-            return super.toString() + " item:" + mBoundItem;
+            return super.toString() + " item:" + mBoundItem + ", data:" + mData;
+        }
+
+        public Object getData() {
+            return mData;
+        }
+
+        public void setData(Object data) {
+            mData = data;
         }
     }
     class DumbLayoutManager extends TestLayoutManager {
@@ -672,6 +702,63 @@ abstract public class BaseRecyclerViewInstrumentationTest {
             mScrollVerticallyAmount += dy;
             return dy;
         }
+
+        // START MOCKITO OVERRIDES
+        // We override package protected methods to make them public. This is necessary to run
+        // mockito on Kitkat
+        @Override
+        public void setRecyclerView(RecyclerView recyclerView) {
+            super.setRecyclerView(recyclerView);
+        }
+
+        @Override
+        public void dispatchAttachedToWindow(RecyclerView view) {
+            super.dispatchAttachedToWindow(view);
+        }
+
+        @Override
+        public void dispatchDetachedFromWindow(RecyclerView view, RecyclerView.Recycler recycler) {
+            super.dispatchDetachedFromWindow(view, recycler);
+        }
+
+        @Override
+        public void setExactMeasureSpecsFrom(RecyclerView recyclerView) {
+            super.setExactMeasureSpecsFrom(recyclerView);
+        }
+
+        @Override
+        public void setMeasureSpecs(int wSpec, int hSpec) {
+            super.setMeasureSpecs(wSpec, hSpec);
+        }
+
+        @Override
+        public void setMeasuredDimensionFromChildren(int widthSpec, int heightSpec) {
+            super.setMeasuredDimensionFromChildren(widthSpec, heightSpec);
+        }
+
+        @Override
+        public boolean shouldReMeasureChild(View child, int widthSpec, int heightSpec,
+                RecyclerView.LayoutParams lp) {
+            return super.shouldReMeasureChild(child, widthSpec, heightSpec, lp);
+        }
+
+        @Override
+        public boolean shouldMeasureChild(View child, int widthSpec, int heightSpec,
+                RecyclerView.LayoutParams lp) {
+            return super.shouldMeasureChild(child, widthSpec, heightSpec, lp);
+        }
+
+        @Override
+        public void removeAndRecycleScrapInt(RecyclerView.Recycler recycler) {
+            super.removeAndRecycleScrapInt(recycler);
+        }
+
+        @Override
+        public void stopSmoothScroller() {
+            super.stopSmoothScroller();
+        }
+
+        // END MOCKITO OVERRIDES
     }
 
     static class Item {
@@ -705,10 +792,16 @@ abstract public class BaseRecyclerViewInstrumentationTest {
 
         ViewAttachDetachCounter mAttachmentCounter = new ViewAttachDetachCounter();
         List<Item> mItems;
+        final @Nullable RecyclerView.LayoutParams mLayoutParams;
 
         public TestAdapter(int count) {
+            this(count, null);
+        }
+
+        public TestAdapter(int count, @Nullable RecyclerView.LayoutParams layoutParams) {
             mItems = new ArrayList<Item>(count);
             addItems(0, count, DEFAULT_ITEM_PREFIX);
+            mLayoutParams = layoutParams;
         }
 
         private void addItems(int pos, int count, String prefix) {
@@ -762,6 +855,9 @@ abstract public class BaseRecyclerViewInstrumentationTest {
             final Item item = mItems.get(position);
             ((TextView) (holder.itemView)).setText(item.mText + "(" + item.mId + ")");
             holder.mBoundItem = item;
+            if (mLayoutParams != null) {
+                holder.itemView.setLayoutParams(new RecyclerView.LayoutParams(mLayoutParams));
+            }
         }
 
         public Item getItemAt(int position) {
@@ -1021,11 +1117,21 @@ abstract public class BaseRecyclerViewInstrumentationTest {
         return Looper.myLooper() == Looper.getMainLooper();
     }
 
-    public void runTestOnUiThread(Runnable r) throws Throwable {
+    public void runTestOnUiThread(final Runnable r) throws Throwable {
         if (Looper.myLooper() == Looper.getMainLooper()) {
             r.run();
         } else {
-            InstrumentationRegistry.getInstrumentation().runOnMainSync(r);
+            InstrumentationRegistry.getInstrumentation().runOnMainSync(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        r.run();
+                    } catch (Throwable t) {
+                        postExceptionToInstrumentation(t);
+                    }
+                }
+            });
+            checkForMainThreadException();
         }
     }
 

@@ -1944,7 +1944,7 @@ static int mmc_do_erase(struct mmc_card *card, unsigned int from,
 		to <<= 9;
 	}
 
-	pr_info("%s:%s: erase from %d to %d arg 0x%08x\n",
+	pr_debug("%s:%s: erase from %d to %d arg 0x%08x\n",
 		mmc_hostname(card->host), __func__, from, to, arg);
 	if (mmc_card_sd(card))
 		cmd.opcode = SD_ERASE_WR_BLK_START;

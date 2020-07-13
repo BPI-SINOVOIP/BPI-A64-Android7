@@ -4,6 +4,7 @@
 
 from functools import partial
 import logging
+import json
 
 from telemetry.core import exceptions
 from telemetry.core import util
@@ -41,16 +42,23 @@ class Oobe(web_contents.WebContents):
     if self.EvaluateJavaScript("typeof %s == 'undefined'" % api):
       raise exceptions.LoginException('%s js api missing' % api)
 
-    js = api + '(' + ("'%s'," * len(args)).rstrip(',') + ');'
-    self.ExecuteJavaScript(js % args)
+    # Example values:
+    #   |api|:          'doLogin'
+    #   |args|:         ['username', 'pass', True]
+    #   js:             '{}({},{},{})'
+    #   js.format(...): 'doLogin("username","pass",true)'
+    js = '{}(' + ('{},' * len(args)).rstrip(',') + ')'
+    self.ExecuteJavaScript(js.format(api, *map(json.dumps, args)))
 
   def NavigateGuestLogin(self):
     """Logs in as guest."""
     self._ExecuteOobeApi('Oobe.guestLoginForTesting')
 
-  def NavigateFakeLogin(self, username, password, gaia_id):
+  def NavigateFakeLogin(self, username, password, gaia_id,
+                        enterprise_enroll=False):
     """Fake user login."""
-    self._ExecuteOobeApi('Oobe.loginForTesting', username, password, gaia_id)
+    self._ExecuteOobeApi('Oobe.loginForTesting', username, password, gaia_id,
+                         enterprise_enroll)
 
   def NavigateGaiaLogin(self, username, password,
                         enterprise_enroll=False,
@@ -97,7 +105,7 @@ class Oobe(web_contents.WebContents):
   def _NavigateWebViewLogin(self, username, password, wait_for_close):
     """Logs into the webview-based GAIA screen"""
     self._NavigateWebViewEntry('identifierId', username, 'identifierNext')
-    self._NavigateWebViewEntry('password', password, 'next')
+    self._NavigateWebViewEntry('password', password, 'passwordNext')
     if wait_for_close:
       util.WaitFor(lambda: not self._GaiaWebviewContext(), 20)
 

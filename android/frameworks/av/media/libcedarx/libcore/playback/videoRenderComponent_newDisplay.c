@@ -1110,9 +1110,14 @@ static inline int ProcessVideoSync(VideoRenderComp* p, VideoPicture* pPicture)
     nWaitTime = p->callback(p->pUserData, PLAYER_VIDEO_RENDER_NOTIFY_PICTURE_PTS,
             (void*)&pPicture->nPts);
 
-#if defined(CONF_PTS_TOSF)
-    return 0;
-#endif
+        if (nWaitTime > 120)
+        {
+            nWaitTime -= 90;
+        }
+        else if(nWaitTime >= 0)
+        {
+            nWaitTime = 0;
+        }
 
     double frameRate = 0.0;
     if (p->pFrameRateEstimater)

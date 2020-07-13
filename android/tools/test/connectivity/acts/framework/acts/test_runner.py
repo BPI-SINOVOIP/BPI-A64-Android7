@@ -14,8 +14,6 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-__author__ = "angli@google.com"
-
 from future import standard_library
 standard_library.install_aliases()
 
@@ -136,6 +134,28 @@ class TestRunner(object):
                             test_classes[member_name] = test_class
         return test_classes
 
+    def _import_builtin_controllers(self):
+        """Import built-in controller modules.
+
+        Go through the testbed configs, find any built-in controller configs
+        and import the corresponding controller module from acts.controllers
+        package.
+
+        TODO(angli): Remove this when all scripts change to explicitly declare
+                     controller dependency.
+
+        Returns:
+            A list of controller modules.
+        """
+        builtin_controllers = []
+        for ctrl_name in keys.Config.builtin_controller_names.value:
+            if ctrl_name in self.testbed_configs:
+                module_name = keys.get_module_name(ctrl_name)
+                module = importlib.import_module("acts.controllers.%s" %
+                                                 module_name)
+                builtin_controllers.append(module)
+        return builtin_controllers
+
     @staticmethod
     def verify_controller_module(module):
         """Verifies a module object follows the required interface for
@@ -169,7 +189,7 @@ class TestRunner(object):
         module will be instantiated with corresponding configs in the test
         config file. The module should be imported first.
 
-        Params:
+        Args:
             module: A module that follows the controller module interface.
             required: A bool. If True, failing to register the specified
                       controller module raises exceptions. If False, returns
@@ -257,14 +277,8 @@ class TestRunner(object):
         Args:
             test_configs: A json object representing the test configurations.
         """
-        self.test_run_info[keys.Config.ikey_testbed_name.value] = self.testbed_name
-        # Instantiate builtin controllers
-        for ctrl_name in keys.Config.builtin_controller_names.value:
-            if ctrl_name in self.testbed_configs:
-                module_name = keys.get_module_name(ctrl_name)
-                module = importlib.import_module("acts.controllers.%s" %
-                                                 module_name)
-                self.register_controller(module)
+        self.test_run_info[
+            keys.Config.ikey_testbed_name.value] = self.testbed_name
         # Unpack other params.
         self.test_run_info["register_controller"] = self.register_controller
         self.test_run_info[keys.Config.ikey_logpath.value] = self.log_path
@@ -349,24 +363,26 @@ class TestRunner(object):
         t_configs = self.test_configs[keys.Config.key_test_paths.value]
         self.test_classes = self.import_test_modules(t_configs)
         self.log.debug("Executing run list %s.", self.run_list)
-        try:
-            for test_cls_name, test_case_names in self.run_list:
-                if not self.running:
-                    break
-                if test_case_names:
-                    self.log.debug("Executing test cases %s in test class %s.",
-                                   test_case_names,
-                                   test_cls_name)
-                else:
-                    self.log.debug("Executing test class %s", test_cls_name)
-                try:
-                    self.run_test_class(test_cls_name, test_case_names)
-                except signals.TestAbortAll as e:
-                    self.log.warning(("Abort all subsequent test classes. Reason: "
-                                      "%s"), e)
-                    raise
-        finally:
-            self.unregister_controllers()
+        for test_cls_name, test_case_names in self.run_list:
+            if not self.running:
+                break
+            if test_case_names:
+                self.log.debug("Executing test cases %s in test class %s.",
+                               test_case_names, test_cls_name)
+            else:
+                self.log.debug("Executing test class %s", test_cls_name)
+            try:
+                # Import and register the built-in controller modules specified
+                # in testbed config.
+                for module in self._import_builtin_controllers():
+                    self.register_controller(module)
+                self.run_test_class(test_cls_name, test_case_names)
+            except signals.TestAbortAll as e:
+                self.log.warning(
+                    "Abort all subsequent test classes. Reason: %s", e)
+                raise
+            finally:
+                self.unregister_controllers()
 
     def stop(self):
         """Releases resources from test run. Should always be called after

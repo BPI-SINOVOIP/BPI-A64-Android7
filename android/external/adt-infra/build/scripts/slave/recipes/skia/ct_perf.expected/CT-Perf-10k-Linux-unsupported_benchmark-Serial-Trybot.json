@@ -1,0 +1,7 @@
+[
+  {
+    "name": "$result",
+    "reason": "Uncaught Exception: Exception('Do not recognise the buildername CT-Perf-10k-Linux-unsupported_benchmark-Serial-Trybot.',)",
+    "status_code": -1
+  }
+]

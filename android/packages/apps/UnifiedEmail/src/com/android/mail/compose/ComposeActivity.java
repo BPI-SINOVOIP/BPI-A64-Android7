@@ -2018,19 +2018,15 @@ public class ComposeActivity extends ActionBarActivity
         if (contentUri == null) {
             return;
         }
-        try {
 
-            if (handleSpecialAttachmentUri(contentUri)) {
-                return;
-            }
+        if (handleSpecialAttachmentUri(contentUri)) {
+            return;
+        }
 
-            addAttachmentAndUpdateView(mAttachmentsView.generateLocalAttachment(contentUri));
-        } catch (AttachmentFailureException e) {
-            LogUtils.e(LOG_TAG, e, "Error adding attachment");
-            showErrorToast(getResources().getString(
-                    e.getErrorRes(),
-                    AttachmentUtils.convertToHumanReadableSize(
-                            getApplicationContext(), mAccount.settings.getMaxAttachmentSize())));
+        final long size = handleAttachmentUrisFromIntent(Arrays.asList(contentUri));
+        if (size > 0) {
+            mAttachmentsChanged = true;
+            updateSaveUi();
         }
     }
 

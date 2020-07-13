@@ -93,7 +93,37 @@ public class AuptTestCase extends InstrumentationTestCase {
         private final long mDalvikHeap;
         private final long mNativeHeap;
         private final long mPss;
+
+        // App summary metrics
+        private final long mAsJavaHeap; // Private java heap
+        private final long mAsNativeHeap; // Private native heap
+        private final long mAsCode; // Private code
+        private final long mAsStack; // Private stack
+        private final long mAsGraphics; // Private graphics
+        private final long mAsOther; // Private other
+        private final long mAsSystem; // System
+        private final long mAsOverallPss; // Overall PSS
+
         private final Context mContext;
+
+        public MemHealthRecord(long timeMs, long dalvikHeap, long nativeHeap, long pss,
+                long asJavaHeap, long asNativeHeap, long asCode, long asStack,
+                long asGraphics, long asOther, long asSystem, long asOverallPss,
+                Context context) {
+            mTimeMs = timeMs;
+            mDalvikHeap = dalvikHeap;
+            mNativeHeap = nativeHeap;
+            mPss = pss;
+            mAsJavaHeap = asJavaHeap;
+            mAsNativeHeap = asNativeHeap;
+            mAsCode = asCode;
+            mAsStack = asStack;
+            mAsGraphics = asGraphics;
+            mAsOther = asOther;
+            mAsSystem = asSystem;
+            mAsOverallPss = asOverallPss;
+            mContext = context;
+        }
 
         public MemHealthRecord(long timeMs, long dalvikHeap, long nativeHeap, long pss,
                 Context context) {
@@ -101,6 +131,14 @@ public class AuptTestCase extends InstrumentationTestCase {
             mDalvikHeap = dalvikHeap;
             mNativeHeap = nativeHeap;
             mPss = pss;
+            mAsJavaHeap = 0;
+            mAsNativeHeap = 0;
+            mAsCode = 0;
+            mAsStack = 0;
+            mAsGraphics = 0;
+            mAsOther = 0;
+            mAsSystem = 0;
+            mAsOverallPss = 0;
             mContext = context;
         }
 
@@ -159,6 +197,170 @@ public class AuptTestCase extends InstrumentationTestCase {
             for (MemHealthRecord sample : samples) {
                 if (Context.BACKGROUND.equals(sample.mContext)) {
                     ret.add(sample.mPss);
+                }
+            }
+            return ret;
+        }
+
+        public static List<Long> getForegroundSummaryJavaHeap(Collection<MemHealthRecord> samples) {
+            List<Long> ret = new ArrayList<>(samples.size());
+            for (MemHealthRecord sample : samples) {
+                if (Context.FOREGROUND.equals(sample.mContext)) {
+                    ret.add(sample.mAsJavaHeap);
+                }
+            }
+            return ret;
+        }
+
+        public static List<Long> getBackgroundSummaryJavaHeap(Collection<MemHealthRecord> samples) {
+            List<Long> ret = new ArrayList<>(samples.size());
+            for (MemHealthRecord sample : samples) {
+                if (Context.BACKGROUND.equals(sample.mContext)) {
+                    ret.add(sample.mAsJavaHeap);
+                }
+            }
+            return ret;
+        }
+
+        public static List<Long> getForegroundSummaryNativeHeap(
+                    Collection<MemHealthRecord> samples) {
+            List<Long> ret = new ArrayList<>(samples.size());
+            for (MemHealthRecord sample : samples) {
+                if (Context.FOREGROUND.equals(sample.mContext)) {
+                    ret.add(sample.mAsNativeHeap);
+                }
+            }
+            return ret;
+        }
+
+        public static List<Long> getBackgroundSummaryNativeHeap(
+                    Collection<MemHealthRecord> samples) {
+            List<Long> ret = new ArrayList<>(samples.size());
+            for (MemHealthRecord sample : samples) {
+                if (Context.BACKGROUND.equals(sample.mContext)) {
+                    ret.add(sample.mAsNativeHeap);
+                }
+            }
+            return ret;
+        }
+
+        public static List<Long> getForegroundSummaryCode(Collection<MemHealthRecord> samples) {
+            List<Long> ret = new ArrayList<>(samples.size());
+            for (MemHealthRecord sample : samples) {
+                if (Context.FOREGROUND.equals(sample.mContext)) {
+                    ret.add(sample.mAsCode);
+                }
+            }
+            return ret;
+        }
+
+        public static List<Long> getBackgroundSummaryCode(Collection<MemHealthRecord> samples) {
+            List<Long> ret = new ArrayList<>(samples.size());
+            for (MemHealthRecord sample : samples) {
+                if (Context.BACKGROUND.equals(sample.mContext)) {
+                    ret.add(sample.mAsCode);
+                }
+            }
+            return ret;
+        }
+
+        public static List<Long> getForegroundSummaryStack(Collection<MemHealthRecord> samples) {
+            List<Long> ret = new ArrayList<>(samples.size());
+            for (MemHealthRecord sample : samples) {
+                if (Context.FOREGROUND.equals(sample.mContext)) {
+                    ret.add(sample.mAsStack);
+                }
+            }
+            return ret;
+        }
+
+        public static List<Long> getBackgroundSummaryStack(Collection<MemHealthRecord> samples) {
+            List<Long> ret = new ArrayList<>(samples.size());
+            for (MemHealthRecord sample : samples) {
+                if (Context.BACKGROUND.equals(sample.mContext)) {
+                    ret.add(sample.mAsStack);
+                }
+            }
+            return ret;
+        }
+
+        public static List<Long> getForegroundSummaryGraphics(Collection<MemHealthRecord> samples) {
+            List<Long> ret = new ArrayList<>(samples.size());
+            for (MemHealthRecord sample : samples) {
+                if (Context.FOREGROUND.equals(sample.mContext)) {
+                    ret.add(sample.mAsGraphics);
+                }
+            }
+            return ret;
+        }
+
+        public static List<Long> getBackgroundSummaryGraphics(Collection<MemHealthRecord> samples) {
+            List<Long> ret = new ArrayList<>(samples.size());
+            for (MemHealthRecord sample : samples) {
+                if (Context.BACKGROUND.equals(sample.mContext)) {
+                    ret.add(sample.mAsGraphics);
+                }
+            }
+            return ret;
+        }
+
+        public static List<Long> getForegroundSummaryOther(Collection<MemHealthRecord> samples) {
+            List<Long> ret = new ArrayList<>(samples.size());
+            for (MemHealthRecord sample : samples) {
+                if (Context.FOREGROUND.equals(sample.mContext)) {
+                    ret.add(sample.mAsOther);
+                }
+            }
+            return ret;
+        }
+
+        public static List<Long> getBackgroundSummaryOther(Collection<MemHealthRecord> samples) {
+            List<Long> ret = new ArrayList<>(samples.size());
+            for (MemHealthRecord sample : samples) {
+                if (Context.BACKGROUND.equals(sample.mContext)) {
+                    ret.add(sample.mAsOther);
+                }
+            }
+            return ret;
+        }
+
+        public static List<Long> getForegroundSummarySystem(Collection<MemHealthRecord> samples) {
+            List<Long> ret = new ArrayList<>(samples.size());
+            for (MemHealthRecord sample : samples) {
+                if (Context.FOREGROUND.equals(sample.mContext)) {
+                    ret.add(sample.mAsSystem);
+                }
+            }
+            return ret;
+        }
+
+        public static List<Long> getBackgroundSummarySystem(Collection<MemHealthRecord> samples) {
+            List<Long> ret = new ArrayList<>(samples.size());
+            for (MemHealthRecord sample : samples) {
+                if (Context.BACKGROUND.equals(sample.mContext)) {
+                    ret.add(sample.mAsSystem);
+                }
+            }
+            return ret;
+        }
+
+        public static List<Long> getForegroundSummaryOverallPss(
+                    Collection<MemHealthRecord> samples) {
+            List<Long> ret = new ArrayList<>(samples.size());
+            for (MemHealthRecord sample : samples) {
+                if (Context.FOREGROUND.equals(sample.mContext)) {
+                    ret.add(sample.mAsOverallPss);
+                }
+            }
+            return ret;
+        }
+
+        public static List<Long> getBackgroundSummaryOverallPss(
+                    Collection<MemHealthRecord> samples) {
+            List<Long> ret = new ArrayList<>(samples.size());
+            for (MemHealthRecord sample : samples) {
+                if (Context.BACKGROUND.equals(sample.mContext)) {
+                    ret.add(sample.mAsOverallPss);
                 }
             }
             return ret;
@@ -346,6 +548,19 @@ public class AuptTestCase extends InstrumentationTestCase {
                 List<Long> dalvikHeap = MemHealthRecord.getForegroundDalvikHeap(record.getValue());
                 List<Long> pss = MemHealthRecord.getForegroundPss(record.getValue());
 
+                List<Long> asJavaHeap = MemHealthRecord.getForegroundSummaryJavaHeap(
+                        record.getValue());
+                List<Long> asNativeHeap = MemHealthRecord.getForegroundSummaryNativeHeap(
+                        record.getValue());
+                List<Long> asCode = MemHealthRecord.getForegroundSummaryCode(record.getValue());
+                List<Long> asStack = MemHealthRecord.getForegroundSummaryStack(record.getValue());
+                List<Long> asGraphics = MemHealthRecord.getForegroundSummaryGraphics(
+                        record.getValue());
+                List<Long> asOther = MemHealthRecord.getForegroundSummaryOther(record.getValue());
+                List<Long> asSystem = MemHealthRecord.getForegroundSummarySystem(record.getValue());
+                List<Long> asOverallPss = MemHealthRecord.getForegroundSummaryOverallPss(
+                        record.getValue());
+
                 // nativeHeap, dalvikHeap, and pss all have the same size, just use one
                 if (nativeHeap.size() == 0) {
                     continue;
@@ -359,6 +574,19 @@ public class AuptTestCase extends InstrumentationTestCase {
                 out.printf("Peak Dalvik Heap: %d\n", MemHealthRecord.getMax(dalvikHeap));
                 out.printf("Peak PSS: %d\n", MemHealthRecord.getMax(pss));
                 out.printf("Count %d\n", nativeHeap.size());
+
+                out.printf("Average Summary Java Heap: %d\n", MemHealthRecord.getAverage(
+                        asJavaHeap));
+                out.printf("Average Summary Native Heap: %d\n", MemHealthRecord.getAverage(
+                        asNativeHeap));
+                out.printf("Average Summary Code: %d\n", MemHealthRecord.getAverage(asCode));
+                out.printf("Average Summary Stack: %d\n", MemHealthRecord.getAverage(asStack));
+                out.printf("Average Summary Graphics: %d\n", MemHealthRecord.getAverage(
+                        asGraphics));
+                out.printf("Average Summary Other: %d\n", MemHealthRecord.getAverage(asOther));
+                out.printf("Average Summary System: %d\n", MemHealthRecord.getAverage(asSystem));
+                out.printf("Average Summary Overall Pss: %d\n", MemHealthRecord.getAverage(
+                        asOverallPss));
             }
             out.println("Background");
             for (Map.Entry<String, List<MemHealthRecord>> record : mMemHealthRecords.entrySet()) {
@@ -366,6 +594,19 @@ public class AuptTestCase extends InstrumentationTestCase {
                 List<Long> dalvikHeap = MemHealthRecord.getBackgroundDalvikHeap(record.getValue());
                 List<Long> pss = MemHealthRecord.getBackgroundPss(record.getValue());
 
+                List<Long> asJavaHeap = MemHealthRecord.getBackgroundSummaryJavaHeap(
+                        record.getValue());
+                List<Long> asNativeHeap = MemHealthRecord.getBackgroundSummaryNativeHeap(
+                        record.getValue());
+                List<Long> asCode = MemHealthRecord.getBackgroundSummaryCode(record.getValue());
+                List<Long> asStack = MemHealthRecord.getBackgroundSummaryStack(record.getValue());
+                List<Long> asGraphics = MemHealthRecord.getBackgroundSummaryGraphics(
+                        record.getValue());
+                List<Long> asOther = MemHealthRecord.getBackgroundSummaryOther(record.getValue());
+                List<Long> asSystem = MemHealthRecord.getBackgroundSummarySystem(record.getValue());
+                List<Long> asOverallPss = MemHealthRecord.getBackgroundSummaryOverallPss(
+                        record.getValue());
+
                 // nativeHeap, dalvikHeap, and pss all have the same size, just use one
                 if (nativeHeap.size() == 0) {
                     continue;
@@ -379,6 +620,19 @@ public class AuptTestCase extends InstrumentationTestCase {
                 out.printf("Peak Dalvik Heap: %d\n", MemHealthRecord.getMax(dalvikHeap));
                 out.printf("Peak PSS: %d\n", MemHealthRecord.getMax(pss));
                 out.printf("Count %d\n", nativeHeap.size());
+
+                out.printf("Average Summary Java Heap: %d\n", MemHealthRecord.getAverage(
+                        asJavaHeap));
+                out.printf("Average Summary Native Heap: %d\n", MemHealthRecord.getAverage(
+                        asNativeHeap));
+                out.printf("Average Summary Code: %d\n", MemHealthRecord.getAverage(asCode));
+                out.printf("Average Summary Stack: %d\n", MemHealthRecord.getAverage(asStack));
+                out.printf("Average Summary Graphics: %d\n", MemHealthRecord.getAverage(
+                        asGraphics));
+                out.printf("Average Summary Other: %d\n", MemHealthRecord.getAverage(asOther));
+                out.printf("Average Summary System: %d\n", MemHealthRecord.getAverage(asSystem));
+                out.printf("Average Summary Overall Pss: %d\n", MemHealthRecord.getAverage(
+                        asOverallPss));
             }
             out.close();
         } catch (IOException e) {
@@ -421,6 +675,15 @@ public class AuptTestCase extends InstrumentationTestCase {
             int dalvikHeap = parseMeminfoLine(meminfo, "Dalvik Heap\\s+\\d+\\s+(\\d+)");
             int pss = parseMeminfoLine(meminfo, "TOTAL\\s+(\\d+)");
 
+            int asJavaHeap = parseMeminfoLine(meminfo, "Java Heap:\\s+(\\d+)");
+            int asNativeHeap = parseMeminfoLine(meminfo, "Native Heap:\\s+(\\d+)");
+            int asCode = parseMeminfoLine(meminfo, "Code:\\s+(\\d+)");
+            int asStack = parseMeminfoLine(meminfo, "Stack:\\s+(\\d+)");
+            int asGraphics = parseMeminfoLine(meminfo, "Graphics:\\s+(\\d+)");
+            int asOther = parseMeminfoLine(meminfo, "Private Other:\\s+(\\d+)");
+            int asSystem = parseMeminfoLine(meminfo, "System:\\s+(\\d+)");
+            int asOverallPss = parseMeminfoLine(meminfo, "TOTAL:\\s+(\\d+)");
+
             if (nativeHeap < 0 || dalvikHeap < 0 || pss < 0) {
                 return;
             }
@@ -430,7 +693,9 @@ public class AuptTestCase extends InstrumentationTestCase {
                 mMemHealthRecords.put(proc, new ArrayList<MemHealthRecord>());
             }
             mMemHealthRecords.get(proc).add(
-                    new MemHealthRecord(timeMs, dalvikHeap, nativeHeap, pss, context));
+                    new MemHealthRecord(timeMs, dalvikHeap, nativeHeap, pss, asJavaHeap,
+                        asNativeHeap, asCode, asStack, asGraphics, asOther, asSystem,
+                        asOverallPss, context));
             recordDumpheap(proc, pss);
         } catch (IOException e) {
             Log.e(TAG, "exception while memory stats", e);

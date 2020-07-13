@@ -29,7 +29,6 @@ import java.util.ArrayList;
 /**
  * A facade containing RPC implementations related to the speech-to-text functionality of Android.
  *
- * @author Felix Arends (felix.arends@gmail.com)
  *
  */
 public class SpeechRecognitionFacade extends RpcReceiver {

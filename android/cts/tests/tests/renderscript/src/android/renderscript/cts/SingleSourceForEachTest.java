@@ -83,6 +83,12 @@ public class SingleSourceForEachTest extends RSBaseCompute {
     }
 
     public void testKernelLaunchWithOptions() {
+        // Initialize the testOutputAlloc and baselineOutputAlloc to be the same
+        // as the input. When we the check the entire output later, the lower half
+        // of the output Allocations should also be the same.
+        baselineOutputAlloc.copyFrom(testInputArray);
+        testOutputAlloc.copyFrom(testInputArray);
+
         Script.LaunchOptions sc = new Script.LaunchOptions();
         sc.setX(0, X);
         sc.setY(0, Y / 2);

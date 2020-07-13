@@ -27,7 +27,6 @@ import org.json.JSONObject;
 /**
  * Wrapper class for time picker dialog running in separate thread.
  *
- * @author MeanEYE.rcf (meaneye.rcf@gmail.com)
  */
 public class TimePickerDialogTask extends DialogTask {
   private final int mHour;

@@ -1,0 +1,5 @@
+How to use this code:
+
+1. svn co svn://svn.chromium.org/chrome/trunk/tools/deps2git
+2. cp svn_to_git_internal.py deps2git/
+3. ./deps2git/deps2git -t internal ...

@@ -40,10 +40,9 @@ static bool FileHasAcceptableExtension(const char *extension) {
         ".mpeg", ".ogg", ".mid", ".smf", ".imy", ".wma", ".aac",
         ".wav", ".amr", ".midi", ".xmf", ".rtttl", ".rtx", ".ota",
         ".mkv", ".mka", ".webm", ".ts", ".fl", ".flac", ".mxmf",
-        ".avi", ".mpeg", ".mpg", ".awb", ".mpga",
-
-	".ac3", ".dts", ".flv", ".wmv", ".mov",
-	".rmvb", ".rm", ".f4v", ".m2ts",
+        ".avi", ".mpeg", ".mpg", ".awb", ".mpga", ".mov",
+	    ".ac3", ".dts", ".flv", ".wmv", ".mov",
+	    ".rmvb", ".rm", ".f4v", ".m2ts",
         ".mp1", ".mp2", ".oga", ".ape",
         ".omg", ".oma", ".m4v", ".asf",
         ".vob", ".pmp", ".m4r", ".ra",
@@ -128,6 +127,7 @@ MediaScanResult StagefrightMediaScanner::processFileInternal(
         { "writer", METADATA_KEY_WRITER },
         { "compilation", METADATA_KEY_COMPILATION },
         { "isdrm", METADATA_KEY_IS_DRM },
+        { "date", METADATA_KEY_DATE },
         { "width", METADATA_KEY_VIDEO_WIDTH },
         { "height", METADATA_KEY_VIDEO_HEIGHT },
     };

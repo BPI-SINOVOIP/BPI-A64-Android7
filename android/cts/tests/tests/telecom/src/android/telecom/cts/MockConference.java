@@ -143,6 +143,10 @@ public class MockConference extends Conference {
 
     public void setRemoteConference(RemoteConference remoteConference) {
         mRemoteConference = remoteConference;
+        Bundle bundle = remoteConference.getExtras();
+        if (bundle != null) {
+            this.putExtras(bundle);
+        }
     }
 
     public RemoteConference getRemoteConference() {
@@ -151,5 +155,11 @@ public class MockConference extends Conference {
 
     public String getDtmfString() {
         return mDtmfString;
+    }
+
+    @Override
+    public void onExtrasChanged(Bundle extras) {
+        setExtras(extras);
+        mOnExtrasChanged.invoke(extras);
     }
 }

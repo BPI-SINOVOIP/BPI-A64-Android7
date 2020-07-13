@@ -44,7 +44,6 @@ import org.json.JSONObject;
 /**
  * An adapter that wraps {@code Method}.
  *
- * @author igor.v.karp@gmail.com (Igor Karp)
  */
 public final class MethodDescriptor {
   private static final Map<Class<?>, Converter<?>> sConverters = populateConverters();

@@ -76,6 +76,9 @@ public class ConnectivityConstraintTest extends ConstraintTest {
     @Override
     public void tearDown() throws Exception {
         // Ensure that we leave WiFi in its previous state.
+        if (mWifiManager.isWifiEnabled() == mInitialWiFiState) {
+            return;
+        }
         NetworkInfo.State expectedState = mInitialWiFiState ?
             NetworkInfo.State.CONNECTED : NetworkInfo.State.DISCONNECTED;
         ConnectivityActionReceiver receiver =

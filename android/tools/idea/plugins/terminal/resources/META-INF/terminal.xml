@@ -1,0 +1,24 @@
+<idea-plugin version="2">
+  <extensions defaultExtensionNs="com.intellij">
+    <toolWindow id="Terminal" anchor="bottom" icon="TerminalIcons.OpenTerminal_13x13"
+                factoryClass="org.jetbrains.plugins.terminal.TerminalToolWindowFactory" secondary="false"/>
+
+    <projectConfigurable groupId="tools" groupWeight="130" displayName="Terminal" instance="org.jetbrains.plugins.terminal.TerminalOptionsConfigurable"/>
+
+    <fileEditorProvider implementation="org.jetbrains.plugins.terminal.vfs.TerminalSessionEditorProvider"/>
+  </extensions>
+
+  <project-components>
+    <component>
+      <interface-class>org.jetbrains.plugins.terminal.TerminalView</interface-class>
+      <implementation-class>org.jetbrains.plugins.terminal.TerminalView</implementation-class>
+    </component>
+  </project-components>
+
+  <application-components>
+    <component>
+      <interface-class>org.jetbrains.plugins.terminal.TerminalOptionsProvider</interface-class>
+      <implementation-class>org.jetbrains.plugins.terminal.TerminalOptionsProvider</implementation-class>
+    </component>
+  </application-components>
+</idea-plugin>

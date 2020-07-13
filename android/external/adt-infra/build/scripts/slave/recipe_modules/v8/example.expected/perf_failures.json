@@ -1,0 +1,125 @@
+[
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[BUILD]/scripts/slave/bot_update.py",
+      "--master",
+      "Fake_Master",
+      "--builder",
+      "Fake Builder",
+      "--slave",
+      "TestSlavename",
+      "--spec",
+      "cache_dir = None\nsolutions = [{'custom_vars': {'chromium_trunk': 'svn://svn-mirror.golo.chromium.org/chrome/trunk'}, 'deps_file': 'DEPS', 'managed': True, 'name': 'v8', 'url': 'https://chromium.googlesource.com/v8/v8'}]",
+      "--root",
+      "v8",
+      "--revision_mapping_file",
+      "{\"v8\": \"got_revision\"}",
+      "--output_json",
+      "/path/to/tmp/json",
+      "--revision",
+      "v8@20123",
+      "--force",
+      "--no_shallow",
+      "--output_manifest"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "bot_update",
+    "~followup_annotations": [
+      "@@@STEP_TEXT@Some step text@@@",
+      "@@@STEP_LOG_LINE@json.output@{@@@",
+      "@@@STEP_LOG_LINE@json.output@  \"did_run\": true, @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"manifest\": {@@@",
+      "@@@STEP_LOG_LINE@json.output@    \"v8\": {@@@",
+      "@@@STEP_LOG_LINE@json.output@      \"repository\": \"https://fake.org/v8.git\", @@@",
+      "@@@STEP_LOG_LINE@json.output@      \"revision\": \"f2cbea7e89a45f46819777bb78a1f5bd0241f64c\"@@@",
+      "@@@STEP_LOG_LINE@json.output@    }@@@",
+      "@@@STEP_LOG_LINE@json.output@  }, @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"patch_failure\": false, @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"patch_root\": \"v8\", @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"properties\": {@@@",
+      "@@@STEP_LOG_LINE@json.output@    \"got_revision\": \"f2cbea7e89a45f46819777bb78a1f5bd0241f64c\", @@@",
+      "@@@STEP_LOG_LINE@json.output@    \"got_revision_cp\": \"refs/heads/master@{#50110}\"@@@",
+      "@@@STEP_LOG_LINE@json.output@  }, @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"root\": \"v8\", @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"step_text\": \"Some step text\"@@@",
+      "@@@STEP_LOG_LINE@json.output@}@@@",
+      "@@@STEP_LOG_END@json.output@@@",
+      "@@@SET_BUILD_PROPERTY@got_revision@\"f2cbea7e89a45f46819777bb78a1f5bd0241f64c\"@@@",
+      "@@@SET_BUILD_PROPERTY@got_revision_cp@\"refs/heads/master@{#50110}\"@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[SLAVE_BUILD]/v8/tools/run_perf.py",
+      "--arch",
+      "x64",
+      "--buildbot",
+      "--json-test-results",
+      "/path/to/tmp/json",
+      "--extra-flags",
+      "--flag1 --flag2",
+      "example1.json"
+    ],
+    "cwd": "[SLAVE_BUILD]/v8",
+    "name": "Example1",
+    "~followup_annotations": [
+      "step returned non-zero exit code: 1",
+      "@@@STEP_LOG_LINE@Errors@Error line 1.@@@",
+      "@@@STEP_LOG_LINE@Errors@Error line 2.@@@",
+      "@@@STEP_LOG_END@Errors@@@",
+      "@@@STEP_FAILURE@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[SLAVE_BUILD]/v8/tools/run-tests.py",
+      "--download-data-only",
+      "foo"
+    ],
+    "cwd": "[SLAVE_BUILD]/v8",
+    "name": "Example2 - download-data"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[SLAVE_BUILD]/v8/tools/run_perf.py",
+      "--arch",
+      "x64",
+      "--buildbot",
+      "--json-test-results",
+      "/path/to/tmp/json",
+      "--extra-flags",
+      "--flag1 --flag2",
+      "example2.json"
+    ],
+    "cwd": "[SLAVE_BUILD]/v8",
+    "name": "Example2",
+    "~followup_annotations": [
+      "@@@STEP_LOG_LINE@Errors@Error line 1.@@@",
+      "@@@STEP_LOG_LINE@Errors@Error line 2.@@@",
+      "@@@STEP_LOG_END@Errors@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "RECIPE_MODULE[perf_dashboard]/resources/post_json.py"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "perf dashboard post",
+    "stdin": "{\"data\": [{\"bot\": \"ia32\", \"buildername\": \"Fake Builder\", \"buildnumber\": 571, \"error\": \"8.16496580928\", \"master\": \"Fake_Master\", \"masterid\": \"Fake_Master\", \"revision\": \"12345\", \"supplemental_columns\": {\"a_default_rev\": \"r_v8_git\", \"r_v8_git\": \"deadbeef\"}, \"test\": \"v8/v8/Richards\", \"units\": \"score\", \"value\": \"20.0\"}, {\"bot\": \"ia32\", \"buildername\": \"Fake Builder\", \"buildnumber\": 571, \"error\": \"0.0\", \"master\": \"Fake_Master\", \"masterid\": \"Fake_Master\", \"revision\": \"12345\", \"supplemental_columns\": {\"a_default_rev\": \"r_v8_git\", \"r_v8_git\": \"deadbeef\"}, \"test\": \"v8/v8/DeltaBlue\", \"units\": \"ms\", \"value\": \"1.2\"}, {\"bot\": \"ia32\", \"buildername\": \"Fake Builder\", \"buildnumber\": 571, \"error\": \"8.16496580928\", \"master\": \"Fake_Master\", \"masterid\": \"Fake_Master\", \"revision\": \"12345\", \"supplemental_columns\": {\"a_default_rev\": \"r_v8_git\", \"r_v8_git\": \"deadbeef\"}, \"test\": \"v8/v8/Richards\", \"units\": \"score\", \"value\": \"20.0\"}, {\"bot\": \"ia32\", \"buildername\": \"Fake Builder\", \"buildnumber\": 571, \"error\": \"0.0\", \"master\": \"Fake_Master\", \"masterid\": \"Fake_Master\", \"revision\": \"12345\", \"supplemental_columns\": {\"a_default_rev\": \"r_v8_git\", \"r_v8_git\": \"deadbeef\"}, \"test\": \"v8/v8/DeltaBlue\", \"units\": \"ms\", \"value\": \"1.2\"}], \"url\": \"https://chrome-perf.googleplex.com/add_point\"}"
+  },
+  {
+    "name": "$result",
+    "reason": "One or more performance tests failed.",
+    "status_code": 1
+  }
+]

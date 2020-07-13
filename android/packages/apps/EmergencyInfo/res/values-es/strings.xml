@@ -96,7 +96,8 @@
     <string name="user_emergency_info_title" msgid="7827058167207376581">"Información de emergencia"</string>
     <string name="user_emergency_info_consent" msgid="5636028073450797246">"La información que introduzcas aquí puede ser útil para los servicios de emergencia. Esta información solo se almacena en tu dispositivo, y cualquiera puede consultarla desde el marcador de emergencia sin desbloquear el teléfono."</string>
     <string name="emergency_info_continue" msgid="5453201508537906087">"Continuar"</string>
-    <string name="no_info_provided" msgid="6775035037534954056">"No se ha proporcionado información de emergencia"</string>
+    <string name="no_info_provided" msgid="716200382010821001">"No hay información sobre el propietario del teléfono"</string>
+    <string name="tap_pencil" msgid="2723698054265296934">"Si eres el propietario de este teléfono, toca el icono de lápiz para añadir información que se mostrará en caso de emergencia"</string>
     <string name="clear_all" msgid="8899013032870561633">"Borrar todo"</string>
     <string name="clear" msgid="3648880442502887163">"Borrar"</string>
     <string name="clear_all_message" msgid="1548432000373861295">"¿Borrar toda la información y todos los contactos?"</string>

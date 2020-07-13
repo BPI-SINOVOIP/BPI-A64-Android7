@@ -12,20 +12,6 @@ menuconfig PHYLIB
 
 if PHYLIB
 
-config MDIO_BOARDINFO
-       bool
-       default y
-
-config SWCONFIG
-       tristate "Switch configuration API"
-       ---help---
-         Switch configuration API using netlink. This allows
-         you to configure the VLAN features of certain switches.
-
-config SWCONFIG_LEDS
-       bool "Switch LED trigger support"
-       depends on (SWCONFIG && LEDS_TRIGGERS)
-
 comment "MII PHY device drivers"
 config SUNXI_EPHY
 	tristate "Drivers for Allwinnertech EPHY"
@@ -200,8 +186,6 @@ config MDIO_BUS_MUX_MMIOREG
 	  the FPGA's registers.
 
 	  Currently, only 8-bit registers are supported.
-
-source "drivers/net/phy/b53/Kconfig"
 
 endif # PHYLIB
 

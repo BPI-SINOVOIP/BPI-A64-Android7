@@ -33,6 +33,7 @@ import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.test.ActivityInstrumentationTestCase2;
 import android.test.TouchUtils;
+import android.test.UiThreadTest;
 import android.text.Editable;
 import android.text.SpannableStringBuilder;
 import android.util.AttributeSet;
@@ -109,12 +110,35 @@ public class AbsListViewTest extends ActivityInstrumentationTestCase2<ListViewCt
          */
     }
 
-    public void testAccessFastScrollEnabled() {
+    @UiThreadTest
+    public void testAccessFastScrollEnabled_UiThread() {
+        mListView.setFastScrollAlwaysVisible(false);
         mListView.setFastScrollEnabled(false);
         assertFalse(mListView.isFastScrollEnabled());
 
+        mListView.setFastScrollAlwaysVisible(true);
         mListView.setFastScrollEnabled(true);
         assertTrue(mListView.isFastScrollEnabled());
+    }
+
+    public void testAccessFastScrollEnabled() {
+        mListView.setFastScrollAlwaysVisible(false);
+        mListView.setFastScrollEnabled(false);
+        new PollingCheck() {
+            @Override
+            protected boolean check() {
+                return !mListView.isFastScrollEnabled();
+            }
+        }.run();
+
+        mListView.setFastScrollAlwaysVisible(true);
+        mListView.setFastScrollEnabled(true);
+        new PollingCheck() {
+            @Override
+            protected boolean check() {
+                return mListView.isFastScrollEnabled();
+            }
+        }.run();
     }
 
     public void testAccessSmoothScrollbarEnabled() {

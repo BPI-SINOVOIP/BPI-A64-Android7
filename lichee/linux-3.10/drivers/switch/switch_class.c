@@ -21,7 +21,7 @@
 #include <linux/device.h>
 #include <linux/fs.h>
 #include <linux/err.h>
-#include <linux/android_switch.h>
+#include <linux/switch.h>
 
 struct class *switch_class;
 static atomic_t device_count;

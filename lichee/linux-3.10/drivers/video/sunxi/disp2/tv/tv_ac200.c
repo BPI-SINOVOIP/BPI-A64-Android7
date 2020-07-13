@@ -1,6 +1,6 @@
 #include "tv_ac200.h"
 #include "tv_ac200_lowlevel.h"
-#include <linux/android_switch.h>
+#include <linux/switch.h>
 #include <linux/clk-private.h>
 
 /* clk */

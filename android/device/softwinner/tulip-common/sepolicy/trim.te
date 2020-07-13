@@ -6,4 +6,7 @@ allow trim self:capability { dac_override sys_admin };
 allow trim { system_data_file logger_file }:dir { read open ioctl };
 allow trim block_device:dir { search };
 allow trim property_socket:sock_file { write };
-allow trim cache_file:dir { read open ioctl };
+allow trim init:unix_stream_socket connectto;
+allow trim ctl_default_prop:property_service set;
+allow trim rootfs:lnk_file getattr;
+allow trim cache_file:dir { read ioctl open };

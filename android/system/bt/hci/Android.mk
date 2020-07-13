@@ -19,7 +19,8 @@ LOCAL_SRC_FILES := \
     src/hci_packet_parser.c \
     src/low_power_manager.c \
     src/packet_fragmenter.c \
-    src/vendor.c
+    src/vendor.c \
+    ../EventLogTags.logtags
 
 ifeq ($(BOARD_HAVE_BLUETOOTH_RTK),true)
 LOCAL_CFLAGS += -DBLUETOOTH_RTK

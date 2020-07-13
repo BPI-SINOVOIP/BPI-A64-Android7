@@ -96,7 +96,8 @@
     <string name="user_emergency_info_title" msgid="7827058167207376581">"Noodinligting"</string>
     <string name="user_emergency_info_consent" msgid="5636028073450797246">"Inligting wat jy hier invoer, kan dié help wat in \'n noodgeval eerste reageer. Dit word net op jou toestel geberg en enigiemand kan dit van die noodbeller af lees sonder om jou foon te ontsluit."</string>
     <string name="emergency_info_continue" msgid="5453201508537906087">"Gaan voort"</string>
-    <string name="no_info_provided" msgid="6775035037534954056">"Geen noodinligting is verskaf nie"</string>
+    <string name="no_info_provided" msgid="716200382010821001">"Geen inligting oor die foon se eienaar nie"</string>
+    <string name="tap_pencil" msgid="2723698054265296934">"As dit jou foon is, tik op die potloodikoon om inligting by te voeg wat in geval van nood hier gewys sal word"</string>
     <string name="clear_all" msgid="8899013032870561633">"Vee alles uit"</string>
     <string name="clear" msgid="3648880442502887163">"Vee uit"</string>
     <string name="clear_all_message" msgid="1548432000373861295">"Vee alle inligting en kontakte uit?"</string>

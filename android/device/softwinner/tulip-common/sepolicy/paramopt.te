@@ -14,4 +14,4 @@ allow paramopt hwui_prop:property_service set;
 allow paramopt config_prop:property_service set;
 allow paramopt shell_exec:file { open read execute execute_no_trans getattr };
 allow paramopt sysfs_lowmemorykiller:file { open write };
-
+allow paramopt rootfs:lnk_file getattr;

@@ -7,7 +7,7 @@ import itertools
 import json
 
 from telemetry.internal.results import output_formatter
-from telemetry.value import summary as summary_module
+from telemetry.value import trace
 
 def ResultsAsChartDict(benchmark_metadata, page_specific_values,
                        summary_values):
@@ -30,9 +30,8 @@ def ResultsAsChartDict(benchmark_metadata, page_specific_values,
   Returns:
     A Chart JSON dict corresponding to the given data.
   """
-  summary = summary_module.Summary(page_specific_values)
   values = itertools.chain(
-      summary.interleaved_computed_per_page_values_and_summaries,
+      output_formatter.SummarizePageSpecificValues(page_specific_values),
       summary_values)
   charts = collections.defaultdict(dict)
 
@@ -45,7 +44,12 @@ def ResultsAsChartDict(benchmark_metadata, page_specific_values,
       if chart_name == trace_name:
         trace_name = 'summary'
 
-    if value.tir_label:
+    # Dashboard handles the chart_name of trace values specially: it
+    # strips out the field with chart_name 'trace'. Hence in case trace
+    # value has tir_label, we preserve the chart_name.
+    # For relevant section code of dashboard code that handles this, see:
+    # https://github.com/catapult-project/catapult/blob/25e660b/dashboard/dashboard/add_point.py#L199#L216
+    if value.tir_label and not isinstance(value, trace.TraceValue):
       chart_name = value.tir_label + '@@' + chart_name
 
     # This intentionally overwrites the trace if it already exists because this

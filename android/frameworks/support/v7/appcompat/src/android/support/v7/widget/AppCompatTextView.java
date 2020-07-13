@@ -22,17 +22,20 @@ import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.Nullable;
+import android.support.annotation.RestrictTo;
 import android.support.v4.view.TintableBackgroundView;
 import android.support.v7.appcompat.R;
 import android.util.AttributeSet;
 import android.widget.TextView;
+
+import static android.support.annotation.RestrictTo.Scope.GROUP_ID;
 
 /**
  * A {@link TextView} which supports compatible features on older version of the platform,
  * including:
  * <ul>
  *     <li>Supports {@link R.attr#textAllCaps} style attribute which works back to
- *     {@link android.os.Build.VERSION_CODES#ECLAIR_MR1 Eclair MR1}.</li>
+ *     {@link android.os.Build.VERSION_CODES#GINGERBREAD Gingerbread}.</li>
  *     <li>Allows dynamic tint of it background via the background tint methods in
  *     {@link android.support.v4.view.ViewCompat}.</li>
  *     <li>Allows setting of the background tint using {@link R.attr#backgroundTint} and
@@ -44,7 +47,6 @@ import android.widget.TextView;
  */
 public class AppCompatTextView extends TextView implements TintableBackgroundView {
 
-    private AppCompatDrawableManager mDrawableManager;
     private AppCompatBackgroundHelper mBackgroundTintHelper;
     private AppCompatTextHelper mTextHelper;
 
@@ -59,8 +61,7 @@ public class AppCompatTextView extends TextView implements TintableBackgroundVie
     public AppCompatTextView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(TintContextWrapper.wrap(context), attrs, defStyleAttr);
 
-        mDrawableManager = AppCompatDrawableManager.get();
-        mBackgroundTintHelper = new AppCompatBackgroundHelper(this, mDrawableManager);
+        mBackgroundTintHelper = new AppCompatBackgroundHelper(this);
         mBackgroundTintHelper.loadFromAttributes(attrs, defStyleAttr);
 
         mTextHelper = AppCompatTextHelper.create(this);
@@ -90,6 +91,7 @@ public class AppCompatTextView extends TextView implements TintableBackgroundVie
      *
      * @hide
      */
+    @RestrictTo(GROUP_ID)
     @Override
     public void setSupportBackgroundTintList(@Nullable ColorStateList tint) {
         if (mBackgroundTintHelper != null) {
@@ -103,6 +105,7 @@ public class AppCompatTextView extends TextView implements TintableBackgroundVie
      *
      * @hide
      */
+    @RestrictTo(GROUP_ID)
     @Override
     @Nullable
     public ColorStateList getSupportBackgroundTintList() {
@@ -116,6 +119,7 @@ public class AppCompatTextView extends TextView implements TintableBackgroundVie
      *
      * @hide
      */
+    @RestrictTo(GROUP_ID)
     @Override
     public void setSupportBackgroundTintMode(@Nullable PorterDuff.Mode tintMode) {
         if (mBackgroundTintHelper != null) {
@@ -129,6 +133,7 @@ public class AppCompatTextView extends TextView implements TintableBackgroundVie
      *
      * @hide
      */
+    @RestrictTo(GROUP_ID)
     @Override
     @Nullable
     public PorterDuff.Mode getSupportBackgroundTintMode() {

@@ -1,0 +1,245 @@
+/*
+ * Copyright 2000-2013 JetBrains s.r.o.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import static org.jetbrains.jps.idea.IdeaProjectLoader.guessHome
+
+includeTargets << new File("${guessHome(this)}/build/scripts/utils.gant")
+
+requireProperty("out", "$home/out")
+requireProperty("buildNumber", "SNAPSHOT")
+
+// "out" has to be canonical, otherwise the ant build fails
+// with mysterious errors
+out = new File(out).getCanonicalPath()
+setProperty("out", out)
+
+class Paths {
+  final sandbox
+  final distWin
+  final distAll
+  final distUnix
+  final distMac
+  final artifacts
+  final artifacts_core
+  final artifacts_jps
+
+  def Paths(String out) {
+    sandbox = out
+    distWin = "$sandbox/dist.win.ce"
+    distAll = "$sandbox/dist.all.ce"
+    distUnix = "$sandbox/dist.unix.ce"
+    distMac = "$sandbox/dist.mac.ce"
+    artifacts = "$sandbox/artifacts"
+    artifacts_core = "$artifacts/core"
+    artifacts_jps = "$artifacts/jps"
+  }
+}
+
+def paths = new Paths(out)
+setProperty("paths", paths)
+
+target(compile: "Compile project") {
+  loadProject()
+
+  projectBuilder.stage("Cleaning up sandbox folder")
+  forceDelete(paths.sandbox)
+
+  [paths.sandbox, paths.distWin, paths.distAll, paths.distUnix, paths.distMac, paths.artifacts, paths.artifacts_core, paths.artifacts_jps].each {
+    ant.mkdir(dir: it)
+  }
+
+  projectBuilder.targetFolder = "$out/classes"
+  projectBuilder.cleanOutput()
+  projectBuilder.buildProduction()
+  projectBuilder.makeModuleTests(findModule("jps-builders"))
+}
+
+private String appInfoFile() {
+  return "${projectBuilder.moduleOutput(findModule("adt-branding"))}/idea/AndroidStudioApplicationInfo.xml"
+}
+
+target('default': 'The default target') {
+  depends([compile])
+
+  // load ApplicationInfo.xml properties
+  ant.xmlproperty(file: appInfoFile(), collapseAttributes: "true")
+
+  zipSources(home, paths.artifacts)
+
+  layoutAll([buildNumber: "AI-$snapshot".replaceAll("SNAPSHOT", p("buildNumber")),
+             system_selector: "AndroidStudioPreview",
+             platform_prefix: "AndroidStudio",
+             icns: "${projectBuilder.moduleOutput(findModule("adt-branding"))}/artwork/AndroidStudio.icns",
+             ide_jvm_args: "-Didea.platform.prefix=AndroidStudio",
+             tools_jar: true],
+            home, null, paths, true)
+
+  // Generate updater.jar from the updater module (patch updater)
+  projectBuilder.stage("Generating updater in $out")
+  layoutUpdater(out)
+}
+
+target('build-dist-jars' : 'Target to build jars from locally compiled classes') {
+  loadProject()
+  // load ApplicationInfo.xml properties
+  ant.xmlproperty(file: appInfoFile(), collapseAttributes: "true")
+
+  layoutAll([buildNumber: "AI-$snapshot".replaceAll("SNAPSHOT", p("buildNumber")),
+             system_selector: "IdeaIC${p("component.version.major")}",
+             tools_jar: true],
+             home, null, paths)
+}
+
+def layoutAll(Map args, String home, String out, Paths _paths = null, buildJps = false) {
+  Paths paths = _paths != null ? _paths : new Paths(out)
+
+  args.companyName = p("component.company.name")
+
+  wireBuildDate(args.buildNumber, appInfoFile())
+  ant.echo(message: args.buildNumber, file: "$paths.distAll/build.txt")
+
+  def layouts = includeFile("$home/build/scripts/layouts.gant")
+  layouts.layoutFull(home, paths.distAll, null)
+  layouts.layout_core(home, paths.artifacts_core)
+  notifyArtifactBuilt(paths.artifacts_core)
+  if (buildJps) {
+    layouts.layoutJps(home, paths.artifacts_jps, args.buildNumber, {})
+    notifyArtifactBuilt(paths.artifacts_jps)
+  }
+
+  layout(paths.distAll) {
+    dir("bin") {
+      fileset(dir: "${home}/bin") {
+        include(name: "*.*")
+      }
+    }
+    dir("license") {
+      fileset(dir: "${home}/license")
+    }
+    fileset(file: "${home}/LICENSE.txt")
+    fileset(file: "${home}/NOTICE.txt")
+  }
+  patchPropertiesFile(paths.distAll, args + [appendices: ["$home/build/conf/ideaCE.properties"]])
+
+  layoutWin(args, home, paths)
+  layoutMac(args, home, paths)
+  layoutUnix(args, home, paths)
+
+  def winAppRoot = "android-studio"
+  def macAppRoot = "Android Studio.app/Contents"
+  def linTarRoot = "android-studio"
+
+  androidBuildNumber = p("buildNumber")
+  //def macAppRoot = isEap() ?
+  //                 "IntelliJ IDEA ${p("component.version.major")} CE EAP.app/Contents" :
+  //                 "IntelliJ IDEA ${p("component.version.major")} CE.app/Contents"
+
+  def winZip = "$paths.artifacts/android-studio-${androidBuildNumber}.win.zip"
+  def macZip = "$paths.artifacts/android-studio-${androidBuildNumber}.mac.zip"
+  def linTar = "$paths.artifacts/android-studio-${androidBuildNumber}.tar"
+
+  buildWinZip(winAppRoot, winZip, [paths.distAll, paths.distWin])
+  buildTarGz(linTarRoot, linTar, [paths.distAll, paths.distUnix])
+  buildMacZip(macAppRoot, macZip, [paths.distAll], paths.distMac)
+}
+
+private layoutWin(Map _args, String home, Paths paths) {
+  String target = paths.distWin
+
+  Map args = new HashMap(_args)
+  args.product_uc = "ANDROID_STUDIO"
+  args.vm_options = "studio.exe"
+
+  layout(target) {
+    dir("bin") {
+      fileset(dir: "$home/bin/win")
+    }
+  }
+
+  ant.copy(file: "$home/../adt/idea/adt-branding/src/artwork/androidstudio.ico", tofile: "$target/bin/idea.ico")
+
+  // The 0.1.1 win launcher.
+  ant.copy(  file: "$home/../adt/idea/native/WinLauncher/out/Release-Win32/studio.exe",
+           tofile: "$target/bin/studio.exe")
+  ant.copy(  file: "$home/../adt/idea/native/WinLauncher/out/Release-Win32/studio.exe.manifest",
+           tofile: "$target/bin/studio.exe.manifest")
+  ant.copy(  file: "$home/../adt/idea/native/WinLauncher/out/Release-x64/studio64.exe",
+           tofile: "$target/bin/studio64.exe")
+  ant.copy(  file: "$home/../adt/idea/native/WinLauncher/out/Release-x64/studio64.exe.manifest",
+           tofile: "$target/bin/studio64.exe.manifest")
+  // Manual updater script
+  ant.copy(  file: "$home/../adt/idea/native/update_studio.bat",
+           tofile: "$target/bin/update_studio.bat")
+
+  winScripts(target, home, "studio.bat", args)
+  winVMOptions(target, args, "studio.exe", "studio64.exe")
+}
+
+private layoutMac(Map _args, String home, Paths paths) {
+  String target = paths.distMac
+
+  Map args = new HashMap(_args)
+  args.bundleIdentifier = "com.google.android.studio"
+  args.executable = "studio"
+  args.help_id = "AI"
+  args.doc_types = """
+      <dict>
+        <key>CFBundleTypeExtensions</key>
+        <array>
+          <string>ipr</string>
+        </array>
+        <key>CFBundleTypeIconFile</key>
+        <string>idea.icns</string>
+        <key>CFBundleTypeName</key>
+        <string>IntelliJ IDEA Project File</string>
+        <key>CFBundleTypeRole</key>
+        <string>Editor</string>
+      </dict>
+"""
+  args."idea.properties.path" = "${paths.distAll}/bin/idea.properties"
+  args.urlSchemes = ["idea"]
+  args.mac_no_yjp = true
+
+  // Manual updater script
+  ant.copy(file: "$home/../adt/idea/native/update_studio.sh", tofile: "$target/bin/update_studio.sh")
+
+  layoutMacApp(target, home, args)
+}
+
+private layoutUnix(Map _args, String home, Paths paths) {
+  String target = paths.distUnix
+
+  Map args = new HashMap(_args)
+  args.product_uc = "STUDIO"
+  args.vm_options = "studio"
+  args.script_name = "studio.sh"
+
+  layout(target) {
+    dir("bin") {
+      fileset(dir: "$home/bin/linux")
+    }
+  }
+
+  ant.copy(file: "$home/../adt/idea/adt-branding/src/artwork/icon_AS_128.png", tofile: "$target/bin/idea.png")
+  ant.copy(file: "$home/../adt/idea/adt-branding/src/artwork/androidstudio.ico", tofile: "$target/bin/androidstudio.ico")
+
+  // Manual updater script
+  ant.copy(file: "$home/../adt/idea/native/update_studio.sh", tofile: "$target/bin/update_studio.sh")
+
+  unixScripts(target, home, args.script_name, args)
+  unixVMOptions(target, "studio")
+  unixReadme(target, home, args)
+}

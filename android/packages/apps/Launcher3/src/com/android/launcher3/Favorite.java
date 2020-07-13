@@ -8,10 +8,10 @@ public class Favorite {
 	private String x;
 	private String y;
 
-	public Favorite(String className, String packageName, long container,
+	public Favorite(String packageName, String className, long container,
 			String screen, String x, String y) {
+	    this.packageName = packageName;
 		this.className = className;
-		this.packageName = packageName;
 		this.container = container;
 		this.screen = screen;
 		this.x = x;

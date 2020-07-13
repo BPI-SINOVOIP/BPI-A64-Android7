@@ -45,7 +45,6 @@ import java.io.InputStream;
  * The term "StreamGobbler" was taken from an article called "When Runtime.exec() won't", see
  * http://www.javaworld.com/javaworld/jw-12-2000/jw-1229-traps.html.
  *
- * @author Christian Plattner, plattner@trilead.com
  * @version $Id: StreamGobbler.java,v 1.1 2007/10/15 12:49:56 cplattne Exp $
  */
 

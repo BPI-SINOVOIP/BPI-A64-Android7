@@ -150,7 +150,15 @@ abstract class DocumentsClientTestCase extends InstrumentationTestCase {
         return result;
     }
 
+    /**
+     * Clears the DocumentsUI package data, unless test name ends on {@code DoNotClear}.
+     */
     protected void clearDocumentsUi() throws Exception {
+        final String testName = getName();
+        if (testName.endsWith("DoNotClear")) {
+            Log.d(TAG, "Not clearing DocumentsUI due to test name: " + testName);
+            return;
+        }
         executeShellCommand("pm clear com.android.documentsui");
     }
 }

@@ -1343,6 +1343,10 @@ public class Stubs {
     apiWriter.print(cl.isInterface() ? "interface" : "class");
     apiWriter.print(" ");
     apiWriter.print(cl.name());
+    if (cl.hasTypeParameters()) {
+      apiWriter.print(TypeInfo.typeArgumentsName(cl.asTypeInfo().typeArguments(),
+          new HashSet<String>()));
+    }
 
     if (!cl.isInterface()
         && !"java.lang.Object".equals(cl.qualifiedName())
@@ -1431,6 +1435,9 @@ public class Stubs {
     }
     if (mi.isSynchronized()) {
       apiWriter.print(" synchronized");
+    }
+    if (mi.hasTypeParameters()) {
+      apiWriter.print(" " + mi.typeArgumentsName(new HashSet<String>()));
     }
     apiWriter.print(" ");
     if (mi.returnType() == null) {

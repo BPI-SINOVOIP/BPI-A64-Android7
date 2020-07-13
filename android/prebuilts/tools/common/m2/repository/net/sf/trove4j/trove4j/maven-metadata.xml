@@ -2,6 +2,7 @@
 <metadata>
   <groupId>net.sf.trove4j</groupId>
   <artifactId>trove4j</artifactId>
+  <version>3.0.3</version>
   <versioning>
     <latest>3.0.3</latest>
     <release>3.0.3</release>
@@ -13,6 +14,6 @@
       <version>3.0.2</version>
       <version>3.0.3</version>
     </versions>
-    <lastUpdated>20141204211716</lastUpdated>
+    <lastUpdated>20141209112940</lastUpdated>
   </versioning>
 </metadata>

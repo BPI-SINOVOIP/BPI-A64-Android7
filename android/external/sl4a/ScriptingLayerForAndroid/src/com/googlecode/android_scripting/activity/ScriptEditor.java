@@ -63,7 +63,6 @@ import java.util.regex.Pattern;
 /**
  * A text editor for scripts.
  *
- * @author Damon Kohler (damonkohler@gmail.com)
  */
 public class ScriptEditor extends Activity implements OnClickListener {
   private static final int DIALOG_FIND_REPLACE = 2;

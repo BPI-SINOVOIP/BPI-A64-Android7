@@ -17,7 +17,8 @@ LOCAL_C_INCLUDES:= \
     $(CEDARX_ROOT)/external/include/adecoder \
     $(TOP)/frameworks/av/media/libcedarc/include \
     $(TOP)/frameworks/av/media/libcedarc/vdecoder/include \
-    $(TOP)/frameworks/av/media/libcedarc/sdecoder/include
+    $(TOP)/frameworks/av/media/libcedarc/sdecoder/include \
+    $(CEDARX_ROOT)/libcore/parser/base/id3base
 
 
 

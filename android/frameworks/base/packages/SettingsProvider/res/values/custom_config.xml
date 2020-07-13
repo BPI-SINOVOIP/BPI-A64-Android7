@@ -7,4 +7,7 @@
     <integer name="def_gesture_screenrecord_enable" translatable="false">0</integer>
     <!-- Default kill background services -->
     <bool name="def_kill_background_services" translatable="false">false</bool>
+	
+	 <!-- Default background services limit count -->
+    <integer name="def_background_services_limit_count" translatable="false">0</integer>
 </resources>

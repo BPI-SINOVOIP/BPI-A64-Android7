@@ -41,6 +41,8 @@ public class FileUtil {
     private static final String TAG = "FileUtil";
     private static final Random mRandom = new Random(0);
     private static long mFileId = 0;
+
+    public static final int BUFFER_SIZE = 10 * 1024 * 1024;
     /**
      * create array with different data per each call
      *
@@ -140,7 +142,6 @@ public class FileUtil {
      */
     public static File createNewFilledFile(Context context, String dirName, long length)
             throws IOException {
-        final int BUFFER_SIZE = 10 * 1024 * 1024;
         File file = createNewFile(context, dirName);
         FileOutputStream out = new FileOutputStream(file);
         byte[] data = generateRandomData(BUFFER_SIZE);

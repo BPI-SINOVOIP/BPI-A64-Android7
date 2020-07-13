@@ -39,7 +39,6 @@ import org.json.JSONObject;
 /**
  * Provides access to contacts related functionality.
  *
- * @author MeanEYE.rcf (meaneye.rcf@gmail.com
  */
 public class ContactsFacade extends RpcReceiver {
   private static final Uri CONTACTS_URI = Uri.parse("content://contacts/people");

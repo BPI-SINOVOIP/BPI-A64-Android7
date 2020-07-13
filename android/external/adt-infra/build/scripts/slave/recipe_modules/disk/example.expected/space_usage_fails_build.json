@@ -1,0 +1,27 @@
+[
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "RECIPE_MODULE[disk]/resources/statvfs.py",
+      "[SLAVE_BUILD]"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "usage1",
+    "stdout": "/path/to/tmp/json",
+    "~followup_annotations": [
+      "@@@STEP_LOG_LINE@json.output@{@@@",
+      "@@@STEP_LOG_LINE@json.output@  \"x\": 1@@@",
+      "@@@STEP_LOG_LINE@json.output@}@@@",
+      "@@@STEP_LOG_END@json.output@@@",
+      "@@@STEP_LOG_LINE@exception@KeyError('capacity',)@@@",
+      "@@@STEP_LOG_END@exception@@@",
+      "@@@STEP_WARNINGS@@@"
+    ]
+  },
+  {
+    "name": "$result",
+    "reason": "Could not get disk info: 'capacity'",
+    "status_code": 1
+  }
+]

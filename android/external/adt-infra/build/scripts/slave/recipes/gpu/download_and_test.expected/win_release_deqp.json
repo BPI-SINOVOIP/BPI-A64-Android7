@@ -1,0 +1,180 @@
+[
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[BUILD]\\scripts\\slave\\cleanup_temp.py"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "cleanup temp"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[BUILD]\\scripts\\slave\\git_setup.py",
+      "--path",
+      "[SLAVE_BUILD]\\swarming.client",
+      "--url",
+      "https://chromium.googlesource.com/external/swarming.client.git",
+      "--git_cmd_path",
+      "[DEPOT_TOOLS]\\git.bat"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "git setup (swarming_client)"
+  },
+  {
+    "cmd": [
+      "[DEPOT_TOOLS]\\git.bat",
+      "retry",
+      "fetch",
+      "origin",
+      "feaaabcdef"
+    ],
+    "cwd": "[SLAVE_BUILD]\\swarming.client",
+    "name": "git fetch (swarming_client)"
+  },
+  {
+    "cmd": [
+      "[DEPOT_TOOLS]\\git.bat",
+      "checkout",
+      "-f",
+      "FETCH_HEAD"
+    ],
+    "cwd": "[SLAVE_BUILD]\\swarming.client",
+    "name": "git checkout (swarming_client)"
+  },
+  {
+    "cmd": [
+      "[DEPOT_TOOLS]\\git.bat",
+      "clean",
+      "-f",
+      "-d",
+      "-x"
+    ],
+    "cwd": "[SLAVE_BUILD]\\swarming.client",
+    "name": "git clean (swarming_client)"
+  },
+  {
+    "cmd": [
+      "[DEPOT_TOOLS]\\git.bat",
+      "submodule",
+      "sync"
+    ],
+    "cwd": "[SLAVE_BUILD]\\swarming.client",
+    "name": "submodule sync (swarming_client)"
+  },
+  {
+    "cmd": [
+      "[DEPOT_TOOLS]\\git.bat",
+      "submodule",
+      "update",
+      "--init",
+      "--recursive"
+    ],
+    "cwd": "[SLAVE_BUILD]\\swarming.client",
+    "name": "submodule update (swarming_client)"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[DEPOT_TOOLS]\\win_toolchain\\get_toolchain_if_necessary.py",
+      "27eac9b2869ef6c89391f305a3f01285ea317867",
+      "9d9a93134b3eabd003b85b4e7dea06c0eae150ed"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "get_vs_toolchain_if_necessary"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "exit()"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "copy parent_got_revision to got_revision",
+    "~followup_annotations": [
+      "@@@STEP_LOG_LINE@python.inline@exit()@@@",
+      "@@@STEP_LOG_END@python.inline@@@",
+      "@@@SET_BUILD_PROPERTY@got_revision@160000@@@"
+    ]
+  },
+  {
+    "allow_subannotations": true,
+    "cmd": [
+      "python",
+      "-u",
+      "[BUILD]\\scripts\\slave\\runtest.py",
+      "--target",
+      "Release",
+      "--factory-properties",
+      "{\"blamelist\": [\"cool_dev1337@chromium.org\", \"hax@chromium.org\"], \"branch\": \"TestBranch\", \"build_config\": \"Release\", \"buildername\": \"win release dEQP tester\", \"buildnumber\": 776, \"master_class_name_for_testing\": \"ChromiumGPUTesting\", \"mastername\": \"chromium.gpu.testing\", \"parent_buildername\": \"win release builder\", \"parent_buildnumber\": 571, \"parent_got_revision\": 160000, \"parent_got_swarming_client_revision\": \"feaaabcdef\", \"parent_got_webkit_revision\": 10000, \"project\": \"\", \"recipe\": \"gpu/download_and_test\", \"repository\": \"svn://svn-mirror.golo.chromium.org/chrome/trunk\", \"revision\": \"204787\", \"slavename\": \"TestSlavename\", \"swarm_hashes\": {\"angle_deqp_gles2_tests\": \"[dummy hash for angle_deqp_gles2_tests]\", \"angle_deqp_gles3_tests\": \"[dummy hash for angle_deqp_gles3_tests]\", \"angle_end2end_tests\": \"[dummy hash for angle_end2end_tests]\", \"angle_unittests\": \"[dummy hash for angle_unittests]\", \"audio_unittests\": \"[dummy hash for audio_unittests]\", \"content_gl_tests\": \"[dummy hash for content_gl_tests]\", \"content_unittests\": \"[dummy hash for content_unittests]\", \"gl_tests\": \"[dummy hash for gl_tests]\", \"gl_unittests\": \"[dummy hash for gl_unittests]\", \"gles2_conform_test\": \"[dummy hash for gles2_conform_test]\", \"gpu_unittests\": \"[dummy hash for gpu_unittests]\", \"tab_capture_end2end_tests\": \"[dummy hash for tab_capture_end2end_tests]\", \"telemetry_gpu_test\": \"[dummy hash for telemetry_gpu_test]\"}, \"workdir\": \"/path/to/workdir/TestSlavename\"}",
+      "--build-properties",
+      "{\"blamelist\": [\"cool_dev1337@chromium.org\", \"hax@chromium.org\"], \"branch\": \"TestBranch\", \"build_config\": \"Release\", \"buildername\": \"win release dEQP tester\", \"buildnumber\": 776, \"master_class_name_for_testing\": \"ChromiumGPUTesting\", \"mastername\": \"chromium.gpu.testing\", \"parent_buildername\": \"win release builder\", \"parent_buildnumber\": 571, \"parent_got_revision\": 160000, \"parent_got_swarming_client_revision\": \"feaaabcdef\", \"parent_got_webkit_revision\": 10000, \"project\": \"\", \"recipe\": \"gpu/download_and_test\", \"repository\": \"svn://svn-mirror.golo.chromium.org/chrome/trunk\", \"revision\": \"204787\", \"slavename\": \"TestSlavename\", \"swarm_hashes\": {\"angle_deqp_gles2_tests\": \"[dummy hash for angle_deqp_gles2_tests]\", \"angle_deqp_gles3_tests\": \"[dummy hash for angle_deqp_gles3_tests]\", \"angle_end2end_tests\": \"[dummy hash for angle_end2end_tests]\", \"angle_unittests\": \"[dummy hash for angle_unittests]\", \"audio_unittests\": \"[dummy hash for audio_unittests]\", \"content_gl_tests\": \"[dummy hash for content_gl_tests]\", \"content_unittests\": \"[dummy hash for content_unittests]\", \"gl_tests\": \"[dummy hash for gl_tests]\", \"gl_unittests\": \"[dummy hash for gl_unittests]\", \"gles2_conform_test\": \"[dummy hash for gles2_conform_test]\", \"gpu_unittests\": \"[dummy hash for gpu_unittests]\", \"tab_capture_end2end_tests\": \"[dummy hash for tab_capture_end2end_tests]\", \"telemetry_gpu_test\": \"[dummy hash for telemetry_gpu_test]\"}, \"workdir\": \"/path/to/workdir/TestSlavename\"}",
+      "--annotate=gtest",
+      "--test-type=angle_deqp_gles2_tests",
+      "--step-name=angle_deqp_gles2_tests",
+      "--generate-json-file",
+      "--results-directory=[SLAVE_BUILD]\\gtest-results\\angle_deqp_gles2_tests",
+      "--test-launcher-summary-output",
+      "/path/to/tmp/json",
+      "--builder-name=win release dEQP tester",
+      "--slave-name=TestSlavename",
+      "--build-number=776",
+      "--run-python-script",
+      "--revision=160000",
+      "--webkit-revision=160000",
+      "--master-class-name=ChromiumGPUTesting",
+      "[SLAVE_BUILD]\\swarming.client\\run_isolated.py",
+      "--isolated",
+      "[dummy hash for angle_deqp_gles2_tests]",
+      "-I",
+      "https://isolateserver.appspot.com",
+      "--"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "angle_deqp_gles2_tests"
+  },
+  {
+    "allow_subannotations": true,
+    "cmd": [
+      "python",
+      "-u",
+      "[BUILD]\\scripts\\slave\\runtest.py",
+      "--target",
+      "Release",
+      "--factory-properties",
+      "{\"blamelist\": [\"cool_dev1337@chromium.org\", \"hax@chromium.org\"], \"branch\": \"TestBranch\", \"build_config\": \"Release\", \"buildername\": \"win release dEQP tester\", \"buildnumber\": 776, \"master_class_name_for_testing\": \"ChromiumGPUTesting\", \"mastername\": \"chromium.gpu.testing\", \"parent_buildername\": \"win release builder\", \"parent_buildnumber\": 571, \"parent_got_revision\": 160000, \"parent_got_swarming_client_revision\": \"feaaabcdef\", \"parent_got_webkit_revision\": 10000, \"project\": \"\", \"recipe\": \"gpu/download_and_test\", \"repository\": \"svn://svn-mirror.golo.chromium.org/chrome/trunk\", \"revision\": \"204787\", \"slavename\": \"TestSlavename\", \"swarm_hashes\": {\"angle_deqp_gles2_tests\": \"[dummy hash for angle_deqp_gles2_tests]\", \"angle_deqp_gles3_tests\": \"[dummy hash for angle_deqp_gles3_tests]\", \"angle_end2end_tests\": \"[dummy hash for angle_end2end_tests]\", \"angle_unittests\": \"[dummy hash for angle_unittests]\", \"audio_unittests\": \"[dummy hash for audio_unittests]\", \"content_gl_tests\": \"[dummy hash for content_gl_tests]\", \"content_unittests\": \"[dummy hash for content_unittests]\", \"gl_tests\": \"[dummy hash for gl_tests]\", \"gl_unittests\": \"[dummy hash for gl_unittests]\", \"gles2_conform_test\": \"[dummy hash for gles2_conform_test]\", \"gpu_unittests\": \"[dummy hash for gpu_unittests]\", \"tab_capture_end2end_tests\": \"[dummy hash for tab_capture_end2end_tests]\", \"telemetry_gpu_test\": \"[dummy hash for telemetry_gpu_test]\"}, \"workdir\": \"/path/to/workdir/TestSlavename\"}",
+      "--build-properties",
+      "{\"blamelist\": [\"cool_dev1337@chromium.org\", \"hax@chromium.org\"], \"branch\": \"TestBranch\", \"build_config\": \"Release\", \"buildername\": \"win release dEQP tester\", \"buildnumber\": 776, \"master_class_name_for_testing\": \"ChromiumGPUTesting\", \"mastername\": \"chromium.gpu.testing\", \"parent_buildername\": \"win release builder\", \"parent_buildnumber\": 571, \"parent_got_revision\": 160000, \"parent_got_swarming_client_revision\": \"feaaabcdef\", \"parent_got_webkit_revision\": 10000, \"project\": \"\", \"recipe\": \"gpu/download_and_test\", \"repository\": \"svn://svn-mirror.golo.chromium.org/chrome/trunk\", \"revision\": \"204787\", \"slavename\": \"TestSlavename\", \"swarm_hashes\": {\"angle_deqp_gles2_tests\": \"[dummy hash for angle_deqp_gles2_tests]\", \"angle_deqp_gles3_tests\": \"[dummy hash for angle_deqp_gles3_tests]\", \"angle_end2end_tests\": \"[dummy hash for angle_end2end_tests]\", \"angle_unittests\": \"[dummy hash for angle_unittests]\", \"audio_unittests\": \"[dummy hash for audio_unittests]\", \"content_gl_tests\": \"[dummy hash for content_gl_tests]\", \"content_unittests\": \"[dummy hash for content_unittests]\", \"gl_tests\": \"[dummy hash for gl_tests]\", \"gl_unittests\": \"[dummy hash for gl_unittests]\", \"gles2_conform_test\": \"[dummy hash for gles2_conform_test]\", \"gpu_unittests\": \"[dummy hash for gpu_unittests]\", \"tab_capture_end2end_tests\": \"[dummy hash for tab_capture_end2end_tests]\", \"telemetry_gpu_test\": \"[dummy hash for telemetry_gpu_test]\"}, \"workdir\": \"/path/to/workdir/TestSlavename\"}",
+      "--annotate=gtest",
+      "--test-type=angle_deqp_gles3_tests",
+      "--step-name=angle_deqp_gles3_tests",
+      "--generate-json-file",
+      "--results-directory=[SLAVE_BUILD]\\gtest-results\\angle_deqp_gles3_tests",
+      "--test-launcher-summary-output",
+      "/path/to/tmp/json",
+      "--builder-name=win release dEQP tester",
+      "--slave-name=TestSlavename",
+      "--build-number=776",
+      "--run-python-script",
+      "--revision=160000",
+      "--webkit-revision=160000",
+      "--master-class-name=ChromiumGPUTesting",
+      "[SLAVE_BUILD]\\swarming.client\\run_isolated.py",
+      "--isolated",
+      "[dummy hash for angle_deqp_gles3_tests]",
+      "-I",
+      "https://isolateserver.appspot.com",
+      "--"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "angle_deqp_gles3_tests"
+  },
+  {
+    "name": "$result",
+    "recipe_result": null,
+    "status_code": 0
+  }
+]

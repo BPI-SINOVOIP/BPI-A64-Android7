@@ -1,0 +1,16 @@
+[
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "RECIPE_MODULE[swarming_heartbeat]/resources/job_runs_fine.py"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "job_runs_fine.py"
+  },
+  {
+    "name": "$result",
+    "recipe_result": null,
+    "status_code": 0
+  }
+]

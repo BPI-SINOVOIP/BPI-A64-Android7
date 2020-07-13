@@ -21,4 +21,14 @@
 
     <include layout="@layout/pass_fail_buttons" />
 
+    <TextView
+        android:id="@+id/its_progress"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="bottom"
+        android:padding="2dp"
+        android:scrollbars = "vertical"
+        android:text="@string/its_test_progress"
+        android:textSize="16sp" />
+
 </LinearLayout>

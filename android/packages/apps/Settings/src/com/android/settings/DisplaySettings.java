@@ -49,6 +49,7 @@ import android.support.v7.preference.Preference.OnPreferenceClickListener;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.android.internal.app.NightDisplayController;
 import com.android.internal.logging.MetricsLogger;
 import com.android.internal.logging.MetricsProto.MetricsEvent;
 import com.android.internal.view.RotationPolicy;
@@ -89,6 +90,7 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
     private static final String KEY_TAP_TO_WAKE = "tap_to_wake";
     private static final String KEY_AUTO_BRIGHTNESS = "auto_brightness";
     private static final String KEY_AUTO_ROTATE = "auto_rotate";
+    private static final String KEY_NIGHT_DISPLAY = "night_display";
     private static final String KEY_NIGHT_MODE = "night_mode";
     private static final String KEY_CAMERA_GESTURE = "camera_gesture";
     private static final String KEY_CAMERA_DOUBLE_TAP_POWER_GESTURE
@@ -160,6 +162,10 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
             mAutoBrightnessPreference.setOnPreferenceChangeListener(this);
         } else {
             removePreference(KEY_AUTO_BRIGHTNESS);
+        }
+
+        if (!NightDisplayController.isAvailable(activity)) {
+            removePreference(KEY_NIGHT_DISPLAY);
         }
 
         if (isLiftToWakeAvailable(activity)) {
@@ -572,6 +578,12 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
             mTapToWakePreference.setChecked(value != 0);
         }
 
+        // Update doze if it is available.
+        if (mDozePreference != null) {
+            int value = Settings.Secure.getInt(getContentResolver(), DOZE_ENABLED, 1);
+            mDozePreference.setChecked(value != 0);
+        }
+
         // Update camera gesture #1 if it is available.
         if (mCameraGesturePreference != null) {
             int value = Settings.Secure.getInt(getContentResolver(), CAMERA_GESTURE_DISABLED, 0);
@@ -646,6 +658,8 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
 				value = mHdmiFullScreen.isChecked();
 	        	Settings.System.putInt(getContentResolver(),Settings.System.HDMI_FULL_SCREEN,
 	                        value ? 0x01 : 0);
+	        } else if (preference == mDozePreference) {
+	            MetricsLogger.action(getActivity(), MetricsEvent.ACTION_AMBIENT_DISPLAY);
 	        }
         } catch (SettingNotFoundException e) {
 				Log.e(TAG, Settings.System.BRIGHTNESS_LIGHT_MODE + " or " +
@@ -791,6 +805,9 @@ public class DisplaySettings extends SettingsPreferenceFragment implements
                     }
                     if (!isAutomaticBrightnessAvailable(context.getResources())) {
                         result.add(KEY_AUTO_BRIGHTNESS);
+                    }
+                    if (!NightDisplayController.isAvailable(context)) {
+                        result.add(KEY_NIGHT_DISPLAY);
                     }
                     if (!isLiftToWakeAvailable(context)) {
                         result.add(KEY_LIFT_TO_WAKE);

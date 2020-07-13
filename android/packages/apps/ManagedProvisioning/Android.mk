@@ -13,6 +13,8 @@ LOCAL_PACKAGE_NAME := ManagedProvisioning
 LOCAL_CERTIFICATE := platform
 LOCAL_PRIVILEGED_MODULE := true
 
+LOCAL_JACK_COVERAGE_INCLUDE_FILTER := com.android.managedprovisioning.*
+
 include frameworks/opt/setupwizard/library/common.mk
 
 include $(BUILD_PACKAGE)

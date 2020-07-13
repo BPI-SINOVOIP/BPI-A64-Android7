@@ -207,6 +207,11 @@ static void LCD_panel_init(u32 sel)
 
 static void LCD_panel_exit(u32 sel)
 {
+	sunxi_lcd_dsi_gen_write_0para(sel,DSI_DCS_SET_DISPLAY_OFF);
+	sunxi_lcd_delay_ms(20);
+	sunxi_lcd_dsi_gen_write_0para(sel,DSI_DCS_ENTER_SLEEP_MODE);
+	sunxi_lcd_delay_ms(80);
+	
 	sunxi_lcd_dsi_clk_disable(sel);
 
 	return ;

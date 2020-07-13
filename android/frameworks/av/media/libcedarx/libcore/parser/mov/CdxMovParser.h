@@ -22,6 +22,8 @@
 #include "CdxVirCache.h"
 #include "CdxMovList.h"
 
+#include "Id3Base.h"
+
 #define CDX_U8 cdx_uint8
 #define CDX_S8 cdx_int8
 #define CDX_U16 cdx_uint16
@@ -172,6 +174,22 @@ typedef struct MOV_CHUNK
     CDX_U32            length;
     CDX_U64            offset;
     CDX_S32            index;
+    /* Add by khan , start
+     * 2017-3-10
+     * for some raw audio data, audio should be fed to decoder frame by frame, so we
+     * should demux frame by frame, because these audio frame has no sync flag ( AAC-LC ADTS)
+     * If one audio chunk contains such serials frames, try to get frames in a loop to the end.
+     * Here is the controll varibles:
+     *     no_completed_read  ----  whether we loop to the data end.
+     *     cycle_num                ----  current loop counts.
+     *     cycle_to                   ----  try loop counts.
+     *     audio_segsz             ----  size of loop audio frame once.
+     */
+    CDX_S32            no_completed_read;
+    CDX_S32            cycle_num;
+    CDX_S32            cycle_to;
+    CDX_S32            audio_segsz;
+    // Add by khan , end
 } MOV_CHUNK;
 
 typedef struct AVCodecContext
@@ -479,6 +497,9 @@ typedef struct MOVContext
 
     cdx_int32           bPlayreadySegment; //* for playready sms
     MOVSampleEnc        *senc_data;
+
+    cdx_int32           isReadEnd;
+    ID3*                id3v2;
 } MOVContext;
 
 #define INT_MAX      0x7fffffff

@@ -47,6 +47,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -78,6 +79,10 @@ public class ModuleRepo implements IModuleRepo {
     private IConfigurationFactory mConfigFactory = ConfigurationFactory.getInstance();
 
     private volatile boolean mInitialized = false;
+    // Whether the modules in this repo are ready to run on their assigned devices.
+    // True until explicitly set false in setPrepared().
+    private volatile boolean mPrepared = true;
+    private CountDownLatch mPreparedLatch;
 
     // Holds all the small tests waiting to be run.
     private List<IModuleDef> mSmallModules = new ArrayList<>();
@@ -197,6 +202,28 @@ public class ModuleRepo implements IModuleRepo {
      * {@inheritDoc}
      */
     @Override
+    public boolean isPrepared(long timeout, TimeUnit unit) {
+        // returns true only if CountDownLatch reaches zero && no shards have setPrepared to false
+        try {
+            return (mPreparedLatch.await(timeout, unit)) ? mPrepared : false;
+        } catch (InterruptedException e) {
+            return false;
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setPrepared(boolean isPrepared) {
+        mPrepared &= isPrepared;
+        mPreparedLatch.countDown();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public boolean isInitialized() {
         return mInitialized;
     }
@@ -206,14 +233,15 @@ public class ModuleRepo implements IModuleRepo {
      */
     @Override
     public void initialize(int shards, File testsDir, Set<IAbi> abis, List<String> deviceTokens,
-            List<String> testArgs, List<String> moduleArgs, List<String> includeFilters,
-            List<String> excludeFilters, IBuildInfo buildInfo) {
+            List<String> testArgs, List<String> moduleArgs, Set<String> includeFilters,
+            Set<String> excludeFilters, IBuildInfo buildInfo) {
         CLog.d("Initializing ModuleRepo\nShards:%d\nTests Dir:%s\nABIs:%s\nDevice Tokens:%s\n" +
                 "Test Args:%s\nModule Args:%s\nIncludes:%s\nExcludes:%s",
                 shards, testsDir.getAbsolutePath(), abis, deviceTokens, testArgs, moduleArgs,
                 includeFilters, excludeFilters);
         mInitialized = true;
         mShards = shards;
+        mPreparedLatch = new CountDownLatch(shards);
         for (String line : deviceTokens) {
             String[] parts = line.split(":");
             if (parts.length == 2) {
@@ -327,7 +355,7 @@ public class ModuleRepo implements IModuleRepo {
         return shardedList;
     }
 
-    private static void addFilters(List<String> stringFilters,
+    private static void addFilters(Set<String> stringFilters,
             Map<String, List<TestFilter>> filters, Set<IAbi> abis) {
         for (String filterString : stringFilters) {
             TestFilter filter = TestFilter.createFrom(filterString);

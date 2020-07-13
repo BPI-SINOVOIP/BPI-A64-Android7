@@ -1,0 +1,141 @@
+[
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[BUILD]/scripts/slave/git_setup.py",
+      "--path",
+      "[SLAVE_BUILD]/swarming.client",
+      "--url",
+      "https://chromium.googlesource.com/external/swarming.client.git"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "git setup (swarming_client)"
+  },
+  {
+    "cmd": [
+      "git",
+      "retry",
+      "fetch",
+      "origin",
+      "master"
+    ],
+    "cwd": "[SLAVE_BUILD]/swarming.client",
+    "name": "git fetch (swarming_client)"
+  },
+  {
+    "cmd": [
+      "git",
+      "checkout",
+      "-f",
+      "FETCH_HEAD"
+    ],
+    "cwd": "[SLAVE_BUILD]/swarming.client",
+    "name": "git checkout (swarming_client)"
+  },
+  {
+    "cmd": [
+      "git",
+      "clean",
+      "-f",
+      "-d",
+      "-x"
+    ],
+    "cwd": "[SLAVE_BUILD]/swarming.client",
+    "name": "git clean (swarming_client)"
+  },
+  {
+    "cmd": [
+      "git",
+      "submodule",
+      "sync"
+    ],
+    "cwd": "[SLAVE_BUILD]/swarming.client",
+    "name": "submodule sync (swarming_client)"
+  },
+  {
+    "cmd": [
+      "git",
+      "submodule",
+      "update",
+      "--init",
+      "--recursive"
+    ],
+    "cwd": "[SLAVE_BUILD]/swarming.client",
+    "name": "submodule update (swarming_client)"
+  },
+  {
+    "cmd": [
+      "cat"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "read test spec",
+    "stdout": "/path/to/tmp/json",
+    "~followup_annotations": [
+      "@@@STEP_LOG_LINE@json.output@[@@@",
+      "@@@STEP_LOG_LINE@json.output@  \"test1\", @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"test2\"@@@",
+      "@@@STEP_LOG_LINE@json.output@]@@@",
+      "@@@STEP_LOG_END@json.output@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "RECIPE_MODULE[isolate]/resources/find_isolated_tests.py",
+      "--build-dir",
+      "[BUILD]",
+      "--output-json",
+      "/path/to/tmp/json"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "find isolated tests",
+    "~followup_annotations": [
+      "@@@STEP_LOG_LINE@json.output@{@@@",
+      "@@@STEP_LOG_LINE@json.output@  \"test1\": \"[dummy hash for test1]\"@@@",
+      "@@@STEP_LOG_LINE@json.output@}@@@",
+      "@@@STEP_LOG_END@json.output@@@",
+      "@@@STEP_LOG_LINE@missing.isolates@Failed to find *.isolated files:@@@",
+      "@@@STEP_LOG_LINE@missing.isolates@test2@@@",
+      "@@@STEP_LOG_END@missing.isolates@@@",
+      "@@@STEP_FAILURE@@@",
+      "@@@SET_BUILD_PROPERTY@swarm_hashes@{\"test1\": \"[dummy hash for test1]\"}@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "RECIPE_MODULE[isolate]/resources/isolate.py",
+      "[SLAVE_BUILD]/swarming.client",
+      "batcharchive",
+      "--dump-json",
+      "/path/to/tmp/json",
+      "--isolate-server",
+      "https://isolateserver-dev.appspot.com",
+      "[BUILD]/test1.isolated.gen.json",
+      "[BUILD]/test2.isolated.gen.json"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "isolate tests",
+    "~followup_annotations": [
+      "@@@STEP_LOG_LINE@json.output@{@@@",
+      "@@@STEP_LOG_LINE@json.output@  \"test1\": \"[dummy hash for test1]\", @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"test2\": null@@@",
+      "@@@STEP_LOG_LINE@json.output@}@@@",
+      "@@@STEP_LOG_END@json.output@@@",
+      "@@@STEP_LOG_LINE@failed to isolate@Failed to isolate following targets:@@@",
+      "@@@STEP_LOG_LINE@failed to isolate@test2@@@",
+      "@@@STEP_LOG_LINE@failed to isolate@@@@",
+      "@@@STEP_LOG_LINE@failed to isolate@See logs for more information.@@@",
+      "@@@STEP_LOG_END@failed to isolate@@@",
+      "@@@SET_BUILD_PROPERTY@swarm_hashes@{\"test1\": \"[dummy hash for test1]\"}@@@"
+    ]
+  },
+  {
+    "name": "$result",
+    "recipe_result": null,
+    "status_code": 0
+  }
+]

@@ -1,0 +1,480 @@
+[
+  {
+    "cmd": [
+      "git",
+      "fetch"
+    ],
+    "cwd": "[SLAVE_BUILD]/skia",
+    "name": "git fetch"
+  },
+  {
+    "cmd": [
+      "git",
+      "reset",
+      "--hard",
+      "abc123"
+    ],
+    "cwd": "[SLAVE_BUILD]/skia",
+    "name": "git reset"
+  },
+  {
+    "cmd": [
+      "git",
+      "clean",
+      "-d",
+      "-f"
+    ],
+    "cwd": "[SLAVE_BUILD]/skia",
+    "name": "git clean"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[DEPOT_TOOLS]/gclient.py",
+      "config",
+      "--spec",
+      "cache_dir = None\nsolutions = [{'deps_file': 'DEPS', 'managed': True, 'name': 'skia', 'url': 'https://skia.googlesource.com/skia.git'}]"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "gclient setup"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[DEPOT_TOOLS]/gclient.py",
+      "sync",
+      "--nohooks",
+      "--force",
+      "--verbose",
+      "--delete_unversioned_trees",
+      "--revision",
+      "skia@abc123",
+      "--output-json",
+      "/path/to/tmp/json"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "gclient sync",
+    "~followup_annotations": [
+      "@@@STEP_LOG_LINE@json.output@{@@@",
+      "@@@STEP_LOG_LINE@json.output@  \"solutions\": {@@@",
+      "@@@STEP_LOG_LINE@json.output@    \"skia/\": {@@@",
+      "@@@STEP_LOG_LINE@json.output@      \"revision\": 164710@@@",
+      "@@@STEP_LOG_LINE@json.output@    }@@@",
+      "@@@STEP_LOG_LINE@json.output@  }@@@",
+      "@@@STEP_LOG_LINE@json.output@}@@@",
+      "@@@STEP_LOG_END@json.output@@@",
+      "@@@SET_BUILD_PROPERTY@got_revision@164710@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[SLAVE_BUILD]/skia/tools/buildbot_spec.py",
+      "/path/to/tmp/json",
+      "Perf-Android-GCC-Nexus5-CPU-NEON-Arm7-Release-Appurify"
+    ],
+    "cwd": "[SLAVE_BUILD]/skia",
+    "name": "exec buildbot_spec.py",
+    "~followup_annotations": [
+      "@@@STEP_LOG_LINE@json.output@{@@@",
+      "@@@STEP_LOG_LINE@json.output@  \"build_targets\": [@@@",
+      "@@@STEP_LOG_LINE@json.output@    \"VisualBenchTest_APK\"@@@",
+      "@@@STEP_LOG_LINE@json.output@  ], @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"builder_cfg\": {@@@",
+      "@@@STEP_LOG_LINE@json.output@    \"arch\": \"Arm7\", @@@",
+      "@@@STEP_LOG_LINE@json.output@    \"compiler\": \"GCC\", @@@",
+      "@@@STEP_LOG_LINE@json.output@    \"configuration\": \"Release\", @@@",
+      "@@@STEP_LOG_LINE@json.output@    \"cpu_or_gpu\": \"CPU\", @@@",
+      "@@@STEP_LOG_LINE@json.output@    \"cpu_or_gpu_value\": \"NEON\", @@@",
+      "@@@STEP_LOG_LINE@json.output@    \"extra_config\": \"Appurify\", @@@",
+      "@@@STEP_LOG_LINE@json.output@    \"is_trybot\": false, @@@",
+      "@@@STEP_LOG_LINE@json.output@    \"model\": \"Nexus5\", @@@",
+      "@@@STEP_LOG_LINE@json.output@    \"os\": \"Android\", @@@",
+      "@@@STEP_LOG_LINE@json.output@    \"role\": \"Perf\"@@@",
+      "@@@STEP_LOG_LINE@json.output@  }, @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"configuration\": \"Release\", @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"device_cfg\": \"arm_v7\", @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"dm_flags\": [@@@",
+      "@@@STEP_LOG_LINE@json.output@    \"--dummy-flags\"@@@",
+      "@@@STEP_LOG_LINE@json.output@  ], @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"do_perf_steps\": true, @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"do_test_steps\": false, @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"env\": {@@@",
+      "@@@STEP_LOG_LINE@json.output@    \"GYP_DEFINES\": \"skia_arch_type=arm skia_gpu=0 skia_warnings_as_errors=0\"@@@",
+      "@@@STEP_LOG_LINE@json.output@  }, @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"nanobench_flags\": [@@@",
+      "@@@STEP_LOG_LINE@json.output@    \"--dummy-flags\"@@@",
+      "@@@STEP_LOG_LINE@json.output@  ], @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"upload_dm_results\": true, @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"upload_perf_results\": true@@@",
+      "@@@STEP_LOG_LINE@json.output@}@@@",
+      "@@@STEP_LOG_END@json.output@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "\nimport sys, os\npath = sys.argv[1]\nmode = int(sys.argv[2])\nif not os.path.isdir(path):\n  if os.path.exists(path):\n    print \"%s exists but is not a dir\" % path\n    sys.exit(1)\n  os.makedirs(path, mode)\n",
+      "[SLAVE_BUILD]/tmp",
+      "511"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "makedirs tmp_dir",
+    "~followup_annotations": [
+      "@@@STEP_LOG_LINE@python.inline@@@@",
+      "@@@STEP_LOG_LINE@python.inline@import sys, os@@@",
+      "@@@STEP_LOG_LINE@python.inline@path = sys.argv[1]@@@",
+      "@@@STEP_LOG_LINE@python.inline@mode = int(sys.argv[2])@@@",
+      "@@@STEP_LOG_LINE@python.inline@if not os.path.isdir(path):@@@",
+      "@@@STEP_LOG_LINE@python.inline@  if os.path.exists(path):@@@",
+      "@@@STEP_LOG_LINE@python.inline@    print \"%s exists but is not a dir\" % path@@@",
+      "@@@STEP_LOG_LINE@python.inline@    sys.exit(1)@@@",
+      "@@@STEP_LOG_LINE@python.inline@  os.makedirs(path, mode)@@@",
+      "@@@STEP_LOG_END@python.inline@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "\nimport shutil\nimport sys\nshutil.copy(sys.argv[1], sys.argv[2])\n",
+      "[SLAVE_BUILD]/skia/SKP_VERSION",
+      "/path/to/tmp/"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "Get expected SKP_VERSION"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "\nimport shutil\nimport sys\nshutil.copy(sys.argv[1], sys.argv[2])\n",
+      "[SLAVE_BUILD]/tmp/SKP_VERSION",
+      "/path/to/tmp/"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "Get downloaded SKP_VERSION"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "RECIPE_MODULE[gsutil]/resources/gsutil_wrapper.py",
+      "--",
+      "[DEPOT_TOOLS]/gsutil.py",
+      "--force-version",
+      "3.25",
+      "----",
+      "cat",
+      "gs://chromium-skia-gm/skimage/input/TIMESTAMP_LAST_UPLOAD_COMPLETED"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "env": {
+      "AWS_CREDENTIAL_FILE": "[HOME]/chromium-skia-gm.boto",
+      "BOTO_CONFIG": "[HOME]/chromium-skia-gm.boto"
+    },
+    "name": "gsutil cat TIMESTAMP_LAST_UPLOAD_COMPLETED",
+    "stdout": "/path/to/tmp/"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "\nimport shutil\nimport sys\nshutil.copy(sys.argv[1], sys.argv[2])\n",
+      "[SLAVE_BUILD]/tmp/SKIMAGE_VERSION",
+      "/path/to/tmp/"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "Get downloaded SKIMAGE_VERSION"
+  },
+  {
+    "cmd": [
+      "git",
+      "show",
+      "HEAD",
+      "--format=%at",
+      "-s"
+    ],
+    "cwd": "[SLAVE_BUILD]/skia",
+    "name": "git show",
+    "stdout": "/path/to/tmp/"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "import json\nimport subprocess\nimport sys\n\nccache = None\ntry:\n  ccache = subprocess.check_output(['which', 'ccache']).rstrip()\nexcept:\n  pass\nprint json.dumps({'ccache': ccache})\n"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "env": {
+      "BUILDTYPE": "Release",
+      "GYP_DEFINES": "skia_arch_type=arm skia_gpu=0 skia_warnings_as_errors=0",
+      "SKIA_OUT": "[SLAVE_BUILD]/skia/out/Perf-Android-GCC-Nexus5-CPU-NEON-Arm7-Release-Appurify"
+    },
+    "name": "has ccache?",
+    "stdout": "/path/to/tmp/json",
+    "~followup_annotations": [
+      "@@@STEP_LOG_LINE@json.output@{@@@",
+      "@@@STEP_LOG_LINE@json.output@  \"ccache\": \"/usr/bin/ccache\"@@@",
+      "@@@STEP_LOG_LINE@json.output@}@@@",
+      "@@@STEP_LOG_END@json.output@@@",
+      "@@@STEP_LOG_LINE@python.inline@import json@@@",
+      "@@@STEP_LOG_LINE@python.inline@import subprocess@@@",
+      "@@@STEP_LOG_LINE@python.inline@import sys@@@",
+      "@@@STEP_LOG_LINE@python.inline@@@@",
+      "@@@STEP_LOG_LINE@python.inline@ccache = None@@@",
+      "@@@STEP_LOG_LINE@python.inline@try:@@@",
+      "@@@STEP_LOG_LINE@python.inline@  ccache = subprocess.check_output(['which', 'ccache']).rstrip()@@@",
+      "@@@STEP_LOG_LINE@python.inline@except:@@@",
+      "@@@STEP_LOG_LINE@python.inline@  pass@@@",
+      "@@@STEP_LOG_LINE@python.inline@print json.dumps({'ccache': ccache})@@@",
+      "@@@STEP_LOG_END@python.inline@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "\nimport os, sys\nfrom common import chromium_utils\n\nif os.path.exists(sys.argv[1]):\n  chromium_utils.RemoveDirectory(sys.argv[1])\n",
+      "[SLAVE_BUILD]/skia/platform_tools/android/apps/visualbench/build/outputs/apk"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "rmtree apk",
+    "~followup_annotations": [
+      "@@@STEP_LOG_LINE@python.inline@@@@",
+      "@@@STEP_LOG_LINE@python.inline@import os, sys@@@",
+      "@@@STEP_LOG_LINE@python.inline@from common import chromium_utils@@@",
+      "@@@STEP_LOG_LINE@python.inline@@@@",
+      "@@@STEP_LOG_LINE@python.inline@if os.path.exists(sys.argv[1]):@@@",
+      "@@@STEP_LOG_LINE@python.inline@  chromium_utils.RemoveDirectory(sys.argv[1])@@@",
+      "@@@STEP_LOG_END@python.inline@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "\nimport sys, os\npath = sys.argv[1]\nmode = int(sys.argv[2])\nif not os.path.isdir(path):\n  if os.path.exists(path):\n    print \"%s exists but is not a dir\" % path\n    sys.exit(1)\n  os.makedirs(path, mode)\n",
+      "[SLAVE_BUILD]/skia/platform_tools/android/apps/visualbench/build/outputs/apk",
+      "511"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "makedirs apk",
+    "~followup_annotations": [
+      "@@@STEP_LOG_LINE@python.inline@@@@",
+      "@@@STEP_LOG_LINE@python.inline@import sys, os@@@",
+      "@@@STEP_LOG_LINE@python.inline@path = sys.argv[1]@@@",
+      "@@@STEP_LOG_LINE@python.inline@mode = int(sys.argv[2])@@@",
+      "@@@STEP_LOG_LINE@python.inline@if not os.path.isdir(path):@@@",
+      "@@@STEP_LOG_LINE@python.inline@  if os.path.exists(path):@@@",
+      "@@@STEP_LOG_LINE@python.inline@    print \"%s exists but is not a dir\" % path@@@",
+      "@@@STEP_LOG_LINE@python.inline@    sys.exit(1)@@@",
+      "@@@STEP_LOG_LINE@python.inline@  os.makedirs(path, mode)@@@",
+      "@@@STEP_LOG_END@python.inline@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "\nimport os, sys\nfrom common import chromium_utils\n\nif os.path.exists(sys.argv[1]):\n  chromium_utils.RemoveDirectory(sys.argv[1])\n",
+      "[SLAVE_BUILD]/skia/platform_tools/android/apps/visualbench/src/main/assets"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "rmtree assets",
+    "~followup_annotations": [
+      "@@@STEP_LOG_LINE@python.inline@@@@",
+      "@@@STEP_LOG_LINE@python.inline@import os, sys@@@",
+      "@@@STEP_LOG_LINE@python.inline@from common import chromium_utils@@@",
+      "@@@STEP_LOG_LINE@python.inline@@@@",
+      "@@@STEP_LOG_LINE@python.inline@if os.path.exists(sys.argv[1]):@@@",
+      "@@@STEP_LOG_LINE@python.inline@  chromium_utils.RemoveDirectory(sys.argv[1])@@@",
+      "@@@STEP_LOG_END@python.inline@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "\nimport sys, os\npath = sys.argv[1]\nmode = int(sys.argv[2])\nif not os.path.isdir(path):\n  if os.path.exists(path):\n    print \"%s exists but is not a dir\" % path\n    sys.exit(1)\n  os.makedirs(path, mode)\n",
+      "[SLAVE_BUILD]/skia/platform_tools/android/apps/visualbench/src/main/assets",
+      "511"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "makedirs assets",
+    "~followup_annotations": [
+      "@@@STEP_LOG_LINE@python.inline@@@@",
+      "@@@STEP_LOG_LINE@python.inline@import sys, os@@@",
+      "@@@STEP_LOG_LINE@python.inline@path = sys.argv[1]@@@",
+      "@@@STEP_LOG_LINE@python.inline@mode = int(sys.argv[2])@@@",
+      "@@@STEP_LOG_LINE@python.inline@if not os.path.isdir(path):@@@",
+      "@@@STEP_LOG_LINE@python.inline@  if os.path.exists(path):@@@",
+      "@@@STEP_LOG_LINE@python.inline@    print \"%s exists but is not a dir\" % path@@@",
+      "@@@STEP_LOG_LINE@python.inline@    sys.exit(1)@@@",
+      "@@@STEP_LOG_LINE@python.inline@  os.makedirs(path, mode)@@@",
+      "@@@STEP_LOG_END@python.inline@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "\nimport shutil\nimport sys\nshutil.copy(sys.argv[1], sys.argv[2])\n",
+      "--undefok -i /sdcard/resources --skps /sdcard/skps --images /sdcard/images --nogpu --dummy-flags --outResultsFile /sdcard/skia_results/nanobench_164710_1408633190.json --properties gitHash 164710 build_number 5 --key arch Arm7 compiler GCC cpu_or_gpu CPU cpu_or_gpu_value NEON extra_config Appurify model Nexus5 os Android",
+      "[SLAVE_BUILD]/skia/platform_tools/android/apps/visualbench/src/main/assets/nanobench_flags.txt"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "write nanobench_flags.txt"
+  },
+  {
+    "cmd": [
+      "[SLAVE_BUILD]/skia/platform_tools/android/bin/android_ninja",
+      "VisualBenchTest_APK",
+      "-d",
+      "arm_v7"
+    ],
+    "cwd": "[SLAVE_BUILD]/skia",
+    "env": {
+      "ANDROID_HOME": "/home/chrome-bot/android-sdk-linux",
+      "ANDROID_MAKE_CCACHE": "/usr/bin/ccache",
+      "ANDROID_SDK_ROOT": "/home/chrome-bot/android-sdk-linux",
+      "BUILDTYPE": "Release",
+      "GYP_DEFINES": "skia_arch_type=arm skia_gpu=0 skia_warnings_as_errors=0",
+      "SKIA_ANDROID_VERBOSE_SETUP": "1",
+      "SKIA_OUT": "[SLAVE_BUILD]/skia/out/Perf-Android-GCC-Nexus5-CPU-NEON-Arm7-Release-Appurify"
+    },
+    "name": "build VisualBenchTest_APK"
+  },
+  {
+    "cmd": [
+      "python",
+      "RECIPE_MODULE[skia]/resources/appurify_wrapper.py",
+      "--device",
+      "Nexus5",
+      "--apk",
+      "[SLAVE_BUILD]/skia/platform_tools/android/apps/visualbench/build/outputs/apk/visualbench-arm-release.apk",
+      "--test-apk",
+      "[SLAVE_BUILD]/skia/platform_tools/android/apps/visualbench/build/outputs/apk/visualbench-arm-debug-androidTest-unaligned.apk",
+      "--result-dir",
+      "[SLAVE_BUILD]/tmp",
+      "--skp-dir",
+      "[SLAVE_BUILD]/playback/skps",
+      "--resource-dir",
+      "[SLAVE_BUILD]/skia/resources"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "env": {
+      "ANDROID_HOME": "/home/chrome-bot/android-sdk-linux",
+      "ANDROID_MAKE_CCACHE": "/usr/bin/ccache",
+      "ANDROID_SDK_ROOT": "/home/chrome-bot/android-sdk-linux",
+      "APPURIFY_API_HOST": "172.22.21.180",
+      "APPURIFY_API_PORT": "80",
+      "APPURIFY_API_PROTO": "http",
+      "BUILDTYPE": "Release",
+      "GYP_DEFINES": "skia_arch_type=arm skia_gpu=0 skia_warnings_as_errors=0",
+      "SKIA_ANDROID_VERBOSE_SETUP": "1",
+      "SKIA_OUT": "[SLAVE_BUILD]/skia/out/Perf-Android-GCC-Nexus5-CPU-NEON-Arm7-Release-Appurify"
+    },
+    "name": "nanobench"
+  },
+  {
+    "cmd": [
+      "unzip",
+      "-o",
+      "[SLAVE_BUILD]/tmp/results.zip",
+      "-d",
+      "[SLAVE_BUILD]/tmp"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "env": {
+      "BUILDTYPE": "Release",
+      "GYP_DEFINES": "skia_arch_type=arm skia_gpu=0 skia_warnings_as_errors=0",
+      "SKIA_OUT": "[SLAVE_BUILD]/skia/out/Perf-Android-GCC-Nexus5-CPU-NEON-Arm7-Release-Appurify"
+    },
+    "name": "unzip_results"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "\nimport sys, os\npath = sys.argv[1]\nmode = int(sys.argv[2])\nif not os.path.isdir(path):\n  if os.path.exists(path):\n    print \"%s exists but is not a dir\" % path\n    sys.exit(1)\n  os.makedirs(path, mode)\n",
+      "[SLAVE_BUILD]/perfdata/Perf-Android-GCC-Nexus5-CPU-NEON-Arm7-Release-Appurify/data",
+      "511"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "makedirs perf_dir",
+    "~followup_annotations": [
+      "@@@STEP_LOG_LINE@python.inline@@@@",
+      "@@@STEP_LOG_LINE@python.inline@import sys, os@@@",
+      "@@@STEP_LOG_LINE@python.inline@path = sys.argv[1]@@@",
+      "@@@STEP_LOG_LINE@python.inline@mode = int(sys.argv[2])@@@",
+      "@@@STEP_LOG_LINE@python.inline@if not os.path.isdir(path):@@@",
+      "@@@STEP_LOG_LINE@python.inline@  if os.path.exists(path):@@@",
+      "@@@STEP_LOG_LINE@python.inline@    print \"%s exists but is not a dir\" % path@@@",
+      "@@@STEP_LOG_LINE@python.inline@    sys.exit(1)@@@",
+      "@@@STEP_LOG_LINE@python.inline@  os.makedirs(path, mode)@@@",
+      "@@@STEP_LOG_END@python.inline@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "\nimport os, sys\nfrom common import chromium_utils\n\nif os.path.exists(sys.argv[1]):\n  chromium_utils.RemoveDirectory(sys.argv[1])\n",
+      "[SLAVE_BUILD]/perfdata/Perf-Android-GCC-Nexus5-CPU-NEON-Arm7-Release-Appurify/data"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "rmtree data",
+    "~followup_annotations": [
+      "@@@STEP_LOG_LINE@python.inline@@@@",
+      "@@@STEP_LOG_LINE@python.inline@import os, sys@@@",
+      "@@@STEP_LOG_LINE@python.inline@from common import chromium_utils@@@",
+      "@@@STEP_LOG_LINE@python.inline@@@@",
+      "@@@STEP_LOG_LINE@python.inline@if os.path.exists(sys.argv[1]):@@@",
+      "@@@STEP_LOG_LINE@python.inline@  chromium_utils.RemoveDirectory(sys.argv[1])@@@",
+      "@@@STEP_LOG_END@python.inline@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "\nimport shutil\nimport sys\nshutil.copytree(sys.argv[1], sys.argv[2], symlinks=bool(sys.argv[3]))\n",
+      "[SLAVE_BUILD]/tmp/appurify_results/artifacts_directory/sdcard-skia_results",
+      "[SLAVE_BUILD]/perfdata/Perf-Android-GCC-Nexus5-CPU-NEON-Arm7-Release-Appurify/data",
+      "0"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "copy dir"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "RECIPE_MODULE[skia]/resources/upload_bench_results.py",
+      "Perf-Android-GCC-Nexus5-CPU-NEON-Arm7-Release-Appurify",
+      "5",
+      "[SLAVE_BUILD]/perfdata/Perf-Android-GCC-Nexus5-CPU-NEON-Arm7-Release-Appurify/data",
+      "164710",
+      "[DEPOT_TOOLS]/third_party/gsutil/gsutil"
+    ],
+    "cwd": "[SLAVE_BUILD]/skia",
+    "env": {
+      "AWS_CREDENTIAL_FILE": "[HOME]/chromium-skia-gm.boto",
+      "BOTO_CONFIG": "[HOME]/chromium-skia-gm.boto",
+      "BUILDTYPE": "Release",
+      "GYP_DEFINES": "skia_arch_type=arm skia_gpu=0 skia_warnings_as_errors=0",
+      "SKIA_OUT": "[SLAVE_BUILD]/skia/out/Perf-Android-GCC-Nexus5-CPU-NEON-Arm7-Release-Appurify"
+    },
+    "name": "Upload Nanobench Results"
+  },
+  {
+    "name": "$result",
+    "recipe_result": null,
+    "status_code": 0
+  }
+]

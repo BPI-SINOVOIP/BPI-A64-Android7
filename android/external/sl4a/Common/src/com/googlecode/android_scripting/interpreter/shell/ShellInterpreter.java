@@ -24,7 +24,6 @@ import java.io.File;
 /**
  * Represents the shell.
  *
- * @author Damon Kohler (damonkohler@gmail.com)
  */
 public class ShellInterpreter extends Interpreter {
   private final static String SHELL_BIN = "/system/bin/sh";

@@ -1,0 +1,28 @@
+[
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[DEPOT_TOOLS]/apply_issue.py",
+      "-r",
+      "[SLAVE_BUILD]",
+      "-i",
+      "12853011",
+      "-p",
+      "1",
+      "-s",
+      "https://codereview.chromium.org",
+      "--no-auth"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "apply_issue",
+    "~followup_annotations": [
+      "@@@STEP_LINK@Applied issue 12853011@https://codereview.chromium.org/12853011@@@"
+    ]
+  },
+  {
+    "name": "$result",
+    "recipe_result": null,
+    "status_code": 0
+  }
+]

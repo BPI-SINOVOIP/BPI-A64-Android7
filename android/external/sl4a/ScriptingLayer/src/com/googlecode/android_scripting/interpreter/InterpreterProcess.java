@@ -29,7 +29,6 @@ import java.net.UnknownHostException;
 /**
  * This is a skeletal implementation of an interpreter process.
  *
- * @author Damon Kohler (damonkohler@gmail.com)
  */
 public class InterpreterProcess extends Process {
 

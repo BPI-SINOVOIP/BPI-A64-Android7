@@ -68,8 +68,11 @@ class Sheriff(internal_only_model.InternalOnlyModel):
   # these patterns will use this sheriff configuration for alerting.
   patterns = ndb.StringProperty(repeated=True, indexed=False)
 
+  # A list of labels to add to all bugs for the sheriffing rotation.
+  labels = ndb.StringProperty(repeated=True, indexed=False)
+
   # Number of days before the Sheriff should get an alert about not having
-  # received any data for a particular Test entity; -1 means no alerts.
+  # received any data for a particular TestMetadata entity; -1 means no alerts.
   # If a sheriff wants to receive these alerts, the number should be greater
   # than zero but less than two weeks (the amount of time before tests become
   # marked as deprecated).

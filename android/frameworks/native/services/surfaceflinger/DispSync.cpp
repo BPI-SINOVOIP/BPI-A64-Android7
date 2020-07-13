@@ -96,8 +96,8 @@ public:
 
     virtual bool threadLoop() {
         status_t err;
-        nsecs_t now = systemTime(SYSTEM_TIME_MONOTONIC);
-
+        nsecs_t m_now = systemTime(SYSTEM_TIME_MONOTONIC);
+        struct timespec ts;
         while (true) {
             Vector<CallbackInvocation> callbackInvocations;
 
@@ -126,11 +126,11 @@ public:
                     continue;
                 }
 
-                targetTime = computeNextEventTimeLocked(now);
+                targetTime = computeNextEventTimeLocked(m_now);
 
                 bool isWakeup = false;
 
-                if (now < targetTime) {
+                if (m_now < targetTime) {
                     if (kTraceDetailedInfo) ATRACE_NAME("DispSync waiting");
 
                     if (targetTime == INT64_MAX) {
@@ -139,7 +139,7 @@ public:
                     } else {
                         ALOGV("[%s] Waiting until %" PRId64, mName,
                                 ns2us(targetTime));
-                        err = mCond.waitRelative(mMutex, targetTime - now);
+                        err = mCond.waitRelative(mMutex, targetTime - m_now);
                     }
 
                     if (err == TIMED_OUT) {
@@ -151,22 +151,23 @@ public:
                     }
                 }
 
-                now = systemTime(SYSTEM_TIME_MONOTONIC);
+                clock_gettime(CLOCK_MONOTONIC_RAW, &ts);
+	            m_now = (ts.tv_sec * 1000000000ULL) + ts.tv_nsec;
 
                 // Don't correct by more than 1.5 ms
                 static const nsecs_t kMaxWakeupLatency = us2ns(1500);
 
                 if (isWakeup) {
                     mWakeupLatency = ((mWakeupLatency * 63) +
-                            (now - targetTime)) / 64;
+                            (m_now - targetTime)) / 64;
                     mWakeupLatency = min(mWakeupLatency, kMaxWakeupLatency);
                     if (kTraceDetailedInfo) {
-                        ATRACE_INT64("DispSync:WakeupLat", now - targetTime);
+                        ATRACE_INT64("DispSync:WakeupLat", m_now - targetTime);
                         ATRACE_INT64("DispSync:AvgWakeupLat", mWakeupLatency);
                     }
                 }
 
-                callbackInvocations = gatherCallbackInvocationsLocked(now);
+                callbackInvocations = gatherCallbackInvocationsLocked(m_now);
             }
 
             if (callbackInvocations.size() > 0) {
@@ -192,11 +193,15 @@ public:
         listener.mName = name;
         listener.mPhase = phase;
         listener.mCallback = callback;
+        struct timespec ts;
 
         // We want to allow the firstmost future event to fire without
         // allowing any past events to fire
-        listener.mLastEventTime = systemTime() - mPeriod / 2 + mPhase -
-                mWakeupLatency;
+      //  listener.mLastEventTime = systemTime() - mPeriod / 2 + mPhase -
+      //          mWakeupLatency;
+	   clock_gettime(CLOCK_MONOTONIC_RAW, &ts);
+	   nsecs_t cgnow = (ts.tv_sec * 1000000000ULL) + ts.tv_nsec;
+       listener.mLastEventTime = cgnow - mPeriod / 2+ mPhase - mWakeupLatency;
 
         mEventListeners.push(listener);
 
@@ -383,6 +388,13 @@ DispSync::DispSync(const char* name) :
         mThread(new DispSyncThread(name)) {
 
     mThread->run("DispSync", PRIORITY_URGENT_DISPLAY + PRIORITY_MORE_FAVORABLE);
+    // set DispSync to SCHED_FIFO to minimize jitter
+    struct sched_param param = {0};
+    param.sched_priority = 2;
+    if (sched_setscheduler(mThread->getTid(), SCHED_FIFO, &param) != 0) {
+        ALOGE("Couldn't set SCHED_FIFO for DispSyncThread");
+    }
+
 
     reset();
     beginResync();

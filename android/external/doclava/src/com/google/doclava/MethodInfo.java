@@ -237,6 +237,10 @@ public class MethodInfo extends MemberInfo implements AbstractMethodInfo, Resolv
     return mTypeParameters;
   }
 
+  public boolean hasTypeParameters() {
+      return mTypeParameters != null && !mTypeParameters.isEmpty();
+  }
+
   /**
    * Clone this MethodInfo as if it belonged to the specified ClassInfo and apply the
    * typeArgumentMapping to the parameters and return types.
@@ -668,7 +672,7 @@ public class MethodInfo extends MemberInfo implements AbstractMethodInfo, Resolv
   }
 
   public String typeArgumentsName(HashSet<String> typeVars) {
-    if (mTypeParameters == null || mTypeParameters.isEmpty()) {
+    if (!hasTypeParameters()) {
       return "";
     } else {
       return TypeInfo.typeArgumentsName(mTypeParameters, typeVars);
@@ -792,23 +796,37 @@ public class MethodInfo extends MemberInfo implements AbstractMethodInfo, Resolv
 
   public boolean isConsistent(MethodInfo mInfo) {
     boolean consistent = true;
-    if (this.mReturnType != mInfo.mReturnType && !this.mReturnType.equals(mInfo.mReturnType)) {
-      if (!mReturnType.isPrimitive() && !mInfo.mReturnType.isPrimitive()) {
-        // Check to see if our class extends the old class.
-        ApiInfo infoApi = mInfo.containingClass().containingPackage().containingApi();
-        ClassInfo infoReturnClass = infoApi.findClass(mInfo.mReturnType.qualifiedTypeName());
-        // Find the classes.
-        consistent = infoReturnClass != null &&
-                     infoReturnClass.isAssignableTo(mReturnType.qualifiedTypeName());
-      } else {
+    if (!mReturnType.isTypeVariable() && !mInfo.mReturnType.isTypeVariable()) {
+      if (!mReturnType.equals(mInfo.mReturnType) ||
+          mReturnType.dimension() != mInfo.mReturnType.dimension()) {
         consistent = false;
       }
-
-      if (!consistent) {
-        Errors.error(Errors.CHANGED_TYPE, mInfo.position(), "Method "
-            + mInfo.prettyQualifiedSignature() + " has changed return type from " + mReturnType
-            + " to " + mInfo.mReturnType);
+    } else if (!mReturnType.isTypeVariable() && mInfo.mReturnType.isTypeVariable()) {
+      List<ClassInfo> constraints = mInfo.resolveConstraints(mInfo.mReturnType);
+      for (ClassInfo constraint : constraints) {
+        if (!constraint.isAssignableTo(mReturnType.qualifiedTypeName())) {
+          consistent = false;
+        }
       }
+    } else if (mReturnType.isTypeVariable() && !mInfo.mReturnType.isTypeVariable()) {
+      // It's never valid to go from being a parameterized type to not being one.
+      // This would drop the implicit cast breaking backwards compatibility.
+      consistent = false;
+    } else {
+      // If both return types are parameterized then the constraints must be
+      // exactly the same.
+      List<ClassInfo> currentConstraints = mInfo.resolveConstraints(mReturnType);
+      List<ClassInfo> newConstraints = mInfo.resolveConstraints(mInfo.mReturnType);
+      if (currentConstraints.size() != newConstraints.size() ||
+          currentConstraints.retainAll(newConstraints)) {
+        consistent = false;
+      }
+    }
+
+    if (!consistent) {
+      Errors.error(Errors.CHANGED_TYPE, mInfo.position(), "Method "
+          + mInfo.prettyQualifiedSignature() + " has changed return type from " + mReturnType
+          + " to " + mInfo.mReturnType);
     }
 
     if (mIsAbstract != mInfo.mIsAbstract) {
@@ -895,6 +913,43 @@ public class MethodInfo extends MemberInfo implements AbstractMethodInfo, Resolv
     }
 
     return consistent;
+  }
+
+  private TypeInfo getTypeParameter(String qualifiedTypeName) {
+    if (hasTypeParameters()) {
+      for (TypeInfo parameter : mTypeParameters) {
+        if (parameter.qualifiedTypeName().equals(qualifiedTypeName)) {
+          return parameter;
+        }
+      }
+    }
+    return containingClass().getTypeParameter(qualifiedTypeName);
+  }
+
+  // Given a type parameter it returns a list of all of the classes and interfaces it must extend
+  // and implement.
+  private List<ClassInfo> resolveConstraints(TypeInfo type) {
+    ApiInfo api = containingClass().containingPackage().containingApi();
+    List<ClassInfo> classes = new ArrayList<>();
+    Queue<TypeInfo> types = new LinkedList<>();
+    types.add(type);
+    while (!types.isEmpty()) {
+      type = types.poll();
+      if (!type.isTypeVariable()) {
+        ClassInfo cl = api.findClass(type.qualifiedTypeName());
+        if (cl != null) {
+          classes.add(cl);
+        }
+      } else {
+        TypeInfo parameter = getTypeParameter(type.qualifiedTypeName());
+        if (parameter.extendsBounds() != null) {
+          for (TypeInfo bound : parameter.extendsBounds()) {
+            types.add(bound);
+          }
+        }
+      }
+    }
+    return classes;
   }
 
   public void printResolutions() {

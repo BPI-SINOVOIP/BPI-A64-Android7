@@ -40,6 +40,7 @@ from acts.test_utils.tel.tel_test_utils import \
     ensure_network_generation_for_subscription
 from acts.test_utils.tel.tel_test_utils import get_call_uri
 from acts.test_utils.tel.tel_test_utils import get_phone_number
+from acts.test_utils.tel.tel_test_utils import hangup_call
 from acts.test_utils.tel.tel_test_utils import is_uri_equivalent
 from acts.test_utils.tel.tel_test_utils import multithread_func
 from acts.test_utils.tel.tel_test_utils import num_active_calls
@@ -62,7 +63,6 @@ from acts.test_utils.tel.tel_voice_utils import phone_setup_iwlan
 from acts.test_utils.tel.tel_voice_utils import phone_setup_voice_general
 from acts.test_utils.tel.tel_voice_utils import phone_setup_volte
 from acts.test_utils.tel.tel_voice_utils import swap_calls
-from acts.utils import load_config
 
 
 class TelLiveVoiceConfTest(TelephonyBaseTest):
@@ -385,9 +385,8 @@ class TelLiveVoiceConfTest(TelephonyBaseTest):
             # Airplane Mode, WiFi Preferred
             "test_epdg_mo_mt_add_epdg_swap_once_merge_drop_second_call_from_host_wfc_apm_wifi_preferred_cep",
             "test_epdg_mo_mt_add_epdg_swap_once_merge_drop_second_call_from_participant_wfc_apm_wifi_preferred_cep",
-            )
+        )
 
-        self.simconf = load_config(self.user_params["sim_conf_file"])
         self.wifi_network_ssid = self.user_params["wifi_network_ssid"]
 
         try:
@@ -396,6 +395,13 @@ class TelLiveVoiceConfTest(TelephonyBaseTest):
             self.wifi_network_pass = None
 
     """ Private Test Utils """
+
+    def _hangup_call(self, ad, device_description='Device'):
+        if not hangup_call(self.log, ad):
+            self.log.error("Failed to hang up on {}: {}".format(
+                device_description, ad.serial))
+            return False
+        return True
 
     def _three_phone_call_mo_add_mo(self, ads, phone_setups, verify_funcs):
         """Use 3 phones to make MO calls.
@@ -436,12 +442,13 @@ class TelLiveVoiceConfTest(TelephonyBaseTest):
                     raise _CallException("Clear call list failed.")
 
             self.log.info("Step1: Call From PhoneA to PhoneB.")
-            if not call_setup_teardown(self.log,
-                                       ads[0],
-                                       ads[1],
-                                       ad_hangup=None,
-                                       verify_caller_func=verify_func_a,
-                                       verify_callee_func=verify_func_b):
+            if not call_setup_teardown(
+                    self.log,
+                    ads[0],
+                    ads[1],
+                    ad_hangup=None,
+                    verify_caller_func=verify_func_a,
+                    verify_callee_func=verify_func_b):
                 raise _CallException("PhoneA call PhoneB failed.")
 
             calls = ads[0].droid.telecomCallGetCallIds()
@@ -451,12 +458,13 @@ class TelLiveVoiceConfTest(TelephonyBaseTest):
             call_ab_id = calls[0]
 
             self.log.info("Step2: Call From PhoneA to PhoneC.")
-            if not call_setup_teardown(self.log,
-                                       ads[0],
-                                       ads[2],
-                                       ad_hangup=None,
-                                       verify_caller_func=verify_func_a,
-                                       verify_callee_func=verify_func_c):
+            if not call_setup_teardown(
+                    self.log,
+                    ads[0],
+                    ads[2],
+                    ad_hangup=None,
+                    verify_caller_func=verify_func_a,
+                    verify_callee_func=verify_func_c):
                 raise _CallException("PhoneA call PhoneC failed.")
             if not verify_incall_state(self.log, [ads[0], ads[1], ads[2]],
                                        True):
@@ -506,12 +514,13 @@ class TelLiveVoiceConfTest(TelephonyBaseTest):
                     raise _CallException("Clear call list failed.")
 
             self.log.info("Step1: Call From PhoneA to PhoneB.")
-            if not call_setup_teardown(self.log,
-                                       ads[0],
-                                       ads[1],
-                                       ad_hangup=None,
-                                       verify_caller_func=verify_func_a,
-                                       verify_callee_func=verify_func_b):
+            if not call_setup_teardown(
+                    self.log,
+                    ads[0],
+                    ads[1],
+                    ad_hangup=None,
+                    verify_caller_func=verify_func_a,
+                    verify_callee_func=verify_func_b):
                 raise _CallException("PhoneA call PhoneB failed.")
 
             calls = ads[0].droid.telecomCallGetCallIds()
@@ -521,12 +530,13 @@ class TelLiveVoiceConfTest(TelephonyBaseTest):
             call_ab_id = calls[0]
 
             self.log.info("Step2: Call From PhoneC to PhoneA.")
-            if not call_setup_teardown(self.log,
-                                       ads[2],
-                                       ads[0],
-                                       ad_hangup=None,
-                                       verify_caller_func=verify_func_c,
-                                       verify_callee_func=verify_func_a):
+            if not call_setup_teardown(
+                    self.log,
+                    ads[2],
+                    ads[0],
+                    ad_hangup=None,
+                    verify_caller_func=verify_func_c,
+                    verify_callee_func=verify_func_a):
                 raise _CallException("PhoneA call PhoneC failed.")
             if not verify_incall_state(self.log, [ads[0], ads[1], ads[2]],
                                        True):
@@ -561,12 +571,13 @@ class TelLiveVoiceConfTest(TelephonyBaseTest):
         try:
             verify_func_a, verify_func_b = verify_funcs
             self.log.info("Step1: Call From PhoneA to PhoneB.")
-            if not call_setup_teardown(self.log,
-                                       ads[0],
-                                       ads[1],
-                                       ad_hangup=None,
-                                       verify_caller_func=verify_func_a,
-                                       verify_callee_func=verify_func_b):
+            if not call_setup_teardown(
+                    self.log,
+                    ads[0],
+                    ads[1],
+                    ad_hangup=None,
+                    verify_caller_func=verify_func_a,
+                    verify_callee_func=verify_func_b):
                 raise _CallException("PhoneA call PhoneB failed.")
 
             self.log.info("Step2: Call From PhoneC to PhoneA then decline.")
@@ -620,12 +631,13 @@ class TelLiveVoiceConfTest(TelephonyBaseTest):
                     raise _CallException("Clear call list failed.")
 
             self.log.info("Step1: Call From PhoneB to PhoneA.")
-            if not call_setup_teardown(self.log,
-                                       ads[1],
-                                       ads[0],
-                                       ad_hangup=None,
-                                       verify_caller_func=verify_func_b,
-                                       verify_callee_func=verify_func_a):
+            if not call_setup_teardown(
+                    self.log,
+                    ads[1],
+                    ads[0],
+                    ad_hangup=None,
+                    verify_caller_func=verify_func_b,
+                    verify_callee_func=verify_func_a):
                 raise _CallException("PhoneB call PhoneA failed.")
 
             calls = ads[0].droid.telecomCallGetCallIds()
@@ -635,12 +647,13 @@ class TelLiveVoiceConfTest(TelephonyBaseTest):
             call_ab_id = calls[0]
 
             self.log.info("Step2: Call From PhoneC to PhoneA.")
-            if not call_setup_teardown(self.log,
-                                       ads[2],
-                                       ads[0],
-                                       ad_hangup=None,
-                                       verify_caller_func=verify_func_c,
-                                       verify_callee_func=verify_func_a):
+            if not call_setup_teardown(
+                    self.log,
+                    ads[2],
+                    ads[0],
+                    ad_hangup=None,
+                    verify_caller_func=verify_func_c,
+                    verify_callee_func=verify_func_a):
                 raise _CallException("PhoneA call PhoneC failed.")
             if not verify_incall_state(self.log, [ads[0], ads[1], ads[2]],
                                        True):
@@ -733,12 +746,13 @@ class TelLiveVoiceConfTest(TelephonyBaseTest):
 
         if num_swaps > 0:
             self.log.info("Step3: Begin Swap x{} test.".format(num_swaps))
-            if not swap_calls(self.log,
-                              ads,
-                              call_ab_id,
-                              call_ac_id,
-                              num_swaps,
-                              check_call_status=False):
+            if not swap_calls(
+                    self.log,
+                    ads,
+                    call_ab_id,
+                    call_ac_id,
+                    num_swaps,
+                    check_call_status=False):
                 self.log.error("Swap test failed.")
                 return None, None, None
 
@@ -786,12 +800,13 @@ class TelLiveVoiceConfTest(TelephonyBaseTest):
 
         if num_swaps > 0:
             self.log.info("Step3: Begin Swap x{} test.".format(num_swaps))
-            if not swap_calls(self.log,
-                              ads,
-                              call_ab_id,
-                              call_ac_id,
-                              num_swaps,
-                              check_call_status=False):
+            if not swap_calls(
+                    self.log,
+                    ads,
+                    call_ab_id,
+                    call_ac_id,
+                    num_swaps,
+                    check_call_status=False):
                 self.log.error("Swap test failed.")
                 return None, None, None
 
@@ -817,7 +832,8 @@ class TelLiveVoiceConfTest(TelephonyBaseTest):
             True if no error happened. Otherwise False.
         """
         self.log.info("Drop 1st call.")
-        first_drop_ad.droid.telecomEndCall()
+        if not self._hangup_call(first_drop_ad):
+            return False
         time.sleep(WAIT_TIME_IN_CALL)
         calls = host.droid.telecomCallGetCallIds()
         self.log.info("Calls in Host{}".format(calls))
@@ -829,7 +845,8 @@ class TelLiveVoiceConfTest(TelephonyBaseTest):
             return False
 
         self.log.info("Drop 2nd call.")
-        second_drop_ad.droid.telecomEndCall()
+        if not self._hangup_call(second_drop_ad):
+            return False
         time.sleep(WAIT_TIME_IN_CALL)
         if not verify_incall_state(
                 self.log, [host, second_drop_ad, first_drop_ad], False):
@@ -855,8 +872,9 @@ class TelLiveVoiceConfTest(TelephonyBaseTest):
         Returns:
             True if no error happened. Otherwise False.
         """
-        self.log.info("Drop current call on DUT.")
-        host.droid.telecomEndCall()
+        self.log.info("Drop current call on Host.")
+        if not self._hangup_call(host, "Host"):
+            return False
         if not wait_and_answer_call(self.log, host, get_phone_number(
                 self.log, held_participant_ad)):
             self.log.error("Did not receive call back.")
@@ -868,8 +886,9 @@ class TelLiveVoiceConfTest(TelephonyBaseTest):
         if not verify_incall_state(self.log, [active_participant_ad], False):
             return False
 
-        self.log.info("Drop current call on DUT.")
-        host.droid.telecomEndCall()
+        self.log.info("Drop current call on Host.")
+        if not self._hangup_call(host, "Host"):
+            return False
         time.sleep(WAIT_TIME_IN_CALL)
         if not verify_incall_state(self.log, [host, held_participant_ad,
                                               active_participant_ad], False):
@@ -890,8 +909,9 @@ class TelLiveVoiceConfTest(TelephonyBaseTest):
         Returns:
             True if no error happened. Otherwise False.
         """
-        self.log.info("Drop conference call on host.")
-        host.droid.telecomEndCall()
+        self.log.info("Drop conference call on Host.")
+        if not self._hangup_call(host, "Host"):
+            return False
         time.sleep(WAIT_TIME_IN_CALL)
         if not verify_incall_state(self.log, [host], False):
             return False
@@ -1087,9 +1107,8 @@ class TelLiveVoiceConfTest(TelephonyBaseTest):
         # make sure PhoneB and PhoneC are GSM phone before proceed.
         for ad in [ads[1], ads[2]]:
             if (ad.droid.telephonyGetPhoneType() != PHONE_TYPE_GSM):
-                self.log.error(
-                    "{} not GSM phone, abort wcdma swap test.".format(
-                        ad.serial))
+                self.log.error("{} not GSM phone, abort wcdma swap test.".
+                               format(ad.serial))
                 return None, None
 
         call_ab_id = self._three_phone_call_mo_add_mo(
@@ -1140,9 +1159,8 @@ class TelLiveVoiceConfTest(TelephonyBaseTest):
         # make sure PhoneB and PhoneC are GSM phone before proceed.
         for ad in [ads[1], ads[2]]:
             if (ad.droid.telephonyGetPhoneType() != PHONE_TYPE_GSM):
-                self.log.error(
-                    "{} not GSM phone, abort wcdma swap test.".format(
-                        ad.serial))
+                self.log.error("{} not GSM phone, abort wcdma swap test.".
+                               format(ad.serial))
                 return None, None
 
         call_ab_id = self._three_phone_call_mo_add_mt(
@@ -1193,9 +1211,8 @@ class TelLiveVoiceConfTest(TelephonyBaseTest):
         # make sure PhoneB and PhoneC are GSM phone before proceed.
         for ad in [ads[1], ads[2]]:
             if (ad.droid.telephonyGetPhoneType() != PHONE_TYPE_GSM):
-                self.log.error(
-                    "{} not GSM phone, abort wcdma swap test.".format(
-                        ad.serial))
+                self.log.error("{} not GSM phone, abort wcdma swap test.".
+                               format(ad.serial))
                 return None, None
 
         call_ab_id = self._three_phone_call_mt_add_mt(
@@ -1674,14 +1691,14 @@ class TelLiveVoiceConfTest(TelephonyBaseTest):
         # Check if Conf Call is currently active
         if ads[0].droid.telecomCallGetCallState(
                 call_conf_id) != CALL_STATE_ACTIVE:
-            self.log.error(
-                "Call_id:{}, state:{}, expected: STATE_ACTIVE".format(
-                    call_conf_id, ads[0].droid.telecomCallGetCallState(
-                        call_conf_id)))
+            self.log.error("Call_id:{}, state:{}, expected: STATE_ACTIVE".
+                           format(call_conf_id, ads[
+                               0].droid.telecomCallGetCallState(call_conf_id)))
             return False
 
         self.log.info("Step5: End call on PhoneC and verify call continues.")
-        ads[2].droid.telecomEndCall()
+        if not self._hangup_call(ads[2], "PhoneC"):
+            return False
         time.sleep(WAIT_TIME_IN_CALL)
         calls = ads[0].droid.telecomCallGetCallIds()
         self.log.info("Calls in PhoneA{}".format(calls))
@@ -1695,7 +1712,8 @@ class TelLiveVoiceConfTest(TelephonyBaseTest):
         # providing such information to DUT.
         # So this test probably will fail on the last step for VZW.
         self.log.info("Step6: End call on PhoneB and verify PhoneA end.")
-        ads[1].droid.telecomEndCall()
+        if not self._hangup_call(ads[1], "PhoneB"):
+            return False
         time.sleep(WAIT_TIME_IN_CALL)
         if not verify_incall_state(self.log, [ads[0], ads[1], ads[2]], False):
             return False
@@ -1759,10 +1777,9 @@ class TelLiveVoiceConfTest(TelephonyBaseTest):
         # Check if Conf Call is currently active
         if ads[0].droid.telecomCallGetCallState(
                 call_conf_id) != CALL_STATE_ACTIVE:
-            self.log.error(
-                "Call_id:{}, state:{}, expected: STATE_ACTIVE".format(
-                    call_conf_id, ads[0].droid.telecomCallGetCallState(
-                        call_conf_id)))
+            self.log.error("Call_id:{}, state:{}, expected: STATE_ACTIVE".
+                           format(call_conf_id, ads[
+                               0].droid.telecomCallGetCallState(call_conf_id)))
             return None
 
         return call_conf_id
@@ -1793,7 +1810,8 @@ class TelLiveVoiceConfTest(TelephonyBaseTest):
             return False
 
         self.log.info("Step5: End call on PhoneC and verify call continues.")
-        ads[2].droid.telecomEndCall()
+        if not self._hangup_call(ads[2], "PhoneC"):
+            return False
         time.sleep(WAIT_TIME_IN_CALL)
         calls = ads[0].droid.telecomCallGetCallIds()
         self.log.info("Calls in PhoneA{}".format(calls))
@@ -1803,7 +1821,8 @@ class TelLiveVoiceConfTest(TelephonyBaseTest):
             return False
 
         self.log.info("Step6: End call on PhoneB and verify PhoneA end.")
-        ads[1].droid.telecomEndCall()
+        if not self._hangup_call(ads[1], "PhoneB"):
+            return False
         time.sleep(WAIT_TIME_IN_CALL)
         if not verify_incall_state(self.log, [ads[0], ads[1], ads[2]], False):
             return False
@@ -1835,7 +1854,8 @@ class TelLiveVoiceConfTest(TelephonyBaseTest):
             return False
 
         self.log.info("Step5: End call on PhoneB and verify call continues.")
-        ads[1].droid.telecomEndCall()
+        if not self._hangup_call(ads[1], "PhoneB"):
+            return False
         time.sleep(WAIT_TIME_IN_CALL)
         if not verify_incall_state(self.log, [ads[0], ads[2]], True):
             return False
@@ -1843,7 +1863,8 @@ class TelLiveVoiceConfTest(TelephonyBaseTest):
             return False
 
         self.log.info("Step6: End call on PhoneC and verify PhoneA end.")
-        ads[2].droid.telecomEndCall()
+        if not self._hangup_call(ads[2], "PhoneC"):
+            return False
         time.sleep(WAIT_TIME_IN_CALL)
         if not verify_incall_state(self.log, [ads[0], ads[1], ads[2]], False):
             return False
@@ -2024,14 +2045,14 @@ class TelLiveVoiceConfTest(TelephonyBaseTest):
         # Check if Conf Call is currently active
         if ads[0].droid.telecomCallGetCallState(
                 call_conf_id) != CALL_STATE_ACTIVE:
-            self.log.error(
-                "Call_id:{}, state:{}, expected: STATE_ACTIVE".format(
-                    call_conf_id, ads[0].droid.telecomCallGetCallState(
-                        call_conf_id)))
+            self.log.error("Call_id:{}, state:{}, expected: STATE_ACTIVE".
+                           format(call_conf_id, ads[
+                               0].droid.telecomCallGetCallState(call_conf_id)))
             return False
 
         self.log.info("Step5: End call on PhoneC and verify call continues.")
-        ads[2].droid.telecomEndCall()
+        if not self._hangup_call(ads[2], "PhoneC"):
+            return False
         time.sleep(WAIT_TIME_IN_CALL)
         calls = ads[0].droid.telecomCallGetCallIds()
         self.log.info("Calls in PhoneA{}".format(calls))
@@ -2043,7 +2064,8 @@ class TelLiveVoiceConfTest(TelephonyBaseTest):
             return False
 
         self.log.info("Step6: End call on PhoneB and verify PhoneA end.")
-        ads[1].droid.telecomEndCall()
+        if not self._hangup_call(ads[1], "PhoneB"):
+            return False
         time.sleep(WAIT_TIME_IN_CALL)
         if not verify_incall_state(self.log, [ads[0], ads[1], ads[2]], False):
             return False
@@ -2073,7 +2095,8 @@ class TelLiveVoiceConfTest(TelephonyBaseTest):
 
         self.log.info("Hangup at {}, verify call continues.".format(
             ad_hangup.serial))
-        ad_hangup.droid.telecomEndCall()
+        if not self._hangup_call(ad_hangup):
+            return False
         time.sleep(WAIT_TIME_IN_CALL)
 
         if ad_verify.droid.telecomCallGetCallState(call_id) != call_state:
@@ -2387,9 +2410,8 @@ class TelLiveVoiceConfTest(TelephonyBaseTest):
         # make sure PhoneB and PhoneC are GSM phone before proceed.
         for ad in [ads[1], ads[2]]:
             if (ad.droid.telephonyGetPhoneType() != PHONE_TYPE_GSM):
-                self.log.error(
-                    "{} not GSM phone, abort wcdma swap test.".format(
-                        ad.serial))
+                self.log.error("{} not GSM phone, abort wcdma swap test.".
+                               format(ad.serial))
                 return None, None
 
         # To make thing simple, for epdg, setup should be called before calling
@@ -2441,9 +2463,8 @@ class TelLiveVoiceConfTest(TelephonyBaseTest):
         # make sure PhoneB and PhoneC are GSM phone before proceed.
         for ad in [ads[1], ads[2]]:
             if (ad.droid.telephonyGetPhoneType() != PHONE_TYPE_GSM):
-                self.log.error(
-                    "{} not GSM phone, abort wcdma swap test.".format(
-                        ad.serial))
+                self.log.error("{} not GSM phone, abort wcdma swap test.".
+                               format(ad.serial))
                 return None, None
 
         # To make thing simple, for epdg, setup should be called before calling
@@ -2495,9 +2516,8 @@ class TelLiveVoiceConfTest(TelephonyBaseTest):
         # make sure PhoneB and PhoneC are GSM phone before proceed.
         for ad in [ads[1], ads[2]]:
             if (ad.droid.telephonyGetPhoneType() != PHONE_TYPE_GSM):
-                self.log.error(
-                    "{} not GSM phone, abort wcdma swap test.".format(
-                        ad.serial))
+                self.log.error("{} not GSM phone, abort wcdma swap test.".
+                               format(ad.serial))
                 return None, None
 
         # To make thing simple, for epdg, setup should be called before calling
@@ -2726,14 +2746,14 @@ class TelLiveVoiceConfTest(TelephonyBaseTest):
         # Check if Conf Call is currently active
         if ads[0].droid.telecomCallGetCallState(
                 call_conf_id) != CALL_STATE_ACTIVE:
-            self.log.error(
-                "Call_id:{}, state:{}, expected: STATE_ACTIVE".format(
-                    call_conf_id, ads[0].droid.telecomCallGetCallState(
-                        call_conf_id)))
+            self.log.error("Call_id:{}, state:{}, expected: STATE_ACTIVE".
+                           format(call_conf_id, ads[
+                               0].droid.telecomCallGetCallState(call_conf_id)))
             return False
 
         self.log.info("Step5: End call on PhoneC and verify call continues.")
-        ads[2].droid.telecomEndCall()
+        if not self._hangup_call(ads[2], "PhoneC"):
+            return False
         time.sleep(WAIT_TIME_IN_CALL)
         calls = ads[0].droid.telecomCallGetCallIds()
         self.log.info("Calls in PhoneA{}".format(calls))
@@ -2743,7 +2763,8 @@ class TelLiveVoiceConfTest(TelephonyBaseTest):
             return False
 
         self.log.info("Step6: End call on PhoneB and verify PhoneA end.")
-        ads[1].droid.telecomEndCall()
+        if not self._hangup_call(ads[1], "PhoneB"):
+            return False
         time.sleep(WAIT_TIME_IN_CALL)
         if not verify_incall_state(self.log, [ads[0], ads[1], ads[2]], False):
             return False
@@ -7284,10 +7305,9 @@ class TelLiveVoiceConfTest(TelephonyBaseTest):
         # Check if Conf Call currently active
         if ads[0].droid.telecomCallGetCallState(
                 call_conf_id) != CALL_STATE_ACTIVE:
-            self.log.error(
-                "Call_id:{}, state:{}, expected: STATE_ACTIVE".format(
-                    call_conf_id, ads[0].droid.telecomCallGetCallState(
-                        call_conf_id)))
+            self.log.error("Call_id:{}, state:{}, expected: STATE_ACTIVE".
+                           format(call_conf_id, ads[
+                               0].droid.telecomCallGetCallState(call_conf_id)))
             return False
 
         # Unmerge
@@ -7311,10 +7331,9 @@ class TelLiveVoiceConfTest(TelephonyBaseTest):
         # Unmerged call in call state ACTIVE?
         if ads[0].droid.telecomCallGetCallState(
                 call_ab_id) != CALL_STATE_ACTIVE:
-            self.log.error(
-                "Call_id:{}, state:{}, expected: STATE_ACTIVE".format(
-                    call_ab_id, ads[0].droid.telecomCallGetCallState(
-                        call_ab_id)))
+            self.log.error("Call_id:{}, state:{}, expected: STATE_ACTIVE".
+                           format(call_ab_id, ads[0]
+                                  .droid.telecomCallGetCallState(call_ab_id)))
             return False
 
         # Swap call
@@ -7327,10 +7346,9 @@ class TelLiveVoiceConfTest(TelephonyBaseTest):
         # Other call in call state ACTIVE?
         if ads[0].droid.telecomCallGetCallState(
                 call_ac_id) != CALL_STATE_ACTIVE:
-            self.log.error(
-                "Call_id:{}, state:{}, expected: STATE_ACTIVE".format(
-                    call_ac_id, ads[0].droid.telecomCallGetCallState(
-                        call_ac_id)))
+            self.log.error("Call_id:{}, state:{}, expected: STATE_ACTIVE".
+                           format(call_ac_id, ads[0]
+                                  .droid.telecomCallGetCallState(call_ac_id)))
             return False
 
         # All calls still CONNECTED?
@@ -7833,8 +7851,8 @@ class TelLiveVoiceConfTest(TelephonyBaseTest):
         tasks = [(phone_setup_iwlan,
                   (self.log, ads[0], False, WFC_MODE_WIFI_PREFERRED,
                    self.wifi_network_ssid, self.wifi_network_pass)),
-                 (phone_setup_voice_3g, (self.log, ads[1])), (phone_setup_voice_3g,
-                                                        (self.log, ads[2]))]
+                 (phone_setup_voice_3g, (self.log, ads[1])), (
+                     phone_setup_voice_3g, (self.log, ads[2]))]
         if not multithread_func(self.log, tasks):
             self.log.error("Phone Failed to Set Up Properly.")
             return False
@@ -7863,8 +7881,8 @@ class TelLiveVoiceConfTest(TelephonyBaseTest):
         tasks = [(phone_setup_iwlan,
                   (self.log, ads[0], False, WFC_MODE_WIFI_ONLY,
                    self.wifi_network_ssid, self.wifi_network_pass)),
-                 (phone_setup_voice_3g, (self.log, ads[1])), (phone_setup_voice_3g,
-                                                        (self.log, ads[2]))]
+                 (phone_setup_voice_3g, (self.log, ads[1])), (
+                     phone_setup_voice_3g, (self.log, ads[2]))]
         if not multithread_func(self.log, tasks):
             self.log.error("Phone Failed to Set Up Properly.")
             return False
@@ -7893,8 +7911,8 @@ class TelLiveVoiceConfTest(TelephonyBaseTest):
         tasks = [(phone_setup_iwlan,
                   (self.log, ads[0], False, WFC_MODE_WIFI_PREFERRED,
                    self.wifi_network_ssid, self.wifi_network_pass)),
-                 (phone_setup_voice_3g, (self.log, ads[1])), (phone_setup_voice_3g,
-                                                        (self.log, ads[2]))]
+                 (phone_setup_voice_3g, (self.log, ads[1])), (
+                     phone_setup_voice_3g, (self.log, ads[2]))]
         if not multithread_func(self.log, tasks):
             self.log.error("Phone Failed to Set Up Properly.")
             return False
@@ -8432,8 +8450,8 @@ class TelLiveVoiceConfTest(TelephonyBaseTest):
         tasks = [(phone_setup_iwlan,
                   (self.log, ads[0], False, WFC_MODE_WIFI_ONLY,
                    self.wifi_network_ssid, self.wifi_network_pass)),
-                 (phone_setup_voice_3g, (self.log, ads[1])), (phone_setup_voice_3g,
-                                                        (self.log, ads[2]))]
+                 (phone_setup_voice_3g, (self.log, ads[1])), (
+                     phone_setup_voice_3g, (self.log, ads[2]))]
         if not multithread_func(self.log, tasks):
             self.log.error("Phone Failed to Set Up Properly.")
             return False
@@ -8462,8 +8480,8 @@ class TelLiveVoiceConfTest(TelephonyBaseTest):
         tasks = [(phone_setup_iwlan,
                   (self.log, ads[0], False, WFC_MODE_WIFI_PREFERRED,
                    self.wifi_network_ssid, self.wifi_network_pass)),
-                 (phone_setup_voice_3g, (self.log, ads[1])), (phone_setup_voice_3g,
-                                                        (self.log, ads[2]))]
+                 (phone_setup_voice_3g, (self.log, ads[1])), (
+                     phone_setup_voice_3g, (self.log, ads[2]))]
         if not multithread_func(self.log, tasks):
             self.log.error("Phone Failed to Set Up Properly.")
             return False
@@ -8492,8 +8510,8 @@ class TelLiveVoiceConfTest(TelephonyBaseTest):
         tasks = [(phone_setup_iwlan,
                   (self.log, ads[0], False, WFC_MODE_WIFI_ONLY,
                    self.wifi_network_ssid, self.wifi_network_pass)),
-                 (phone_setup_voice_3g, (self.log, ads[1])), (phone_setup_voice_3g,
-                                                        (self.log, ads[2]))]
+                 (phone_setup_voice_3g, (self.log, ads[1])), (
+                     phone_setup_voice_3g, (self.log, ads[2]))]
         if not multithread_func(self.log, tasks):
             self.log.error("Phone Failed to Set Up Properly.")
             return False
@@ -8523,8 +8541,8 @@ class TelLiveVoiceConfTest(TelephonyBaseTest):
         tasks = [(phone_setup_iwlan,
                   (self.log, ads[0], False, WFC_MODE_WIFI_PREFERRED,
                    self.wifi_network_ssid, self.wifi_network_pass)),
-                 (phone_setup_voice_3g, (self.log, ads[1])), (phone_setup_voice_3g,
-                                                        (self.log, ads[2]))]
+                 (phone_setup_voice_3g, (self.log, ads[1])), (
+                     phone_setup_voice_3g, (self.log, ads[2]))]
         if not multithread_func(self.log, tasks):
             self.log.error("Phone Failed to Set Up Properly.")
             return False
@@ -8552,8 +8570,8 @@ class TelLiveVoiceConfTest(TelephonyBaseTest):
         tasks = [(phone_setup_iwlan,
                   (self.log, ads[0], False, WFC_MODE_WIFI_ONLY,
                    self.wifi_network_ssid, self.wifi_network_pass)),
-                 (phone_setup_voice_3g, (self.log, ads[1])), (phone_setup_voice_3g,
-                                                        (self.log, ads[2]))]
+                 (phone_setup_voice_3g, (self.log, ads[1])), (
+                     phone_setup_voice_3g, (self.log, ads[2]))]
         if not multithread_func(self.log, tasks):
             self.log.error("Phone Failed to Set Up Properly.")
             return False
@@ -8582,8 +8600,8 @@ class TelLiveVoiceConfTest(TelephonyBaseTest):
         tasks = [(phone_setup_iwlan,
                   (self.log, ads[0], False, WFC_MODE_WIFI_PREFERRED,
                    self.wifi_network_ssid, self.wifi_network_pass)),
-                 (phone_setup_voice_3g, (self.log, ads[1])), (phone_setup_voice_3g,
-                                                        (self.log, ads[2]))]
+                 (phone_setup_voice_3g, (self.log, ads[1])), (
+                     phone_setup_voice_3g, (self.log, ads[2]))]
         if not multithread_func(self.log, tasks):
             self.log.error("Phone Failed to Set Up Properly.")
             return False
@@ -8612,8 +8630,8 @@ class TelLiveVoiceConfTest(TelephonyBaseTest):
         tasks = [(phone_setup_iwlan,
                   (self.log, ads[0], False, WFC_MODE_WIFI_ONLY,
                    self.wifi_network_ssid, self.wifi_network_pass)),
-                 (phone_setup_voice_3g, (self.log, ads[1])), (phone_setup_voice_3g,
-                                                        (self.log, ads[2]))]
+                 (phone_setup_voice_3g, (self.log, ads[1])), (
+                     phone_setup_voice_3g, (self.log, ads[2]))]
         if not multithread_func(self.log, tasks):
             self.log.error("Phone Failed to Set Up Properly.")
             return False
@@ -8643,8 +8661,8 @@ class TelLiveVoiceConfTest(TelephonyBaseTest):
         tasks = [(phone_setup_iwlan,
                   (self.log, ads[0], False, WFC_MODE_WIFI_PREFERRED,
                    self.wifi_network_ssid, self.wifi_network_pass)),
-                 (phone_setup_voice_3g, (self.log, ads[1])), (phone_setup_voice_3g,
-                                                        (self.log, ads[2]))]
+                 (phone_setup_voice_3g, (self.log, ads[1])), (
+                     phone_setup_voice_3g, (self.log, ads[2]))]
         if not multithread_func(self.log, tasks):
             self.log.error("Phone Failed to Set Up Properly.")
             return False
@@ -8672,8 +8690,8 @@ class TelLiveVoiceConfTest(TelephonyBaseTest):
         tasks = [(phone_setup_iwlan,
                   (self.log, ads[0], False, WFC_MODE_WIFI_ONLY,
                    self.wifi_network_ssid, self.wifi_network_pass)),
-                 (phone_setup_voice_3g, (self.log, ads[1])), (phone_setup_voice_3g,
-                                                        (self.log, ads[2]))]
+                 (phone_setup_voice_3g, (self.log, ads[1])), (
+                     phone_setup_voice_3g, (self.log, ads[2]))]
         if not multithread_func(self.log, tasks):
             self.log.error("Phone Failed to Set Up Properly.")
             return False
@@ -8701,8 +8719,8 @@ class TelLiveVoiceConfTest(TelephonyBaseTest):
         tasks = [(phone_setup_iwlan,
                   (self.log, ads[0], False, WFC_MODE_WIFI_PREFERRED,
                    self.wifi_network_ssid, self.wifi_network_pass)),
-                 (phone_setup_voice_3g, (self.log, ads[1])), (phone_setup_voice_3g,
-                                                        (self.log, ads[2]))]
+                 (phone_setup_voice_3g, (self.log, ads[1])), (
+                     phone_setup_voice_3g, (self.log, ads[2]))]
         if not multithread_func(self.log, tasks):
             self.log.error("Phone Failed to Set Up Properly.")
             return False
@@ -8731,8 +8749,8 @@ class TelLiveVoiceConfTest(TelephonyBaseTest):
         tasks = [(phone_setup_iwlan,
                   (self.log, ads[0], False, WFC_MODE_WIFI_ONLY,
                    self.wifi_network_ssid, self.wifi_network_pass)),
-                 (phone_setup_voice_3g, (self.log, ads[1])), (phone_setup_voice_3g,
-                                                        (self.log, ads[2]))]
+                 (phone_setup_voice_3g, (self.log, ads[1])), (
+                     phone_setup_voice_3g, (self.log, ads[2]))]
         if not multithread_func(self.log, tasks):
             self.log.error("Phone Failed to Set Up Properly.")
             return False
@@ -8761,8 +8779,8 @@ class TelLiveVoiceConfTest(TelephonyBaseTest):
         tasks = [(phone_setup_iwlan,
                   (self.log, ads[0], False, WFC_MODE_WIFI_PREFERRED,
                    self.wifi_network_ssid, self.wifi_network_pass)),
-                 (phone_setup_voice_3g, (self.log, ads[1])), (phone_setup_voice_3g,
-                                                        (self.log, ads[2]))]
+                 (phone_setup_voice_3g, (self.log, ads[1])), (
+                     phone_setup_voice_3g, (self.log, ads[2]))]
         if not multithread_func(self.log, tasks):
             self.log.error("Phone Failed to Set Up Properly.")
             return False
@@ -8790,8 +8808,8 @@ class TelLiveVoiceConfTest(TelephonyBaseTest):
         tasks = [(phone_setup_iwlan,
                   (self.log, ads[0], False, WFC_MODE_WIFI_ONLY,
                    self.wifi_network_ssid, self.wifi_network_pass)),
-                 (phone_setup_voice_3g, (self.log, ads[1])), (phone_setup_voice_3g,
-                                                        (self.log, ads[2]))]
+                 (phone_setup_voice_3g, (self.log, ads[1])), (
+                     phone_setup_voice_3g, (self.log, ads[2]))]
         if not multithread_func(self.log, tasks):
             self.log.error("Phone Failed to Set Up Properly.")
             return False
@@ -8819,8 +8837,8 @@ class TelLiveVoiceConfTest(TelephonyBaseTest):
         tasks = [(phone_setup_iwlan,
                   (self.log, ads[0], False, WFC_MODE_WIFI_PREFERRED,
                    self.wifi_network_ssid, self.wifi_network_pass)),
-                 (phone_setup_voice_3g, (self.log, ads[1])), (phone_setup_voice_3g,
-                                                        (self.log, ads[2]))]
+                 (phone_setup_voice_3g, (self.log, ads[1])), (
+                     phone_setup_voice_3g, (self.log, ads[2]))]
         if not multithread_func(self.log, tasks):
             self.log.error("Phone Failed to Set Up Properly.")
             return False
@@ -8849,8 +8867,8 @@ class TelLiveVoiceConfTest(TelephonyBaseTest):
         tasks = [(phone_setup_iwlan,
                   (self.log, ads[0], False, WFC_MODE_WIFI_ONLY,
                    self.wifi_network_ssid, self.wifi_network_pass)),
-                 (phone_setup_voice_3g, (self.log, ads[1])), (phone_setup_voice_3g,
-                                                        (self.log, ads[2]))]
+                 (phone_setup_voice_3g, (self.log, ads[1])), (
+                     phone_setup_voice_3g, (self.log, ads[2]))]
         if not multithread_func(self.log, tasks):
             self.log.error("Phone Failed to Set Up Properly.")
             return False
@@ -8879,8 +8897,8 @@ class TelLiveVoiceConfTest(TelephonyBaseTest):
         tasks = [(phone_setup_iwlan,
                   (self.log, ads[0], False, WFC_MODE_WIFI_PREFERRED,
                    self.wifi_network_ssid, self.wifi_network_pass)),
-                 (phone_setup_voice_3g, (self.log, ads[1])), (phone_setup_voice_3g,
-                                                        (self.log, ads[2]))]
+                 (phone_setup_voice_3g, (self.log, ads[1])), (
+                     phone_setup_voice_3g, (self.log, ads[2]))]
         if not multithread_func(self.log, tasks):
             self.log.error("Phone Failed to Set Up Properly.")
             return False
@@ -9728,14 +9746,14 @@ class TelLiveVoiceConfTest(TelephonyBaseTest):
         # Check if Conf Call is currently active
         if ads[0].droid.telecomCallGetCallState(
                 call_conf_id) != CALL_STATE_ACTIVE:
-            self.log.error(
-                "Call_id:{}, state:{}, expected: STATE_ACTIVE".format(
-                    call_conf_id, ads[0].droid.telecomCallGetCallState(
-                        call_conf_id)))
+            self.log.error("Call_id:{}, state:{}, expected: STATE_ACTIVE".
+                           format(call_conf_id, ads[
+                               0].droid.telecomCallGetCallState(call_conf_id)))
             return False
 
         self.log.info("Step5: End call on PhoneC and verify call continues.")
-        ads[2].droid.telecomEndCall()
+        if not self._hangup_call(ads[2], "PhoneC"):
+            return False
         time.sleep(WAIT_TIME_IN_CALL)
         calls = ads[0].droid.telecomCallGetCallIds()
         self.log.info("Calls in PhoneA{}".format(calls))
@@ -9747,7 +9765,8 @@ class TelLiveVoiceConfTest(TelephonyBaseTest):
             return False
 
         self.log.info("Step6: End call on PhoneB and verify PhoneA end.")
-        ads[1].droid.telecomEndCall()
+        if not self._hangup_call(ads[1], "PhoneB"):
+            return False
         time.sleep(WAIT_TIME_IN_CALL)
         if not verify_incall_state(self.log, [ads[0], ads[1], ads[2]], False):
             return False

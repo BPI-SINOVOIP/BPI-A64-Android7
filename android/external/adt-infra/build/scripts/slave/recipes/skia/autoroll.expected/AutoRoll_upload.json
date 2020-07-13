@@ -1,0 +1,170 @@
+[
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[DEPOT_TOOLS]/gclient.py",
+      "config",
+      "--spec",
+      "cache_dir = None\nsolutions = [{'deps_file': 'DEPS', 'managed': True, 'name': 'src', 'url': 'https://chromium.googlesource.com/chromium/src.git'}]"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "gclient setup"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[DEPOT_TOOLS]/gclient.py",
+      "sync",
+      "--nohooks",
+      "--force",
+      "--verbose",
+      "--delete_unversioned_trees",
+      "--output-json",
+      "/path/to/tmp/json"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "gclient sync",
+    "~followup_annotations": [
+      "@@@STEP_LOG_LINE@json.output@{@@@",
+      "@@@STEP_LOG_LINE@json.output@  \"solutions\": {@@@",
+      "@@@STEP_LOG_LINE@json.output@    \"src/\": {@@@",
+      "@@@STEP_LOG_LINE@json.output@      \"revision\": 170242@@@",
+      "@@@STEP_LOG_LINE@json.output@    }, @@@",
+      "@@@STEP_LOG_LINE@json.output@    \"src/third_party/skia/\": {@@@",
+      "@@@STEP_LOG_LINE@json.output@      \"revision\": 143121@@@",
+      "@@@STEP_LOG_LINE@json.output@    }@@@",
+      "@@@STEP_LOG_LINE@json.output@  }@@@",
+      "@@@STEP_LOG_LINE@json.output@}@@@",
+      "@@@STEP_LOG_END@json.output@@@",
+      "@@@SET_BUILD_PROPERTY@got_revision@143121@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "git",
+      "config",
+      "--local",
+      "user.name",
+      "Skia DEPS Roller"
+    ],
+    "cwd": "[SLAVE_BUILD]/src",
+    "name": "git config user.name"
+  },
+  {
+    "cmd": [
+      "git",
+      "config",
+      "--local",
+      "user.email",
+      "skia-deps-roller@chromium.org"
+    ],
+    "cwd": "[SLAVE_BUILD]/src",
+    "name": "git config user.email"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "\nimport urllib2\nimport sys\nimport time\n\nattempts = 5\nres = None\nfor attempt in range(attempts):\n  try:\n    res = urllib2.urlopen(sys.argv[1]).read()\n    break\n  except urllib2.URLError:\n    if attempt == attempts - 1:\n      raise\n    time.sleep(2 ** attempt)\nwith open(sys.argv[2], 'w') as f:\n  f.write(res)\n",
+      "http://skia-tree-status.appspot.com/arb_is_stopped",
+      "/path/to/tmp/json"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "is_stopped",
+    "~followup_annotations": [
+      "@@@STEP_LOG_LINE@json.output@{@@@",
+      "@@@STEP_LOG_LINE@json.output@  \"is_stopped\": false@@@",
+      "@@@STEP_LOG_LINE@json.output@}@@@",
+      "@@@STEP_LOG_END@json.output@@@",
+      "@@@STEP_LOG_LINE@python.inline@@@@",
+      "@@@STEP_LOG_LINE@python.inline@import urllib2@@@",
+      "@@@STEP_LOG_LINE@python.inline@import sys@@@",
+      "@@@STEP_LOG_LINE@python.inline@import time@@@",
+      "@@@STEP_LOG_LINE@python.inline@@@@",
+      "@@@STEP_LOG_LINE@python.inline@attempts = 5@@@",
+      "@@@STEP_LOG_LINE@python.inline@res = None@@@",
+      "@@@STEP_LOG_LINE@python.inline@for attempt in range(attempts):@@@",
+      "@@@STEP_LOG_LINE@python.inline@  try:@@@",
+      "@@@STEP_LOG_LINE@python.inline@    res = urllib2.urlopen(sys.argv[1]).read()@@@",
+      "@@@STEP_LOG_LINE@python.inline@    break@@@",
+      "@@@STEP_LOG_LINE@python.inline@  except urllib2.URLError:@@@",
+      "@@@STEP_LOG_LINE@python.inline@    if attempt == attempts - 1:@@@",
+      "@@@STEP_LOG_LINE@python.inline@      raise@@@",
+      "@@@STEP_LOG_LINE@python.inline@    time.sleep(2 ** attempt)@@@",
+      "@@@STEP_LOG_LINE@python.inline@with open(sys.argv[2], 'w') as f:@@@",
+      "@@@STEP_LOG_LINE@python.inline@  f.write(res)@@@",
+      "@@@STEP_LOG_END@python.inline@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "python",
+      "[BUILD]/scripts/tools/blink_roller/auto_roll.py",
+      "skia",
+      "skia-deps-roller@chromium.org",
+      "[SLAVE_BUILD]/src"
+    ],
+    "cwd": "[SLAVE_BUILD]/src",
+    "name": "do auto_roll",
+    "stdout": "/path/to/tmp/"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "\nimport json\nimport shlex\nimport subprocess\nimport sys\nimport urllib\nimport urllib2\n\nroll_status = sys.argv[1]\npassword_url = sys.argv[2]\nissue_url = sys.argv[3]\nappengine_status_url = sys.argv[4]\n\ndef full_hash(short):\n  return subprocess.check_output(['git', 'rev-parse', short]).rstrip()\n\npassword = urllib2.urlopen(urllib2.Request(\n    password_url,\n    headers={'Metadata-Flavor': 'Google'})).read()\nparams = {'status': roll_status,\n          'password': password}\nif issue_url == '' and roll_status == 'Idle':\n  params['last_roll_rev'] = full_hash('origin/master')\nif issue_url != '':\n  params['deps_roll_link'] = issue_url\n  split = issue_url.split('/')\n  split.insert(-2, 'api')\n  api_url = '/'.join(split)\n  issue_details = json.load(urllib2.urlopen(api_url))\n  old, new = shlex.split(issue_details['subject'])[-1].split(':')\n  params['last_roll_rev'] = full_hash(old)\n  params['curr_roll_rev'] = full_hash(new)\n\nurllib2.urlopen(urllib2.Request(\n    appengine_status_url,\n    urllib.urlencode(params)))\n",
+      "In progress",
+      "http://metadata/computeMetadata/v1/project/attributes/skia_tree_status",
+      "https://codereview.chromium.org/1234/",
+      "https://skia-tree-status.appspot.com/set_arb_status"
+    ],
+    "cwd": "[SLAVE_BUILD]/src/third_party/skia",
+    "name": "update_status",
+    "~followup_annotations": [
+      "@@@STEP_LOG_LINE@python.inline@@@@",
+      "@@@STEP_LOG_LINE@python.inline@import json@@@",
+      "@@@STEP_LOG_LINE@python.inline@import shlex@@@",
+      "@@@STEP_LOG_LINE@python.inline@import subprocess@@@",
+      "@@@STEP_LOG_LINE@python.inline@import sys@@@",
+      "@@@STEP_LOG_LINE@python.inline@import urllib@@@",
+      "@@@STEP_LOG_LINE@python.inline@import urllib2@@@",
+      "@@@STEP_LOG_LINE@python.inline@@@@",
+      "@@@STEP_LOG_LINE@python.inline@roll_status = sys.argv[1]@@@",
+      "@@@STEP_LOG_LINE@python.inline@password_url = sys.argv[2]@@@",
+      "@@@STEP_LOG_LINE@python.inline@issue_url = sys.argv[3]@@@",
+      "@@@STEP_LOG_LINE@python.inline@appengine_status_url = sys.argv[4]@@@",
+      "@@@STEP_LOG_LINE@python.inline@@@@",
+      "@@@STEP_LOG_LINE@python.inline@def full_hash(short):@@@",
+      "@@@STEP_LOG_LINE@python.inline@  return subprocess.check_output(['git', 'rev-parse', short]).rstrip()@@@",
+      "@@@STEP_LOG_LINE@python.inline@@@@",
+      "@@@STEP_LOG_LINE@python.inline@password = urllib2.urlopen(urllib2.Request(@@@",
+      "@@@STEP_LOG_LINE@python.inline@    password_url,@@@",
+      "@@@STEP_LOG_LINE@python.inline@    headers={'Metadata-Flavor': 'Google'})).read()@@@",
+      "@@@STEP_LOG_LINE@python.inline@params = {'status': roll_status,@@@",
+      "@@@STEP_LOG_LINE@python.inline@          'password': password}@@@",
+      "@@@STEP_LOG_LINE@python.inline@if issue_url == '' and roll_status == 'Idle':@@@",
+      "@@@STEP_LOG_LINE@python.inline@  params['last_roll_rev'] = full_hash('origin/master')@@@",
+      "@@@STEP_LOG_LINE@python.inline@if issue_url != '':@@@",
+      "@@@STEP_LOG_LINE@python.inline@  params['deps_roll_link'] = issue_url@@@",
+      "@@@STEP_LOG_LINE@python.inline@  split = issue_url.split('/')@@@",
+      "@@@STEP_LOG_LINE@python.inline@  split.insert(-2, 'api')@@@",
+      "@@@STEP_LOG_LINE@python.inline@  api_url = '/'.join(split)@@@",
+      "@@@STEP_LOG_LINE@python.inline@  issue_details = json.load(urllib2.urlopen(api_url))@@@",
+      "@@@STEP_LOG_LINE@python.inline@  old, new = shlex.split(issue_details['subject'])[-1].split(':')@@@",
+      "@@@STEP_LOG_LINE@python.inline@  params['last_roll_rev'] = full_hash(old)@@@",
+      "@@@STEP_LOG_LINE@python.inline@  params['curr_roll_rev'] = full_hash(new)@@@",
+      "@@@STEP_LOG_LINE@python.inline@@@@",
+      "@@@STEP_LOG_LINE@python.inline@urllib2.urlopen(urllib2.Request(@@@",
+      "@@@STEP_LOG_LINE@python.inline@    appengine_status_url,@@@",
+      "@@@STEP_LOG_LINE@python.inline@    urllib.urlencode(params)))@@@",
+      "@@@STEP_LOG_END@python.inline@@@"
+    ]
+  },
+  {
+    "name": "$result",
+    "recipe_result": null,
+    "status_code": 0
+  }
+]

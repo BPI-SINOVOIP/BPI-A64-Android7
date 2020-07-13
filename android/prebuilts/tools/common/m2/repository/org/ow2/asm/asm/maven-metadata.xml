@@ -2,10 +2,10 @@
 <metadata>
   <groupId>org.ow2.asm</groupId>
   <artifactId>asm</artifactId>
-  <version>5.0.4</version>
+  <version>6.0_ALPHA</version>
   <versioning>
-    <latest>5.0.4</latest>
-    <release>5.0.4</release>
+    <latest>6.0_ALPHA</latest>
+    <release>6.0_ALPHA</release>
     <versions>
       <version>4.0</version>
       <version>4.1</version>
@@ -17,7 +17,9 @@
       <version>5.0.2</version>
       <version>5.0.3</version>
       <version>5.0.4</version>
+      <version>5.1</version>
+      <version>6.0_ALPHA</version>
     </versions>
-    <lastUpdated>20150518071450</lastUpdated>
+    <lastUpdated>20160620095403</lastUpdated>
   </versioning>
 </metadata>

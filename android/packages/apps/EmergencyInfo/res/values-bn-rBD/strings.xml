@@ -96,7 +96,8 @@
     <string name="user_emergency_info_title" msgid="7827058167207376581">"জরুরি তথ্য"</string>
     <string name="user_emergency_info_consent" msgid="5636028073450797246">"এখানে আপনার লেখা তথ্য জরুরী অবস্থায় প্রথম উত্তরদাতাকে সহায়তা করতে পারে৷ এটি শুধুমাত্র আপনার ডিভাইসে সঞ্চিত হয়, এবং যে কেউ আপনার ফোনটিকে আনলক না করেই জরুরী ডায়ালার থেকে এটিকে পড়তে পারবেন৷"</string>
     <string name="emergency_info_continue" msgid="5453201508537906087">"অবিরত রাখুন"</string>
-    <string name="no_info_provided" msgid="6775035037534954056">"কোনো জরুরি তথ্য দেওয়া হয়নি"</string>
+    <string name="no_info_provided" msgid="716200382010821001">"ফোনের মালিকের সম্পর্কে কোন তথ্য নেই"</string>
+    <string name="tap_pencil" msgid="2723698054265296934">"যদি এটি আপনার ফোন হয় তাহলে তথ্য যোগ করতে পেন্সিল আইকনে আলতো চাপুন যা জরুরী ক্ষেত্রে এখানে প্রদর্শিত হবে"</string>
     <string name="clear_all" msgid="8899013032870561633">"সবকিছু সাফ করুন"</string>
     <string name="clear" msgid="3648880442502887163">"সাফ করুন"</string>
     <string name="clear_all_message" msgid="1548432000373861295">"সমস্ত তথ্য ও পরিচিতি সাফ করবেন?"</string>

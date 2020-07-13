@@ -1,0 +1,294 @@
+{
+  "master_base_class": "Master3",
+  "master_port": 8200,
+  "master_port_alt": 8400,
+  "slave_port": 8300,
+  "templates": ["./templates"],
+  "public_html": ["./public_html"],
+
+  "change_source": {
+     "sys_image_mnc_poller": {
+       "gs_bucket": "android-build-emu-sysimage",
+       "gs_path": ["builds/git_mnc-emu-dev-linux-sdk_google_phone_x86_64-sdk_addon/",
+                   "builds/git_mnc-emu-dev-linux-sdk_google_phone_x86-sdk_addon/",
+                   "builds/git_mnc-emu-dev-linux-sdk_phone_x86_64-sdk/",
+                   "builds/git_mnc-emu-dev-linux-sdk_phone_x86-sdk/"],
+       "pollInterval": 675,
+       "type": "GSMultiPoller",
+       "project": "git_mnc-emu-dev",
+       "branch": "all",
+       "name_identifier": "system-images",
+     },
+     "sys_image_lmp_mr1_poller": {
+       "gs_bucket": "android-build-emu-sysimage",
+       "gs_path": ["builds/git_lmp-mr1-emu-dev-linux-sdk_google_phone_x86_64-sdk_addon/",
+                   "builds/git_lmp-mr1-emu-dev-linux-sdk_google_phone_x86-sdk_addon/",
+                   "builds/git_lmp-mr1-emu-dev-linux-sdk_phone_x86_64-sdk/",
+                   "builds/git_lmp-mr1-emu-dev-linux-sdk_phone_x86-sdk/"],
+       "pollInterval": 596,
+       "type": "GSMultiPoller",
+       "project": "git_lmp-mr1-emu-dev",
+       "branch": "all",
+       "name_identifier": "system-images",
+     },
+     "sys_image_nyc_poller": {
+       "gs_bucket": "android-build-emu-sysimage",
+       "gs_path": ["builds/git_nyc-release-linux-sdk_phone_armv7-win_sdk/",
+                   "builds/git_nyc-release-linux-sdk_google_phone_x86-sdk_addon/",
+                   "builds/git_nyc-release-linux-sdk_google_phone_x86_64-sdk_addon/",
+                   "builds/git_nyc-release-linux-sdk_phone_x86-sdk/",
+                   "builds/git_nyc-release-linux-sdk_phone_x86_64-sdk/"],
+       "pollInterval": 977,
+       "type": "GSMultiPoller",
+       "project": "git_nyc-release",
+       "branch": "all",
+       "name_identifier": "system-images",
+    },
+    "sys_image_klp_poller": {
+       "gs_bucket": "android-build-emu-sysimage",
+       "gs_path": ["builds/git_klp-emu-dev-linux-google_sdk_x86-sdk_addon/"],
+       "pollInterval": 7870000,
+       "type": "GSMultiPoller",
+       "project": "git_klp-emu-dev",
+       "branch": "all",
+       "name_identifier": "linux-addon",
+    },
+    "sys_image_lmp_poller": {
+       "gs_bucket": "android-build-emu-sysimage",
+       "gs_path": ["builds/git_lmp-emu-dev-linux-sdk_google_phone_x86-sdk_addon/",
+                   "builds/git_lmp-emu-dev-linux-sdk_google_phone_x86_64-sdk_addon/"],
+       "pollInterval": 853,
+       "type": "GSMultiPoller",
+       "project": "git_lmp-emu-dev",
+       "branch": "all",
+       "name_identifier": "system-images",
+    },
+    "emulator_linux_poller": {
+       "gs_bucket": "android-build-emu",
+       "gs_path": ["builds/aosp-emu-master-dev-linux-sdk_tools_linux/"],
+       "pollInterval": 300,
+       "type": "GSMultiPoller",
+       "project": "emu-master-dev",
+       "branch": "linux",
+       "name_identifier": "sdk-repo-linux",
+    },
+    "emulator_windows_poller": {
+       "gs_bucket": "android-build-emu",
+       "gs_path": ["builds/aosp-emu-master-dev-linux-sdk_tools_linux/"],
+       "pollInterval": 300,
+       "type": "GSMultiPoller",
+       "project": "emu-master-dev",
+       "branch": "windows",
+       "name_identifier": "sdk-repo-windows",
+    },
+    "emulator_mac_poller": {
+       "gs_bucket": "android-build-emu",
+       "gs_path": ["builds/aosp-emu-master-dev-mac-sdk_tools_mac/"],
+       "pollInterval": 300,
+       "type": "GSMultiPoller",
+       "project": "emu-master-dev",
+       "branch": "mac",
+       "name_identifier": "sdk-repo-darwin",
+    },
+ },
+  "builders": {
+     "Ubuntu 12.04 HD Graphics 4000": {
+       "recipe": "adt/adt",
+       "scheduler": "emu_linux_scheduler",
+       "slave_pools": ["ubuntu-12_04-intel-hd-4000"],
+     },
+     "Ubuntu 14.04 HD 4400": {
+       "recipe": "adt/adt",
+       "scheduler": "emu_linux_scheduler",
+       "slave_pools": ["ubuntu-14_04-intel-hd-4400"],
+     },
+     "Ubuntu 14.04 Quadro 600": {
+       "recipe": "adt/adt",
+       "scheduler": "emu_linux_scheduler",
+       "slave_pools": ["ubuntu-14_04-nvidia-quadro-600"],
+     },
+     "Ubuntu 15.04 Quadro K600": {
+       "recipe": "adt/adt",
+       "scheduler": "emu_linux_scheduler",
+       "slave_pools": ["ubuntu-15_04-nvidia-quadro-k600"],
+     },
+     "Win 7 32-bit HD 4400": {
+       "recipe": "adt/adt",
+       "scheduler": "emu_windows_scheduler",
+       "slave_pools": ["win-7-32-intel-hd-4400"],
+     },
+     "Win 7 64-bit HD 4400": {
+       "recipe": "adt/adt",
+       "scheduler": "emu_windows_scheduler",
+       "slave_pools": ["win-7-64-intel-hd-4400"],
+     },
+     "Win 8 64-bit Quadro 600": {
+       "recipe": "adt/adt",
+       "scheduler": "emu_windows_scheduler",
+       "slave_pools": ["win-8-64-nvidia-quadro-600"],
+     },
+     "Win 8.1 64-bit Quadro 600": {
+       "recipe": "adt/adt",
+       "scheduler": "emu_windows_scheduler",
+       "slave_pools": ["win-8_1-64-nvidia-quadro-600"],
+     },
+     "Win 10 64-bit Quadro 600": {
+       "recipe": "adt/adt",
+       "scheduler": "emu_windows_scheduler",
+       "slave_pools": ["win-10-64-nvidia-quadro-600"],
+     },
+     "Mac 10.10.5 Intel HD 5000": {
+       "recipe": "adt/adt",
+       "scheduler": "emu_mac_scheduler",
+       "slave_pools": ["mac-10-10-5-intel-hd-5000"],
+     },
+     "Mac 10.10.5 Iris Pro": {
+       "recipe": "adt/adt",
+       "scheduler": "emu_mac_scheduler",
+       "slave_pools": ["mac-10-10-5-iris-pro"],
+     },
+     "Mac 10.8.5 Intel HD 5000": {
+       "recipe": "adt/adt",
+       "scheduler": "emu_mac_scheduler",
+       "slave_pools": ["mac-10-8-5-intel-hd-5000"],
+     },
+     "Mac 10.11.1 Iris Pro": {
+       "recipe": "adt/adt",
+       "scheduler": "emu_mac_scheduler",
+       "slave_pools": ["mac-10-11-1-iris-pro"],
+     },
+  },
+
+  "schedulers": {
+    "emu_linux_scheduler": {
+      "project": ["emu-master-dev", "git_lmp-mr1-emu-dev", "git_mnc-emu-dev", "git_nyc-release", "git_lmp-emu-dev"],
+      "branch": ["linux", "all"],
+      "type": "gs_poller",
+    },
+    "emu_mac_scheduler": {
+      "project": ["emu-master-dev", "git_lmp-mr1-emu-dev", "git_mnc-emu-dev", "git_nyc-release", "git_lmp-emu-dev"],
+      "branch": ["mac", "all"],
+      "type": "gs_poller",
+    },
+    "emu_windows_scheduler": {
+      "project": ["emu-master-dev", "git_lmp-mr1-emu-dev", "git_mnc-emu-dev", "git_nyc-release", "git_lmp-emu-dev"],
+      "branch": ["windows", "all"],
+      "type": "gs_poller",
+    },
+ },
+
+  "slave_pools": {
+    #"adt-master": {
+     # "slave_data": {
+      #  "bits": 64,
+       # "os": "linux",
+        #"version": "trusty",
+      #},
+      #"slaves": ['chromeos1-row3-rack2-host1'],
+    #},
+    "ubuntu-12_04-intel-hd-4000": {
+      "slave_data": {
+        "bits": 64,
+        "os": "linux",
+        "version": "precise",
+      },
+      "slaves": ['chromeos1-row3-rack3-host1'],
+    },
+    "ubuntu-14_04-intel-hd-4400": {
+      "slave_data": {
+        "bits": 64,
+        "os": "linux",
+        "version": "trusty",
+      },
+      "slaves": ['chromeos1-row3-rack3-host2'],
+    },
+    "ubuntu-14_04-nvidia-quadro-600": {
+      "slave_data": {
+        "bits": 64,
+        "os": "linux",
+        "version": "trusty",
+      },
+      "slaves": ['chromeos1-row3-rack3-host5'],
+    },
+    "ubuntu-15_04-nvidia-quadro-k600": {
+      "slave_data": {
+        "bits": 64,
+        "os": "linux",
+        "version": "vivid",
+      },
+      "slaves": ['chromeos1-row3-rack2-host2'],
+    },
+    "win-7-32-intel-hd-4400": {
+      "slave_data": {
+        "bits": 32,
+        "os": "win",
+        "version": "win7",
+      },
+      "slaves": ['chromeos1-row3-rack3-host3'],
+    },
+    "win-7-64-intel-hd-4400": {
+      "slave_data": {
+        "bits": 64,
+        "os": "win",
+        "version": "win7",
+      },
+      "slaves": ['chromeos1-row3-rack2-host3'],
+    },
+    "win-8-64-nvidia-quadro-600": {
+      "slave_data": {
+        "bits": 64,
+        "os": "win",
+        "version": "win8",
+      },
+      "slaves": ['chromeos1-row3-rack2-host5'],
+    },
+    "win-8_1-64-nvidia-quadro-600": {
+      "slave_data": {
+        "bits": 64,
+        "os": "win",
+        "version": "win8.1",
+      },
+      "slaves": ['chromeos1-row3-rack2-host4'],
+    },
+    "win-10-64-nvidia-quadro-600": {
+      "slave_data": {
+        "bits": 64,
+        "os": "win",
+        "version": "win10",
+      },
+      "slaves": ['chromeos1-row3-rack3-host4'],
+    },
+    "mac-10-10-5-intel-hd-5000": {
+      "slave_data": {
+        "bits": 64,
+        "os": "mac",
+        "version": "yosemite",
+      },
+      "slaves": ['chromeos1-row4-rack3-host2'],
+    },
+    "mac-10-8-5-intel-hd-5000": {
+      "slave_data": {
+        "bits": 64,
+        "os": "mac",
+        "version": "mountainlion",
+      },
+      "slaves": ['chromeos1-row4-rack3-host4'],
+    },
+    "mac-10-10-5-iris-pro": {
+      "slave_data": {
+        "bits": 64,
+        "os": "mac",
+        "version": "yosemite",
+      },
+      "slaves": ['chromeos1-row4-rack3-host3'],
+    },
+    "mac-10-11-1-iris-pro": {
+      "slave_data": {
+        "bits": 64,
+        "os": "mac",
+        "version": "elcapitan",
+      },
+      "slaves": ['chromeos1-row4-rack4-host3'],
+    },
+  },
+}

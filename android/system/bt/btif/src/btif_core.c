@@ -359,6 +359,24 @@ static void btif_fetch_local_bdaddr(bt_bdaddr_t *local_addr)
         }
     }
 
+	if (osi_property_get("wifi.use_customized_macaddr", val, NULL))
+    {
+        if(strcmp(val, "1") == 0 && property_get("ro.boot.mac", val, NULL))
+		{
+			if ((string_to_bdaddr(val, local_addr)) &&
+					(memcmp(local_addr->address, null_bdaddr, BD_ADDR_LEN) != 0))
+			{
+				local_addr->address[0] = local_addr->address[0] & 0xFC;
+				// avoid overlaping with wifi mac
+				local_addr->address[3] = (local_addr->address[3] << 4) | (local_addr->address[3] >> 4);
+				local_addr->address[4] = (local_addr->address[4] << 4) | (local_addr->address[4] >> 4);
+				local_addr->address[5] = (local_addr->address[5] << 4) | (local_addr->address[5] >> 4);
+				valid_bda = TRUE;
+				BTIF_TRACE_DEBUG("%s: Got ro.boot.mac BDA %s", __func__, val);
+			}
+		}
+	}
+
     if(!valid_bda)
     {
         val_size = sizeof(val);

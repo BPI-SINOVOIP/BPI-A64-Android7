@@ -47,22 +47,37 @@ _LEGACY_ENVIRONMENT_VARIABLES = {
 }
 
 
+def EmptyConfig():
+  return {
+    'config_type': 'BaseConfig',
+    'dependencies': {}
+  }
+
+
+def LocalConfigItem(dependency_name, dependency_platform, dependency_path):
+  if isinstance(dependency_path, basestring):
+    dependency_path = [dependency_path]
+  return {
+    dependency_name: {
+      'file_info': {
+        dependency_platform: {
+          'local_paths': dependency_path
+        },
+      },
+    },
+  }
+
+
 def _GetEnvironmentVariableConfig():
+  env_config = EmptyConfig()
   path_config = (
       (os.environ.get(k), v)
       for k, v in _LEGACY_ENVIRONMENT_VARIABLES.iteritems())
-  return {
-    'config_type': 'BaseConfig',
-    'dependencies': {
-      c['dependency_name']: {
-        'file_info': {
-          c['platform']: {
-            'local_paths': [p],
-          },
-        },
-      } for p, c in path_config if p
-    },
-  }
+  path_config = ((p, c) for p, c in path_config if p)
+  for p, c in path_config:
+    env_config['dependencies'].update(
+        LocalConfigItem(c['dependency_name'], c['platform'], p))
+  return env_config
 
 
 class _Environment(object):
@@ -76,7 +91,7 @@ class _Environment(object):
 
     This uses all configurations provided via |configs| and |config_files|
     to determine the locations of devil's dependencies. Configurations should
-    all take the form described by catapult_base.dependency_manager.BaseConfig.
+    all take the form described by py_utils.dependency_manager.BaseConfig.
     If no configurations are provided, a default one will be used if available.
 
     Args:

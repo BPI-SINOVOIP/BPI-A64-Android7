@@ -38,6 +38,7 @@ import android.view.Surface;
 import android.net.Uri;
 
 import com.android.compatibility.common.util.DeviceReportLog;
+import com.android.compatibility.common.util.DynamicConfigDeviceSide;
 import com.android.compatibility.common.util.ResultType;
 import com.android.compatibility.common.util.ResultUnit;
 
@@ -72,20 +73,11 @@ public class DecoderTest extends MediaPlayerTestBase {
     private MediaCodecTunneledPlayer mMediaCodecPlayer;
     private static final int SLEEP_TIME_MS = 1000;
     private static final long PLAY_TIME_MS = TimeUnit.MILLISECONDS.convert(1, TimeUnit.MINUTES);
-    private static final Uri AUDIO_URL = Uri.parse(
-            "http://redirector.c.youtube.com/videoplayback?id=c80658495af60617"
-                + "&itag=18&source=youtube&ip=0.0.0.0&ipbits=0&expire=19000000000"
-                + "&sparams=ip,ipbits,expire,id,itag,source"
-                + "&signature=46A04ED550CA83B79B60060BA80C79FDA5853D26."
-                + "49582D382B4A9AFAA163DED38D2AE531D85603C0"
-                + "&key=ik0&user=android-device-test");  // H.264 Base + AAC
-    private static final Uri VIDEO_URL = Uri.parse(
-            "http://redirector.c.youtube.com/videoplayback?id=c80658495af60617"
-                + "&itag=18&source=youtube&ip=0.0.0.0&ipbits=0&expire=19000000000"
-                + "&sparams=ip,ipbits,expire,id,itag,source"
-                + "&signature=46A04ED550CA83B79B60060BA80C79FDA5853D26."
-                + "49582D382B4A9AFAA163DED38D2AE531D85603C0"
-                + "&key=ik0&user=android-device-test");  // H.264 Base + AAC
+
+    private static final String AUDIO_URL_KEY = "decoder_test_audio_url";
+    private static final String VIDEO_URL_KEY = "decoder_test_video_url";
+    private static final String MODULE_NAME = "CtsMediaTestCases";
+    private DynamicConfigDeviceSide dynamicConfig;
 
     @Override
     protected void setUp() throws Exception {
@@ -109,6 +101,8 @@ public class DecoderTest extends MediaPlayerTestBase {
         }
         bis.close();
         masterFd.close();
+
+        dynamicConfig = new DynamicConfigDeviceSide(MODULE_NAME);
     }
 
     @Override
@@ -297,12 +291,14 @@ public class DecoderTest extends MediaPlayerTestBase {
      * aspects contained in the color box and VUI for the test stream.
      * P = primaries, T = transfer, M = coeffs, R = range. '-' means
      * empty value.
-     *                                  |   colr       |    VUI
-     * --------------------------------------------------------------
-     *         File Name                |  P  T  M  R  |  P  T  M  R
-     * --------------------------------------------------------------
-     *  color_176x144_bt709_lr_sdr_h264 |  1  1  1  0  |  -  -  -  -
-     *  color_176x144_bt601_fr_sdr_h264 |  1  6  6  0  |  5  2  2  1
+     *                                      |     colr     |    VUI
+     * -------------------------------------------------------------------
+     *         File Name                    |  P  T  M  R  |  P  T  M  R
+     * -------------------------------------------------------------------
+     *  color_176x144_bt709_lr_sdr_h264     |  1  1  1  0  |  -  -  -  -
+     *  color_176x144_bt601_625_fr_sdr_h264 |  1  6  6  0  |  5  2  2  1
+     *  color_176x144_bt601_525_lr_sdr_h264 |  6  5  4  0  |  2  6  6  0
+     *  color_176x144_srgb_lr_sdr_h264      |  2  0  2  1  |  1  13 1  0
      */
     public void testH264ColorAspects() throws Exception {
         testColorAspects(
@@ -310,9 +306,87 @@ public class DecoderTest extends MediaPlayerTestBase {
                 MediaFormat.COLOR_RANGE_LIMITED, MediaFormat.COLOR_STANDARD_BT709,
                 MediaFormat.COLOR_TRANSFER_SDR_VIDEO);
         testColorAspects(
-                R.raw.color_176x144_bt601_fr_sdr_h264, 2 /* testId */,
+                R.raw.color_176x144_bt601_625_fr_sdr_h264, 2 /* testId */,
                 MediaFormat.COLOR_RANGE_FULL, MediaFormat.COLOR_STANDARD_BT601_PAL,
                 MediaFormat.COLOR_TRANSFER_SDR_VIDEO);
+        testColorAspects(
+                R.raw.color_176x144_bt601_525_lr_sdr_h264, 3 /* testId */,
+                MediaFormat.COLOR_RANGE_LIMITED, MediaFormat.COLOR_STANDARD_BT601_NTSC,
+                MediaFormat.COLOR_TRANSFER_SDR_VIDEO);
+        testColorAspects(
+                R.raw.color_176x144_srgb_lr_sdr_h264, 4 /* testId */,
+                MediaFormat.COLOR_RANGE_LIMITED, MediaFormat.COLOR_STANDARD_BT709,
+                2 /* MediaFormat.COLOR_TRANSFER_SRGB */);
+    }
+
+    /**
+     * Test ColorAspects of all the HEVC decoders. Decoders should handle
+     * the colors aspects presented in both the mp4 atom 'colr' and VUI
+     * in the bitstream correctly. The following table lists the color
+     * aspects contained in the color box and VUI for the test stream.
+     * P = primaries, T = transfer, M = coeffs, R = range. '-' means
+     * empty value.
+     *                                      |     colr     |    VUI
+     * -------------------------------------------------------------------
+     *         File Name                    |  P  T  M  R  |  P  T  M  R
+     * -------------------------------------------------------------------
+     *  color_176x144_bt709_lr_sdr_h265     |  1  1  1  0  |  -  -  -  -
+     *  color_176x144_bt601_625_fr_sdr_h265 |  1  6  6  0  |  5  2  2  1
+     *  color_176x144_bt601_525_lr_sdr_h265 |  6  5  4  0  |  2  6  6  0
+     *  color_176x144_srgb_lr_sdr_h265      |  2  0  2  1  |  1  13 1  0
+     */
+    public void testH265ColorAspects() throws Exception {
+        testColorAspects(
+                R.raw.color_176x144_bt709_lr_sdr_h265, 1 /* testId */,
+                MediaFormat.COLOR_RANGE_LIMITED, MediaFormat.COLOR_STANDARD_BT709,
+                MediaFormat.COLOR_TRANSFER_SDR_VIDEO);
+        testColorAspects(
+                R.raw.color_176x144_bt601_625_fr_sdr_h265, 2 /* testId */,
+                MediaFormat.COLOR_RANGE_FULL, MediaFormat.COLOR_STANDARD_BT601_PAL,
+                MediaFormat.COLOR_TRANSFER_SDR_VIDEO);
+        testColorAspects(
+                R.raw.color_176x144_bt601_525_lr_sdr_h265, 3 /* testId */,
+                MediaFormat.COLOR_RANGE_LIMITED, MediaFormat.COLOR_STANDARD_BT601_NTSC,
+                MediaFormat.COLOR_TRANSFER_SDR_VIDEO);
+        testColorAspects(
+                R.raw.color_176x144_srgb_lr_sdr_h265, 4 /* testId */,
+                MediaFormat.COLOR_RANGE_LIMITED, MediaFormat.COLOR_STANDARD_BT709,
+                2 /* MediaFormat.COLOR_TRANSFER_SRGB */);
+    }
+
+    /**
+     * Test ColorAspects of all the MPEG2 decoders if avaiable. Decoders should
+     * handle the colors aspects presented in both the mp4 atom 'colr' and Sequence
+     * in the bitstream correctly. The following table lists the color aspects
+     * contained in the color box and SeqInfo for the test stream.
+     * P = primaries, T = transfer, M = coeffs, R = range. '-' means
+     * empty value.
+     *                                       |     colr     |    SeqInfo
+     * -------------------------------------------------------------------
+     *         File Name                     |  P  T  M  R  |  P  T  M  R
+     * -------------------------------------------------------------------
+     *  color_176x144_bt709_lr_sdr_mpeg2     |  1  1  1  0  |  -  -  -  -
+     *  color_176x144_bt601_625_lr_sdr_mpeg2 |  1  6  6  0  |  5  2  2  0
+     *  color_176x144_bt601_525_lr_sdr_mpeg2 |  6  5  4  0  |  2  6  6  0
+     *  color_176x144_srgb_lr_sdr_mpeg2      |  2  0  2  0  |  1  13 1  0
+     */
+    public void testMPEG2ColorAspectsTV() throws Exception {
+        testColorAspects(
+                R.raw.color_176x144_bt709_lr_sdr_mpeg2, 1 /* testId */,
+                MediaFormat.COLOR_RANGE_LIMITED, MediaFormat.COLOR_STANDARD_BT709,
+                MediaFormat.COLOR_TRANSFER_SDR_VIDEO);
+        testColorAspects(
+                R.raw.color_176x144_bt601_625_lr_sdr_mpeg2, 2 /* testId */,
+                MediaFormat.COLOR_RANGE_LIMITED, MediaFormat.COLOR_STANDARD_BT601_PAL,
+                MediaFormat.COLOR_TRANSFER_SDR_VIDEO);
+        testColorAspects(
+                R.raw.color_176x144_bt601_525_lr_sdr_mpeg2, 3 /* testId */,
+                MediaFormat.COLOR_RANGE_LIMITED, MediaFormat.COLOR_STANDARD_BT601_NTSC,
+                MediaFormat.COLOR_TRANSFER_SDR_VIDEO);
+        testColorAspects(
+                R.raw.color_176x144_srgb_lr_sdr_mpeg2, 4 /* testId */,
+                MediaFormat.COLOR_RANGE_LIMITED, MediaFormat.COLOR_STANDARD_BT709,
+                2 /* MediaFormat.COLOR_TRANSFER_SRGB */);
     }
 
     private void testColorAspects(
@@ -880,13 +954,12 @@ public class DecoderTest extends MediaPlayerTestBase {
      * @param decParams the audio parameters of the given audio samples (decSamples)
      * @param encNch the encoded number of audio channels (number of channels of the original
      *               input)
+     * @param nrgRatioThresh threshold to classify the energy ratios ]0.0, 1.0[
      * @throws RuntimeException
      */
-    private void checkEnergy(short[] decSamples, AudioParameter decParams, int encNch)
-            throws RuntimeException
+    protected void checkEnergy(short[] decSamples, AudioParameter decParams, int encNch,
+                             float nrgRatioThresh) throws RuntimeException
     {
-        String localTag = TAG + "#checkEnergy";
-
         final int nSegPerBlk = 4;                          // the number of segments per block
         final int nCh = decParams.getNumChannels();        // the number of input channels
         final int nBlkSmp = decParams.getSamplingRate();   // length of one (LB/HB) block [samples]
@@ -995,7 +1068,6 @@ public class DecoderTest extends MediaPlayerTestBase {
         }
 
         // go over all segment energies in all channels and check them
-        final double nrgRatioThresh = 0.50f;               // threshold to classify energy ratios
         double refMinNrg = zeroNrgThresh;                  // reference min energy for the 1st ch;
                                                            // others will be compared against 1st
         for (int ch = 0; ch < procNch; ch++) {
@@ -1055,6 +1127,11 @@ public class DecoderTest extends MediaPlayerTestBase {
         for (int seg = 0; seg < totSeg; seg++) {
             assertTrue(String.format("no channel has energy in segment %d", seg), sigSeg[seg]);
         }
+    }
+
+    private void checkEnergy(short[] decSamples, AudioParameter decParams, int encNch)
+            throws RuntimeException {
+        checkEnergy(decSamples, decParams, encNch, 0.50f);  // default energy ratio threshold: 0.50
     }
 
     /**
@@ -1191,7 +1268,7 @@ public class DecoderTest extends MediaPlayerTestBase {
     }
 
     // Class handling all audio parameters relevant for testing
-    private class AudioParameter {
+    protected static class AudioParameter {
 
         public AudioParameter() {
             this.reset();
@@ -1431,7 +1508,7 @@ public class DecoderTest extends MediaPlayerTestBase {
         return decoded;
     }
 
-    private void queueConfig(MediaCodec codec, MediaFormat format) {
+    private static void queueConfig(MediaCodec codec, MediaFormat format) {
         for (String csdKey : CSD_KEYS) {
             if (!format.containsKey(csdKey)) {
                 continue;
@@ -2130,6 +2207,10 @@ public class DecoderTest extends MediaPlayerTestBase {
             codecOutputBuffers = codec.getOutputBuffers();
         } else if (resetMode == RESET_MODE_FLUSH) {
             codec.flush();
+
+            // We must always queue CSD after a flush that is potentially
+            // before we receive output format has changed.
+            queueConfig(codec, format);
         }
 
         // start decode loop
@@ -2662,8 +2743,10 @@ public class DecoderTest extends MediaPlayerTestBase {
         mMediaCodecPlayer = new MediaCodecTunneledPlayer(
                 getActivity().getSurfaceHolder(), true, am.generateAudioSessionId());
 
-        mMediaCodecPlayer.setAudioDataSource(AUDIO_URL, null);
-        mMediaCodecPlayer.setVideoDataSource(VIDEO_URL, null);
+        Uri audioUri = Uri.parse(dynamicConfig.getValue(AUDIO_URL_KEY));
+        Uri videoUri = Uri.parse(dynamicConfig.getValue(VIDEO_URL_KEY));
+        mMediaCodecPlayer.setAudioDataSource(audioUri, null);
+        mMediaCodecPlayer.setVideoDataSource(videoUri, null);
         assertTrue("MediaCodecPlayer.start() failed!", mMediaCodecPlayer.start());
         assertTrue("MediaCodecPlayer.prepare() failed!", mMediaCodecPlayer.prepare());
 
@@ -2702,8 +2785,10 @@ public class DecoderTest extends MediaPlayerTestBase {
         mMediaCodecPlayer = new MediaCodecTunneledPlayer(
                 getActivity().getSurfaceHolder(), true, am.generateAudioSessionId());
 
-        mMediaCodecPlayer.setAudioDataSource(AUDIO_URL, null);
-        mMediaCodecPlayer.setVideoDataSource(VIDEO_URL, null);
+        Uri audioUri = Uri.parse(dynamicConfig.getValue(AUDIO_URL_KEY));
+        Uri videoUri = Uri.parse(dynamicConfig.getValue(VIDEO_URL_KEY));
+        mMediaCodecPlayer.setAudioDataSource(audioUri, null);
+        mMediaCodecPlayer.setVideoDataSource(videoUri, null);
         assertTrue("MediaCodecPlayer.start() failed!", mMediaCodecPlayer.start());
         assertTrue("MediaCodecPlayer.prepare() failed!", mMediaCodecPlayer.prepare());
 
@@ -2738,6 +2823,32 @@ public class DecoderTest extends MediaPlayerTestBase {
     }
 
     /**
+     * Returns true if there exists a codec supporting the given MIME type that meets the
+     * minimum specification for VR high performance requirements.
+     *
+     * The requirements are as follows:
+     *   - At least 243000 blocks per second (where blocks are defined as 16x16 -- note this
+     *   is equivalent to 1920x1080@30fps)
+     *   - Feature adaptive-playback present
+     */
+    private static boolean doesMimeTypeHaveMinimumSpecVrReadyCodec(String mimeType) {
+        List<CodecCapabilities> caps = getCodecCapabilitiesForMimeType(mimeType);
+        for (CodecCapabilities c : caps) {
+            if (!c.isFeatureSupported(CodecCapabilities.FEATURE_AdaptivePlayback)) {
+                continue;
+            }
+
+            if (!c.getVideoCapabilities().areSizeAndRateSupported(1920, 1080, 30.0)) {
+                continue;
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * Returns true if there exists a codec supporting the given MIME type that meets VR high
      * performance requirements.
      *
@@ -2768,69 +2879,6 @@ public class DecoderTest extends MediaPlayerTestBase {
         return false;
     }
 
-    private class DecodeRunnable implements Runnable {
-        private int video;
-        private int frames;
-        private long durationMillis;
-
-        public DecodeRunnable(int video) {
-            this.video = video;
-            this.frames = 0;
-            this.durationMillis = 0;
-        }
-
-        @Override
-        public void run() {
-            long start = System.currentTimeMillis();
-            int actual = 0;
-            try {
-                actual = countFrames(this.video, RESET_MODE_NONE, -1, null);
-            } catch (Exception e) {
-                actual = -1;
-            }
-            long durationMillis = System.currentTimeMillis() - start;
-
-            synchronized (this) {
-                this.frames = actual;
-                this.durationMillis = durationMillis;
-            }
-        }
-
-        public synchronized int getFrames() {
-            return this.frames;
-        }
-
-        public synchronized double getMeasuredFps() {
-            return this.frames / (this.durationMillis / 1000.0);
-        }
-    }
-
-    private void decodeInParallel(int video, int frames, int fps, int parallel) throws Exception {
-        DecodeRunnable[] runnables = new DecodeRunnable[parallel];
-        Thread[] threads = new Thread[parallel];
-
-        for (int i = 0; i < parallel; ++i) {
-            runnables[i] = new DecodeRunnable(video);
-            threads[i] = new Thread(runnables[i]);
-            threads[i].start();
-        }
-
-        for (Thread t : threads) {
-            t.join();
-        }
-
-        for (DecodeRunnable dr : runnables) {
-            assertTrue("Expected to decode " + frames + " frames, found " + dr.getFrames(),
-                    frames == dr.getFrames());
-        }
-
-        for (DecodeRunnable dr : runnables) {
-            Log.d(TAG, "Decoded at " + dr.getMeasuredFps());
-            assertTrue("Expected to decode at " + fps + " fps, measured " + dr.getMeasuredFps(),
-                    fps < dr.getMeasuredFps());
-        }
-    }
-
     public void testVrHighPerformanceH264() throws Exception {
         if (!supportsVrHighPerformance()) {
             MediaUtils.skipTest(TAG, "FEATURE_VR_MODE_HIGH_PERFORMANCE not present");
@@ -2839,16 +2887,6 @@ public class DecoderTest extends MediaPlayerTestBase {
 
         boolean h264IsReady = doesMimeTypeHaveVrReadyCodec(MediaFormat.MIMETYPE_VIDEO_AVC);
         assertTrue("Did not find a VR ready H.264 decoder", h264IsReady);
-
-        // Test throughput by decoding 1920x1080 @ 30fps x 4 instances.
-        decodeInParallel(
-                R.raw.bbb_s4_1920x1080_wide_mp4_h264_mp4_20mbps_30fps_aac_he_5ch_200kbps_44100hz,
-                150, 30, 4);
-
-        // Test throughput by decoding 1920x1080 @ 60fps x 2 instances.
-        decodeInParallel(
-                R.raw.bbb_s2_1920x1080_mp4_h264_mp42_20mbps_60fps_aac_he_v2_5ch_160kbps_48000hz,
-                300, 60, 2);
     }
 
     public void testVrHighPerformanceHEVC() throws Exception {
@@ -2857,17 +2895,14 @@ public class DecoderTest extends MediaPlayerTestBase {
             return;
         }
 
+        // Test minimum mandatory requirements.
+        assertTrue(doesMimeTypeHaveMinimumSpecVrReadyCodec(MediaFormat.MIMETYPE_VIDEO_HEVC));
+
         boolean hevcIsReady = doesMimeTypeHaveVrReadyCodec(MediaFormat.MIMETYPE_VIDEO_HEVC);
         if (!hevcIsReady) {
-            MediaUtils.skipTest(TAG, "HEVC isn't required to be VR ready");
+            Log.d(TAG, "HEVC isn't required to be VR ready");
             return;
         }
-
-        // Test throughput by decoding 1920x1080 @ 30fps x 4 instances.
-        decodeInParallel(
-                // using the 60fps sample to save on apk size, but decoding only at 30fps @ 5Mbps
-                R.raw.bbb_s2_1920x1080_mp4_hevc_mp41_10mbps_60fps_aac_lc_6ch_384kbps_22050hz,
-                300, 30 /* fps */, 4);
     }
 
     public void testVrHighPerformanceVP9() throws Exception {
@@ -2876,17 +2911,14 @@ public class DecoderTest extends MediaPlayerTestBase {
             return;
         }
 
+        // Test minimum mandatory requirements.
+        assertTrue(doesMimeTypeHaveMinimumSpecVrReadyCodec(MediaFormat.MIMETYPE_VIDEO_VP9));
+
         boolean vp9IsReady = doesMimeTypeHaveVrReadyCodec(MediaFormat.MIMETYPE_VIDEO_VP9);
         if (!vp9IsReady) {
-            MediaUtils.skipTest(TAG, "VP9 isn't required to be VR ready");
+            Log.d(TAG, "VP9 isn't required to be VR ready");
             return;
         }
-
-        // Test throughput by decoding 1920x1080 @ 30fps x 4 instances.
-        decodeInParallel(
-                // using the 60fps sample to save on apk size, but decoding only at 30fps @ 5Mbps
-                R.raw.bbb_s2_1920x1080_webm_vp9_0p41_10mbps_60fps_vorbis_6ch_384kbps_22050hz,
-                300, 30 /* fps */, 4);
     }
 
     private boolean supportsVrHighPerformance() {

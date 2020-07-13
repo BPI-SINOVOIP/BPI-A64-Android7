@@ -163,6 +163,8 @@ public class AllTests {
     suite.addTestSuite(org.apache.harmony.jpda.tests.jdwp.ReferenceType.GetValues003Test.class);
     suite.addTestSuite(org.apache.harmony.jpda.tests.jdwp.ReferenceType.GetValues004Test.class);
     suite.addTestSuite(org.apache.harmony.jpda.tests.jdwp.ReferenceType.GetValues005Test.class);
+    suite.addTestSuite(org.apache.harmony.jpda.tests.jdwp.ReferenceType.GetValues006Test.class);
+    suite.addTestSuite(org.apache.harmony.jpda.tests.jdwp.ReferenceType.GetValues007Test.class);
     suite.addTestSuite(org.apache.harmony.jpda.tests.jdwp.ReferenceType.GetValuesTest.class);
     suite.addTestSuite(org.apache.harmony.jpda.tests.jdwp.ReferenceType.InstancesTest.class);
     suite.addTestSuite(org.apache.harmony.jpda.tests.jdwp.ReferenceType.InterfacesTest.class);

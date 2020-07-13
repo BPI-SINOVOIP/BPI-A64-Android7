@@ -52,6 +52,8 @@ LOCAL_PACKAGE_NAME := EmergencyInfo
 LOCAL_CERTIFICATE := platform
 LOCAL_PRIVILEGED_MODULE := true
 
+LOCAL_JACK_COVERAGE_INCLUDE_FILTER := com.android.emergency.*
+
 include $(BUILD_PACKAGE)
 
 include $(call all-makefiles-under,$(LOCAL_PATH))

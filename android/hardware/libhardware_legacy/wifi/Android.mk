@@ -65,6 +65,16 @@ ifeq ($(BOARD_USR_WIFI), esp8089)
 LOCAL_CFLAGS += -DESPRESSIF_ESP8089_WIFI_USED
 LOCAL_CFLAGS += -DESP_WIFI_VENDOR
 endif
+
+# xr sdio wifi module
+ifeq ($(BOARD_WLAN_DEVICE), xradio)
+LOCAL_CFLAGS += -DXR_WIFI_VENDOR
+endif
+
+ifdef CONFIG_DRIVER_NL80211
+WPA_SUPPL_DIR_INCLUDE += external/libnl/include
+WPA_SRC_FILE += driver_cmd_nl80211.c
+endif
 LOCAL_SRC_FILES += wifi/wifi.c
 
 ifdef WPA_SUPPLICANT_VERSION

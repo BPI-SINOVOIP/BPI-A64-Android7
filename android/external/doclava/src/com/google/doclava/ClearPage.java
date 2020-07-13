@@ -107,9 +107,6 @@ public class ClearPage {
       }
     }
     data.setValue("toroot", toroot);
-    if (Doclava.USE_UPDATED_TEMPLATES) {
-      data.setValue("useUpdatedTemplates", "true");
-    }
     data.setValue("filename", filename);
 
     if (!fullPath) {

@@ -52,6 +52,21 @@ static int setup_interface2(struct hostapd_iface *iface);
 static void channel_list_update_timeout(void *eloop_ctx, void *timeout_ctx);
 
 
+#ifdef ENABLE_XR_CHANGES
+static int hostapd_init_wowlan(struct hostapd_data *hapd)
+{
+struct wpa_driver_wowlan_params wowlan;
+os_memset(&wowlan, 0, sizeof(wowlan));
+wowlan.any = 1;
+if (hostapd_drv_set_wowlan(hapd, &wowlan) < 0) {
+wpa_printf(MSG_ERROR, "wowlan configuration failed.");
+return -1;
+}
+return 0;
+}
+#endif
+
+
 int hostapd_for_each_interface(struct hapd_interfaces *interfaces,
 			       int (*cb)(struct hostapd_iface *iface,
 					 void *ctx), void *ctx)
@@ -1352,6 +1367,12 @@ static int setup_interface(struct hostapd_iface *iface)
 			return 0;
 		}
 	}
+	#ifdef ENABLE_XR_CHANGES
+	if (hostapd_init_wowlan(hapd) < 0) {
+		wpa_printf(MSG_ERROR, "Failed to set wowlan triggers.");
+		return -1;
+	}
+	#endif
 
 	return setup_interface2(iface);
 }

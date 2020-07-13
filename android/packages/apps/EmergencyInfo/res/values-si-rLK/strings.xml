@@ -96,7 +96,8 @@
     <string name="user_emergency_info_title" msgid="7827058167207376581">"හදිසි අවස්ථා තොරතුරු"</string>
     <string name="user_emergency_info_consent" msgid="5636028073450797246">"ඔබ මෙහි ඇතුළු කළ තොරතුරු හදිසි අවස්ථාවකදී පළමු ප්‍රතිචාර දක්වන්නන්ට උදවු විය හැකිය. එය ඔබේ උපාංගය මත පමණක් ගබඩා වනු ඇත, නමුත් ඕනෑම කෙනෙකුට ඔබේ දුරකථනය අගුලු හැරීමෙන් තොරව හදිසි අවස්ථා අමතනය වෙතින් එය කියවිය හැකිය."</string>
     <string name="emergency_info_continue" msgid="5453201508537906087">"දිගටම කර ගෙන යන්න"</string>
-    <string name="no_info_provided" msgid="6775035037534954056">"හදිසි අවස්ථා තොරතුරු සපයා නැත"</string>
+    <string name="no_info_provided" msgid="716200382010821001">"දුරකථනයේ හිමිකරු ගැන තොරතුරු නැත"</string>
+    <string name="tap_pencil" msgid="2723698054265296934">"මෙය ඔබේ දුරකථනය නම්, හදිසි අවස්ථාවක මෙහි දර්ශනය වනු ලබන තොරතුරු එක් කිරීමට පැන්සල් නිරූපකය තට්ටු කරන්න"</string>
     <string name="clear_all" msgid="8899013032870561633">"සියල්ල හිස් කරන්න"</string>
     <string name="clear" msgid="3648880442502887163">"හිස් කරන්න"</string>
     <string name="clear_all_message" msgid="1548432000373861295">"සියලු තොරතුරු හා සම්බන්ධතා හිස් කරන්නද?"</string>

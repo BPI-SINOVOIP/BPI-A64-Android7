@@ -85,16 +85,24 @@ abstract class AbstractBatterySaverModeTestCase extends AbstractRestrictBackgrou
         assertsForegroundAlwaysHasNetworkAccess();
         assertBackgroundNetworkAccess(false);
 
-        // Make sure foreground app doesn't lose access upon enabling it.
+        // Make sure foreground app doesn't lose access upon Battery Saver.
         setBatterySaverMode(false);
         launchActivity();
         assertForegroundNetworkAccess();
         setBatterySaverMode(true);
         assertForegroundNetworkAccess();
+
+        // Although it should not have access while the screen is off.
+        turnScreenOff();
+        assertBackgroundNetworkAccess(false);
+        turnScreenOn();
+        assertForegroundNetworkAccess();
+
+        // Goes back to background state.
         finishActivity();
         assertBackgroundNetworkAccess(false);
 
-        // Same for foreground service.
+        // Make sure foreground service doesn't lose access upon enabling Battery Saver.
         setBatterySaverMode(false);
         startForegroundService();
         assertForegroundNetworkAccess();

@@ -216,9 +216,10 @@ size_t AudioFlinger::EffectModule::disconnect(EffectHandle *handle, bool unpinIf
     return mHandles.size();
 }
 
-void AudioFlinger::EffectModule::updateState() {
+bool AudioFlinger::EffectModule::updateState() {
     Mutex::Autolock _l(mLock);
 
+    bool started = false;
     switch (mState) {
     case RESTART:
         reset_l();
@@ -233,6 +234,7 @@ void AudioFlinger::EffectModule::updateState() {
         }
         if (start_l() == NO_ERROR) {
             mState = ACTIVE;
+            started = true;
         } else {
             mState = IDLE;
         }
@@ -256,6 +258,8 @@ void AudioFlinger::EffectModule::updateState() {
     default: //IDLE , ACTIVE, DESTROYED
         break;
     }
+
+    return started;
 }
 
 void AudioFlinger::EffectModule::process()
@@ -275,12 +279,29 @@ void AudioFlinger::EffectModule::process()
                                         mConfig.inputCfg.buffer.s32,
                                         mConfig.inputCfg.buffer.frameCount/2);
         }
+        int ret;
+        if (isProcessImplemented()) {
+            // do the actual processing in the effect engine
+            ret = (*mEffectInterface)->process(mEffectInterface,
+                                                   &mConfig.inputCfg.buffer,
+                                                   &mConfig.outputCfg.buffer);
+        } else {
+            if (mConfig.inputCfg.buffer.raw != mConfig.outputCfg.buffer.raw) {
+                size_t frameCnt = mConfig.inputCfg.buffer.frameCount * FCC_2;  //always stereo here
+                int16_t *in = mConfig.inputCfg.buffer.s16;
+                int16_t *out = mConfig.outputCfg.buffer.s16;
 
-        // do the actual processing in the effect engine
-        int ret = (*mEffectInterface)->process(mEffectInterface,
-                                               &mConfig.inputCfg.buffer,
-                                               &mConfig.outputCfg.buffer);
-
+                if (mConfig.outputCfg.accessMode == EFFECT_BUFFER_ACCESS_ACCUMULATE) {
+                    for (size_t i = 0; i < frameCnt; i++) {
+                        out[i] = clamp16((int32_t)out[i] + (int32_t)in[i]);
+                    }
+                } else {
+                    memcpy(mConfig.outputCfg.buffer.raw, mConfig.inputCfg.buffer.raw,
+                           frameCnt * sizeof(int16_t));
+                }
+            }
+            ret = -ENODATA;
+        }
         // force transition to IDLE state when engine is ready
         if (mState == STOPPED && ret == -ENODATA) {
             mDisableWaitCnt = 1;
@@ -297,7 +318,7 @@ void AudioFlinger::EffectModule::process()
         // accumulate input onto output
         sp<EffectChain> chain = mChain.promote();
         if (chain != 0 && chain->activeTrackCnt() != 0) {
-            size_t frameCnt = mConfig.inputCfg.buffer.frameCount * 2;  //always stereo here
+            size_t frameCnt = mConfig.inputCfg.buffer.frameCount * FCC_2;  //always stereo here
             int16_t *in = mConfig.inputCfg.buffer.s16;
             int16_t *out = mConfig.outputCfg.buffer.s16;
             for (size_t i = 0; i < frameCnt; i++) {
@@ -462,10 +483,22 @@ void AudioFlinger::EffectModule::addEffectToHal_l()
     }
 }
 
+// start() must be called with PlaybackThread::mLock or EffectChain::mLock held
 status_t AudioFlinger::EffectModule::start()
 {
-    Mutex::Autolock _l(mLock);
-    return start_l();
+    sp<EffectChain> chain;
+    status_t status;
+    {
+        Mutex::Autolock _l(mLock);
+        status = start_l();
+        if (status == NO_ERROR) {
+            chain = mChain.promote();
+        }
+    }
+    if (chain != 0) {
+        chain->resetVolume_l();
+    }
+    return status;
 }
 
 status_t AudioFlinger::EffectModule::start_l()
@@ -489,10 +522,6 @@ status_t AudioFlinger::EffectModule::start_l()
     }
     if (status == 0) {
         addEffectToHal_l();
-        sp<EffectChain> chain = mChain.promote();
-        if (chain != 0) {
-            chain->forceVolume();
-        }
     }
     return status;
 }
@@ -569,6 +598,29 @@ status_t AudioFlinger::EffectModule::command(uint32_t cmdCode,
             (*replySize < sizeof(effect_param_t) ||
                     ((effect_param_t *)pCmdData)->psize > *replySize - sizeof(effect_param_t))) {
         android_errorWriteLog(0x534e4554, "29251553");
+        return -EINVAL;
+    }
+    if (cmdCode == EFFECT_CMD_GET_PARAM &&
+            (sizeof(effect_param_t) > cmdSize ||
+                    ((effect_param_t *)pCmdData)->psize > cmdSize
+                                                          - sizeof(effect_param_t))) {
+        android_errorWriteLog(0x534e4554, "32438594");
+        return -EINVAL;
+    }
+    if (cmdCode == EFFECT_CMD_GET_PARAM &&
+        (sizeof(effect_param_t) > *replySize
+          || ((effect_param_t *)pCmdData)->psize > *replySize
+                                                   - sizeof(effect_param_t)
+          || ((effect_param_t *)pCmdData)->vsize > *replySize
+                                                   - sizeof(effect_param_t)
+                                                   - ((effect_param_t *)pCmdData)->psize
+          || roundUpDelta(((effect_param_t *)pCmdData)->psize, (uint32_t)sizeof(int)) >
+                                                   *replySize
+                                                   - sizeof(effect_param_t)
+                                                   - ((effect_param_t *)pCmdData)->psize
+                                                   - ((effect_param_t *)pCmdData)->vsize)) {
+        ALOGV("\tLVM_ERROR : EFFECT_CMD_GET_PARAM: reply size inconsistent");
+                     android_errorWriteLog(0x534e4554, "32705438");
         return -EINVAL;
     }
     if ((cmdCode == EFFECT_CMD_SET_PARAM
@@ -1253,36 +1305,54 @@ status_t AudioFlinger::EffectHandle::command(uint32_t cmdCode,
         // particular client process:  no risk to block the whole media server process or mixer
         // threads if we are stuck here
         Mutex::Autolock _l(mCblk->lock);
-        if (mCblk->clientIndex > EFFECT_PARAM_BUFFER_SIZE ||
-            mCblk->serverIndex > EFFECT_PARAM_BUFFER_SIZE) {
+
+        // keep local copy of index in case of client corruption b/32220769
+        const uint32_t clientIndex = mCblk->clientIndex;
+        const uint32_t serverIndex = mCblk->serverIndex;
+        if (clientIndex > EFFECT_PARAM_BUFFER_SIZE ||
+            serverIndex > EFFECT_PARAM_BUFFER_SIZE) {
             mCblk->serverIndex = 0;
             mCblk->clientIndex = 0;
             return BAD_VALUE;
         }
         status_t status = NO_ERROR;
-        while (mCblk->serverIndex < mCblk->clientIndex) {
-            int reply;
-            uint32_t rsize = sizeof(int);
-            int *p = (int *)(mBuffer + mCblk->serverIndex);
-            int size = *p++;
-            if (((uint8_t *)p + size) > mBuffer + mCblk->clientIndex) {
+        effect_param_t *param = NULL;
+        for (uint32_t index = serverIndex; index < clientIndex;) {
+            int *p = (int *)(mBuffer + index);
+            const int size = *p++;
+            if (size < 0
+                    || size > EFFECT_PARAM_BUFFER_SIZE
+                    || ((uint8_t *)p + size) > mBuffer + clientIndex) {
                 ALOGW("command(): invalid parameter block size");
+                status = BAD_VALUE;
                 break;
             }
-            effect_param_t *param = (effect_param_t *)p;
-            if (param->psize == 0 || param->vsize == 0) {
-                ALOGW("command(): null parameter or value size");
-                mCblk->serverIndex += size;
-                continue;
+
+            // copy to local memory in case of client corruption b/32220769
+            param = (effect_param_t *)realloc(param, size);
+            if (param == NULL) {
+                ALOGW("command(): out of memory");
+                status = NO_MEMORY;
+                break;
             }
-            uint32_t psize = sizeof(effect_param_t) +
-                             ((param->psize - 1) / sizeof(int) + 1) * sizeof(int) +
-                             param->vsize;
+            memcpy(param, p, size);
+
+            int reply = 0;
+            uint32_t rsize = sizeof(reply);
             status_t ret = mEffect->command(EFFECT_CMD_SET_PARAM,
-                                            psize,
-                                            p,
+                                            size,
+                                            param,
                                             &rsize,
                                             &reply);
+
+            // verify shared memory: server index shouldn't change; client index can't go back.
+            if (serverIndex != mCblk->serverIndex
+                    || clientIndex > mCblk->clientIndex) {
+                android_errorWriteLog(0x534e4554, "32220769");
+                status = BAD_VALUE;
+                break;
+            }
+
             // stop at first error encountered
             if (ret != NO_ERROR) {
                 status = ret;
@@ -1292,8 +1362,9 @@ status_t AudioFlinger::EffectHandle::command(uint32_t cmdCode,
                 *(int *)pReplyData = reply;
                 break;
             }
-            mCblk->serverIndex += size;
+            index += size;
         }
+        free(param);
         mCblk->serverIndex = 0;
         mCblk->clientIndex = 0;
         return status;
@@ -1372,7 +1443,7 @@ AudioFlinger::EffectChain::EffectChain(ThreadBase *thread,
                                         audio_session_t sessionId)
     : mThread(thread), mSessionId(sessionId), mActiveTrackCnt(0), mTrackCnt(0), mTailBufferCount(0),
       mOwnInBuffer(false), mVolumeCtrlIdx(-1), mLeftVolume(UINT_MAX), mRightVolume(UINT_MAX),
-      mNewLeftVolume(UINT_MAX), mNewRightVolume(UINT_MAX), mForceVolume(false)
+      mNewLeftVolume(UINT_MAX), mNewRightVolume(UINT_MAX)
 {
     mStrategy = AudioSystem::getStrategyForStream(AUDIO_STREAM_MUSIC);
     if (thread == NULL) {
@@ -1494,8 +1565,12 @@ void AudioFlinger::EffectChain::process_l()
             mEffects[i]->process();
         }
     }
+    bool doResetVolume = false;
     for (size_t i = 0; i < size; i++) {
-        mEffects[i]->updateState();
+        doResetVolume = mEffects[i]->updateState() || doResetVolume;
+    }
+    if (doResetVolume) {
+        resetVolume_l();
     }
 }
 
@@ -1676,8 +1751,8 @@ void AudioFlinger::EffectChain::setAudioSource_l(audio_source_t source)
     }
 }
 
-// setVolume_l() must be called with PlaybackThread::mLock held
-bool AudioFlinger::EffectChain::setVolume_l(uint32_t *left, uint32_t *right)
+// setVolume_l() must be called with PlaybackThread::mLock or EffectChain::mLock held
+bool AudioFlinger::EffectChain::setVolume_l(uint32_t *left, uint32_t *right, bool force)
 {
     uint32_t newLeft = *left;
     uint32_t newRight = *right;
@@ -1695,7 +1770,7 @@ bool AudioFlinger::EffectChain::setVolume_l(uint32_t *left, uint32_t *right)
         }
     }
 
-    if (!isVolumeForced() && ctrlIdx == mVolumeCtrlIdx &&
+    if (!force && ctrlIdx == mVolumeCtrlIdx &&
             *left == mLeftVolume && *right == mRightVolume) {
         if (hasControl) {
             *left = mNewLeftVolume;
@@ -1735,6 +1810,16 @@ bool AudioFlinger::EffectChain::setVolume_l(uint32_t *left, uint32_t *right)
     *right = newRight;
 
     return hasControl;
+}
+
+// resetVolume_l() must be called with PlaybackThread::mLock or EffectChain::mLock held
+void AudioFlinger::EffectChain::resetVolume_l()
+{
+    if ((mLeftVolume != UINT_MAX) && (mRightVolume != UINT_MAX)) {
+        uint32_t left = mLeftVolume;
+        uint32_t right = mRightVolume;
+        (void)setVolume_l(&left, &right, true);
+    }
 }
 
 void AudioFlinger::EffectChain::syncHalEffectsState()
@@ -1987,6 +2072,63 @@ void AudioFlinger::EffectChain::setThread(const sp<ThreadBase>& thread)
     for (size_t i = 0; i < mEffects.size(); i++) {
         mEffects[i]->setThread(thread);
     }
+}
+
+void AudioFlinger::EffectChain::checkOutputFlagCompatibility(audio_output_flags_t *flags) const
+{
+    if ((*flags & AUDIO_OUTPUT_FLAG_RAW) != 0 && !isRawCompatible()) {
+        *flags = (audio_output_flags_t)(*flags & ~AUDIO_OUTPUT_FLAG_RAW);
+    }
+    if ((*flags & AUDIO_OUTPUT_FLAG_FAST) != 0 && !isFastCompatible()) {
+        *flags = (audio_output_flags_t)(*flags & ~AUDIO_OUTPUT_FLAG_FAST);
+    }
+}
+
+void AudioFlinger::EffectChain::checkInputFlagCompatibility(audio_input_flags_t *flags) const
+{
+    if ((*flags & AUDIO_INPUT_FLAG_RAW) != 0 && !isRawCompatible()) {
+        *flags = (audio_input_flags_t)(*flags & ~AUDIO_INPUT_FLAG_RAW);
+    }
+    if ((*flags & AUDIO_INPUT_FLAG_FAST) != 0 && !isFastCompatible()) {
+        *flags = (audio_input_flags_t)(*flags & ~AUDIO_INPUT_FLAG_FAST);
+    }
+}
+
+bool AudioFlinger::EffectChain::isRawCompatible() const
+{
+    Mutex::Autolock _l(mLock);
+    for (const auto &effect : mEffects) {
+        if (effect->isProcessImplemented()) {
+            return false;
+        }
+    }
+    // Allow effects without processing.
+    return true;
+}
+
+bool AudioFlinger::EffectChain::isFastCompatible() const
+{
+    Mutex::Autolock _l(mLock);
+    for (const auto &effect : mEffects) {
+        if (effect->isProcessImplemented()
+                && effect->isImplementationSoftware()) {
+            return false;
+        }
+    }
+    // Allow effects without processing or hw accelerated effects.
+    return true;
+}
+
+// isCompatibleWithThread_l() must be called with thread->mLock held
+bool AudioFlinger::EffectChain::isCompatibleWithThread_l(const sp<ThreadBase>& thread) const
+{
+    Mutex::Autolock _l(mLock);
+    for (size_t i = 0; i < mEffects.size(); i++) {
+        if (thread->checkEffectCompatibility_l(&(mEffects[i]->desc()), mSessionId) != NO_ERROR) {
+            return false;
+        }
+    }
+    return true;
 }
 
 } // namespace android

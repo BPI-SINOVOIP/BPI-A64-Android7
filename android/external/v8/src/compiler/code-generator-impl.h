@@ -31,6 +31,10 @@ class InstructionOperandConverter {
     return ToRegister(instr_->InputAt(index));
   }
 
+  FloatRegister InputFloatRegister(size_t index) {
+    return ToFloatRegister(instr_->InputAt(index));
+  }
+
   DoubleRegister InputDoubleRegister(size_t index) {
     return ToDoubleRegister(instr_->InputAt(index));
   }
@@ -41,6 +45,10 @@ class InstructionOperandConverter {
 
   int32_t InputInt32(size_t index) {
     return ToConstant(instr_->InputAt(index)).ToInt32();
+  }
+
+  uint32_t InputUint32(size_t index) {
+    return bit_cast<uint32_t>(InputInt32(index));
   }
 
   int64_t InputInt64(size_t index) {
@@ -85,6 +93,10 @@ class InstructionOperandConverter {
     return ToRegister(instr_->TempAt(index));
   }
 
+  FloatRegister OutputFloatRegister() {
+    return ToFloatRegister(instr_->Output());
+  }
+
   DoubleRegister OutputDoubleRegister() {
     return ToDoubleRegister(instr_->Output());
   }
@@ -107,6 +119,10 @@ class InstructionOperandConverter {
     return LocationOperand::cast(op)->GetDoubleRegister();
   }
 
+  FloatRegister ToFloatRegister(InstructionOperand* op) {
+    return LocationOperand::cast(op)->GetFloatRegister();
+  }
+
   Constant ToConstant(InstructionOperand* op) {
     if (op->IsImmediate()) {
       return gen_->code()->GetImmediate(ImmediateOperand::cast(op));
@@ -127,7 +143,7 @@ class InstructionOperandConverter {
     return ToConstant(op).ToHeapObject();
   }
 
-  Frame* frame() const { return gen_->frame(); }
+  const Frame* frame() const { return gen_->frame(); }
   FrameAccessState* frame_access_state() const {
     return gen_->frame_access_state();
   }
@@ -139,6 +155,19 @@ class InstructionOperandConverter {
   Instruction* instr_;
 };
 
+// Eager deoptimization exit.
+class DeoptimizationExit : public ZoneObject {
+ public:
+  explicit DeoptimizationExit(int deoptimization_id)
+      : deoptimization_id_(deoptimization_id) {}
+
+  int deoptimization_id() const { return deoptimization_id_; }
+  Label* label() { return &label_; }
+
+ private:
+  int const deoptimization_id_;
+  Label label_;
+};
 
 // Generator for out-of-line code that is emitted after the main code is done.
 class OutOfLineCode : public ZoneObject {
@@ -150,7 +179,7 @@ class OutOfLineCode : public ZoneObject {
 
   Label* entry() { return &entry_; }
   Label* exit() { return &exit_; }
-  Frame* frame() const { return frame_; }
+  const Frame* frame() const { return frame_; }
   Isolate* isolate() const { return masm()->isolate(); }
   MacroAssembler* masm() const { return masm_; }
   OutOfLineCode* next() const { return next_; }
@@ -158,7 +187,7 @@ class OutOfLineCode : public ZoneObject {
  private:
   Label entry_;
   Label exit_;
-  Frame* const frame_;
+  const Frame* const frame_;
   MacroAssembler* const masm_;
   OutOfLineCode* const next_;
 };

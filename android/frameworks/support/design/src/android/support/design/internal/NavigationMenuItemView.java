@@ -22,8 +22,14 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.StateListDrawable;
+import android.support.annotation.RestrictTo;
 import android.support.design.R;
+import android.support.v4.content.res.ResourcesCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
+import android.support.v4.view.AccessibilityDelegateCompat;
+import android.support.v4.view.ViewCompat;
+import android.support.v4.view.accessibility.AccessibilityEventCompat;
+import android.support.v4.view.accessibility.AccessibilityNodeInfoCompat;
 import android.support.v4.widget.TextViewCompat;
 import android.support.v7.view.menu.MenuItemImpl;
 import android.support.v7.view.menu.MenuView;
@@ -35,14 +41,21 @@ import android.view.ViewStub;
 import android.widget.CheckedTextView;
 import android.widget.FrameLayout;
 
+import static android.support.annotation.RestrictTo.Scope.GROUP_ID;
+
 /**
  * @hide
  */
+@RestrictTo(GROUP_ID)
 public class NavigationMenuItemView extends ForegroundLinearLayout implements MenuView.ItemView {
 
     private static final int[] CHECKED_STATE_SET = {android.R.attr.state_checked};
 
     private final int mIconSize;
+
+    private boolean mNeedsEmptyIcon;
+
+    boolean mCheckable;
 
     private final CheckedTextView mTextView;
 
@@ -51,6 +64,22 @@ public class NavigationMenuItemView extends ForegroundLinearLayout implements Me
     private MenuItemImpl mItemData;
 
     private ColorStateList mIconTintList;
+
+    private boolean mHasIconTintList;
+
+    private Drawable mEmptyDrawable;
+
+    private final AccessibilityDelegateCompat mAccessibilityDelegate
+            = new AccessibilityDelegateCompat() {
+
+        @Override
+        public void onInitializeAccessibilityNodeInfo(View host,
+                AccessibilityNodeInfoCompat info) {
+            super.onInitializeAccessibilityNodeInfo(host, info);
+            info.setCheckable(mCheckable);
+        }
+
+    };
 
     public NavigationMenuItemView(Context context) {
         this(context, null);
@@ -68,6 +97,7 @@ public class NavigationMenuItemView extends ForegroundLinearLayout implements Me
                 R.dimen.design_navigation_icon_size);
         mTextView = (CheckedTextView) findViewById(R.id.design_menu_item_text);
         mTextView.setDuplicateParentStateEnabled(true);
+        ViewCompat.setAccessibilityDelegate(mTextView, mAccessibilityDelegate);
     }
 
     @Override
@@ -77,7 +107,7 @@ public class NavigationMenuItemView extends ForegroundLinearLayout implements Me
         setVisibility(itemData.isVisible() ? VISIBLE : GONE);
 
         if (getBackground() == null) {
-            setBackgroundDrawable(createDefaultBackground());
+            ViewCompat.setBackground(this, createDefaultBackground());
         }
 
         setCheckable(itemData.isCheckable());
@@ -86,6 +116,32 @@ public class NavigationMenuItemView extends ForegroundLinearLayout implements Me
         setTitle(itemData.getTitle());
         setIcon(itemData.getIcon());
         setActionView(itemData.getActionView());
+        adjustAppearance();
+    }
+
+    private boolean shouldExpandActionArea() {
+        return mItemData.getTitle() == null &&
+                mItemData.getIcon() == null &&
+                mItemData.getActionView() != null;
+    }
+
+    private void adjustAppearance() {
+        if (shouldExpandActionArea()) {
+            // Expand the actionView area
+            mTextView.setVisibility(View.GONE);
+            if (mActionArea != null) {
+                LayoutParams params = (LayoutParams) mActionArea.getLayoutParams();
+                params.width = LayoutParams.MATCH_PARENT;
+                mActionArea.setLayoutParams(params);
+            }
+        } else {
+            mTextView.setVisibility(View.VISIBLE);
+            if (mActionArea != null) {
+                LayoutParams params = (LayoutParams) mActionArea.getLayoutParams();
+                params.width = LayoutParams.WRAP_CONTENT;
+                mActionArea.setLayoutParams(params);
+            }
+        }
     }
 
     public void recycle() {
@@ -96,12 +152,12 @@ public class NavigationMenuItemView extends ForegroundLinearLayout implements Me
     }
 
     private void setActionView(View actionView) {
-        if (mActionArea == null) {
-            mActionArea = (FrameLayout) ((ViewStub) findViewById(
-                    R.id.design_menu_item_action_area_stub)).inflate();
-        }
-        mActionArea.removeAllViews();
         if (actionView != null) {
+            if (mActionArea == null) {
+                mActionArea = (FrameLayout) ((ViewStub) findViewById(
+                        R.id.design_menu_item_action_area_stub)).inflate();
+            }
+            mActionArea.removeAllViews();
             mActionArea.addView(actionView);
         }
     }
@@ -131,6 +187,11 @@ public class NavigationMenuItemView extends ForegroundLinearLayout implements Me
     @Override
     public void setCheckable(boolean checkable) {
         refreshDrawableState();
+        if (mCheckable != checkable) {
+            mCheckable = checkable;
+            mAccessibilityDelegate.sendAccessibilityEvent(mTextView,
+                    AccessibilityEventCompat.TYPE_WINDOW_CONTENT_CHANGED);
+        }
     }
 
     @Override
@@ -146,10 +207,21 @@ public class NavigationMenuItemView extends ForegroundLinearLayout implements Me
     @Override
     public void setIcon(Drawable icon) {
         if (icon != null) {
-            Drawable.ConstantState state = icon.getConstantState();
-            icon = DrawableCompat.wrap(state == null ? icon : state.newDrawable()).mutate();
+            if (mHasIconTintList) {
+                Drawable.ConstantState state = icon.getConstantState();
+                icon = DrawableCompat.wrap(state == null ? icon : state.newDrawable()).mutate();
+                DrawableCompat.setTintList(icon, mIconTintList);
+            }
             icon.setBounds(0, 0, mIconSize, mIconSize);
-            DrawableCompat.setTintList(icon, mIconTintList);
+        } else if (mNeedsEmptyIcon) {
+            if (mEmptyDrawable == null) {
+                mEmptyDrawable = ResourcesCompat.getDrawable(getResources(),
+                        R.drawable.navigation_empty_icon, getContext().getTheme());
+                if (mEmptyDrawable != null) {
+                    mEmptyDrawable.setBounds(0, 0, mIconSize, mIconSize);
+                }
+            }
+            icon = mEmptyDrawable;
         }
         TextViewCompat.setCompoundDrawablesRelative(mTextView, icon, null, null, null);
     }
@@ -175,18 +247,23 @@ public class NavigationMenuItemView extends ForegroundLinearLayout implements Me
 
     void setIconTintList(ColorStateList tintList) {
         mIconTintList = tintList;
+        mHasIconTintList = mIconTintList != null;
         if (mItemData != null) {
             // Update the icon so that the tint takes effect
             setIcon(mItemData.getIcon());
         }
     }
 
-    public void setTextAppearance(Context context, int textAppearance) {
-        mTextView.setTextAppearance(context, textAppearance);
+    public void setTextAppearance(int textAppearance) {
+        TextViewCompat.setTextAppearance(mTextView, textAppearance);
     }
 
     public void setTextColor(ColorStateList colors) {
         mTextView.setTextColor(colors);
+    }
+
+    public void setNeedsEmptyIcon(boolean needsEmptyIcon) {
+        mNeedsEmptyIcon = needsEmptyIcon;
     }
 
 }

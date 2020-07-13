@@ -16,17 +16,23 @@
 package com.android.functional.otatests;
 
 import static org.easymock.EasyMock.createNiceMock;
+import static org.junit.Assert.assertTrue;
 
+import android.app.Instrumentation;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.os.IPowerManager;
 import android.os.PowerManager;
 import android.os.RecoverySystem;
-import android.test.InstrumentationTestCase;
-
+import android.support.test.InstrumentationRegistry;
+import android.support.test.runner.AndroidJUnit4;
 import java.io.File;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
-public class PackageProcessTest extends InstrumentationTestCase {
+@RunWith(AndroidJUnit4.class)
+public class PackageProcessTest {
 
     private static final String PACKAGE_DATA_PATH =
             "/data/data/com.google.android.gms/app_download/update.zip";
@@ -36,6 +42,7 @@ public class PackageProcessTest extends InstrumentationTestCase {
     private Context mMockContext;
     private Context mContext;
     private PowerManager mMockPowerManager;
+    private Instrumentation mInstrumentation;
 
     private class PackageProcessMockContext extends ContextWrapper {
 
@@ -55,10 +62,10 @@ public class PackageProcessTest extends InstrumentationTestCase {
         }
     }
 
-    @Override
+    @Before
     public void setUp() throws Exception {
-        super.setUp();
-        mContext = getInstrumentation().getContext();
+        mInstrumentation = InstrumentationRegistry.getInstrumentation();
+        mContext = mInstrumentation.getContext();
         mMockContext = new PackageProcessMockContext(mContext);
         // Set a mocked out power manager into the mocked context, so the device
         // won't reboot at the end of installPackage
@@ -66,6 +73,7 @@ public class PackageProcessTest extends InstrumentationTestCase {
         mMockPowerManager = new PowerManager(mContext, mockIPowerManager, null);
     }
 
+    @Test
     public void testPackageProcessOnly() throws Exception {
         File pkg = new File(PACKAGE_DATA_PATH);
         RecoverySystem.verifyPackage(pkg, null, null);
@@ -74,6 +82,7 @@ public class PackageProcessTest extends InstrumentationTestCase {
         assertTrue(new File(BLOCK_MAP).exists());
     }
 
+    @Test
     public void testPackageProcessViaInstall() throws Exception {
         File pkg = new File(PACKAGE_DATA_PATH);
         RecoverySystem.verifyPackage(pkg, null, null);

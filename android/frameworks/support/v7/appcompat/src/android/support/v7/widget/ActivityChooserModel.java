@@ -150,37 +150,37 @@ class ActivityChooserModel extends DataSetObservable {
     /**
      * Flag for selecting debug mode.
      */
-    private static final boolean DEBUG = false;
+    static final boolean DEBUG = false;
 
     /**
      * Tag used for logging.
      */
-    private static final String LOG_TAG = ActivityChooserModel.class.getSimpleName();
+    static final String LOG_TAG = ActivityChooserModel.class.getSimpleName();
 
     /**
      * The root tag in the history file.
      */
-    private static final String TAG_HISTORICAL_RECORDS = "historical-records";
+    static final String TAG_HISTORICAL_RECORDS = "historical-records";
 
     /**
      * The tag for a record in the history file.
      */
-    private static final String TAG_HISTORICAL_RECORD = "historical-record";
+    static final String TAG_HISTORICAL_RECORD = "historical-record";
 
     /**
      * Attribute for the activity.
      */
-    private static final String ATTRIBUTE_ACTIVITY = "activity";
+    static final String ATTRIBUTE_ACTIVITY = "activity";
 
     /**
      * Attribute for the choice time.
      */
-    private static final String ATTRIBUTE_TIME = "time";
+    static final String ATTRIBUTE_TIME = "time";
 
     /**
      * Attribute for the choice weight.
      */
-    private static final String ATTRIBUTE_WEIGHT = "weight";
+    static final String ATTRIBUTE_WEIGHT = "weight";
 
     /**
      * The default name of the choice history file.
@@ -242,12 +242,12 @@ class ActivityChooserModel extends DataSetObservable {
     /**
      * Context for accessing resources.
      */
-    private final Context mContext;
+    final Context mContext;
 
     /**
      * The name of the history file that backs this model.
      */
-    private final String mHistoryFileName;
+    final String mHistoryFileName;
 
     /**
      * The intent for which a activity is being chosen.
@@ -272,7 +272,7 @@ class ActivityChooserModel extends DataSetObservable {
      * only after a call to {@link #persistHistoricalDataIfNeeded()} followed by change
      * of the share records.
      */
-    private boolean mCanReadHistoricalData = true;
+    boolean mCanReadHistoricalData = true;
 
     /**
      * Flag whether the choice history was read. This is used to enforce that
@@ -483,7 +483,7 @@ class ActivityChooserModel extends DataSetObservable {
 
             HistoricalRecord historicalRecord = new HistoricalRecord(chosenName,
                     System.currentTimeMillis(), DEFAULT_HISTORICAL_RECORD_WEIGHT);
-            addHisoricalRecord(historicalRecord);
+            addHistoricalRecord(historicalRecord);
 
             return choiceIntent;
         }
@@ -550,7 +550,7 @@ class ActivityChooserModel extends DataSetObservable {
                     newDefaultActivity.resolveInfo.activityInfo.name);
             HistoricalRecord historicalRecord = new HistoricalRecord(defaultName,
                     System.currentTimeMillis(), weight);
-            addHisoricalRecord(historicalRecord);
+            addHistoricalRecord(historicalRecord);
         }
     }
 
@@ -724,7 +724,7 @@ class ActivityChooserModel extends DataSetObservable {
      * @param historicalRecord The record to add.
      * @return True if the record was added.
      */
-    private boolean addHisoricalRecord(HistoricalRecord historicalRecord) {
+    private boolean addHistoricalRecord(HistoricalRecord historicalRecord) {
         final boolean added = mHistoricalRecords.add(historicalRecord);
         if (added) {
             mHistoricalRecordsChanged = true;
@@ -918,6 +918,9 @@ class ActivityChooserModel extends DataSetObservable {
         private final Map<ComponentName, ActivityResolveInfo> mPackageNameToActivityMap =
                 new HashMap<ComponentName, ActivityResolveInfo>();
 
+        DefaultSorter() {
+        }
+
         public void sort(Intent intent, List<ActivityResolveInfo> activities,
                 List<HistoricalRecord> historicalRecords) {
             Map<ComponentName, ActivityResolveInfo> componentNameToActivityMap =
@@ -1032,18 +1035,21 @@ class ActivityChooserModel extends DataSetObservable {
      */
     private final class PersistHistoryAsyncTask extends AsyncTask<Object, Void, Void> {
 
+        PersistHistoryAsyncTask() {
+        }
+
         @Override
         @SuppressWarnings("unchecked")
         public Void doInBackground(Object... args) {
             List<HistoricalRecord> historicalRecords = (List<HistoricalRecord>) args[0];
-            String hostoryFileName = (String) args[1];
+            String historyFileName = (String) args[1];
 
             FileOutputStream fos = null;
 
             try {
-                fos = mContext.openFileOutput(hostoryFileName, Context.MODE_PRIVATE);
+                fos = mContext.openFileOutput(historyFileName, Context.MODE_PRIVATE);
             } catch (FileNotFoundException fnfe) {
-                Log.e(LOG_TAG, "Error writing historical recrod file: " + hostoryFileName, fnfe);
+                Log.e(LOG_TAG, "Error writing historical record file: " + historyFileName, fnfe);
                 return null;
             }
 
@@ -1075,11 +1081,11 @@ class ActivityChooserModel extends DataSetObservable {
                     Log.i(LOG_TAG, "Wrote " + recordCount + " historical records.");
                 }
             } catch (IllegalArgumentException iae) {
-                Log.e(LOG_TAG, "Error writing historical recrod file: " + mHistoryFileName, iae);
+                Log.e(LOG_TAG, "Error writing historical record file: " + mHistoryFileName, iae);
             } catch (IllegalStateException ise) {
-                Log.e(LOG_TAG, "Error writing historical recrod file: " + mHistoryFileName, ise);
+                Log.e(LOG_TAG, "Error writing historical record file: " + mHistoryFileName, ise);
             } catch (IOException ioe) {
-                Log.e(LOG_TAG, "Error writing historical recrod file: " + mHistoryFileName, ioe);
+                Log.e(LOG_TAG, "Error writing historical record file: " + mHistoryFileName, ioe);
             } finally {
                 mCanReadHistoricalData = true;
                 if (fos != null) {

@@ -16,10 +16,14 @@
 
 package android.platform.test.helpers;
 
+import android.accounts.Account;
+import android.accounts.AccountManager;
 import android.app.Instrumentation;
+import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.platform.test.helpers.exceptions.AccountException;
 import android.support.test.launcherhelper.ILauncherStrategy;
 import android.support.test.launcherhelper.LauncherStrategyFactory;
 import android.support.test.uiautomator.By;
@@ -85,7 +89,38 @@ public abstract class AbstractStandardAppHelper implements IStandardAppHelper {
         return version;
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isAppInForeground() {
+        return mDevice.hasObject(By.pkg(getPackage()).depth(0));
+    }
+
     protected int getOrientation() {
         return mInstrumentation.getContext().getResources().getConfiguration().orientation;
+    }
+
+    protected void requiresGoogleAccount() {
+        if (!hasRegisteredGoogleAccount()) {
+            throw new AccountException("This method requires a Google account be registered.");
+        }
+    }
+
+    protected void requiresNoGoogleAccount() {
+        if (hasRegisteredGoogleAccount()) {
+            throw new AccountException("This method requires no Google account be registered.");
+        }
+    }
+
+    protected boolean hasRegisteredGoogleAccount() {
+        Context context = mInstrumentation.getContext();
+        Account[] accounts = AccountManager.get(context).getAccounts();
+        for (int i = 0; i < accounts.length; ++i) {
+            if (accounts[i].type.equals("com.google")) {
+                return true;
+            }
+        }
+        return false;
     }
 }

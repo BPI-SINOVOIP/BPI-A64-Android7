@@ -1,0 +1,11 @@
+URL: http://buildbot.net/trac
+Version: 0.8.4p1
+License: GNU General Public License (GPL) Version 2
+
+This is a forked copy of buildbot v0.8.4p1.
+
+The fork starts at ece89304e7e6e7f06016de19cdb623e3c7137d2e.
+
+To produce the current diff, run:
+
+  $ git diff ece89304e7e6e7f06016de19cdb623e3c7137d2e -- buildbot

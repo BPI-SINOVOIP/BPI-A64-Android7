@@ -27,7 +27,9 @@ import android.view.Choreographer;
 import android.view.Choreographer.FrameCallback;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.FrameLayout;
+import junit.framework.Assert;
 
 import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
@@ -139,13 +141,31 @@ public class BaseTransitionTest extends ActivityInstrumentationTestCase2<Transit
     }
 
     protected void enterScene(final Scene scene) throws Throwable {
-        runTestOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                scene.enter();
-            }
+        final CountDownLatch latch = new CountDownLatch(1);
+
+        runTestOnUiThread(() -> {
+            final ViewTreeObserver.OnGlobalLayoutListener listener =
+                    new ViewTreeObserver.OnGlobalLayoutListener() {
+                @Override
+                public void onGlobalLayout() {
+                    mActivity.getWindow().getDecorView().
+                            getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                    latch.countDown();
+                }
+            };
+
+            mActivity.getWindow().getDecorView().
+                    getViewTreeObserver().addOnGlobalLayoutListener(listener);
+
+            scene.enter();
         });
-        getInstrumentation().waitForIdleSync();
+
+        try {
+            Assert.assertTrue("Expected layout pass within 5 seconds",
+                    latch.await(5, TimeUnit.SECONDS));
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     protected void exitScene(final Scene scene) throws Throwable {

@@ -15,6 +15,7 @@ from google.appengine.ext import ndb
 
 from dashboard import bisect_fyi
 from dashboard import bisect_report
+from dashboard import buildbucket_service
 from dashboard import datastore_hooks
 from dashboard import email_template
 from dashboard import issue_tracker_service
@@ -25,6 +26,7 @@ from dashboard import utils
 from dashboard.models import anomaly
 from dashboard.models import bug_data
 from dashboard.models import try_job
+
 
 COMPLETED, FAILED, PENDING, ABORTED = ('completed', 'failed', 'pending',
                                        'aborted')
@@ -45,6 +47,36 @@ your CL be related.
 
 _CONFIDENCE_LEVEL_TO_CC_AUTHOR = 95
 
+_BUILD_FAILURE_REASON = {
+    'BUILD_FAILURE': 'the build has failed.',
+    'INFRA_FAILURE': 'the build has failed due to infrastructure failure.',
+    'BUILDBUCKET_FAILURE': 'the buildbucket service failure.',
+    'INVALID_BUILD_DEFINITION': 'incorrect bisect configuation.',
+    'CANCELED_EXPLICITLY': 'the build was canceled explicitly.',
+    'TIMEOUT': 'the build was canceled by buildbot on timeout.',
+}
+
+_BUILD_FAILURE_DETAIL = {
+    'B4T_TEST_TIMEOUT': 'Timed out waiting for the test job.',
+    'B4T_BUILD_TIMEOUT': 'Timed out waiting for the build.',
+    'B4T_TEST_FAILURE': 'The test failed to produce parseable results.',
+    'B4T_BUILD_FAILURE': 'The build could not be requested, or the job failed.',
+    'B4T_BAD_REV': 'The revision range could not be expanded, or the commit '
+                   'positions could not be resolved into commit hashes.',
+    'B4T_REF_RANGE_FAIL': 'Either of the initial "good" or "bad" revisions '
+                          'failed to be tested or built.',
+    'B4T_BAD_CONFIG': 'There was a problem with the bisect_config dictionary '
+                      'passed to the recipe. See output of the config step.',
+    'B4T_CULPRIT_FOUND': 'A Culprit CL was found with "high" confidence.',
+    'B4T_LO_INIT_CONF': 'Bisect aborted early for lack of confidence.',
+    'B4T_MISSING_METRIC': 'The metric was not found in the test output.',
+    'B4T_LO_FINAL_CONF': 'The bisect completed without a culprit.',
+}
+
+
+class BisectJobFailure(Exception):
+  pass
+
 
 class BugUpdateFailure(Exception):
   pass
@@ -60,9 +92,8 @@ class UpdateBugWithResultsHandler(request_handler.RequestHandler):
     jobs and send comments to an issue on the issue tracker if a bisect job has
     completed.
     """
-    credentials = utils.ServiceAccountCredentials()
     issue_tracker = issue_tracker_service.IssueTrackerService(
-        additional_credentials=credentials)
+        utils.ServiceAccountHttp())
 
     # Set privilege so we can also fetch internal try_job entities.
     datastore_hooks.SetPrivilegedRequest()
@@ -92,24 +123,36 @@ def _CheckJob(job, issue_tracker):
     job: A TryJob entity, which represents one bisect try job.
     issue_tracker: An issue_tracker_service.IssueTrackerService instance.
   """
+  logging.info('Checking job %s for bug %s, with buildbucket_job_id %s',
+               job.key.id(), job.bug_id, job.buildbucket_job_id)
+
+  if not _IsBuildBucketJobCompleted(job):
+    logging.info('Not yet COMPLETED.')
+    return
+
+  job.CheckFailureFromBuildBucket()
+
   if _IsStale(job):
+    logging.info('Stale')
     job.SetStaled()
     # TODO(chrisphan): Add a staled TryJob log.
     # TODO(chrisphan): Do we want to send a FYI Bisect email here?
+    # TODO(sullivan): Probably want to update bug as well.
     return
 
   results_data = job.results_data
-  if not results_data or results_data['status'] not in [COMPLETED, FAILED]:
-    return
 
   if job.job_type == 'perf-try':
+    logging.info('Sending perf try job mail')
     _SendPerfTryJobEmail(job)
   elif job.job_type == 'bisect-fyi':
+    logging.info('Checking FYI bisect job')
     _CheckFYIBisectJob(job, issue_tracker)
   else:
+    logging.info('Checking bisect job')
     _CheckBisectJob(job, issue_tracker)
 
-  if results_data['status'] == COMPLETED:
+  if results_data and results_data.get('status') == COMPLETED:
     job.SetCompleted()
   else:
     job.SetFailed()
@@ -119,21 +162,41 @@ def _CheckBisectJob(job, issue_tracker):
   results_data = job.results_data
   has_partial_result = ('revision_data' in results_data and
                         results_data['revision_data'])
-  if results_data['status'] == FAILED and not has_partial_result:
+  if results_data.get('status') == FAILED and not has_partial_result:
+    _PostFailedResult(job, issue_tracker)
     return
-  _PostResult(job, issue_tracker)
+  _PostSuccessfulResult(job, issue_tracker)
 
 
 def _CheckFYIBisectJob(job, issue_tracker):
   try:
-    _PostResult(job, issue_tracker)
+    if not job.buildbucket_job_id:
+      job.key.delete()
+      return
+
+    if not job.results_data:
+      raise BisectJobFailure('Bisect job completed, but results data is not '
+                             'found, bot might have failed to post results.')
+    # FAILED implies failed or cancelled jobs.
+    if job.status == FAILED:
+      raise BisectJobFailure(
+          _BUILD_FAILURE_REASON.get(
+              job.results_data.get('failure_reason'), 'Unknown'))
     error_message = bisect_fyi.VerifyBisectFYIResults(job)
+    _PostSuccessfulResult(job, issue_tracker)
     if not bisect_fyi.IsBugUpdated(job, issue_tracker):
       error_message += '\nFailed to update bug with bisect results.'
+  except BisectJobFailure as e:
+    error_message = 'Bisect job failed because, %s' % e
   except BugUpdateFailure as e:
     error_message = 'Failed to update bug with bisect results: %s' % e
-  if job.results_data['status'] == FAILED or error_message:
-    _SendFYIBisectEmail(job, error_message)
+  except Exception as e:  # pylint: disable=broad-except
+    error_message = 'Failed to update bug with bisect results: %s' % e
+  finally:
+    if ((job.results_data and job.results_data.get('status') == FAILED) or
+        error_message):
+      job.SetFailed()
+      _SendFYIBisectEmail(job, error_message)
 
 
 def _SendPerfTryJobEmail(job):
@@ -150,8 +213,8 @@ def _SendPerfTryJobEmail(job):
                  html=email_report['html'])
 
 
-def _PostResult(job, issue_tracker):
-  """Posts bisect results on issue tracker."""
+def _PostSuccessfulResult(job, issue_tracker):
+  """Posts successful bisect results on issue tracker."""
   # From the results, get the list of people to CC (if applicable), the bug
   # to merge into (if applicable) and the commit hash cache key, which
   # will be used below.
@@ -203,6 +266,21 @@ def _PostResult(job, issue_tracker):
                               days_to_keep=30)
     logging.info('Cached bug id %s and commit info %s in the datastore.',
                  job.bug_id, commit_cache_key)
+
+
+def _PostFailedResult(job, issue_tracker):
+  """Posts failed bisect results on issue tracker."""
+  bug_comment = 'Bisect failed: %s\n' % job.results_data.get(
+      'buildbot_log_url', '')
+  if job.results_data.get('failure_reason'):
+    bug_comment += 'Failure reason: %s\n' % _BUILD_FAILURE_REASON.get(
+        job.results_data.get('failure_reason'), 'Unknown')
+  if job.results_data.get('extra_result_code'):
+    bug_comment += 'Additional errors:\n'
+    for code in job.results_data.get('extra_result_code'):
+      bug_comment += '%s\n' % _BUILD_FAILURE_DETAIL.get(code, code)
+  logging.info('Adding bug comment: %s', bug_comment)
+  issue_tracker.AddBugComment(job.bug_id, bug_comment)
 
 
 def _IsStale(job):
@@ -306,10 +384,10 @@ def _GetReviewersFromCulpritData(culprit_data):
 
 
 def _SendFYIBisectEmail(job, message):
-  """Sends an email to auto-bisect-team about FYI bisect results."""
+  """Sends an email to chrome-performance-monitoring-alerts with FYI results."""
   email_data = email_template.GetBisectFYITryJobEmailReport(job, message)
   mail.send_mail(sender='gasper-alerts@google.com',
-                 to='auto-bisect-team@google.com',
+                 to='chrome-performance-monitoring-alerts@google.com',
                  subject=email_data['subject'],
                  body=email_data['body'],
                  html=email_data['html'])
@@ -332,3 +410,52 @@ def UpdateQuickLog(job):
     job.log_record_id = logger.Log(report)
     logger.Save()
     job.put()
+
+
+def _IsBuildBucketJobCompleted(job):
+  """Checks whether the bisect job is completed."""
+  job_info = buildbucket_service.GetJobStatus(job.buildbucket_job_id)
+  if not job_info:
+    return False
+  data = job_info.get('build', {})
+  # The status of the build can be one of [STARTED, SCHEDULED or COMPLETED]
+  # The buildbucket 'status' fields are documented here:
+  # https://goto.google.com/bb_status
+  if data.get('status') != 'COMPLETED':
+    return False
+
+  return True
+
+
+def _ValidateBuildbucketResponse(job_info):
+  """Checks and validates the response from the buildbucket service for bisect.
+
+  Args:
+    job_info: A dictionary containing the response from the buildbucket service.
+
+  Returns:
+    True if bisect job is completed successfully and False for pending job.
+
+  Raises:
+    BisectJobFailure: When job is completed but build is failed or cancelled.
+  """
+  job_info = job_info['build']
+  json_response = json.dumps(job_info)
+  if not job_info:
+    raise BisectJobFailure('No response from Buildbucket.')
+
+  if job_info.get('status') in ['SCHEDULED', 'STARTED']:
+    return False
+
+  if job_info.get('result') is None:
+    raise BisectJobFailure('No "result" in try job results. '
+                           'Buildbucket response: %s' % json_response)
+
+  # There are various failure and cancellation reasons for a buildbucket
+  # job to fail as listed in https://goto.google.com/bb_status.
+  if (job_info.get('status') == 'COMPLETED' and
+      job_info.get('result') != 'SUCCESS'):
+    reason = (job_info.get('cancelation_reason') or
+              job_info.get('failure_reason'))
+    raise BisectJobFailure(_BUILD_FAILURE_REASON.get(reason))
+  return True

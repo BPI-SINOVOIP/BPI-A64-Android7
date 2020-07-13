@@ -63,6 +63,8 @@ public class EglConfigTest extends ActivityInstrumentationTestCase2<EglConfigCts
             EglConfigCtsActivity activity = launchActivity("android.graphics.cts",
                     EglConfigCtsActivity.class, extras);
             activity.waitToFinishDrawing();
+            // TODO(b/30948621): Remove the sleep below once b/30948621 is fixed.
+            Thread.sleep(500);
             activity.finish();
             mInstrumentation.waitForIdleSync();
         }

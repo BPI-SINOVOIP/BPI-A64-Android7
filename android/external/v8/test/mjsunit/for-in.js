@@ -25,6 +25,8 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+// Flags: --noharmony-for-in
+
 function props(x) {
   var array = [];
   for (var p in x) array.push(p);
@@ -120,7 +122,23 @@ for (i=0 ; i < 3; ++i) {
   assertEquals("undefined", typeof y[0], "y[0]");
 }
 
-(function() {
+(function testLargeElementKeys() {
+  // Key out of SMI range but well within safe double representaion.
+  var large_key = 2147483650;
+  var o = [];
+  // Trigger dictionary elements with HeapNumber keys.
+  o[large_key] = 0;
+  o[large_key+1] = 1;
+  o[large_key+2] = 2;
+  o[large_key+3] = 3;
+  var keys = [];
+  for (var k in o) {
+    keys.push(k);
+  }
+  assertEquals(["2147483650", "2147483651", "2147483652", "2147483653"], keys);
+})();
+
+(function testLargeElementKeysWithProto() {
   var large_key = 2147483650;
   var o = {__proto__: {}};
   o[large_key] = 1;
@@ -131,3 +149,17 @@ for (i=0 ; i < 3; ++i) {
   }
   assertEquals(["2147483650"], keys);
 })();
+
+(function testNonEnumerableArgumentsIndex() {
+  Object.defineProperty(arguments, 0, {enumerable:false});
+  for (var k in arguments) {
+    assertUnreachable();
+  }
+})();
+
+(function testNonEnumerableSloppyArgumentsIndex(a) {
+  Object.defineProperty(arguments, 0, {enumerable:false});
+  for (var k in arguments) {
+    assertUnreachable();
+  }
+})(true);

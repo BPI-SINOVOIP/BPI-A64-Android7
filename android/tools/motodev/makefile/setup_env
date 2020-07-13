@@ -1,0 +1,290 @@
+#!/bin/bash
+# setup_env
+# Script for pulling down the MOTODEV plugins source, all dependencies, and building
+# If building on Windows with Cygwin or MingGW/Git Bash, use forward slash format
+
+
+
+# Required parameters
+# ===== BEGIN =====
+
+# Insert your build base here. This is where files will be downloaded and build
+export BUILD_BASE_PATH=/home/username/work/build_test
+
+# This is the path to the downloaded Eclipse installation
+export ECLIPSE_BASE_PATH=$BUILD_BASE_PATH/env/eclipse
+
+# Target OS. (WINDOWS, LINUX)
+#export BUILD_TARGET="WINDOWS"
+export BUILD_TARGET="LINUX"
+
+# =====  END  =====
+# Required parameters
+
+
+
+# It's OK if this fails due to existing
+mkdir $BUILD_BASE_PATH
+cd $BUILD_BASE_PATH
+mkdir ./env
+mkdir ./env/code
+#mkdir ./env/code/android
+#mkdir ./env/code/android/makefile
+#mkdir ./env/code/android/src
+#mkdir ./env/eclipse
+mkdir ./input
+mkdir ./input/repository
+mkdir ./input/repository/base
+
+
+# These will come from eclipse git repos
+mkdir ./input/repository/base/REPO_ECLIPSE_PLATFORM
+mkdir ./input/repository/base/REPO_BIRT
+mkdir ./input/repository/base/REPO_DATATOOLS
+mkdir ./input/repository/base/REPO_EMF_XSD_SDO
+mkdir ./input/repository/base/REPO_GEF
+mkdir ./input/repository/base/REPO_JDT
+mkdir ./input/repository/base/REPO_PDE
+mkdir ./input/repository/base/REPO_WTP
+mkdir ./input/repository/base/REPO_EGIT
+mkdir ./input/repository/base/REPO_MYLYN
+
+# This will come from eclipse svn
+mkdir ./input/repository/base/REPO_MAT
+
+# This will come from an archive or Eclipse git
+mkdir ./input/repository/base/REPO_SEQUOYAH
+
+# This will come from Google
+mkdir ./input/repository/base/REPO_ADT
+
+# These are set to get the revision used by MOTODEV. In some cases, it 
+# may be necessary to get the HEAD by removing the -b parameter
+cd ./input/repository/base
+
+if [ -f "REPO_ECLIPSE_PLATFORM.zip" ];
+then
+echo "REPO_ECLIPSE_PLATFORM.zip exists. Skipping.";
+else
+curl http://download.eclipse.org/eclipse/downloads/drops4/R-4.2-201206081400/org.eclipse.platform.source-4.2.zip > REPO_ECLIPSE_PLATFORM.zip;
+fi
+
+if [ -f "REPO_BIRT.zip" ];
+then
+echo "REPO_BIRT.zip exists. Skipping.";
+else
+curl http://download.eclipse.org/birt/downloads/drops/R-R1-4_2_0-201206131143/birt-updatesite-4_2_0.zip > REPO_BIRT.zip;
+fi
+
+if [ -f "REPO_DATATOOLS.zip" ];
+then
+echo "REPO_DATATOOLS.zip exists. Skipping.";
+else
+curl http://download.eclipse.org/datatools/downloads/1.10/dtp-sdk_1.10.zip > REPO_DATATOOLS.zip;
+fi
+
+if [ -f "REPO_EMF_XSD_SDO.zip" ];
+then
+echo "REPO_EMF_XSD_SDO.zip exists. Skipping.";
+else
+curl http://download.eclipse.org/modeling/emf/emf/downloads/drops/2.8.0/R201206080554/emf-xsd-Update-2.8.0.zip > REPO_EMF_XSD_SDO.zip;
+fi
+
+if [ -f "REPO_GEF.zip" ];
+then
+echo "REPO_GEF.zip exists. Skipping.";
+else
+curl http://download.eclipse.org/tools/gef/downloads/drops/3.8.0/R201206112118/GEF-ALL-3.8.0.zip > REPO_GEF.zip;
+fi
+
+if [ -f "REPO_JDT.zip" ];
+then
+echo "REPO_JDT.zip exists. Skipping.";
+else
+curl http://download.eclipse.org/eclipse/downloads/drops4/R-4.2-201206081400/org.eclipse.jdt.source-4.2.zip > REPO_JDT.zip;
+fi
+
+if [ -f "REPO_PDE.zip" ];
+then
+echo "REPO_PDE.zip exists. Skipping.";
+else
+curl http://download.eclipse.org/eclipse/downloads/drops4/R-4.2-201206081400/org.eclipse.pde.source-4.2.zip > REPO_PDE.zip;
+fi
+
+if [ -f "REPO_WTP.zip" ];
+then
+echo "REPO_WTP.zip exists. Skipping.";
+else
+curl http://download.eclipse.org/webtools/downloads/drops/R3.4.0/R-3.4.0-20120612174739/wtp4x-repo-R-3.4.0-20120612174739.zip > REPO_WTP.zip;
+fi
+
+if [ -f "REPO_MAT.zip" ];
+then
+echo "REPO_MAT.zip exists. Skipping.";
+else
+curl http://download.eclipse.org/mat/1.1.1/MemoryAnalyzer-1.1.1.201108240735.zip > REPO_MAT.zip;
+fi
+
+if [ -f "REPO_SEQUOYAH.zip" ];
+then
+echo "REPO_SEQUOYAH.zip exists. Skipping.";
+else
+curl http://download.eclipse.org/sequoyah/downloads/drops/2.1/2.1.1.N20120718-0509/org.eclipse.sequoyah.feature.2.1.1.N20120718-0509.zip > REPO_SEQUOYAH.zip;
+fi
+
+if [ -f "REPO_EGIT.zip" ];
+then
+echo "REPO_EGIT.zip exists. Skipping.";
+else
+curl http://download.eclipse.org/egit/updates-2.0/org.eclipse.egit.repository-2.0.0.201206130900-r.zip > REPO_EGIT.zip;
+fi
+
+if [ -f "REPO_MYLYN.zip" ];
+then
+echo "REPO_MYLYN.zip exists. Skipping.";
+else
+curl http://ftp.osuosl.org/pub/eclipse/mylyn/drops/3.8.0/v20120612-0600/mylyn-3.8.0.v20120612-0600.zip > REPO_MYLYN.zip;
+fi
+
+if [ -f "REPO_ADT.zip" ];
+then
+echo "REPO_ADT.zip exists. Skipping.";
+else
+curl http://dl.google.com/android/ADT-20.0.3.zip > REPO_ADT.zip;
+fi
+
+# call unzip -q if it exists on all the downloaded repos
+# unzip -q REPO_EGIT.zip -d ./REPO_EGIT
+if ! [ -f "./REPO_ECLIPSE_PLATFORM/artifacts.jar" ];
+then 
+unzip -q REPO_ECLIPSE_PLATFORM.zip -d ./REPO_ECLIPSE_PLATFORM;
+fi
+
+if ! [ -f "./REPO_BIRT/artifacts.jar" ];
+then 
+unzip -q REPO_BIRT.zip -d ./REPO_BIRT;
+fi
+
+if ! [ -f "./REPO_EMF_XSD_SDO/artifacts.jar" ];
+then 
+unzip -q REPO_EMF_XSD_SDO.zip -d ./REPO_EMF_XSD_SDO;
+fi
+
+if ! [ -f "./REPO_JDT/artifacts.jar" ];
+then 
+unzip -q REPO_JDT.zip -d ./REPO_JDT;
+fi
+
+if ! [ -f "./REPO_PDE/artifacts.jar" ];
+then 
+unzip -q REPO_PDE.zip -d ./REPO_PDE;
+fi
+
+if ! [ -f "./REPO_WTP/artifacts.jar" ];
+then 
+unzip -q REPO_WTP.zip -d ./REPO_WTP;
+fi
+
+if ! [ -f "./REPO_MAT/artifacts.jar" ];
+then 
+unzip -q REPO_MAT.zip -d ./REPO_MAT;
+fi
+
+if ! [ -f "./REPO_SEQUOYAH/artifacts.jar" ];
+then 
+unzip -q REPO_SEQUOYAH.zip -d ./REPO_SEQUOYAH;
+fi
+
+if ! [ -f "./REPO_EGIT/artifacts.jar" ];
+then 
+unzip -q REPO_EGIT.zip -d ./REPO_EGIT;
+fi
+
+if ! [ -f "./REPO_MYLYN/artifacts.jar" ];
+then 
+unzip -q REPO_MYLYN.zip -d ./REPO_MYLYN;
+fi
+
+if ! [ -f "./REPO_ADT/site.xml" ];
+then 
+unzip -q REPO_ADT.zip -d ./REPO_ADT;
+fi
+
+# Get the MOTODEV plugins code
+cd $BUILD_BASE_PATH
+cd ./env/code
+git clone https://android.googlesource.com/platform/tools/motodev.git
+mv motodev/ android
+
+# Get the eclipse SDK + delta pack
+cd $BUILD_BASE_PATH
+if [ "$BUILD_TARGET" == "WINDOWS" ];
+then
+	if [ -f "eclipse-SDK-4.2-win32-x86_64.zip" ];
+	then
+	echo "eclipse-SDK-4.2-win32-x86_64.zip exists. Skipping.";
+	else
+	curl http://download.eclipse.org/eclipse/downloads/drops4/R-4.2-201206081400/eclipse-SDK-4.2-win32-x86_64.zip > eclipse-SDK-4.2-win32-x86_64.zip;
+	fi
+
+	if ! [ -f "./env/eclipse/artifacts.xml" ];
+	then 
+	unzip -q eclipse-SDK-4.2-win32-x86_64.zip -d ./env;
+	fi
+elif [ "$BUILD_TARGET" == "LINUX" ];
+then
+	if [ -f "eclipse-SDK-4.2-linux-gtk-x86_64.tar.gz" ];
+	then
+	echo "eclipse-SDK-4.2-linux-gtk-x86_64.tar.gz exists. Skipping.";
+	else
+	curl http://download.eclipse.org/eclipse/downloads/drops4/R-4.2-201206081400/eclipse-SDK-4.2-linux-gtk-x86_64.tar.gz > eclipse-SDK-4.2-linux-gtk-x86_64.tar.gz;
+	fi
+
+	if ! [ -f "./env/eclipse/artifacts.xml" ];
+	then 
+	tar -xcf eclipse-SDK-4.2-linux-gtk-x86_64.tar.gz -C ./env
+	fi
+fi
+
+if [ -f "eclipse-4.2-delta-pack.zip" ];
+then
+echo "eclipse-4.2-delta-pack.zip exists. Skipping.";
+else
+curl http://download.eclipse.org/eclipse/downloads/drops4/R-4.2-201206081400/eclipse-4.2-delta-pack.zip > eclipse-4.2-delta-pack.zip;
+fi
+
+unzip -q -o eclipse-4.2-delta-pack.zip -d ./env
+
+# These two are in an incompatible format
+cd $BUILD_BASE_PATH
+mkdir ./TEMP
+
+if ! [ -f "$BUILD_BASE_PATH/TEMP/REPO_DATATOOLS/eclipse/notice.html" ];
+then
+unzip -q ./input/repository/base/REPO_DATATOOLS.zip -d ./TEMP/REPO_DATATOOLS;
+fi
+
+if ! [ -f "$BUILD_BASE_PATH/input/repository/base/REPO_DATATOOLS/artifacts.jar" ];
+then 
+java -jar $ECLIPSE_BASE_PATH/plugins/org.eclipse.equinox.launcher_1.3.0.v20120522-1813.jar -application org.eclipse.equinox.p2.publisher.FeaturesAndBundlesPublisher -metadataRepository file://$BUILD_BASE_PATH/input/repository/base/REPO_DATATOOLS -artifactRepository file://$BUILD_BASE_PATH/input/repository/base/REPO_DATATOOLS -source $BUILD_BASE_PATH/TEMP/REPO_DATATOOLS/eclipse -compress -publishArtifacts ;
+fi
+
+if ! [ -f "$BUILD_BASE_PATH/TEMP/REPO_GEF/eclipse/plugins/org.eclipse.gef_3.8.0.201206112118.jar" ];
+then
+unzip -q ./input/repository/base/REPO_GEF.zip -d ./TEMP/REPO_GEF ;
+fi
+
+if ! [ -f "$BUILD_BASE_PATH/input/repository/base/REPO_GEF/artifacts.jar" ];
+then 
+java -jar $ECLIPSE_BASE_PATH/plugins/org.eclipse.equinox.launcher_1.3.0.v20120522-1813.jar -application org.eclipse.equinox.p2.publisher.FeaturesAndBundlesPublisher -metadataRepository file://$BUILD_BASE_PATH/input/repository/base/REPO_GEF -artifactRepository file://$BUILD_BASE_PATH/input/repository/base/REPO_GEF -source $BUILD_BASE_PATH/TEMP/REPO_GEF/eclipse -compress -publishArtifacts ;
+fi
+
+# Now that everything is in place, create these two variables
+export ADT_JAR_FILENAME=`ls input/repository/base/REPO_ADT/plugins | grep eclipse.adt_ | sed "s/.jar//"`
+export DDMS_JAR_FILENAME=`ls input/repository/base/REPO_ADT/plugins | grep eclipse.ddms_ | sed "s/.jar//"`
+
+# Run the eclipse to build the plugins
+$ECLIPSE_BASE_PATH/eclipse -nosplash -application org.eclipse.ant.core.antRunner -data $BUILD_BASE_PATH/env/workspace_product -buildfile $BUILD_BASE_PATH/env/code/android/makefile/studioBuild.xml -debug
+# Add these items to the build command line if you want a log file
+#-logger org.apache.tools.ant.XmlLogger -logfile $BUILD_BASE_PATH/log.xml
+

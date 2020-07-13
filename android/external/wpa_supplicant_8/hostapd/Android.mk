@@ -34,6 +34,12 @@ ifeq ($(BOARD_HOSTAPD_PRIVATE_LIB),)
 L_CFLAGS += -DANDROID_LIB_STUB
 endif
 
+ifeq ($(BOARD_WIFI_VENDOR), xr_wlan)
+L_CFLAGS += -DENABLE_XR_CHANGES
+ENABLE_XR_CHANGES := y
+L_CFLAGS += -DANDROID_P2P
+endif
+
 # Use Android specific directory for control interface sockets
 L_CFLAGS += -DCONFIG_CTRL_IFACE_CLIENT_DIR=\"/data/misc/wifi/sockets\"
 L_CFLAGS += -DCONFIG_CTRL_IFACE_DIR=\"/data/system/hostapd\"

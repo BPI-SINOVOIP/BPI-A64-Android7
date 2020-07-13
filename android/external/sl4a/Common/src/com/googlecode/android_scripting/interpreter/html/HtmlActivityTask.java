@@ -61,7 +61,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
- * @author Alexey Reznichenko (alexey.reznichenko@gmail.com)
  */
 public class HtmlActivityTask extends FutureActivityTask<Void> {
 

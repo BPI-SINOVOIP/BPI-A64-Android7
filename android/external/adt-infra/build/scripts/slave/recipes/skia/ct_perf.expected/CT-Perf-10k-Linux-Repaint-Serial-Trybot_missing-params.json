@@ -1,0 +1,7 @@
+[
+  {
+    "name": "$result",
+    "reason": "Uncaught Exception: Exception('CT-Perf-10k-Linux-Repaint-Serial-Trybot can only be run as a trybot.',)",
+    "status_code": -1
+  }
+]

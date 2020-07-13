@@ -1,0 +1,142 @@
+[
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "RECIPE_MODULE[gsutil]/resources/gsutil_wrapper.py",
+      "--",
+      "[DEPOT_TOOLS]/gsutil.py",
+      "----",
+      "-h",
+      "Cache-Control:no-cache",
+      "-h",
+      "x-goog-meta-Remove-Me",
+      "-h",
+      "x-goog-meta-Test-Field:value",
+      "-h",
+      "x-custom-field:custom-value",
+      "cp",
+      "[SLAVE_BUILD]/boom",
+      "gs://chromium-recipe-test/some/random/path/to/boom"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "gsutil upload",
+    "~followup_annotations": [
+      "@@@STEP_LINK@gsutil.upload@https://storage.googleapis.com/chromium-recipe-test/some/random/path/to/boom@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "RECIPE_MODULE[gsutil]/resources/gsutil_wrapper.py",
+      "--",
+      "[DEPOT_TOOLS]/gsutil.py",
+      "----",
+      "cp",
+      "gs://chromium-recipe-test/some/random/path/**",
+      "gs://chromium-recipe-test/staging"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "gsutil cp"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "RECIPE_MODULE[gsutil]/resources/gsutil_wrapper.py",
+      "--",
+      "[DEPOT_TOOLS]/gsutil.py",
+      "--force-version",
+      "3.25",
+      "----",
+      "cp",
+      "gs://chromium-recipe-test/some/random/path/**",
+      "gs://chromium-recipe-test/staging"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "gsutil cp (2)"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "RECIPE_MODULE[gsutil]/resources/gsutil_wrapper.py",
+      "--",
+      "[DEPOT_TOOLS]/gsutil.py",
+      "----",
+      "cp",
+      "gs://chromium-recipe-test/some/random/path/to/boom",
+      "[SLAVE_BUILD]/boom"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "gsutil gsutil download url"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "RECIPE_MODULE[gsutil]/resources/gsutil_wrapper.py",
+      "--",
+      "[DEPOT_TOOLS]/gsutil.py",
+      "----",
+      "cp",
+      "gs://chromium-recipe-test/staging/to/boom",
+      "[SLAVE_BUILD]/erang"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "gsutil download"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "RECIPE_MODULE[gsutil]/resources/gsutil_wrapper.py",
+      "--",
+      "[DEPOT_TOOLS]/gsutil.py",
+      "----",
+      "signurl",
+      "path/to/key",
+      "gs://chromium-recipe-test/some/random/path/to/boom"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "gsutil signed url"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "RECIPE_MODULE[gsutil]/resources/gsutil_wrapper.py",
+      "--",
+      "[DEPOT_TOOLS]/gsutil.py",
+      "----",
+      "rm",
+      "gs://chromium-recipe-test/staging/to/boom"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "gsutil remove"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[BUILD]/scripts/slave/gsutil_download.py",
+      "--poll",
+      "--url",
+      "gs://chromium-recipe-test/foo/bar",
+      "--dst",
+      "local/path/for/download",
+      "--poll-interval",
+      "15",
+      "--timeout",
+      "600"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "Download GS file with polling"
+  },
+  {
+    "name": "$result",
+    "recipe_result": null,
+    "status_code": 0
+  }
+]

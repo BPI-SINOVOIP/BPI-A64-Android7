@@ -1,0 +1,7 @@
+[
+  {
+    "name": "$result",
+    "reason": "Failed to parse branch from: refs/heads/master@{#foo}",
+    "status_code": 1
+  }
+]

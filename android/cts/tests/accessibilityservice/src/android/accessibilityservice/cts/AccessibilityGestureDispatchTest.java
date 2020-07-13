@@ -333,39 +333,38 @@ public class AccessibilityGestureDispatchTest extends
         }
     }
 
+    // This test assumes device's screen contains its center (W/2, H/2) with some surroundings
+    // and should work for rectangular, round and round with chin screens.
     public void testClickWhenMagnified_matchesActualTouch() throws InterruptedException {
         if (!mHasTouchScreen) {
             return;
         }
 
-        final int clickXInsideView = 10;
-        final int clickYInsideView = 20;
-        int clickX = clickXInsideView + mViewBounds.left;
-        int clickY = clickYInsideView + mViewBounds.top;
+        final int clickShiftFromCenterX = 10;
+        final int clickShiftFromCenterY = 20;
+        final Resources res = getInstrumentation().getTargetContext().getResources();
+        final DisplayMetrics metrics = res.getDisplayMetrics();
+        final int centerX = metrics.widthPixels / 2;
+        final int centerY = metrics.heightPixels / 2;
         final float TOUCH_TOLERANCE = 2.0f;
 
         StubMagnificationAccessibilityService magnificationService =
                 StubMagnificationAccessibilityService.enableSelf(this);
         android.accessibilityservice.AccessibilityService.MagnificationController
                 magnificationController = magnificationService.getMagnificationController();
-        final Resources res = getInstrumentation().getTargetContext().getResources();
-        final DisplayMetrics metrics = res.getDisplayMetrics();
         try {
-            // Magnify screen by 2x from upper left corner
+            // Magnify screen by 2x with a magnification center in the center of the screen
             final AtomicBoolean setScale = new AtomicBoolean();
             final float magnificationFactor = 2.0f;
-            // Center to have (0,0) in the upper-left corner
-            final float centerX = metrics.widthPixels / (2.0f * magnificationFactor) - 1.0f;
-            final float centerY = metrics.heightPixels / (2.0f * magnificationFactor) - 1.0f;
             magnificationService.runOnServiceSync(() -> {
                         setScale.set(magnificationController.setScale(magnificationFactor, false));
-                        // Make sure the upper right corner is on the screen
                         magnificationController.setCenter(centerX, centerY, false);
                     });
             assertTrue("Failed to set scale", setScale.get());
 
-            GestureDescription click = createClick((int) (clickX * magnificationFactor),
-                    (int) (clickY * magnificationFactor));
+            final int clickMagnifiedX = (int) (centerX + magnificationFactor * clickShiftFromCenterX);
+            final int clickMagnifiedY = (int) (centerY + magnificationFactor * clickShiftFromCenterY);
+            GestureDescription click = createClick(clickMagnifiedX, clickMagnifiedY);
             mService.runOnServiceSync(() -> mService.doDispatchGesture(click, mCallback, null));
             mCallback.assertGestureCompletes(GESTURE_COMPLETION_TIMEOUT);
             waitForMotionEvents(3);
@@ -382,14 +381,18 @@ public class AccessibilityGestureDispatchTest extends
         MotionEvent clickDown = mMotionEvents.get(0);
         MotionEvent clickUp = mMotionEvents.get(1);
 
+        final int centerXInsideView = centerX - mViewBounds.left;
+        final int centerYInsideView = centerY - mViewBounds.top;
+        final int expectedClickXInsideView = centerXInsideView + clickShiftFromCenterX;
+        final int expectedClickYInsideView = centerYInsideView + clickShiftFromCenterY;
         assertEquals(MotionEvent.ACTION_DOWN, clickDown.getActionMasked());
-        assertEquals((float) clickXInsideView, clickDown.getX(), TOUCH_TOLERANCE);
-        assertEquals((float) clickYInsideView, clickDown.getY(), TOUCH_TOLERANCE);
+        assertEquals((float) expectedClickXInsideView, clickDown.getX(), TOUCH_TOLERANCE);
+        assertEquals((float) expectedClickYInsideView, clickDown.getY(), TOUCH_TOLERANCE);
         assertEquals(clickDown.getDownTime(), clickDown.getEventTime());
 
         assertEquals(MotionEvent.ACTION_UP, clickUp.getActionMasked());
-        assertEquals((float) clickXInsideView, clickUp.getX(), TOUCH_TOLERANCE);
-        assertEquals((float) clickYInsideView, clickUp.getY(), TOUCH_TOLERANCE);
+        assertEquals((float) expectedClickXInsideView, clickUp.getX(), TOUCH_TOLERANCE);
+        assertEquals((float) expectedClickYInsideView, clickUp.getY(), TOUCH_TOLERANCE);
     }
 
 

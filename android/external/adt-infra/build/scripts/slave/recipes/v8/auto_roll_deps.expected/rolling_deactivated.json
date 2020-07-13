@@ -1,0 +1,33 @@
+[
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[BUILD]/scripts/slave/cleanup_temp.py"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "cleanup_temp"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[BUILD]/scripts/tools/runit.py",
+      "[BUILD]/scripts/tools/pycurl.py",
+      "https://v8-roll.appspot.com/status"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "check roll status",
+    "stdout": "/path/to/tmp/",
+    "~followup_annotations": [
+      "@@@STEP_TEXT@Rolling deactivated@@@",
+      "@@@STEP_LOG_LINE@stdout@0@@@",
+      "@@@STEP_LOG_END@stdout@@@"
+    ]
+  },
+  {
+    "name": "$result",
+    "recipe_result": null,
+    "status_code": 0
+  }
+]

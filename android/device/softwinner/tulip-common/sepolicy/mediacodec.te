@@ -1,2 +1,4 @@
 allow mediacodec cedar_device:chr_file { open read write ioctl };
 allow mediacodec system_file:dir { open read };
+allow mediacodec tee_device:chr_file { open read write ioctl };
+allow mediacodec rootfs:lnk_file { getattr };

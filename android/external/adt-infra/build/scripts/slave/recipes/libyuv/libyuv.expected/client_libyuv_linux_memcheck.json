@@ -1,0 +1,114 @@
+[
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[BUILD]/scripts/slave/bot_update.py",
+      "--master",
+      "client.libyuv",
+      "--builder",
+      "Linux Memcheck",
+      "--slave",
+      "slavename",
+      "--spec",
+      "cache_dir = None\nsolutions = [{'custom_deps': {'src/chromium/src/third_party/valgrind': 'https://chromium.googlesource.com/chromium/deps/valgrind/binaries'}, 'custom_vars': {'root_dir': 'src'}, 'deps_file': 'DEPS', 'managed': True, 'name': 'src', 'url': 'https://chromium.googlesource.com/libyuv/libyuv'}]",
+      "--root",
+      "src",
+      "--revision_mapping_file",
+      "{}",
+      "--output_json",
+      "/path/to/tmp/json",
+      "--revision",
+      "src@12345",
+      "--force",
+      "--output_manifest"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "bot_update",
+    "~followup_annotations": [
+      "@@@STEP_TEXT@Some step text@@@",
+      "@@@STEP_LOG_LINE@json.output@{@@@",
+      "@@@STEP_LOG_LINE@json.output@  \"did_run\": true, @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"manifest\": {}, @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"patch_failure\": false, @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"patch_root\": \"src\", @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"properties\": {}, @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"root\": \"src\", @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"step_text\": \"Some step text\"@@@",
+      "@@@STEP_LOG_LINE@json.output@}@@@",
+      "@@@STEP_LOG_END@json.output@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[DEPOT_TOOLS]/gclient.py",
+      "runhooks"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "env": {
+      "GYP_DEFINES": "build_for_tool=memcheck component=static_library gomadir='[BUILD]/goma' target_arch=x64 use_goma=1"
+    },
+    "name": "gclient runhooks"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[BUILD]/scripts/slave/compile.py",
+      "--target",
+      "Release",
+      "--src-dir",
+      "[SLAVE_BUILD]/src",
+      "--build-tool",
+      "ninja",
+      "--compiler",
+      "goma",
+      "--goma-jsonstatus",
+      "/path/to/tmp/json",
+      "--goma-dir",
+      "[BUILD]/goma",
+      "--",
+      "All"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "compile",
+    "~followup_annotations": [
+      "@@@STEP_LOG_LINE@json.output (invalid)@null@@@",
+      "@@@STEP_LOG_END@json.output (invalid)@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[BUILD]/scripts/slave/runtest.py",
+      "--target",
+      "Release",
+      "--no-xvfb",
+      "--factory-properties",
+      "{\"BUILD_CONFIG\": \"Release\", \"buildername\": \"Linux Memcheck\", \"mastername\": \"client.libyuv\", \"recipe\": \"libyuv/libyuv\", \"revision\": \"12345\", \"slavename\": \"slavename\"}",
+      "--build-properties",
+      "{\"BUILD_CONFIG\": \"Release\", \"buildername\": \"Linux Memcheck\", \"mastername\": \"client.libyuv\", \"recipe\": \"libyuv/libyuv\", \"revision\": \"12345\", \"slavename\": \"slavename\"}",
+      "--step-name=libyuv_unittest",
+      "--builder-name=Linux Memcheck",
+      "--slave-name=slavename",
+      "--pass-build-dir",
+      "--pass-target",
+      "--run-shell-script",
+      "[SLAVE_BUILD]/src/tools/valgrind-libyuv/libyuv_tests.sh",
+      "--test",
+      "libyuv_unittest",
+      "--tool",
+      "memcheck"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "libyuv_unittest"
+  },
+  {
+    "name": "$result",
+    "recipe_result": null,
+    "status_code": 0
+  }
+]

@@ -19,7 +19,6 @@ package com.googlecode.android_scripting.language;
 /**
  * Represents the Perl programming language.
  *
- * @author igor.v.karp@gmail.com (Igor Karp)
  */
 public class PerlLanguage extends Language {
 

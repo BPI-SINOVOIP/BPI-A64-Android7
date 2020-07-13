@@ -21,14 +21,8 @@ LOCAL_MODULE:= libcdx_base
 LOCAL_SHARED_LIBRARIES:= libcutils \
                          libutils
 
-ifneq ($(CONF_ANDROID_VERSION),5.0)
-ifneq ($(CONF_ANDROID_VERSION),5.1)
-ifneq ($(CONF_ANDROID_VERSION),6.0)
-ifneq ($(CONF_ANDROID_VERSION),7.0)
+ifeq ($(CONF_ANDROID_VERSION),4.4)
 LOCAL_SHARED_LIBRARIES += libcorkscrew
-endif
-endif
-endif
 endif
 
 ifeq ($(TARGET_ARCH),arm)

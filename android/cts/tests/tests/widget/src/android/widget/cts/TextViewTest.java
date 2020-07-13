@@ -264,7 +264,7 @@ public class TextViewTest extends ActivityInstrumentationTestCase2<TextViewCtsAc
         assertSame(movementMethod, mTextView.getMovementMethod());
         assertEquals(selectionStart, Selection.getSelectionStart(mTextView.getText()));
         assertEquals(selectionEnd, Selection.getSelectionEnd(mTextView.getText()));
-        sendKeys(KeyEvent.KEYCODE_SHIFT_LEFT, KeyEvent.KEYCODE_ALT_LEFT,
+        mKeyEventUtil.sendKeys(mTextView, KeyEvent.KEYCODE_SHIFT_LEFT, KeyEvent.KEYCODE_ALT_LEFT,
                 KeyEvent.KEYCODE_DPAD_UP);
         // the selection has been removed.
         assertEquals(selectionStart, Selection.getSelectionStart(mTextView.getText()));
@@ -283,7 +283,7 @@ public class TextViewTest extends ActivityInstrumentationTestCase2<TextViewCtsAc
         assertNull(mTextView.getMovementMethod());
         assertEquals(selectionStart, Selection.getSelectionStart(mTextView.getText()));
         assertEquals(selectionEnd, Selection.getSelectionEnd(mTextView.getText()));
-        sendKeys(KeyEvent.KEYCODE_SHIFT_LEFT, KeyEvent.KEYCODE_ALT_LEFT,
+        mKeyEventUtil.sendKeys(mTextView, KeyEvent.KEYCODE_SHIFT_LEFT, KeyEvent.KEYCODE_ALT_LEFT,
                 KeyEvent.KEYCODE_DPAD_UP);
         // the selection will not be changed.
         assertEquals(selectionStart, Selection.getSelectionStart(mTextView.getText()));
@@ -1838,7 +1838,7 @@ public class TextViewTest extends ActivityInstrumentationTestCase2<TextViewCtsAc
         initTextViewForTyping();
 
         // Type "abc".
-        mInstrumentation.sendStringSync("abc");
+        mKeyEventUtil.sendString(mTextView, "abc");
         mActivity.runOnUiThread(new Runnable() {
             public void run() {
                 // Select "bc"
@@ -1847,7 +1847,7 @@ public class TextViewTest extends ActivityInstrumentationTestCase2<TextViewCtsAc
         });
         mInstrumentation.waitForIdleSync();
         // Copy "bc"
-        sendKeys(KeyEvent.KEYCODE_COPY);
+        mKeyEventUtil.sendKeys(mTextView, KeyEvent.KEYCODE_COPY);
 
         mActivity.runOnUiThread(new Runnable() {
             public void run() {
@@ -1857,7 +1857,7 @@ public class TextViewTest extends ActivityInstrumentationTestCase2<TextViewCtsAc
         });
         mInstrumentation.waitForIdleSync();
         // Paste "bc"
-        sendKeys(KeyEvent.KEYCODE_PASTE);
+        mKeyEventUtil.sendKeys(mTextView, KeyEvent.KEYCODE_PASTE);
         assertEquals("abbcc", mTextView.getText().toString());
 
         mActivity.runOnUiThread(new Runnable() {
@@ -1922,7 +1922,7 @@ public class TextViewTest extends ActivityInstrumentationTestCase2<TextViewCtsAc
         initTextViewForTyping();
 
         // Type "abc".
-        mInstrumentation.sendStringSync("abc");
+        mKeyEventUtil.sendString(mTextView, "abc");
         mActivity.runOnUiThread(new Runnable() {
             public void run() {
                 // Select "bc"
@@ -1931,7 +1931,7 @@ public class TextViewTest extends ActivityInstrumentationTestCase2<TextViewCtsAc
         });
         mInstrumentation.waitForIdleSync();
         // Cut "bc"
-        sendKeys(KeyEvent.KEYCODE_CUT);
+        mKeyEventUtil.sendKeys(mTextView, KeyEvent.KEYCODE_CUT);
 
         mActivity.runOnUiThread(new Runnable() {
             public void run() {
@@ -1942,7 +1942,7 @@ public class TextViewTest extends ActivityInstrumentationTestCase2<TextViewCtsAc
         });
         mInstrumentation.waitForIdleSync();
         // Paste "bc"
-        sendKeys(KeyEvent.KEYCODE_PASTE);
+        mKeyEventUtil.sendKeys(mTextView, KeyEvent.KEYCODE_PASTE);
         assertEquals("bca", mTextView.getText().toString());
 
         mActivity.runOnUiThread(new Runnable() {
@@ -1967,6 +1967,7 @@ public class TextViewTest extends ActivityInstrumentationTestCase2<TextViewCtsAc
                 assertEquals("bca", mTextView.getText().toString());
             }
         });
+        mInstrumentation.waitForIdleSync();
     }
 
     private static boolean hasSpansAtMiddleOfText(final TextView textView, final Class<?> type) {
@@ -2223,7 +2224,7 @@ public class TextViewTest extends ActivityInstrumentationTestCase2<TextViewCtsAc
 
         assertEquals(errorText, mTextView.getError().toString());
 
-        mInstrumentation.sendStringSync("a");
+        mKeyEventUtil.sendString(mTextView, "a");
         // a key event that will not change the TextView's text
         assertEquals("", mTextView.getText().toString());
         // The icon and error message will not be reset to null
@@ -2239,7 +2240,7 @@ public class TextViewTest extends ActivityInstrumentationTestCase2<TextViewCtsAc
         });
         mInstrumentation.waitForIdleSync();
 
-        mInstrumentation.sendStringSync("1");
+        mKeyEventUtil.sendString(mTextView, "1");
         // a key event cause changes to the TextView's text
         assertEquals("1", mTextView.getText().toString());
         // the error message and icon will be cleared.
@@ -2265,13 +2266,13 @@ public class TextViewTest extends ActivityInstrumentationTestCase2<TextViewCtsAc
 
         assertSame(expected, mTextView.getFilters());
 
-        mInstrumentation.sendStringSync("a");
+        mKeyEventUtil.sendString(mTextView, "a");
         // the text is capitalized by InputFilter.AllCaps
         assertEquals("A", mTextView.getText().toString());
-        mInstrumentation.sendStringSync("b");
+        mKeyEventUtil.sendString(mTextView, "b");
         // the text is capitalized by InputFilter.AllCaps
         assertEquals("AB", mTextView.getText().toString());
-        mInstrumentation.sendStringSync("c");
+        mKeyEventUtil.sendString(mTextView, "c");
         // 'C' could not be accepted, because there is a length filter.
         assertEquals("AB", mTextView.getText().toString());
 
@@ -2468,11 +2469,11 @@ public class TextViewTest extends ActivityInstrumentationTestCase2<TextViewCtsAc
     public void testPressKey() {
         initTextViewForTyping();
 
-        mInstrumentation.sendStringSync("a");
+        mKeyEventUtil.sendString(mTextView, "a");
         assertEquals("a", mTextView.getText().toString());
-        mInstrumentation.sendStringSync("b");
+        mKeyEventUtil.sendString(mTextView, "b");
         assertEquals("ab", mTextView.getText().toString());
-        sendKeys(KeyEvent.KEYCODE_DEL);
+        mKeyEventUtil.sendKeys(mTextView, KeyEvent.KEYCODE_DEL);
         assertEquals("a", mTextView.getText().toString());
     }
 
@@ -2983,7 +2984,7 @@ public class TextViewTest extends ActivityInstrumentationTestCase2<TextViewCtsAc
         assertSame(PasswordTransformationMethod.getInstance(),
                 mTextView.getTransformationMethod());
 
-        sendKeys("H E 2*L O");
+        mKeyEventUtil.sendKeys(mTextView, "H E 2*L O");
         mActivity.runOnUiThread(new Runnable() {
             public void run() {
                 mTextView.append(" ");

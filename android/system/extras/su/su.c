@@ -81,10 +81,8 @@ void extract_uidgids(const char* uidgids, uid_t* uid, gid_t* gid, gid_t* gids, i
 }
 
 int main(int argc, char** argv) {
-    //Justin 20190326 Porting for BPI-M64-Root Start
-    //uid_t current_uid = getuid();
-    //if (current_uid != AID_ROOT && current_uid != AID_SHELL) error(1, 0, "not allowed");
-    //Justin 20190326 Porting for BPI-M64-Root End
+    uid_t current_uid = getuid();
+    if (current_uid != AID_ROOT && current_uid != AID_SHELL) error(1, 0, "not allowed");
 
     // Handle -h and --help.
     ++argv;

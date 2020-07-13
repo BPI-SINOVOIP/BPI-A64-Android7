@@ -31,6 +31,7 @@ import android.server.cts.WindowManagerState.Display;
 import static android.server.cts.ActivityAndWindowManagersState.dpToPx;
 import static com.android.ddmlib.Log.LogLevel.INFO;
 
+import com.android.ddmlib.Log.LogLevel;
 import com.android.tradefed.device.DeviceNotAvailableException;
 import com.android.tradefed.log.LogUtil.CLog;
 
@@ -80,6 +81,10 @@ public class ActivityManagerManifestLayoutTests extends ActivityManagerTestBase 
     }
 
     public void testMinimalSizeDocked() throws Exception {
+        if (!supportsMultiWindowMode()) {
+            CLog.logAndDisplay(INFO, "Skipping test: no multi-window support");
+            return;
+        }
         testMinimalSize(DOCKED_STACK_ID);
     }
 

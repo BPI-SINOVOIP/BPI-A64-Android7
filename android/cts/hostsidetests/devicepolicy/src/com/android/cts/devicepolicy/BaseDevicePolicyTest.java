@@ -17,8 +17,6 @@
 package com.android.cts.devicepolicy;
 
 import com.android.cts.migration.MigrationHelper;
-import com.android.ddmlib.Log.LogLevel;
-import com.android.ddmlib.testrunner.InstrumentationResultParser;
 import com.android.ddmlib.testrunner.RemoteAndroidTestRunner;
 import com.android.ddmlib.testrunner.TestIdentifier;
 import com.android.ddmlib.testrunner.TestResult;
@@ -26,21 +24,17 @@ import com.android.ddmlib.testrunner.TestResult.TestStatus;
 import com.android.ddmlib.testrunner.TestRunResult;
 import com.android.tradefed.build.IBuildInfo;
 import com.android.tradefed.device.DeviceNotAvailableException;
-import com.android.tradefed.device.ITestDevice;
 import com.android.tradefed.log.LogUtil.CLog;
 import com.android.tradefed.result.CollectingTestListener;
 import com.android.tradefed.testtype.DeviceTestCase;
 import com.android.tradefed.testtype.IBuildReceiver;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.annotation.Nullable;
 
@@ -137,6 +131,17 @@ public class BaseDevicePolicyTest extends DeviceTestCase implements IBuildReceiv
                 result);
     }
 
+    protected void forceStopPackageForUser(String packageName, int userId) throws Exception {
+        // TODO Move this logic to ITestDevice
+        executeShellCommand("am force-stop --user " + userId + " " + packageName);
+    }
+
+    private void executeShellCommand(final String command) throws Exception {
+        CLog.d("Starting command " + command);
+        String commandOutput = getDevice().executeShellCommand(command);
+        CLog.d("Output for command " + command + ": " + commandOutput);
+    }
+
     /** Initializes the user with the given id. This is required so that apps can run on it. */
     protected void startUser(int userId) throws Exception {
         getDevice().startUser(userId);
@@ -144,10 +149,7 @@ public class BaseDevicePolicyTest extends DeviceTestCase implements IBuildReceiv
 
     protected void switchUser(int userId) throws Exception {
         // TODO Move this logic to ITestDevice
-        String command = "am switch-user " + userId;
-        CLog.d("Starting command " + command);
-        String commandOutput = getDevice().executeShellCommand(command);
-        CLog.d("Output for command " + command + ": " + commandOutput);
+        executeShellCommand("am switch-user " + userId);
     }
 
     protected int getMaxNumberOfUsersSupported() throws DeviceNotAvailableException {
@@ -219,6 +221,12 @@ public class BaseDevicePolicyTest extends DeviceTestCase implements IBuildReceiv
             throws DeviceNotAvailableException {
         Map<String, String> params = Collections.emptyMap();
         return runDeviceTestsAsUser(pkgName, testClassName, testMethodName, userId, params);
+    }
+
+    protected boolean runDeviceTests(
+            String pkgName, @Nullable String testClassName, String testMethodName)
+            throws DeviceNotAvailableException {
+        return runDeviceTestsAsUser(pkgName, testClassName, testMethodName, mPrimaryUserId);
     }
 
     protected boolean runDeviceTestsAsUser(String pkgName, @Nullable String testClassName,
@@ -396,8 +404,20 @@ public class BaseDevicePolicyTest extends DeviceTestCase implements IBuildReceiv
     protected void setProfileOwnerOrFail(String componentName, int userId)
             throws Exception {
         if (!setProfileOwner(componentName, userId, /*expectFailure*/ false)) {
-            removeUser(userId);
+            if (userId != 0) { // don't remove system user.
+                removeUser(userId);
+            }
             fail("Failed to set profile owner");
+        }
+    }
+
+    protected void setProfileOwnerExpectingFailure(String componentName, int userId)
+            throws Exception {
+        if (setProfileOwner(componentName, userId, /* expectFailure =*/ true)) {
+            if (userId != 0) { // don't remove system user.
+                removeUser(userId);
+            }
+            fail("Setting profile owner should have failed.");
         }
     }
 
@@ -438,6 +458,16 @@ public class BaseDevicePolicyTest extends DeviceTestCase implements IBuildReceiv
             CLog.d("Command Failed " + command);
         }
         return success;
+    }
+
+    protected void setDeviceOwnerOrFail(String componentName, int userId)
+            throws Exception {
+        assertTrue(setDeviceOwner(componentName, userId, /* expectFailure =*/ false));
+    }
+
+    protected void setDeviceOwnerExpectingFailure(String componentName, int userId)
+            throws Exception {
+        assertFalse(setDeviceOwner(componentName, userId, /* expectFailure =*/ true));
     }
 
     protected String getSettings(String namespace, String name, int userId)

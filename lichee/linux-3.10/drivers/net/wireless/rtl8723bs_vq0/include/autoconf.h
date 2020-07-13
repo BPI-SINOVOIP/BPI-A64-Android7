@@ -194,7 +194,7 @@
 	#define CONFIG_LPS
 
 	#if defined(CONFIG_LPS) && (defined(CONFIG_GSPI_HCI) || defined(CONFIG_SDIO_HCI))
-	#define CONFIG_LPS_LCLK
+	//#define CONFIG_LPS_LCLK
 	#endif
 
 	#ifdef CONFIG_LPS

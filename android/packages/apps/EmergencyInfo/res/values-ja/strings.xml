@@ -96,7 +96,8 @@
     <string name="user_emergency_info_title" msgid="7827058167207376581">"緊急情報"</string>
     <string name="user_emergency_info_consent" msgid="5636028073450797246">"ここで入力する情報は緊急時の初期対応に役立てられます。この情報が保存されるのはお使いのスマートフォンのみです。スマートフォンをロック解除しなくても緊急通報から誰でも閲覧することができます。"</string>
     <string name="emergency_info_continue" msgid="5453201508537906087">"続行"</string>
-    <string name="no_info_provided" msgid="6775035037534954056">"緊急情報はありません"</string>
+    <string name="no_info_provided" msgid="716200382010821001">"スマートフォンの所有者に関する情報はありません"</string>
+    <string name="tap_pencil" msgid="2723698054265296934">"あなたがこのスマートフォンを所有している場合は、鉛筆アイコンをタップして、緊急時にここに表示される情報を追加してください"</string>
     <string name="clear_all" msgid="8899013032870561633">"すべて消去"</string>
     <string name="clear" msgid="3648880442502887163">"消去"</string>
     <string name="clear_all_message" msgid="1548432000373861295">"すべての情報と連絡先を消去しますか？"</string>

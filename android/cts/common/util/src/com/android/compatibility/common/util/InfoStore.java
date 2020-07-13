@@ -189,4 +189,8 @@ public abstract class InfoStore {
         }
         return value;
     }
+
+    protected static boolean isDoubleNaNOrInfinite(Double value) {
+        return Double.isNaN(value) || Double.isInfinite(value);
+    }
 }

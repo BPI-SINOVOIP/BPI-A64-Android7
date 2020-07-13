@@ -19,7 +19,6 @@ package com.googlecode.android_scripting.language;
 /**
  * Represents the PHP programming language.
  *
- * @author ivan@irontec.com (Ivan Mosquera Paulo)
  */
 public class PhpLanguage extends Language {
 

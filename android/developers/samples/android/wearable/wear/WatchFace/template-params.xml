@@ -28,9 +28,9 @@
 
     <dependency>com.google.android.support:wearable:1.4.0</dependency>
     <dependency>com.google.android.gms:play-services-fitness</dependency>
-    <dependency_wearable>com.android.support:palette-v7:23.3.0</dependency_wearable>
+    <dependency_wearable>com.android.support:palette-v7:24.1.1</dependency_wearable>
 
-    <preview_wearable_support_dependency>com.google.android.support:wearable:2.0.0-alpha1</preview_wearable_support_dependency>
+    <preview_wearable_support_dependency>com.google.android.support:wearable:2.0.0-alpha3</preview_wearable_support_dependency>
     <dependency_wearable>com.google.android.gms:play-services-fitness</dependency_wearable>
 
     <wearable>

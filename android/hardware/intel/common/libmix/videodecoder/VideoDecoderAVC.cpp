@@ -28,7 +28,8 @@
 VideoDecoderAVC::VideoDecoderAVC(const char *mimeType)
     : VideoDecoderBase(mimeType, VBP_H264),
       mToggleDPB(0),
-      mErrorConcealment(false){
+      mErrorConcealment(false),
+      mAdaptive(false){
 
     invalidateDPB(0);
     invalidateDPB(1);
@@ -681,7 +682,7 @@ Decode_Status VideoDecoderAVC::startVA(vbp_data_h264 *data) {
     //Use high profile for all kinds of H.264 profiles (baseline, main and high) except for constrained baseline
     VAProfile vaProfile = VAProfileH264High;
 
-    if (mConfigBuffer.flag & WANT_ADAPTIVE_PLAYBACK) {
+    if ((mConfigBuffer.flag & WANT_ADAPTIVE_PLAYBACK) || mAdaptive) {
         // When Adaptive playback is enabled, turn off low delay mode.
         // Otherwise there may be a 240ms stuttering if the output mode is changed from LowDelay to Delay.
         enableLowDelayMode(false);
@@ -741,6 +742,7 @@ void VideoDecoderAVC::updateFormatInfo(vbp_data_h264 *data) {
         if (VideoDecoderBase::alignMB(mVideoFormatInfo.width) != width ||
             VideoDecoderBase::alignMB(mVideoFormatInfo.height) != height) {
             mSizeChanged = true;
+            mAdaptive = true;
             ITRACE("Video size is changed.");
         }
         mVideoFormatInfo.width = width;

@@ -96,7 +96,8 @@
     <string name="user_emergency_info_title" msgid="7827058167207376581">"Oplysninger i nødsituationer"</string>
     <string name="user_emergency_info_consent" msgid="5636028073450797246">"De oplysninger, du angiver her, kan hjælpe førstehjælpsydere i en nødsituation. De gemmes kun på din enhed, og alle kan se dem via funktionen Nødopkald på låseskærmen uden at låse din telefon op."</string>
     <string name="emergency_info_continue" msgid="5453201508537906087">"Fortsæt"</string>
-    <string name="no_info_provided" msgid="6775035037534954056">"Der er ikke angivet nogen oplysninger til nødsituationer"</string>
+    <string name="no_info_provided" msgid="716200382010821001">"Der er ingen oplysninger om telefonens ejer"</string>
+    <string name="tap_pencil" msgid="2723698054265296934">"Hvis dette er din telefon, skal du trykke på blyantikonet for at tilføje oplysninger, som vises her i nødstilfælde"</string>
     <string name="clear_all" msgid="8899013032870561633">"Ryd alle"</string>
     <string name="clear" msgid="3648880442502887163">"Ryd"</string>
     <string name="clear_all_message" msgid="1548432000373861295">"Vil du rydde alle oplysninger og kontaktpersoner?"</string>

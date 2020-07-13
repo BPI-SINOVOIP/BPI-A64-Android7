@@ -26,11 +26,7 @@ class BtCarToggleTest(BluetoothBaseTest):
         self.droid_ad = self.android_devices[0]
 
     def setup_test(self):
-        self.log.debug(log_energy_info(self.android_devices, "Start"))
         self.droid_ad.ed.clear_all_events()
-
-    def teardown_test(self):
-        self.log.debug(log_energy_info(self.android_devices, "End"))
 
     def on_fail(self, test_name, begin_time):
         bt_test_utils.take_btsnoop_logs(self.android_devices, self, test_name)

@@ -1,0 +1,8 @@
+svn4idea
+git4idea
+remote-servers-git
+github
+IntelliLang
+IntelliLang-python
+learn-python
+course-creator

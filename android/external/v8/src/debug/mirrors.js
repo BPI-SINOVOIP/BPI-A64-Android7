@@ -16,8 +16,8 @@ var MakeError;
 var MapEntries;
 var MapIteratorNext;
 var MathMin = global.Math.min;
-var promiseStatusSymbol = utils.ImportNow("promise_status_symbol");
-var promiseValueSymbol = utils.ImportNow("promise_value_symbol");
+var promiseStateSymbol = utils.ImportNow("promise_state_symbol");
+var promiseResultSymbol = utils.ImportNow("promise_result_symbol");
 var SetIteratorNext;
 var SetValues;
 var SymbolToString;
@@ -115,7 +115,7 @@ function ClearMirrorCache(value) {
 
 function ObjectIsPromise(value) {
   return IS_RECEIVER(value) &&
-         !IS_UNDEFINED(%DebugGetProperty(value, promiseStatusSymbol));
+         !IS_UNDEFINED(%DebugGetProperty(value, promiseStateSymbol));
 }
 
 
@@ -256,13 +256,15 @@ PropertyAttribute.DontDelete = DONT_DELETE;
 // A copy of the scope types from runtime-debug.cc.
 // NOTE: these constants should be backward-compatible, so
 // add new ones to the end of this list.
-var ScopeType = { Global: 0,
-                  Local: 1,
-                  With: 2,
+var ScopeType = { Global:  0,
+                  Local:   1,
+                  With:    2,
                   Closure: 3,
-                  Catch: 4,
-                  Block: 5,
-                  Script: 6 };
+                  Catch:   4,
+                  Block:   5,
+                  Script:  6,
+                  Eval:    7,
+                };
 
 /**
  * Base class for all mirror objects.
@@ -812,7 +814,7 @@ ObjectMirror.prototype.lookupProperty = function(value) {
     // Skip properties which are defined through accessors.
     var property = properties[i];
     if (property.propertyType() != PropertyType.AccessorConstant) {
-      if (%_ObjectEquals(property.value_, value.value_)) {
+      if (property.value_ === value.value_) {
         return property;
       }
     }
@@ -1034,6 +1036,15 @@ FunctionMirror.prototype.scope = function(index) {
 
 FunctionMirror.prototype.toText = function() {
   return this.source();
+};
+
+
+FunctionMirror.prototype.context = function() {
+  if (this.resolved()) {
+    if (!this._context)
+      this._context = new ContextMirror(%FunctionGetContextData(this.value_));
+    return this._context;
+  }
 };
 
 
@@ -1263,7 +1274,7 @@ inherits(PromiseMirror, ObjectMirror);
 
 
 function PromiseGetStatus_(value) {
-  var status = %DebugGetProperty(value, promiseStatusSymbol);
+  var status = %DebugGetProperty(value, promiseStateSymbol);
   if (status == 0) return "pending";
   if (status == 1) return "resolved";
   return "rejected";
@@ -1271,7 +1282,7 @@ function PromiseGetStatus_(value) {
 
 
 function PromiseGetValue_(value) {
-  return %DebugGetProperty(value, promiseValueSymbol);
+  return %DebugGetProperty(value, promiseResultSymbol);
 }
 
 
@@ -1399,8 +1410,8 @@ inherits(GeneratorMirror, ObjectMirror);
 
 function GeneratorGetStatus_(value) {
   var continuation = %GeneratorGetContinuation(value);
-  if (continuation < 0) return "running";
-  if (continuation == 0) return "closed";
+  if (continuation < -1) return "running";
+  if (continuation == -1) return "closed";
   return "suspended";
 }
 
@@ -1431,14 +1442,6 @@ GeneratorMirror.prototype.func = function() {
     this.func_ = MakeMirror(%GeneratorGetFunction(this.value_));
   }
   return this.func_;
-};
-
-
-GeneratorMirror.prototype.context = function() {
-  if (!this.context_) {
-    this.context_ = new ContextMirror(%GeneratorGetContext(this.value_));
-  }
-  return this.context_;
 };
 
 
@@ -1494,6 +1497,12 @@ PropertyMirror.prototype.name = function() {
 };
 
 
+PropertyMirror.prototype.toText = function() {
+  if (IS_SYMBOL(this.name_)) return %SymbolDescriptiveString(this.name_);
+  return this.name_;
+};
+
+
 PropertyMirror.prototype.isIndexed = function() {
   for (var i = 0; i < this.name_.length; i++) {
     if (this.name_[i] < '0' || '9' < this.name_[i]) {
@@ -1525,11 +1534,6 @@ PropertyMirror.prototype.attributes = function() {
 
 PropertyMirror.prototype.propertyType = function() {
   return %DebugPropertyTypeFromDetails(this.details_);
-};
-
-
-PropertyMirror.prototype.insertionIndex = function() {
-  return %DebugPropertyIndexFromDetails(this.details_);
 };
 
 
@@ -1801,11 +1805,6 @@ FrameDetails.prototype.scopeCount = function() {
 };
 
 
-FrameDetails.prototype.stepInPositionsImpl = function() {
-  return %GetStepInPositions(this.break_id_, this.frameId());
-};
-
-
 /**
  * Mirror object for stack frames.
  * @param {number} break_id The break id in the VM for which this frame is
@@ -1957,7 +1956,7 @@ FrameMirror.prototype.sourceColumn = function() {
 FrameMirror.prototype.sourceLineText = function() {
   var location = this.sourceLocation();
   if (location) {
-    return location.sourceText();
+    return location.sourceText;
   }
 };
 
@@ -1981,29 +1980,6 @@ FrameMirror.prototype.allScopes = function(opt_ignore_nested_scopes) {
   for (var i = 0; i < scopeDetails.length; ++i) {
     result.push(new ScopeMirror(this, UNDEFINED, i, scopeDetails[i]));
   }
-  return result;
-};
-
-
-FrameMirror.prototype.stepInPositions = function() {
-  var script = this.func().script();
-  var funcOffset = this.func().sourcePosition_();
-
-  var stepInRaw = this.details_.stepInPositionsImpl();
-  var result = [];
-  if (stepInRaw) {
-    for (var i = 0; i < stepInRaw.length; i++) {
-      var posStruct = {};
-      var offset = script.locationFromPosition(funcOffset + stepInRaw[i],
-                                               true);
-      serializeLocationFields(offset, posStruct);
-      var item = {
-        position: posStruct
-      };
-      result.push(item);
-    }
-  }
-
   return result;
 };
 
@@ -2054,10 +2030,10 @@ FrameMirror.prototype.invocationText = function() {
         if (display_receiver) {
           result += '.';
         }
-        result += property.name();
+        result += property.toText();
       } else {
         result += '[';
-        result += property.name();
+        result += property.toText();
         result += ']';
       }
       // Also known as - if the name in the function doesn't match the name
@@ -2177,6 +2153,9 @@ FrameMirror.prototype.toText = function(opt_locals) {
 var kScopeDetailsTypeIndex = 0;
 var kScopeDetailsObjectIndex = 1;
 var kScopeDetailsNameIndex = 2;
+var kScopeDetailsStartPositionIndex = 3;
+var kScopeDetailsEndPositionIndex = 4;
+var kScopeDetailsFunctionIndex = 5;
 
 function ScopeDetails(frame, fun, index, opt_details) {
   if (frame) {
@@ -2219,6 +2198,29 @@ ScopeDetails.prototype.name = function() {
   }
   return this.details_[kScopeDetailsNameIndex];
 };
+
+
+ScopeDetails.prototype.startPosition = function() {
+  if (!IS_UNDEFINED(this.break_id_)) {
+    %CheckExecutionState(this.break_id_);
+  }
+  return this.details_[kScopeDetailsStartPositionIndex];
+}
+
+
+ScopeDetails.prototype.endPosition = function() {
+  if (!IS_UNDEFINED(this.break_id_)) {
+    %CheckExecutionState(this.break_id_);
+  }
+  return this.details_[kScopeDetailsEndPositionIndex];
+}
+
+ScopeDetails.prototype.func = function() {
+  if (!IS_UNDEFINED(this.break_id_)) {
+    %CheckExecutionState(this.break_id_);
+  }
+  return this.details_[kScopeDetailsFunctionIndex];
+}
 
 
 ScopeDetails.prototype.setVariableValueImpl = function(name, new_value) {
@@ -2360,18 +2362,13 @@ ScriptMirror.prototype.compilationType = function() {
 
 
 ScriptMirror.prototype.lineCount = function() {
-  return this.script_.lineCount();
+  return %ScriptLineCount(this.script_);
 };
 
 
 ScriptMirror.prototype.locationFromPosition = function(
     position, include_resource_offset) {
   return this.script_.locationFromPosition(position, include_resource_offset);
-};
-
-
-ScriptMirror.prototype.sourceSlice = function (opt_from_line, opt_to_line) {
-  return this.script_.sourceSlice(opt_from_line, opt_to_line);
 };
 
 

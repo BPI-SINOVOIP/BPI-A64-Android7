@@ -22,10 +22,13 @@ import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.Nullable;
+import android.support.annotation.RestrictTo;
 import android.support.v4.view.TintableBackgroundView;
 import android.support.v7.appcompat.R;
 import android.util.AttributeSet;
 import android.widget.ImageButton;
+
+import static android.support.annotation.RestrictTo.Scope.GROUP_ID;
 
 /**
  * A {@link ImageButton} which supports compatible features on older version of the platform,
@@ -56,12 +59,10 @@ public class AppCompatImageButton extends ImageButton implements TintableBackgro
     public AppCompatImageButton(Context context, AttributeSet attrs, int defStyleAttr) {
         super(TintContextWrapper.wrap(context), attrs, defStyleAttr);
 
-        final AppCompatDrawableManager drawableManager = AppCompatDrawableManager.get();
-
-        mBackgroundTintHelper = new AppCompatBackgroundHelper(this, drawableManager);
+        mBackgroundTintHelper = new AppCompatBackgroundHelper(this);
         mBackgroundTintHelper.loadFromAttributes(attrs, defStyleAttr);
 
-        mImageHelper = new AppCompatImageHelper(this, drawableManager);
+        mImageHelper = new AppCompatImageHelper(this);
         mImageHelper.loadFromAttributes(attrs, defStyleAttr);
     }
 
@@ -93,6 +94,7 @@ public class AppCompatImageButton extends ImageButton implements TintableBackgro
      *
      * @hide
      */
+    @RestrictTo(GROUP_ID)
     @Override
     public void setSupportBackgroundTintList(@Nullable ColorStateList tint) {
         if (mBackgroundTintHelper != null) {
@@ -106,6 +108,7 @@ public class AppCompatImageButton extends ImageButton implements TintableBackgro
      *
      * @hide
      */
+    @RestrictTo(GROUP_ID)
     @Override
     @Nullable
     public ColorStateList getSupportBackgroundTintList() {
@@ -119,6 +122,7 @@ public class AppCompatImageButton extends ImageButton implements TintableBackgro
      *
      * @hide
      */
+    @RestrictTo(GROUP_ID)
     @Override
     public void setSupportBackgroundTintMode(@Nullable PorterDuff.Mode tintMode) {
         if (mBackgroundTintHelper != null) {
@@ -132,6 +136,7 @@ public class AppCompatImageButton extends ImageButton implements TintableBackgro
      *
      * @hide
      */
+    @RestrictTo(GROUP_ID)
     @Override
     @Nullable
     public PorterDuff.Mode getSupportBackgroundTintMode() {

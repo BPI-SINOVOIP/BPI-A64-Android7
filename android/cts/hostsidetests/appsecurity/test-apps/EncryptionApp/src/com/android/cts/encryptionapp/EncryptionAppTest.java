@@ -43,6 +43,9 @@ import java.io.File;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+// for another encryption ui setting package
+import android.content.pm.ResolveInfo;
+
 public class EncryptionAppTest extends InstrumentationTestCase {
     private static final String TAG = "EncryptionAppTest";
 
@@ -62,6 +65,9 @@ public class EncryptionAppTest extends InstrumentationTestCase {
     private UiDevice mDevice;
     private AwareActivity mActivity;
 
+    // for another encryption ui setting package
+    private String mEncryptionSettingPackage = "com.android.settings";
+
     @Override
     public void setUp() throws Exception {
         super.setUp();
@@ -69,6 +75,13 @@ public class EncryptionAppTest extends InstrumentationTestCase {
         mCe = getInstrumentation().getContext();
         mDe = mCe.createDeviceProtectedStorageContext();
         mPm = mCe.getPackageManager();
+
+        final Intent intent = new Intent(DevicePolicyManager.ACTION_SET_NEW_PASSWORD);
+        intent.addCategory(Intent.CATEGORY_DEFAULT);
+        ResolveInfo rInfo = mPm.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY);
+        if (rInfo != null) {
+            mEncryptionSettingPackage = rInfo.activityInfo.packageName;
+        }
 
         mDevice = UiDevice.getInstance(getInstrumentation());
         assertNotNull(mDevice);
@@ -102,14 +115,22 @@ public class EncryptionAppTest extends InstrumentationTestCase {
 
         // Pick PIN from the option list
         UiObject view = new UiObject(new UiSelector()
-                .resourceId("com.android.settings:id/lock_pin"));
+                .resourceId(mEncryptionSettingPackage + ":id/lock_pin"));
         assertTrue("lock_pin", view.waitForExists(TIMEOUT));
         view.click();
         mDevice.waitForIdle();
 
         // Ignore any interstitial options
         view = new UiObject(new UiSelector()
-                .resourceId("com.android.settings:id/encrypt_dont_require_password"));
+                .resourceId(mEncryptionSettingPackage + ":id/encrypt_dont_require_password"));
+        if (view.waitForExists(TIMEOUT)) {
+            view.click();
+            mDevice.waitForIdle();
+        }
+
+        // Yes, we really want to
+        view = new UiObject(new UiSelector()
+                .resourceId(mEncryptionSettingPackage + ":id/next_button"));
         if (view.waitForExists(TIMEOUT)) {
             view.click();
             mDevice.waitForIdle();
@@ -117,7 +138,7 @@ public class EncryptionAppTest extends InstrumentationTestCase {
 
         // Set our PIN
         view = new UiObject(new UiSelector()
-                .resourceId("com.android.settings:id/password_entry"));
+                .resourceId(mEncryptionSettingPackage + ":id/password_entry"));
         assertTrue("password_entry", view.waitForExists(TIMEOUT));
 
         // Enter it twice to confirm
@@ -143,7 +164,7 @@ public class EncryptionAppTest extends InstrumentationTestCase {
 
         // Enter current PIN
         UiObject view = new UiObject(new UiSelector()
-                .resourceId("com.android.settings:id/password_entry"));
+                .resourceId(mEncryptionSettingPackage + ":id/password_entry"));
         if (!view.waitForExists(TIMEOUT)) {
             // Odd, maybe there is a crash dialog showing; try dismissing it
             mDevice.pressBack();
@@ -156,10 +177,18 @@ public class EncryptionAppTest extends InstrumentationTestCase {
 
         // Set back to "none"
         view = new UiObject(new UiSelector()
-                .resourceId("com.android.settings:id/lock_none"));
+                .resourceId(mEncryptionSettingPackage + ":id/lock_none"));
         assertTrue("lock_none", view.waitForExists(TIMEOUT));
         view.click();
         mDevice.waitForIdle();
+
+        // Yes, we really want "none" if prompted again
+        view = new UiObject(new UiSelector()
+                .resourceId("com.android.settings:id/lock_none"));
+        if (view.waitForExists(TIMEOUT)) {
+            view.click();
+            mDevice.waitForIdle();
+        }
 
         // Yes, we really want to
         view = new UiObject(new UiSelector()

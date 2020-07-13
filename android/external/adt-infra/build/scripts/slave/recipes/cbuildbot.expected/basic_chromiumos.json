@@ -1,0 +1,56 @@
+[
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[BUILD]/scripts/slave/bot_update.py",
+      "--master",
+      "chromiumos",
+      "--builder",
+      "TestBuilder",
+      "--slave",
+      "TestSlavename",
+      "--spec",
+      "cache_dir = None\nsolutions = [{'deps_file': 'DEPS', 'managed': True, 'name': 'chromite', 'url': 'https://chromium.googlesource.com/chromiumos/chromite.git'}]",
+      "--root",
+      "chromite",
+      "--revision_mapping_file",
+      "{}",
+      "--output_json",
+      "/path/to/tmp/json",
+      "--revision",
+      "chromite@master",
+      "--force"
+    ],
+    "name": "bot_update",
+    "~followup_annotations": [
+      "@@@STEP_TEXT@Some step text@@@",
+      "@@@STEP_LOG_LINE@json.output@{@@@",
+      "@@@STEP_LOG_LINE@json.output@  \"did_run\": true, @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"patch_failure\": false, @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"patch_root\": \"chromite\", @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"properties\": {}, @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"root\": \"chromite\", @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"step_text\": \"Some step text\"@@@",
+      "@@@STEP_LOG_LINE@json.output@}@@@",
+      "@@@STEP_LOG_END@json.output@@@"
+    ]
+  },
+  {
+    "allow_subannotations": true,
+    "cmd": [
+      "python",
+      "-u",
+      "[SLAVE_BUILD]/chromite/bin/cbuildbot",
+      "--buildbot",
+      "--buildroot",
+      "[ROOT]/cbuild/shared_external",
+      "--master-build-id",
+      "12345",
+      "--buildnumber",
+      "2468",
+      "amd64-generic-release"
+    ],
+    "name": "cbuildbot [amd64-generic-release]"
+  }
+]

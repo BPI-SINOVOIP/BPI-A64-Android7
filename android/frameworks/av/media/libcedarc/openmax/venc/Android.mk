@@ -17,8 +17,9 @@ LOCAL_SRC_FILES:= omx_venc.cpp omx_tsem.c
 endif
 
 ####################### donot support neon in android N ###########
-os_version = $(shell echo $(PLATFORM_VERSION) | cut -c 1-3)
-ifeq ($(os_version), 7.0)
+os_version = $(shell echo $(PLATFORM_VERSION) | cut -c 1)
+$(warning $(os_version))
+ifeq ($(os_version), 7)
 LOCAL_SRC_FILES:= omx_venc.cpp omx_tsem.c
 endif
 

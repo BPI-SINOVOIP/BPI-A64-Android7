@@ -366,7 +366,7 @@ static int CdxApeParserGetMediaInfo(CdxParserT *parser, CdxMediaInfoT *mediaInfo
 
     ApeDumpInfo(pApe);
 
-    audio                   = &mediaInfo->program[0].audio[mediaInfo->program[0].audioNum];
+    audio                   = &mediaInfo->program[0].audio[0];
     audio->eCodecFormat     = AUDIO_CODEC_FORMAT_APE;
     audio->nChannelNum      = pApe->channels;
     audio->nSampleRate      = pApe->samplerate;

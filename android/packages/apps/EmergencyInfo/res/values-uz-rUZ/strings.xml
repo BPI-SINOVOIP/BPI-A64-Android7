@@ -68,7 +68,7 @@
     <string name="b_negative" msgid="4110646487598488955">"Uchinchi manfiy"</string>
     <string name="ab_positive" msgid="1931300033534642005">"To‘rtinchi musbat"</string>
     <string name="ab_negative" msgid="2064555613093591729">"To‘rtinchi manfiy"</string>
-    <string name="h_h" msgid="2183333409760379720">"Bombey fenomeni"</string>
+    <string name="h_h" msgid="2183333409760379720">"H H, bombey fenomeni"</string>
     <string name="allergies" msgid="2789200777539258165">"Allergiyalar"</string>
     <string name="unknown_allergies" msgid="4383115953418061237">"Noma’lum"</string>
     <string name="allergies_hint" msgid="5488918780522184147">"Masalan, yeryong‘oq"</string>
@@ -96,7 +96,8 @@
     <string name="user_emergency_info_title" msgid="7827058167207376581">"Favqulodda vaziyatlar uchun axborot"</string>
     <string name="user_emergency_info_consent" msgid="5636028073450797246">"Bu yerda kiritiladigan ma’lumotlar faqat qurilmangizda saqlanadi. Ular telefoningiz qulfini ochmasdan turib favqulodda xizmatlarga qo‘ng‘iroq qilish vaqtida hammaga ko‘rinadi."</string>
     <string name="emergency_info_continue" msgid="5453201508537906087">"Davom etish"</string>
-    <string name="no_info_provided" msgid="6775035037534954056">"Favqulodda vaziyatlar uchun hech qanday axborot yo‘q"</string>
+    <string name="no_info_provided" msgid="716200382010821001">"Telefon egasi haqida ma’lumot yo‘q"</string>
+    <string name="tap_pencil" msgid="2723698054265296934">"Agar bu sizning telefoningiz bo‘lsa, bu yerda favqulodda holatlarda ko‘rsatiladigan ma’lumotlarni qo‘shish uchun qalam belgisini bosing"</string>
     <string name="clear_all" msgid="8899013032870561633">"Hammasini o‘chirish"</string>
     <string name="clear" msgid="3648880442502887163">"O‘chirish"</string>
     <string name="clear_all_message" msgid="1548432000373861295">"Barcha kontaktlar va ma’lumotlar o‘chirib tashlansinmi?"</string>

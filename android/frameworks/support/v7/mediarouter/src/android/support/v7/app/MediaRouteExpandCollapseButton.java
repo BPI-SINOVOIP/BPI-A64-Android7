@@ -31,12 +31,12 @@ import android.widget.ImageButton;
  * Chevron/Caret button to expand/collapse group volume list with animation.
  */
 class MediaRouteExpandCollapseButton extends ImageButton {
-    private final AnimationDrawable mExpandAnimationDrawable;
-    private final AnimationDrawable mCollapseAnimationDrawable;
-    private final String mExpandGroupDescription;
-    private final String mCollapseGroupDescription;
-    private boolean mIsGroupExpanded;
-    private OnClickListener mListener;
+    final AnimationDrawable mExpandAnimationDrawable;
+    final AnimationDrawable mCollapseAnimationDrawable;
+    final String mExpandGroupDescription;
+    final String mCollapseGroupDescription;
+    boolean mIsGroupExpanded;
+    OnClickListener mListener;
 
     public MediaRouteExpandCollapseButton(Context context) {
         this(context, null);
@@ -49,9 +49,9 @@ class MediaRouteExpandCollapseButton extends ImageButton {
     public MediaRouteExpandCollapseButton(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         mExpandAnimationDrawable = (AnimationDrawable) ContextCompat.getDrawable(
-                context, R.drawable.ic_expand);
+                context, R.drawable.mr_group_expand);
         mCollapseAnimationDrawable = (AnimationDrawable) ContextCompat.getDrawable(
-                context, R.drawable.ic_collapse);
+                context, R.drawable.mr_group_collapse);
 
         ColorFilter filter = new PorterDuffColorFilter(
                 MediaRouterThemeHelper.getControllerColor(context, defStyleAttr),

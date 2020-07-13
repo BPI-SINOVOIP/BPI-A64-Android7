@@ -25,7 +25,7 @@
     <skip />
     <string name="name_credential_dialog_title" msgid="277729846491554437">"Անվանեք վկայագիրը"</string>
     <string name="credential_name" msgid="1974979771369744378">"Վկայագրի անունը`"</string>
-    <string name="credential_password" msgid="3520176519550993326">"Մուտքագրեք գաղտնաբառը` վկայագրերն արտածելու համար:"</string>
+    <string name="credential_password" msgid="3520176519550993326">"Մուտքագրեք գաղտնաբառը` հավաստագրերն արտածելու համար:"</string>
     <string name="credential_info" msgid="2436768402308470397">"Փաթեթը պարունակում է`"</string>
     <string name="p12_description" msgid="4128352087331630024">"Վկայականներ PKCS12 բանալիների պահոցում:"</string>
     <string name="one_userkey" msgid="3500697912370644881">"մեկ օգտվողի բանալի"</string>

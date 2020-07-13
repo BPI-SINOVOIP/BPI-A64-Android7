@@ -59,8 +59,8 @@ public class Picker extends FrameLayout {
 
     private ViewGroup mRootView;
     private ViewGroup mPickerView;
-    private final List<VerticalGridView> mColumnViews = new ArrayList<VerticalGridView>();
-    private ArrayList<PickerColumn> mColumns;
+    final List<VerticalGridView> mColumnViews = new ArrayList<VerticalGridView>();
+    ArrayList<PickerColumn> mColumns;
 
     private float mUnfocusedAlpha;
     private float mFocusedAlpha;
@@ -87,10 +87,10 @@ public class Picker extends FrameLayout {
 
     /**
      * Sets separator String between Picker columns.
-     * @param seperator Separator String between Picker columns.
+     * @param separator Separator String between Picker columns.
      */
-    public final void setSeparator(CharSequence seperator) {
-        mSeparator = seperator;
+    public final void setSeparator(CharSequence separator) {
+        mSeparator = separator;
     }
 
     /**
@@ -190,7 +190,7 @@ public class Picker extends FrameLayout {
             final int colIndex = i;
             final VerticalGridView columnView = (VerticalGridView) inflater.inflate(
                     R.layout.lb_picker_column, mPickerView, false);
-            // we dont want VerticalGridView to receive focus.
+            // we don't want VerticalGridView to receive focus.
             updateColumnSize(columnView);
             // always center aligned, not aligning selected item on top/bottom edge.
             columnView.setWindowAlignment(VerticalGridView.WINDOW_ALIGN_NO_EDGE);
@@ -283,7 +283,7 @@ public class Picker extends FrameLayout {
         }
     }
 
-    private void updateColumnAlpha(int colIndex, boolean animate) {
+    void updateColumnAlpha(int colIndex, boolean animate) {
         VerticalGridView column = mColumnViews.get(colIndex);
 
         int selected = column.getSelectedPosition();
@@ -297,7 +297,7 @@ public class Picker extends FrameLayout {
         }
     }
 
-    private void setOrAnimateAlpha(View view, boolean selected, int colIndex,
+    void setOrAnimateAlpha(View view, boolean selected, int colIndex,
             boolean animate) {
         boolean columnShownAsActivated = colIndex == mSelectedColumn || !hasFocus();
         if (selected) {

@@ -398,7 +398,7 @@ static cdx_int32 __CafParserRead(CdxParserT *parser, CdxPacketT *pkt)
     }
     else if(read_length == 0)
     {
-       CDX_LOGE("CdxStream EOS");
+       CDX_LOGD("CdxStream EOS");
        impl->mErrno = PSR_EOS;
        return CDX_FAILURE;
     }
@@ -421,7 +421,7 @@ static cdx_int32 __CafParserGetMediaInfo(CdxParserT *parser, CdxMediaInfoT *medi
 
     if(impl->mErrno != PSR_OK)
     {
-        CDX_LOGE("audio parse status no PSR_OK");
+        CDX_LOGD("audio parse status no PSR_OK");
         return CDX_FAILURE;
     }
 

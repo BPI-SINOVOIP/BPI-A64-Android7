@@ -39,7 +39,6 @@ import java.util.Map;
  * Please declare the provider in the android manifest xml (the authority values has to be set to
  * your_package_name.provider_name).
  *
- * @author Alexey Reznichenko (alexey.reznichenko@gmail.com)
  */
 public abstract class InterpreterProvider extends ContentProvider {
 

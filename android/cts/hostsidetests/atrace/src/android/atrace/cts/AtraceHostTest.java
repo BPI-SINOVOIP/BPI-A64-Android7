@@ -213,7 +213,7 @@ public class AtraceHostTest extends DeviceTestCase implements IBuildReceiver {
             getDevice().executeShellCommand("atrace --async_stop " + atraceArgs);
             getDevice().executeShellCommand("atrace --async_start " + atraceArgs);
             getDevice().executeShellCommand("am start " + TEST_PKG);
-            getDevice().executeShellCommand("sleep 1");
+            getDevice().executeShellCommand("sleep 5");
             atraceOutput = getDevice().executeShellCommand("atrace --async_stop " + atraceArgs);
         } finally {
             assertNotNull("unable to capture atrace output", atraceOutput);

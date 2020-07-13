@@ -136,7 +136,7 @@ static int cdx_get_extradata(AVCodecContext *avctx, CdxStreamT *pb, int size)
     if (ret != size) {
         free(avctx->extradata);
         avctx->extradata_size = 0;
-        CDX_LOGE("Failed to read extradata of size %d\n", size);
+        CDX_LOGW("Failed to read extradata of size %d\n", size);
         return -1;
     }
 
@@ -165,7 +165,7 @@ static int cdx_mov_read_chan(CdxStreamT *pb, int64_t size)
     for (i = 0; i < num_descr; i++) {
         uint32_t label;
         if (CdxStreamEos(pb)) {
-            CDX_LOGE("reached EOF while reading channel layout\n");
+            CDX_LOGW("reached EOF while reading channel layout\n");
             return -1;
         }
         label = cdxio_rb32(pb);          // mChannelLabel
@@ -524,7 +524,7 @@ static int AiffInit(CdxParserT* parameter)
 
 got_sound:
     if (!impl->avctx.block_align) {
-        CDX_LOGE("could not find COMM tag or invalid block_align value\n");
+        CDX_LOGW("could not find COMM tag or invalid block_align value\n");
         goto OPENFAILURE;
     }
 
@@ -548,12 +548,12 @@ got_sound:
     impl->dFileOffset = offset;
     impl->dSndataOffset= offset;
     impl->mErrno = PSR_OK;
-    CDX_LOGE("offset : %lld, Snd data end : %lld, dSndataOffset : %lld",
+    CDX_LOGD("offset : %lld, Snd data end : %lld, dSndataOffset : %lld",
         offset, aiff->data_end, impl->dSndataOffset);
     pthread_cond_signal(&impl->cond);
     return 0;
 OPENFAILURE:
-    CDX_LOGE("AiffOpenThread fail!!!");
+    CDX_LOGW("AiffOpenThread fail!!!");
     impl->mErrno = PSR_OPEN_FAIL;
     pthread_cond_signal(&impl->cond);
     return -1;
@@ -604,7 +604,7 @@ static cdx_int32 __AiffParserPrefetch(CdxParserT *parser, CdxPacketT *pkt)
             size = impl->aiff.data_end - curoff;
         if(curoff == impl->aiff.data_end)
         {
-            CDX_LOGE("AiffParser Prefetch to the data end!");
+            CDX_LOGD("AiffParser Prefetch to the data end!");
             return CDX_FAILURE;
         }
     }
@@ -639,13 +639,13 @@ static cdx_int32 __AiffParserRead(CdxParserT *parser, CdxPacketT *pkt)
 
     if(read_length < 0)
     {
-        CDX_LOGE("CdxStreamRead fail");
+        CDX_LOGD("CdxStreamRead fail");
         impl->mErrno = PSR_IO_ERR;
         return CDX_FAILURE;
     }
     else if(read_length == 0)
     {
-       CDX_LOGE("CdxStream EOS");
+       CDX_LOGD("CdxStream EOS");
        impl->mErrno = PSR_EOS;
        return CDX_FAILURE;
     }
@@ -669,7 +669,7 @@ static cdx_int32 __AiffParserGetMediaInfo(CdxParserT *parser, CdxMediaInfoT *med
 
     if(impl->mErrno != PSR_OK)
     {
-        CDX_LOGE("audio parse status no PSR_OK");
+        CDX_LOGD("audio parse status no PSR_OK");
         return CDX_FAILURE;
     }
 
@@ -715,7 +715,7 @@ static cdx_int32 __AiffParserSeekTo(CdxParserT *parser, cdx_int64 timeUs)
                     (nFrames_off * impl->avctx.block_align)/impl->aiff.block_duration;
     if(file_location > impl->dFileSize)
     {
-        CDX_LOGE("invalid position (out of bound) : %lld, bound : %lld"
+        CDX_LOGW("invalid position (out of bound) : %lld, bound : %lld"
                 , file_location, impl->dFileSize);
         return CDX_FAILURE;
     }
@@ -786,7 +786,7 @@ static cdx_int32 AiffProbe(CdxStreamProbeDataT *p)
         p->buf[10] == 'F' && (p->buf[11] == 'F' || p->buf[11] == 'C'))
         return CDX_TRUE;
 
-    CDX_LOGE("audio probe fail!!!");
+    CDX_LOGD("audio probe fail!!!");
     return CDX_FALSE;
 }
 
@@ -795,13 +795,13 @@ static cdx_uint32 __AiffParserProbe(CdxStreamProbeDataT *probeData)
     CDX_CHECK(probeData);
     if(probeData->len < 32)
     {
-        CDX_LOGE("Probe data is not enough.");
+        CDX_LOGI("Probe data is not enough.");
         return 0;
     }
 
     if(!AiffProbe(probeData))
     {
-        CDX_LOGE("wav probe failed.");
+        CDX_LOGI("wav probe failed.");
         return 0;
     }
     return 100;

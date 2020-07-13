@@ -1,0 +1,14 @@
+/android
+/config
+/system
+.idea/workspace.xml
+/out
+.DS_Store
+/python/helpers/python-skeletons
+/test-system
+/test-config
+.jps-build-data
+/bin/build-log.xml
+/bin/build.log
+/androidStudio
+/build/TEST*

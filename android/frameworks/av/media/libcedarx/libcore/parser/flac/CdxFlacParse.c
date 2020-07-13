@@ -506,6 +506,14 @@ cdx_bool read_frame_header_(cdx_uint8 *src,FlacParserImplS *impl)
         return CDX_FALSE;
     }
 
+    /*if blocksize has changed unexpected, we thouht it is a invalid frame*/
+    if((impl->orgSampsPerFrm < impl->minBlocksize) || (impl->orgSampsPerFrm > impl->maxBlocksize))
+    {
+        CDX_LOGD("orgSampsPerFrm : %d, min : %d, max : %d",
+                impl->orgSampsPerFrm, impl->minBlocksize, impl->maxBlocksize);
+        return CDX_FALSE;
+    }
+
     /* read the CRC-8 byte */
     x = src[raw_header_len];
     crc8 = (cdx_uint8)x;
@@ -710,7 +718,7 @@ static int FlacInit(CdxParserT *flac_impl)
     buf_end = CdxStreamRead(impl->stream, impl->pktbuf, readlen);
     if(buf_end < impl->maxFramesize+INPUT_BUFFER_PADDING_SIZE)
     {
-        CDX_LOGE("First frame data not enough, out!");
+        CDX_LOGE("First frame data not enough, failure and out!");
         if(impl->pktbuf)
         {
             free(impl->pktbuf);
@@ -721,7 +729,7 @@ static int FlacInit(CdxParserT *flac_impl)
     }
     if(!read_frame_header_(&impl->pktbuf[buf_ptr],impl))
     {
-        CDX_LOGE("After seek is not right header,we need resync!");
+        CDX_LOGD("After seek is not right header,we need resync!");
         while(1)
         {
             buf_ptr ++;
@@ -730,6 +738,11 @@ static int FlacInit(CdxParserT *flac_impl)
             {
                 buf_ptr++;
                 syncoff++;
+            }
+            if(buf_ptr+2 >= buf_end)
+            {
+                CDX_LOGE("Sync out of range, fail to open flac parser");
+                goto OPENFAILURE;
             }
             if(read_frame_header_(&impl->pktbuf[buf_ptr],impl))
             {
@@ -802,7 +815,7 @@ static cdx_int32 __FlacParserPrefetch(CdxParserT *parser, CdxPacketT *pkt)
     }
     //insure that we snyc to the head
     if ((AV_RB16(impl->pktbuf) & 0xFFFE) != 0xFFF8) {
-        CDX_LOGE("PREFETCH FRAME HEADER NOT HERE");
+        CDX_LOGW("Prefetch Frame Header, but NOT HERE");
         while (buf_ptr+2 < buf_end && (AV_RB16(impl->pktbuf+buf_ptr) & 0xFFFE) != 0xFFF8)
         {
             buf_ptr++;
@@ -823,7 +836,7 @@ static cdx_int32 __FlacParserPrefetch(CdxParserT *parser, CdxPacketT *pkt)
     {
         if(!read_frame_header_(&impl->pktbuf[buf_ptr],impl))
         {
-            CDX_LOGE("After seek is not right header,we need resync!");
+            CDX_LOGW("After seek is not right header,we need resync!");
             while(1)
             {
                 buf_ptr ++;
@@ -854,7 +867,7 @@ static cdx_int32 __FlacParserPrefetch(CdxParserT *parser, CdxPacketT *pkt)
         }
         if(buf_ptr+2 == buf_end)
         {
-            CDX_LOGE("Give up last frame!!");
+            CDX_LOGW("Give up last frame!!");
             return CDX_FAILURE;
         }
         if(read_frame_header_(&impl->pktbuf[buf_ptr],impl))
@@ -908,7 +921,7 @@ static cdx_int32 __FlacParserRead(CdxParserT *parser, CdxPacketT *pkt)
     }
     else if(read_length == 0)
     {
-       CDX_LOGE("CdxStream EOS");
+       CDX_LOGD("CdxStream EOS");
        impl->mErrno = PSR_EOS;
        return CDX_FAILURE;
     }

@@ -36,7 +36,6 @@ import org.json.JSONException;
 /**
  * Wrapper class for alert dialog running in separate thread.
  *
- * @author MeanEYE.rcf (meaneye.rcf@gmail.com)
  */
 class AlertDialogTask extends DialogTask {
 

@@ -24,9 +24,9 @@ import android.support.annotation.DrawableRes;
 import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.RestrictTo;
 import android.support.annotation.StringRes;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.GravityCompat;
 import android.support.v7.appcompat.R;
@@ -41,6 +41,8 @@ import android.widget.SpinnerAdapter;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+
+import static android.support.annotation.RestrictTo.Scope.GROUP_ID;
 
 /**
  * A primary toolbar within the activity that may display the activity title, application-level
@@ -89,6 +91,7 @@ import java.lang.annotation.RetentionPolicy;
 public abstract class ActionBar {
 
     /** @hide */
+    @RestrictTo(GROUP_ID)
     @Retention(RetentionPolicy.SOURCE)
     @IntDef({NAVIGATION_MODE_STANDARD, NAVIGATION_MODE_LIST, NAVIGATION_MODE_TABS})
     public @interface NavigationMode {}
@@ -133,6 +136,7 @@ public abstract class ActionBar {
     public static final int NAVIGATION_MODE_TABS = 2;
 
     /** @hide */
+    @RestrictTo(GROUP_ID)
     @IntDef(flag=true, value={
             DISPLAY_USE_LOGO,
             DISPLAY_SHOW_HOME,
@@ -604,12 +608,6 @@ public abstract class ActionBar {
      * Create and return a new {@link Tab}.
      * This tab will not be included in the action bar until it is added.
      *
-     * <p>Very often tabs will be used to switch between {@link Fragment}
-     * objects.  Here is a typical implementation of such tabs:</p>
-     *
-     * {@sample development/samples/ApiDemos/src/com/example/android/apis/app/FragmentTabs.java
-     *      complete}
-     *
      * @return A new Tab
      *
      * @see #addTab(Tab)
@@ -667,7 +665,7 @@ public abstract class ActionBar {
     public abstract void addTab(Tab tab, int position);
 
     /**
-     * Add a tab for use in tabbed navigation mode. The tab will be insterted at
+     * Add a tab for use in tabbed navigation mode. The tab will be inserted at
      * <code>position</code>.
      *
      * @param tab The tab to add
@@ -833,7 +831,7 @@ public abstract class ActionBar {
 
     /**
      * Enable or disable the "home" button in the corner of the action bar. (Note that this
-     * is the application home/up affordance on the action bar, not the systemwide home
+     * is the application home/up affordance on the action bar, not the system wide home
      * button.)
      *
      * <p>This defaults to true for packages targeting &lt; API 14. For packages targeting
@@ -867,6 +865,7 @@ public abstract class ActionBar {
      * @return true if the Title field has been truncated
      * @hide pending API approval
      */
+    @RestrictTo(GROUP_ID)
     public boolean isTitleTruncated() { return false; }
 
     /**
@@ -1037,52 +1036,63 @@ public abstract class ActionBar {
     }
 
     /** @hide */
+    @RestrictTo(GROUP_ID)
     public void setDefaultDisplayHomeAsUpEnabled(boolean enabled) {
     }
 
     /** @hide */
+    @RestrictTo(GROUP_ID)
     public void setShowHideAnimationEnabled(boolean enabled) {
     }
 
     /** @hide */
+    @RestrictTo(GROUP_ID)
     public void onConfigurationChanged(Configuration config) {
     }
 
     /** @hide */
+    @RestrictTo(GROUP_ID)
     public void dispatchMenuVisibilityChanged(boolean visible) {
     }
 
     /** @hide */
+    @RestrictTo(GROUP_ID)
     public ActionMode startActionMode(ActionMode.Callback callback) {
         return null;
     }
 
     /** @hide */
+    @RestrictTo(GROUP_ID)
     public boolean openOptionsMenu() {
         return false;
     }
 
     /** @hide */
+    @RestrictTo(GROUP_ID)
     public boolean invalidateOptionsMenu() {
         return false;
     }
 
     /** @hide */
+    @RestrictTo(GROUP_ID)
     public boolean onMenuKeyEvent(KeyEvent event) {
         return false;
     }
 
     /** @hide **/
+    @RestrictTo(GROUP_ID)
     public boolean onKeyShortcut(int keyCode, KeyEvent ev) {
         return false;
     }
 
     /** @hide */
+    @RestrictTo(GROUP_ID)
     public boolean collapseActionView() {
         return false;
     }
 
     /** @hide */
+    @RestrictTo(GROUP_ID)
     public void setWindowTitle(CharSequence title) {
     }
 

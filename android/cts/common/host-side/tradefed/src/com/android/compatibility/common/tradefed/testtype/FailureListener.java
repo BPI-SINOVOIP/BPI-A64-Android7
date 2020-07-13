@@ -27,23 +27,38 @@ import com.android.tradefed.util.RunUtil;
 
 public class FailureListener extends ResultForwarder {
 
-    private static final int MAX_LOGCAT_BYTES = 500 * 1024; // 500K
+    private static final int DEFAULT_MAX_LOGCAT_BYTES = 500 * 1024; // 500K
+    /* Arbitrary upper limit for mMaxLogcatBytes, per b/30720850 */
+    public static final int LOGCAT_BYTE_LIMIT = 20 * 1024 * 1024; // 20 MB
 
     private ITestDevice mDevice;
     private boolean mBugReportOnFailure;
     private boolean mLogcatOnFailure;
     private boolean mScreenshotOnFailure;
     private boolean mRebootOnFailure;
+    private int mMaxLogcatBytes;
 
     public FailureListener(ITestInvocationListener listener, ITestDevice device,
             boolean bugReportOnFailure, boolean logcatOnFailure, boolean screenshotOnFailure,
-            boolean rebootOnFailure) {
+            boolean rebootOnFailure, int maxLogcatBytes) {
         super(listener);
         mDevice = device;
         mBugReportOnFailure = bugReportOnFailure;
         mLogcatOnFailure = logcatOnFailure;
         mScreenshotOnFailure = screenshotOnFailure;
         mRebootOnFailure = rebootOnFailure;
+        if (maxLogcatBytes < 0 ) {
+            CLog.w("FailureListener could not set %s to '%d', using default value %d",
+                    CompatibilityTest.LOGCAT_ON_FAILURE_SIZE_OPTION, maxLogcatBytes,
+                    DEFAULT_MAX_LOGCAT_BYTES);
+            mMaxLogcatBytes = DEFAULT_MAX_LOGCAT_BYTES;
+        } else if (maxLogcatBytes > LOGCAT_BYTE_LIMIT) {
+            CLog.w("Value %d for %s exceeds limit %d, using limit value", maxLogcatBytes,
+                    CompatibilityTest.LOGCAT_ON_FAILURE_SIZE_OPTION, LOGCAT_BYTE_LIMIT);
+            mMaxLogcatBytes = LOGCAT_BYTE_LIMIT;
+        } else {
+            mMaxLogcatBytes = maxLogcatBytes;
+        }
     }
 
     /**
@@ -62,7 +77,7 @@ public class FailureListener extends ResultForwarder {
         if (mLogcatOnFailure) {
             // sleep 2s to ensure test failure stack trace makes it into logcat capture
             RunUtil.getDefault().sleep(2 * 1000);
-            InputStreamSource logSource = mDevice.getLogcat(MAX_LOGCAT_BYTES);
+            InputStreamSource logSource = mDevice.getLogcat(mMaxLogcatBytes);
             super.testLog(String.format("%s-logcat", test.toString()), LogDataType.LOGCAT,
                     logSource);
             logSource.cancel();

@@ -28,6 +28,7 @@ import android.os.RemoteException;
 import android.os.IBinder.DeathRecipient;
 import android.os.Message;
 import android.os.Messenger;
+import android.support.annotation.NonNull;
 import android.support.v7.media.MediaRouter.ControlRequestCallback;
 import android.util.Log;
 import android.util.SparseArray;
@@ -43,11 +44,11 @@ import static android.support.v7.media.MediaRouteProviderProtocol.*;
  */
 final class RegisteredMediaRouteProvider extends MediaRouteProvider
         implements ServiceConnection {
-    private static final String TAG = "MediaRouteProviderProxy";  // max. 23 chars
-    private static final boolean DEBUG = Log.isLoggable(TAG, Log.DEBUG);
+    static final String TAG = "MediaRouteProviderProxy";  // max. 23 chars
+    static final boolean DEBUG = Log.isLoggable(TAG, Log.DEBUG);
 
     private final ComponentName mComponentName;
-    private final PrivateHandler mPrivateHandler;
+    final PrivateHandler mPrivateHandler;
     private final ArrayList<Controller> mControllers = new ArrayList<Controller>();
 
     private boolean mStarted;
@@ -63,25 +64,23 @@ final class RegisteredMediaRouteProvider extends MediaRouteProvider
     }
 
     @Override
-    public RouteController onCreateRouteController(String routeId) {
-        MediaRouteProviderDescriptor descriptor = getDescriptor();
-        if (descriptor != null) {
-            List<MediaRouteDescriptor> routes = descriptor.getRoutes();
-            final int count = routes.size();
-            for (int i = 0; i < count; i++) {
-                final MediaRouteDescriptor route = routes.get(i);
-                if (route.getId().equals(routeId)) {
-                    Controller controller = new Controller(routeId);
-                    mControllers.add(controller);
-                    if (mConnectionReady) {
-                        controller.attachConnection(mActiveConnection);
-                    }
-                    updateBinding();
-                    return controller;
-                }
-            }
+    public RouteController onCreateRouteController(@NonNull String routeId) {
+        if (routeId == null) {
+            throw new IllegalArgumentException("routeId cannot be null");
         }
-        return null;
+        return createRouteController(routeId, null);
+    }
+
+    @Override
+    public RouteController onCreateRouteController(
+            @NonNull String routeId, @NonNull String routeGroupId) {
+        if (routeId == null) {
+            throw new IllegalArgumentException("routeId cannot be null");
+        }
+        if (routeGroupId == null) {
+            throw new IllegalArgumentException("routeGroupId cannot be null");
+        }
+        return createRouteController(routeId, routeGroupId);
     }
 
     @Override
@@ -90,6 +89,44 @@ final class RegisteredMediaRouteProvider extends MediaRouteProvider
             mActiveConnection.setDiscoveryRequest(request);
         }
         updateBinding();
+    }
+
+    @Override
+    public void onServiceConnected(ComponentName name, IBinder service) {
+        if (DEBUG) {
+            Log.d(TAG, this + ": Connected");
+        }
+
+        if (mBound) {
+            disconnect();
+
+            Messenger messenger = (service != null ? new Messenger(service) : null);
+            if (isValidRemoteMessenger(messenger)) {
+                Connection connection = new Connection(messenger);
+                if (connection.register()) {
+                    mActiveConnection = connection;
+                } else {
+                    if (DEBUG) {
+                        Log.d(TAG, this + ": Registration failed");
+                    }
+                }
+            } else {
+                Log.e(TAG, this + ": Service returned invalid messenger binder");
+            }
+        }
+    }
+
+    @Override
+    public void onServiceDisconnected(ComponentName name) {
+        if (DEBUG) {
+            Log.d(TAG, this + ": Service disconnected");
+        }
+        disconnect();
+    }
+
+    @Override
+    public String toString() {
+        return "Service connection " + mComponentName.flattenToShortString();
     }
 
     public boolean hasComponentName(String packageName, String className) {
@@ -183,40 +220,28 @@ final class RegisteredMediaRouteProvider extends MediaRouteProvider
         }
     }
 
-    @Override
-    public void onServiceConnected(ComponentName name, IBinder service) {
-        if (DEBUG) {
-            Log.d(TAG, this + ": Connected");
-        }
-
-        if (mBound) {
-            disconnect();
-
-            Messenger messenger = (service != null ? new Messenger(service) : null);
-            if (isValidRemoteMessenger(messenger)) {
-                Connection connection = new Connection(messenger);
-                if (connection.register()) {
-                    mActiveConnection = connection;
-                } else {
-                    if (DEBUG) {
-                        Log.d(TAG, this + ": Registration failed");
+    private RouteController createRouteController(String routeId, String routeGroupId) {
+        MediaRouteProviderDescriptor descriptor = getDescriptor();
+        if (descriptor != null) {
+            List<MediaRouteDescriptor> routes = descriptor.getRoutes();
+            final int count = routes.size();
+            for (int i = 0; i < count; i++) {
+                final MediaRouteDescriptor route = routes.get(i);
+                if (route.getId().equals(routeId)) {
+                    Controller controller = new Controller(routeId, routeGroupId);
+                    mControllers.add(controller);
+                    if (mConnectionReady) {
+                        controller.attachConnection(mActiveConnection);
                     }
+                    updateBinding();
+                    return controller;
                 }
-            } else {
-                Log.e(TAG, this + ": Service returned invalid messenger binder");
             }
         }
+        return null;
     }
 
-    @Override
-    public void onServiceDisconnected(ComponentName name) {
-        if (DEBUG) {
-            Log.d(TAG, this + ": Service disconnected");
-        }
-        disconnect();
-    }
-
-    private void onConnectionReady(Connection connection) {
+    void onConnectionReady(Connection connection) {
         if (mActiveConnection == connection) {
             mConnectionReady = true;
             attachControllersToConnection();
@@ -228,7 +253,7 @@ final class RegisteredMediaRouteProvider extends MediaRouteProvider
         }
     }
 
-    private void onConnectionDied(Connection connection) {
+    void onConnectionDied(Connection connection) {
         if (mActiveConnection == connection) {
             if (DEBUG) {
                 Log.d(TAG, this + ": Service connection died");
@@ -237,7 +262,7 @@ final class RegisteredMediaRouteProvider extends MediaRouteProvider
         }
     }
 
-    private void onConnectionError(Connection connection, String error) {
+    void onConnectionError(Connection connection, String error) {
         if (mActiveConnection == connection) {
             if (DEBUG) {
                 Log.d(TAG, this + ": Service connection error - " + error);
@@ -246,7 +271,7 @@ final class RegisteredMediaRouteProvider extends MediaRouteProvider
         }
     }
 
-    private void onConnectionDescriptorChanged(Connection connection,
+    void onConnectionDescriptorChanged(Connection connection,
             MediaRouteProviderDescriptor descriptor) {
         if (mActiveConnection == connection) {
             if (DEBUG) {
@@ -266,7 +291,7 @@ final class RegisteredMediaRouteProvider extends MediaRouteProvider
         }
     }
 
-    private void onControllerReleased(Controller controller) {
+    void onControllerReleased(Controller controller) {
         mControllers.remove(controller);
         controller.detachConnection();
         updateBinding();
@@ -286,13 +311,9 @@ final class RegisteredMediaRouteProvider extends MediaRouteProvider
         }
     }
 
-    @Override
-    public String toString() {
-        return "Service connection " + mComponentName.flattenToShortString();
-    }
-
     private final class Controller extends RouteController {
         private final String mRouteId;
+        private final String mRouteGroupId;
 
         private boolean mSelected;
         private int mPendingSetVolume = -1;
@@ -301,13 +322,14 @@ final class RegisteredMediaRouteProvider extends MediaRouteProvider
         private Connection mConnection;
         private int mControllerId;
 
-        public Controller(String routeId) {
+        public Controller(String routeId, String routeGroupId) {
             mRouteId = routeId;
+            mRouteGroupId = routeGroupId;
         }
 
         public void attachConnection(Connection connection) {
             mConnection = connection;
-            mControllerId = connection.createRouteController(mRouteId);
+            mControllerId = connection.createRouteController(mRouteId, mRouteGroupId);
             if (mSelected) {
                 connection.selectRoute(mControllerId);
                 if (mPendingSetVolume >= 0) {
@@ -432,7 +454,7 @@ final class RegisteredMediaRouteProvider extends MediaRouteProvider
             });
         }
 
-        private void failPendingCallbacks() {
+        void failPendingCallbacks() {
             int count = 0;
             for (int i = 0; i < mPendingCallbacks.size(); i++) {
                 mPendingCallbacks.valueAt(i).onError(null, null);
@@ -443,7 +465,7 @@ final class RegisteredMediaRouteProvider extends MediaRouteProvider
         public boolean onGenericFailure(int requestId) {
             if (requestId == mPendingRegisterRequestId) {
                 mPendingRegisterRequestId = 0;
-                onConnectionError(this, "Registation failed");
+                onConnectionError(this, "Registration failed");
             }
             ControlRequestCallback callback = mPendingCallbacks.get(requestId);
             if (callback != null) {
@@ -511,10 +533,11 @@ final class RegisteredMediaRouteProvider extends MediaRouteProvider
             });
         }
 
-        public int createRouteController(String routeId) {
+        public int createRouteController(String routeId, String routeGroupId) {
             int controllerId = mNextControllerId++;
             Bundle data = new Bundle();
             data.putString(CLIENT_DATA_ROUTE_ID, routeId);
+            data.putString(CLIENT_DATA_ROUTE_GROUP_ID, routeGroupId);
             sendRequest(CLIENT_MSG_CREATE_ROUTE_CONTROLLER,
                     mNextRequestId++, controllerId, null, data);
             return controllerId;
@@ -592,6 +615,8 @@ final class RegisteredMediaRouteProvider extends MediaRouteProvider
     }
 
     private final class PrivateHandler extends Handler {
+        PrivateHandler() {
+        }
     }
 
     /**

@@ -1,0 +1,11 @@
+#!/usr/bin/python
+# Copyright 2015 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+# This file is used by scripts/tools/buildbot-tool to generate master configs.
+
+# This script is used to set up a new database on the master.
+
+from buildbot.scripts import runner
+runner.run()

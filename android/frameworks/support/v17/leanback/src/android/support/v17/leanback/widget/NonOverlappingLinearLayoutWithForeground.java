@@ -19,12 +19,14 @@ import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.os.Build.VERSION;
+import android.support.annotation.RestrictTo;
 import android.util.AttributeSet;
 import android.widget.LinearLayout;
 
+import static android.support.annotation.RestrictTo.Scope.GROUP_ID;
+
 /**
  * Implements foreground drawable before M and falls back to M's foreground implementation.
- * @hide
  */
 class NonOverlappingLinearLayoutWithForeground extends LinearLayout {
 
@@ -47,7 +49,7 @@ class NonOverlappingLinearLayoutWithForeground extends LinearLayout {
         super(context, attrs, defStyle);
         if (context.getApplicationInfo().targetSdkVersion >= VERSION_M
                 && VERSION.SDK_INT >= VERSION_M) {
-            // dont need do anything, base View constructor >=M already reads the foreground if
+            // don't need do anything, base View constructor >=M already reads the foreground if
             // targetSDK is >= M.
         } else {
             // in other cases, including M but targetSDK is less than M, we need setForeground in

@@ -28,7 +28,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+
 import android.os.SystemProperties;
+import android.os.UserManager;
+import android.provider.SearchIndexableResource;
 import android.provider.Settings;
 import android.provider.Settings.SettingNotFoundException;
 import android.support.v14.preference.SwitchPreference;
@@ -39,12 +42,16 @@ import android.widget.DatePicker;
 import android.widget.TimePicker;
 import com.android.internal.logging.MetricsProto.MetricsEvent;
 import com.android.settings.dashboard.SummaryLoader;
+import com.android.settings.search.BaseSearchIndexProvider;
+import com.android.settings.search.Indexable;
 import com.android.settingslib.RestrictedLockUtils;
 import com.android.settingslib.RestrictedSwitchPreference;
 import com.android.settingslib.datetime.ZoneGetter;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 import static com.android.settingslib.RestrictedLockUtils.EnforcedAdmin;
 import android.telephony.TelephonyManager;
@@ -52,7 +59,7 @@ import com.android.internal.telephony.TelephonyIntents;
 import android.util.Log;
 
 public class DateTimeSettings extends SettingsPreferenceFragment
-        implements OnTimeSetListener, OnDateSetListener, OnPreferenceChangeListener {
+        implements OnTimeSetListener, OnDateSetListener, OnPreferenceChangeListener, Indexable {
 
     private static final String HOURS_12 = "12";
     private static final String HOURS_24 = "24";
@@ -412,4 +419,26 @@ public class DateTimeSettings extends SettingsPreferenceFragment
             return new SummaryProvider(activity, summaryLoader);
         }
     };
+
+    public static final Indexable.SearchIndexProvider SEARCH_INDEX_DATA_PROVIDER =
+            new DateTimeSearchIndexProvider();
+
+    private static class DateTimeSearchIndexProvider extends BaseSearchIndexProvider {
+
+        @Override
+        public List<SearchIndexableResource> getXmlResourcesToIndex(
+                Context context, boolean enabled) {
+            List<SearchIndexableResource> result = new ArrayList<>();
+            // Remove data/time settings from search in demo mode
+            if (UserManager.isDeviceInDemoMode(context)) {
+                return result;
+            }
+
+            SearchIndexableResource sir = new SearchIndexableResource(context);
+            sir.xmlResId = R.xml.date_time_prefs;
+            result.add(sir);
+
+            return result;
+        }
+    }
 }

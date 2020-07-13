@@ -137,6 +137,7 @@ public class MediaRouteButton extends View {
                 R.styleable.MediaRouteButton_android_minHeight, 0);
         a.recycle();
 
+        updateContentDescription();
         setClickable(true);
         setLongClickable(true);
     }
@@ -300,12 +301,6 @@ public class MediaRouteButton extends View {
             return false;
         }
 
-        final CharSequence contentDesc = getContentDescription();
-        if (TextUtils.isEmpty(contentDesc)) {
-            // Don't show the cheat sheet if we have no description
-            return false;
-        }
-
         final int[] screenPos = new int[2];
         final Rect displayFrame = new Rect();
         getLocationOnScreen(screenPos);
@@ -317,7 +312,8 @@ public class MediaRouteButton extends View {
         final int midy = screenPos[1] + height / 2;
         final int screenWidth = context.getResources().getDisplayMetrics().widthPixels;
 
-        Toast cheatSheet = Toast.makeText(context, contentDesc, Toast.LENGTH_SHORT);
+        Toast cheatSheet = Toast.makeText(context, R.string.mr_button_content_description,
+                Toast.LENGTH_SHORT);
         if (midy < displayFrame.height()) {
             // Show along the top; follow action buttons
             cheatSheet.setGravity(Gravity.TOP | GravityCompat.END,
@@ -489,7 +485,7 @@ public class MediaRouteButton extends View {
         }
     }
 
-    private void refreshRoute() {
+    void refreshRoute() {
         if (mAttachedToWindow) {
             final MediaRouter.RouteInfo route = mRouter.getSelectedRoute();
             final boolean isRemote = !route.isDefaultOrBluetooth()
@@ -507,6 +503,7 @@ public class MediaRouteButton extends View {
             }
 
             if (needsRefresh) {
+                updateContentDescription();
                 refreshDrawableState();
                 if (mRemoteIndicator.getCurrent() instanceof AnimationDrawable) {
                     AnimationDrawable curDrawable =
@@ -516,10 +513,28 @@ public class MediaRouteButton extends View {
                     }
                 }
             }
+
+            setEnabled(mRouter.isRouteAvailable(mSelector,
+                    MediaRouter.AVAILABILITY_FLAG_IGNORE_DEFAULT_ROUTE));
         }
     }
 
+    private void updateContentDescription() {
+        int resId;
+        if (mIsConnecting) {
+            resId = R.string.mr_cast_button_connecting;
+        } else if (mRemoteActive) {
+            resId = R.string.mr_cast_button_connected;
+        } else {
+            resId = R.string.mr_cast_button_disconnected;
+        }
+        setContentDescription(getContext().getString(resId));
+    }
+
     private final class MediaRouterCallback extends MediaRouter.Callback {
+        MediaRouterCallback() {
+        }
+
         @Override
         public void onRouteAdded(MediaRouter router, MediaRouter.RouteInfo info) {
             refreshRoute();

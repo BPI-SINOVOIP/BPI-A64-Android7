@@ -82,7 +82,7 @@ public class GraphicsStatsMonitor {
     public void setIntervalRate (long intervalRate) {
         if (mIsRunning) {
             Log.e(TAG, "Can't set interval rate for monitor that is already running");
-        } else {
+        } else if (intervalRate > 0L) {
             mIntervalRate = intervalRate;
             Log.v(TAG, String.format("Set jank monitor interval rate to %d", intervalRate));
         }
@@ -192,81 +192,109 @@ public class GraphicsStatsMonitor {
         }
     }
 
+    /*
+     * Return JankStat objects from a stream representing the output of `dumpsys graphicsstats`
+     *
+     * This is broken out from gatherGraphicsStats for testing purposes
+     */
+    private List<JankStat> parseGraphicsStatsFromStream(BufferedReader stream) throws IOException {
+        // TODO: this kind of stream filtering is much nicer using the Java 8 functional
+        // primitives. Once AUPT goes to jdk8, we should refactor this.
+
+        JankStat.StatPattern patterns[] = JankStat.StatPattern.values();
+        List<JankStat> result = new ArrayList<>();
+        JankStat nextStat = new JankStat(null, 0L, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+        String line;
+
+        // Split the stream by package
+        while((line = stream.readLine()) != null) {
+            if(JankStat.StatPattern.PACKAGE.parse(line) != null) {
+
+                // When the output of `dumpsys graphicsstats` enters a new set of jank stats, we start
+                // with a line matching the PACKAGE pattern; so we have to make a new JankStat for it and
+                // save the old one.
+
+                if(nextStat.packageName != null) {
+                    Log.v(TAG, String.format("Gathered jank info from process %s.", nextStat.packageName));
+                    result.add(nextStat);
+                }
+
+                nextStat = new JankStat(JankStat.StatPattern.PACKAGE.parse(line),
+                        0L, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+
+            } else {
+
+                // NOTE: we know these theoretically come in order, so we don't have to iterate
+                // through the whole pattern array every time; but there is enough variation in
+                // the code generating these log lines to justify a more input-robust parser
+
+                for (JankStat.StatPattern p : patterns) {
+                    if (p.getPattern() != null && p.parse(line) != null) {
+                        switch (p) {
+                            case STATS_SINCE:
+                                nextStat.statsSince = Long.parseLong(p.parse(line));
+                                break;
+                            case TOTAL_FRAMES:
+                                nextStat.totalFrames = Integer.valueOf(p.parse(line));
+                                break;
+                            case NUM_JANKY:
+                                nextStat.jankyFrames = Integer.valueOf(p.parse(line));
+                                break;
+                            case FRAME_TIME_50TH:
+                                nextStat.frameTime50th = Integer.valueOf(p.parse(line));
+                                break;
+                            case FRAME_TIME_90TH:
+                                nextStat.frameTime90th = Integer.valueOf(p.parse(line));
+                                break;
+                            case FRAME_TIME_95TH:
+                                nextStat.frameTime95th = Integer.valueOf(p.parse(line));
+                                break;
+                            case FRAME_TIME_99TH:
+                                nextStat.frameTime99th = Integer.valueOf(p.parse(line));
+                                break;
+                            case NUM_MISSED_VSYNC:
+                                nextStat.numMissedVsync = Integer.valueOf(p.parse(line));
+                                break;
+                            case NUM_HIGH_INPUT_LATENCY:
+                                nextStat.numHighLatency = Integer.valueOf(p.parse(line));
+                                break;
+                            case NUM_SLOW_UI_THREAD:
+                                nextStat.numSlowUiThread = Integer.valueOf(p.parse(line));
+                                break;
+                            case NUM_SLOW_BITMAP_UPLOADS:
+                                nextStat.numSlowBitmap = Integer.valueOf(p.parse(line));
+                                break;
+                            case NUM_SLOW_DRAW:
+                                nextStat.numSlowDraw = Integer.valueOf(p.parse(line));
+                                break;
+                            default:
+                                throw new RuntimeException(
+                                        "Unexpected parsing state in GraphicsStateMonitor");
+                        }
+                    }
+                }
+            }
+        }
+
+        // Remember to add the last JankStat
+        // We can't wrap this in the previous call because BufferedReader doesn't have a .peek()
+        if(nextStat.packageName != null) {
+            Log.v(TAG, String.format("Gathered jank info from process %s.", nextStat.packageName));
+            result.add(nextStat);
+        }
+
+        return result;
+    }
+
     /**
      * Return JankStat objects with metric data for all currently tracked processes
      */
     public List<JankStat> gatherGraphicsStats () {
         Log.v(TAG, "Gather all graphics stats");
-        List<JankStat> result = new ArrayList<>();
-
         BufferedReader stream = executeShellCommand("dumpsys graphicsstats");
+
         try {
-            // Read the stream process by process
-            String line;
-
-            while ((line = stream.readLine()) != null) {
-                String proc = JankStat.StatPattern.PACKAGE.parse(line);
-                if (proc != null) {
-                    // "Package: a.b.c"
-                    Log.v(TAG, String.format("Found process, %s. Gathering jank info.", proc));
-                    // "Stats since: ###ns"
-                    line = stream.readLine();
-                    Long since = Long.parseLong(JankStat.StatPattern.STATS_SINCE.parse(line));
-                    // "Total frames rendered: ###"
-                    line = stream.readLine();
-                    int total = Integer.valueOf(JankStat.StatPattern.TOTAL_FRAMES.parse(line));
-                    // "Janky frames: ## (#.#%)" OR
-                    // "Janky frames: ## (nan%)"
-                    line = stream.readLine();
-                    int janky = Integer.valueOf(JankStat.StatPattern.NUM_JANKY.parse(line));
-                    // (optional, N+) "50th percentile: ##ms"
-                    line = stream.readLine();
-                    int perc50;
-                    String parsed50 = JankStat.StatPattern.FRAME_TIME_50TH.parse(line);
-                    if (parsed50 != null || !parsed50.isEmpty()) {
-                        perc50 = Integer.valueOf(parsed50);
-                        line = stream.readLine();
-                    } else {
-                        perc50 = -1;
-                    }
-                    // "90th percentile: ##ms"
-                    int perc90 = Integer.valueOf(JankStat.StatPattern.FRAME_TIME_90TH.parse(line));
-                    // "95th percentile: ##ms"
-                    line = stream.readLine();
-                    int perc95 = Integer.valueOf(JankStat.StatPattern.FRAME_TIME_95TH.parse(line));
-                    // "99th percentile: ##ms"
-                    line = stream.readLine();
-                    int perc99 = Integer.valueOf(JankStat.StatPattern.FRAME_TIME_99TH.parse(line));
-                    // "Slowest frames last 24h: ##ms ##ms ..."
-                    line = stream.readLine();
-                    String slowest = JankStat.StatPattern.SLOWEST_FRAMES_24H.parse(line);
-                    if (slowest != null && !slowest.isEmpty()) {
-                        line = stream.readLine();
-                    }
-                    // "Number Missed Vsync: #"
-                    int vsync = Integer.valueOf(JankStat.StatPattern.NUM_MISSED_VSYNC.parse(line));
-                    // "Number High input latency: #"
-                    line = stream.readLine();
-                    int latency = Integer.valueOf(
-                            JankStat.StatPattern.NUM_HIGH_INPUT_LATENCY.parse(line));
-                    // "Number slow UI thread: #"
-                    line = stream.readLine();
-                    int ui = Integer.valueOf(JankStat.StatPattern.NUM_SLOW_UI_THREAD.parse(line));
-                    // "Number Slow bitmap uploads: #"
-                    line = stream.readLine();
-                    int bmp = Integer.valueOf(
-                            JankStat.StatPattern.NUM_SLOW_BITMAP_UPLOADS.parse(line));
-                    // "Number slow issue draw commands: #"
-                    line = stream.readLine();
-                    int draw = Integer.valueOf(JankStat.StatPattern.NUM_SLOW_DRAW.parse(line));
-
-                    JankStat stat = new JankStat(proc, since, total, janky, perc50, perc90, perc95,
-                            perc99, slowest, vsync, latency, ui, bmp, draw, 1);
-                    result.add(stat);
-                }
-            }
-
-            return result;
+            return parseGraphicsStatsFromStream(stream);
         } catch (IOException exception) {
             Log.e(TAG, "Error with buffered reader", exception);
             return null;

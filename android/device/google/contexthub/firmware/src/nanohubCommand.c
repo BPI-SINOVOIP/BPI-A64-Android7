@@ -23,7 +23,6 @@
 #include <eventnums.h>
 
 #include <plat/inc/taggedPtr.h>
-#include <plat/inc/rtc.h>
 #include <plat/inc/bl.h>
 #include <plat/inc/plat.h>
 
@@ -46,6 +45,8 @@
 #include <timer.h>
 #include <appSec.h>
 #include <cpu.h>
+#include <cpu/inc/cpuMath.h>
+#include <algos/ap_hub_sync.h>
 
 #define NANOHUB_COMMAND(_reason, _fastHandler, _handler, _minReqType, _maxReqType) \
         { .reason = _reason, .fastHandler = _fastHandler, .handler = _handler, \
@@ -54,9 +55,6 @@
 #define NANOHUB_HAL_COMMAND(_msg, _handler) \
         { .msg = _msg, .handler = _handler }
 
-#define SYNC_DATAPOINTS 16
-#define SYNC_RESET      10000000000ULL /* 10 seconds, ~100us drift */
-
 // maximum number of bytes to feed into appSecRxData at once
 // The bigger the number, the more time we block other event processing
 // appSecRxData only feeds 16 bytes at a time into writeCbk, so large
@@ -64,6 +62,11 @@
 #define MAX_APP_SEC_RX_DATA_LEN 64
 
 #define REQUIRE_SIGNED_IMAGE    true
+#define DEBUG_APHUB_TIME_SYNC   false
+
+#if DEBUG_APHUB_TIME_SYNC
+static void syncDebugAdd(uint64_t, uint64_t);
+#endif
 
 struct DownloadState
 {
@@ -82,15 +85,6 @@ struct DownloadState
     bool     eraseScheduled;
 };
 
-struct TimeSync
-{
-    uint64_t lastTime;
-    uint64_t delta[SYNC_DATAPOINTS];
-    uint64_t avgDelta;
-    uint8_t cnt;
-    uint8_t tail;
-};
-
 static struct DownloadState *mDownloadState;
 static AppSecErr mAppSecStatus;
 static struct SlabAllocator *mEventSlab;
@@ -98,7 +92,7 @@ static struct HostIntfDataBuffer mTxCurr, mTxNext;
 static uint8_t mTxCurrLength, mTxNextLength;
 static uint8_t mPrefetchActive, mPrefetchTx;
 static uint32_t mTxWakeCnt[2];
-static struct TimeSync mTimeSync = { };
+static struct ApHubSync mTimeSync;
 
 static inline bool isSensorEvent(uint32_t evtType)
 {
@@ -649,39 +643,17 @@ static uint32_t unmaskInterrupt(void *rx, uint8_t rx_len, void *tx, uint64_t tim
     return sizeof(*resp);
 }
 
-static void addDelta(struct TimeSync *sync, uint64_t apTime, uint64_t hubTime)
+static void addDelta(struct ApHubSync *sync, uint64_t apTime, uint64_t hubTime)
 {
-    if (apTime - sync->lastTime > SYNC_RESET) {
-        sync->tail = 0;
-        sync->cnt = 0;
-    }
-
-    sync->delta[sync->tail++] = apTime - hubTime;
-
-    sync->lastTime = apTime;
-
-    if (sync->tail >= SYNC_DATAPOINTS)
-        sync->tail = 0;
-
-    if (sync->cnt < SYNC_DATAPOINTS)
-        sync->cnt ++;
-
-    sync->avgDelta = 0ULL;
+#if DEBUG_APHUB_TIME_SYNC
+    syncDebugAdd(apTime, hubTime);
+#endif
+    apHubSyncAddDelta(sync, apTime, hubTime);
 }
 
-static uint64_t getAvgDelta(struct TimeSync *sync)
+static int64_t getAvgDelta(struct ApHubSync *sync)
 {
-    int i;
-    int32_t avg;
-
-    if (!sync->cnt)
-        return 0ULL;
-    else if (!sync->avgDelta) {
-        for (i=1, avg=0; i<sync->cnt; i++)
-            avg += (int32_t)(sync->delta[i] - sync->delta[0]);
-        sync->avgDelta = (avg / sync->cnt) + sync->delta[0];
-    }
-    return sync->avgDelta;
+    return apHubSyncGetDelta(sync, sensorGetTime());
 }
 
 static int fillBuffer(void *tx, uint32_t totLength, uint32_t *wakeup, uint32_t *nonwakeup)
@@ -857,10 +829,11 @@ static uint32_t readEvent(void *rx, uint8_t rx_len, void *tx, uint64_t timestamp
         return totLength;
     }
 
+    wakeup = atomicRead32bits(&mTxWakeCnt[0]);
+    nonwakeup = atomicRead32bits(&mTxWakeCnt[1]);
+
     if (mTxNextLength > 0) {
         length = mTxNextLength;
-        wakeup = atomicRead32bits(&mTxWakeCnt[0]);
-        nonwakeup = atomicRead32bits(&mTxWakeCnt[1]);
         memcpy(buf, &mTxNext, length);
         totLength = length;
         mTxNextLength = 0;
@@ -1200,3 +1173,97 @@ const struct NanohubHalCommand *nanohubHalFindCommand(uint8_t msg)
     }
     return NULL;
 }
+
+uint64_t hostGetTime(void)
+{
+    int64_t delta = getAvgDelta(&mTimeSync);
+
+    if (!delta || delta == INT64_MIN)
+        return 0ULL;
+    else
+        return sensorGetTime() + delta;
+}
+
+#if DEBUG_APHUB_TIME_SYNC
+
+#define N_APHUB_SYNC_DATA 256
+#define PRINT_DELAY 20000000  // unit ns, 20ms
+struct ApHubSyncDebug {
+    uint64_t apFirst;
+    uint64_t hubFirst;
+    uint32_t apDelta[N_APHUB_SYNC_DATA]; // us
+    uint32_t hubDelta[N_APHUB_SYNC_DATA]; // us
+    int printIndex; //negative means not printing
+    int writeIndex;
+
+    uint32_t printTimer;
+};
+
+struct ApHubSyncDebug mApHubSyncDebug = {0};
+
+static void syncDebugCallback(uint32_t timerId, void *data) {
+
+    if (mApHubSyncDebug.printIndex >= mApHubSyncDebug.writeIndex ||
+        mApHubSyncDebug.printIndex >= N_APHUB_SYNC_DATA) {
+        timTimerCancel(mApHubSyncDebug.printTimer);
+
+        osLog(LOG_DEBUG, "APHUB Done printing %d items", mApHubSyncDebug.printIndex);
+        mApHubSyncDebug.writeIndex = 0;
+        mApHubSyncDebug.printIndex = -1;
+
+        mApHubSyncDebug.printTimer = 0;
+    } else {
+        if (mApHubSyncDebug.printIndex == 0) {
+            osLog(LOG_DEBUG, "APHUB init %" PRIu64 " %" PRIu64,
+                  mApHubSyncDebug.apFirst,
+                  mApHubSyncDebug.hubFirst);
+        }
+
+        osLog(LOG_DEBUG, "APHUB %d %" PRIu32 " %" PRIu32,
+              mApHubSyncDebug.printIndex,
+              mApHubSyncDebug.apDelta[mApHubSyncDebug.printIndex],
+              mApHubSyncDebug.hubDelta[mApHubSyncDebug.printIndex]);
+
+        mApHubSyncDebug.printIndex++;
+    }
+}
+
+static void syncDebugTriggerPrint() {
+    if (mApHubSyncDebug.printTimer) {
+        //printing already going
+        return;
+    }
+
+    mApHubSyncDebug.printIndex = 0;
+
+    syncDebugCallback(0, NULL);
+    if (!(mApHubSyncDebug.printTimer =
+          timTimerSet(PRINT_DELAY, 0, 50, syncDebugCallback, NULL, false /*oneShot*/))) {
+        osLog(LOG_WARN, "Cannot get timer for printing");
+
+        mApHubSyncDebug.writeIndex = 0; // discard all data
+        mApHubSyncDebug.printIndex = -1; // not printing
+    }
+}
+
+static void syncDebugAdd(uint64_t ap, uint64_t hub) {
+    if (mApHubSyncDebug.writeIndex >= N_APHUB_SYNC_DATA) {
+        //full
+        syncDebugTriggerPrint();
+        return;
+    }
+
+    if (mApHubSyncDebug.writeIndex == 0) {
+        mApHubSyncDebug.apFirst = ap;
+        mApHubSyncDebug.hubFirst = hub;
+    }
+
+    // convert ns to us
+    mApHubSyncDebug.apDelta[mApHubSyncDebug.writeIndex] =
+            (uint32_t) U64_DIV_BY_CONST_U16((ap - mApHubSyncDebug.apFirst), 1000u);
+    mApHubSyncDebug.hubDelta[mApHubSyncDebug.writeIndex] =
+            (uint32_t) U64_DIV_BY_CONST_U16((hub - mApHubSyncDebug.hubFirst), 1000u);
+
+    ++mApHubSyncDebug.writeIndex;
+}
+#endif

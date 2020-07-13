@@ -19,6 +19,8 @@ package android.platform.test.helpers;
 import android.app.Instrumentation;
 import android.support.test.uiautomator.Direction;
 
+import java.util.List;
+
 public abstract class AbstractGmailHelper extends AbstractStandardAppHelper {
 
     public AbstractGmailHelper(Instrumentation instr) {
@@ -193,4 +195,23 @@ public abstract class AbstractGmailHelper extends AbstractStandardAppHelper {
      * @param index The index of the attachment to download
      */
     public abstract void downloadAttachment(int index);
+
+    /**
+     * Setup expectations: Gmail is open and an email is open.
+     *
+     * This method gets every link target in an open email by traversing the UI tree of the body
+     * of the open message.
+     *
+     * @return an iterator over the links in the message
+     */
+    public abstract List<String> getEmailLinks();
+
+    /**
+     * Setup expectations: Gmail is open and an email is open.
+     *
+     * This method clicks the link in the open email with the given target.
+     *
+     * @param target the target of the link to click
+     */
+    public abstract void openEmailLink(String target);
 }

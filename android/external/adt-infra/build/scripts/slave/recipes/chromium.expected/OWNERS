@@ -1,0 +1,4 @@
+per-file full_chromium_perf*=eakuefner@chromium.org
+per-file full_chromium_perf*=fmeawad@chromium.org
+per-file full_tryserver_chromium_perf*=robertocn@chromium.org
+per-file full_tryserver_chromium_perf*=prasadv@chromium.org

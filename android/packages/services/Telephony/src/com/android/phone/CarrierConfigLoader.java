@@ -472,8 +472,13 @@ public class CarrierConfigLoader extends ICarrierConfigLoader.Stub {
             loge("Cannot save config with null packageName or iccid.");
             return;
         }
-        if (config == null) {
-          config = new PersistableBundle();
+        // b/32668103 Only save to file if config isn't empty.
+        // In case of failure, not caching an empty bundle will
+        // try loading config again on next power on or sim loaded.
+        // Downside is for genuinely empty bundle, will bind and load
+        // on every power on.
+        if (config == null || config.isEmpty()) {
+            return;
         }
 
         final String version = getPackageVersion(packageName);
@@ -665,9 +670,11 @@ public class CarrierConfigLoader extends ICarrierConfigLoader.Stub {
         // TODO: Check that the calling packages is privileged for subId specifically.
         int privilegeStatus = TelephonyManager.from(mContext).checkCarrierPrivilegesForPackage(
                 callingPackageName);
+        // Requires the calling app to be either a carrier privileged app or
+        // system privileged app with MODIFY_PHONE_STATE permission.
         if (privilegeStatus != TelephonyManager.CARRIER_PRIVILEGE_STATUS_HAS_ACCESS) {
-            throw new SecurityException(
-                    "Package is not privileged for subId=" + subId + ": " + callingPackageName);
+            mContext.enforceCallingOrSelfPermission(android.Manifest.permission.MODIFY_PHONE_STATE,
+                    "Require carrier privileges or MODIFY_PHONE_STATE permission.");
         }
 
         // This method should block until deleting has completed, so that an error which prevents us
@@ -689,6 +696,7 @@ public class CarrierConfigLoader extends ICarrierConfigLoader.Stub {
         switch (simState) {
             case IccCardConstants.INTENT_VALUE_ICC_ABSENT:
             case IccCardConstants.INTENT_VALUE_ICC_CARD_IO_ERROR:
+            case IccCardConstants.INTENT_VALUE_ICC_CARD_RESTRICTED:
             case IccCardConstants.INTENT_VALUE_ICC_UNKNOWN:
                 mHandler.sendMessage(mHandler.obtainMessage(EVENT_CLEAR_CONFIG, phoneId, -1));
                 break;

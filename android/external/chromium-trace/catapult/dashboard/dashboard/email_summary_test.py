@@ -29,11 +29,11 @@ class EmailSummaryTest(testing_common.TestCase):
       self, rev_range_start, rev_range_end, median_before_anomaly,
       median_after_anomaly, sheriff_key, anomaly_time=None):
     first_paint = ndb.Key(
-        'Master', 'ChromiumGPU', 'Bot', 'linux-release',
-        'Test', 'scrolling-benchmark', 'Test', 'first_paint')
+        'TestMetadata',
+        'ChromiumGPU/linux-release/scrolling-benchmark/first_paint')
     mean_frame_time = ndb.Key(
-        'Master', 'ChromiumGPU', 'Bot', 'linux-release',
-        'Test', 'scrolling-benchmark', 'Test', 'mean_frame_time')
+        'TestMetadata',
+        'ChromiumGPU/linux-release/scrolling-benchmark/mean_frame_time')
     if not anomaly_time:
       anomaly_time = datetime.datetime.now()
     for end_rev in range(rev_range_start, rev_range_end, 10):
@@ -48,7 +48,7 @@ class EmailSummaryTest(testing_common.TestCase):
     """Adds a sheriff with summarize set to False, and some alerts."""
     sheriff_key = sheriff.Sheriff(
         id='Chromium Perf Sheriff', email='anandc@google.com',
-        summarize=False).put()
+        summarize=False, labels=['Performance-Sheriff']).put()
     testing_common.AddTests(['ChromiumGPU'], ['linux-release'], {
         'scrolling-benchmark': {
             'first_paint': {},
@@ -63,7 +63,7 @@ class EmailSummaryTest(testing_common.TestCase):
   def _AddFourNewAlertsWithSummaryForOnlyTwo(self):
     sheriff_key = sheriff.Sheriff(
         id='Chromium Perf Sheriff', email='anandc@google.com',
-        summarize=True).put()
+        summarize=True, labels=['Performance-Sheriff']).put()
     testing_common.AddTests(['ChromiumGPU'], ['linux-release'], {
         'scrolling-benchmark': {
             'first_paint': {},
@@ -92,6 +92,7 @@ class EmailSummaryTest(testing_common.TestCase):
     """Adds alerts for two separate sheriffs which both have summarize=True."""
     sheriff_key = sheriff.Sheriff(
         id='Chromium Perf Sheriff', email='anandc@google.com',
+        labels=['Performance-Sheriff'],
         summarize=True).put()
     testing_common.AddTests(['ChromiumGPU'], ['linux-release'], {
         'scrolling-benchmark': {
@@ -134,7 +135,7 @@ class EmailSummaryTest(testing_common.TestCase):
     self.assertIn('A <b>100.0%</b> regression', html)
     self.assertNotIn('A <b>50.0%</b> regression', html)
     self.assertIn(
-        'labels=Type-Bug-Regression,Pri-2,Performance-Sheriff,\'', html)
+        'labels=Type-Bug-Regression,Pri-2,Performance-Sheriff\'', html)
     self.assertIn(
         'labels=Type-Bug-Regression,Pri-2,Performance-Sheriff,label1\'', html)
 

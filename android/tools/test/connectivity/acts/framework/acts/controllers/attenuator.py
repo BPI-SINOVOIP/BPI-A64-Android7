@@ -26,9 +26,7 @@ def create(configs, logger):
     for c in configs:
         attn_model = c["Model"]
         # Default to telnet.
-        protocol = "telnet"
-        if "Protocol" in c:
-            protocol = c["Protocol"]
+        protocol = c.get("Protocol", "telnet")
         module_name = "acts.controllers.attenuator_lib.%s.%s" % (attn_model,
             protocol)
         module = importlib.import_module(module_name)
@@ -83,7 +81,7 @@ class InvalidOperationError(AttenuatorError):
     pass
 
 
-class AttenuatorInstrument():
+class AttenuatorInstrument(object):
     r"""This is a base class that defines the primitive behavior of all attenuator
     instruments.
 
@@ -160,7 +158,7 @@ class AttenuatorInstrument():
         raise NotImplementedError("Base class should not be called directly!")
 
 
-class Attenuator():
+class Attenuator(object):
     r"""This class defines an object representing a single attenuator in a remote instrument.
 
     A user wishing to abstract the mapping of attenuators to physical instruments should use this

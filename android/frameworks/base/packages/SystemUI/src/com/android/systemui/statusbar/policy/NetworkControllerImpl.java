@@ -37,6 +37,7 @@ import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.MathUtils;
+import android.net.wifi.WifiConfiguration;
 
 import com.android.internal.annotations.VisibleForTesting;
 import com.android.internal.telephony.PhoneConstants;
@@ -81,6 +82,7 @@ public class NetworkControllerImpl extends BroadcastReceiver
     private final SubscriptionDefaults mSubDefaults;
     private final DataSaverController mDataSaverController;
     private Config mConfig;
+    private boolean mEthernetStatus = false;
 
     // Subcontrollers.
     @VisibleForTesting
@@ -628,6 +630,22 @@ public class NetworkControllerImpl extends BroadcastReceiver
         }
         mWifiSignalController.updateConnectivity(mConnectedTransports, mValidatedTransports);
         mEthernetSignalController.updateConnectivity(mConnectedTransports, mValidatedTransports);
+		int transportType = NetworkCapabilities.TRANSPORT_ETHERNET;
+		if(!mEthernetStatus && mConnectedTransports.get(transportType) == true) {
+			// Ethernet is connected
+			mEthernetStatus = true;
+		} else if(mEthernetStatus  && mConnectedTransports.get(transportType) == false) {
+		    // Ethernet is removed
+			mEthernetStatus = false;
+			// if wifi is enabled,
+			// enable all the configured networks to reconnect automatically when ethernet is removed.
+			if (mWifiManager.isWifiEnabled()) {
+				List<WifiConfiguration> configList = mWifiManager.getConfiguredNetworks();
+						for (WifiConfiguration c : configList) {
+							mWifiManager.enableNetwork(c.networkId, false);
+						}
+			}
+		}
     }
 
     public void dump(FileDescriptor fd, PrintWriter pw, String[] args) {
@@ -781,10 +799,12 @@ public class NetworkControllerImpl extends BroadcastReceiver
                             datatype.equals("1x") ? TelephonyIcons.ONE_X :
                             datatype.equals("3g") ? TelephonyIcons.THREE_G :
                             datatype.equals("4g") ? TelephonyIcons.FOUR_G :
+                            datatype.equals("4g+") ? TelephonyIcons.FOUR_G_PLUS :
                             datatype.equals("e") ? TelephonyIcons.E :
                             datatype.equals("g") ? TelephonyIcons.G :
                             datatype.equals("h") ? TelephonyIcons.H :
                             datatype.equals("lte") ? TelephonyIcons.LTE :
+                            datatype.equals("lte+") ? TelephonyIcons.LTE_PLUS :
                             datatype.equals("roam") ? TelephonyIcons.ROAMING :
                             TelephonyIcons.UNKNOWN;
                 }
@@ -810,11 +830,19 @@ public class NetworkControllerImpl extends BroadcastReceiver
 
     private SubscriptionInfo addSignalController(int id, int simSlotIndex) {
         SubscriptionInfo info = new SubscriptionInfo(id, "", simSlotIndex, "", "", 0, 0, "", 0,
-                null, 0, 0, "", SubscriptionManager.SIM_PROVISIONED);
+                null, 0, 0, "");
         mMobileSignalControllers.put(id, new MobileSignalController(mContext,
                 mConfig, mHasMobileDataFeature, mPhone, mCallbackHandler, this, info,
                 mSubDefaults, mReceiverHandler.getLooper()));
         return info;
+    }
+
+    public boolean hasEmergencyCryptKeeperText() {
+        return EncryptionHelper.IS_DATA_ENCRYPTED;
+    }
+
+    public boolean isRadioOn() {
+        return !mAirplaneMode;
     }
 
     private class SubListener extends OnSubscriptionsChangedListener {
@@ -850,6 +878,7 @@ public class NetworkControllerImpl extends BroadcastReceiver
         boolean showAtLeast3G = false;
         boolean alwaysShowCdmaRssi = false;
         boolean show4gForLte = false;
+        boolean hideLtePlus = false;
         boolean hspaDataDistinguishable;
 
         static Config readConfig(Context context) {
@@ -862,6 +891,7 @@ public class NetworkControllerImpl extends BroadcastReceiver
             config.show4gForLte = res.getBoolean(R.bool.config_show4GForLTE);
             config.hspaDataDistinguishable =
                     res.getBoolean(R.bool.config_hspa_data_distinguishable);
+            config.hideLtePlus = res.getBoolean(R.bool.config_hideLtePlus);
             return config;
         }
     }

@@ -15,6 +15,7 @@ package android.support.v17.leanback.transition;
 
 import android.content.Context;
 import android.os.Build;
+import android.support.annotation.RestrictTo;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,10 +23,13 @@ import android.view.Window;
 
 import java.util.ArrayList;
 
+import static android.support.annotation.RestrictTo.Scope.GROUP_ID;
+
 /**
  * Helper for view transitions.
  * @hide
  */
+@RestrictTo(GROUP_ID)
 public final class TransitionHelper {
 
     public static final int FADE_IN = 0x1;
@@ -162,18 +166,25 @@ public final class TransitionHelper {
 
         private static class TransitionStub {
             ArrayList<TransitionListener> mTransitionListeners;
+
+            TransitionStub() {
+            }
         }
 
+        @Override
         public void setEnterTransition(android.app.Fragment fragment, Object transition) {
         }
 
+        @Override
         public void setExitTransition(android.app.Fragment fragment, Object transition) {
         }
 
+        @Override
         public void setSharedElementEnterTransition(android.app.Fragment fragment,
                 Object transition) {
         }
 
+        @Override
         public void addSharedElement(android.app.FragmentTransaction ft,
                 View view, String transitionName) {
         }
@@ -528,19 +539,23 @@ public final class TransitionHelper {
 
     static final class TransitionHelperApi21Impl extends TransitionHelperKitkatImpl {
 
+        @Override
         public void setEnterTransition(android.app.Fragment fragment, Object transition) {
             TransitionHelperApi21.setEnterTransition(fragment, transition);
         }
 
+        @Override
         public void setExitTransition(android.app.Fragment fragment, Object transition) {
             TransitionHelperApi21.setExitTransition(fragment, transition);
         }
 
+        @Override
         public void setSharedElementEnterTransition(android.app.Fragment fragment,
                 Object transition) {
             TransitionHelperApi21.setSharedElementEnterTransition(fragment, transition);
         }
 
+        @Override
         public void addSharedElement(android.app.FragmentTransaction ft,
                 View view, String transitionName) {
             TransitionHelperApi21.addSharedElement(ft, view, transitionName);

@@ -1020,6 +1020,7 @@
     <declare-styleable name="TextAppearance">
         <attr name="android:textSize" />
         <attr name="android:textColor" />
+        <attr name="android:textColorHint"/>
         <attr name="android:textStyle" />
         <attr name="android:typeface" />
         <attr name="textAllCaps" />
@@ -1057,7 +1058,8 @@
 
     <declare-styleable name="AppCompatImageView">
         <attr name="android:src"/>
-        <!-- TODO -->
+        <!-- Sets a drawable as the content of this ImageView. Allows the use of vector drawable
+             when running on older versions of the platform. -->
         <attr name="srcCompat" format="reference" />
     </declare-styleable>
 
@@ -1087,6 +1089,16 @@
                  result to valid color values. Saturate(S + D) -->
             <enum name="add" value="16" />
         </attr>
+    </declare-styleable>
+
+    <declare-styleable name="AppCompatTextHelper">
+        <attr name="android:drawableLeft" />
+        <attr name="android:drawableTop" />
+        <attr name="android:drawableRight" />
+        <attr name="android:drawableBottom" />
+        <attr name="android:drawableStart" />
+        <attr name="android:drawableEnd" />
+        <attr name="android:textAppearance" />
     </declare-styleable>
 
 </resources>

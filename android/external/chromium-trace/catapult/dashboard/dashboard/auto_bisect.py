@@ -95,7 +95,6 @@ def _RestartBisect(bisect_job):
     return False
   bisect_job.config = new_bisect_job.config
   bisect_job.bot = new_bisect_job.bot
-  bisect_job.use_buildbucket = new_bisect_job.use_buildbucket
   bisect_job.put()
   try:
     start_try_job.PerformBisect(bisect_job)
@@ -166,8 +165,6 @@ def _MakeBisectTryJob(bug_id, run_count=0):
   if not bisect_bot or '_' not in bisect_bot:
     raise NotBisectableError('Could not select a bisect bot.')
 
-  use_recipe = bool(start_try_job.GetBisectDirectorForTester(bisect_bot))
-
   new_bisect_config = start_try_job.GetBisectConfig(
       bisect_bot=bisect_bot,
       master_name=test.master_name,
@@ -178,8 +175,7 @@ def _MakeBisectTryJob(bug_id, run_count=0):
       repeat_count=10,
       max_time_minutes=20,
       bug_id=bug_id,
-      use_archive='true',
-      use_buildbucket=use_recipe)
+      use_archive='true')
 
   if 'error' in new_bisect_config:
     raise NotBisectableError('Could not make a valid config.')
@@ -192,8 +188,7 @@ def _MakeBisectTryJob(bug_id, run_count=0):
       bug_id=bug_id,
       master_name=test.master_name,
       internal_only=test.internal_only,
-      job_type='bisect',
-      use_buildbucket=use_recipe)
+      job_type='bisect')
 
   return bisect_job
 
@@ -208,8 +203,8 @@ def _IsBisectJobDueForRestart(bisect_job):
 def _ChooseTest(anomalies, index=0):
   """Chooses a test to use for a bisect job.
 
-  The particular Test chosen determines the command and metric name that is
-  chosen. The test to choose could depend on which of the anomalies has the
+  The particular TestMetadata chosen determines the command and metric name that
+  is chosen. The test to choose could depend on which of the anomalies has the
   largest regression size.
 
   Ideally, the choice of bisect bot to use should be based on bisect bot queue
@@ -229,20 +224,22 @@ def _ChooseTest(anomalies, index=0):
         the same list of alerts.
 
   Returns:
-    A Test entity, or None if no valid Test could be chosen.
+    A TestMetadata entity, or None if no valid TestMetadata could be chosen.
   """
   if not anomalies:
     return None
   index %= len(anomalies)
   anomalies.sort(cmp=_CompareAnomalyBisectability)
   for anomaly_entity in anomalies[index:]:
-    if can_bisect.IsValidTestForBisect(utils.TestPath(anomaly_entity.test)):
-      return anomaly_entity.test.get()
+    if can_bisect.IsValidTestForBisect(
+        utils.TestPath(anomaly_entity.GetTestMetadataKey())):
+      return anomaly_entity.GetTestMetadataKey().get()
   return None
 
 
 def _CompareAnomalyBisectability(a1, a2):
-  """Compares two Anomalies to decide which Anomaly's Test is better to use.
+  """Compares two Anomalies to decide which Anomaly's TestMetadata is better to
+     use.
 
   TODO(qyearsley): Take other factors into account:
    - Consider bisect bot queue length. Note: If there's a simple API to fetch
@@ -291,8 +288,10 @@ def _ChooseRevisionRange(anomalies):
   Raises:
     NotBisectableError: A valid revision range could not be returned.
   """
-  good_rev, good_test = max((a.start_revision - 1, a.test) for a in anomalies)
-  bad_rev, bad_test = min((a.end_revision, a.test) for a in anomalies)
+  good_rev, good_test = max(
+      (a.start_revision - 1, a.GetTestMetadataKey()) for a in anomalies)
+  bad_rev, bad_test = min(
+      (a.end_revision, a.GetTestMetadataKey()) for a in anomalies)
   if good_rev < bad_rev:
     good_rev = _GetRevisionForBisect(good_rev, good_test)
     bad_rev = _GetRevisionForBisect(bad_rev, bad_test)
@@ -309,7 +308,7 @@ def _GetRevisionForBisect(revision, test_key):
 
   Args:
     revision: The ID of a Row, not necessarily an actual revision number.
-    test_key: The ndb.Key for a Test.
+    test_key: The ndb.Key for a TestMetadata.
 
   Returns:
     An int or string value which can be used when bisecting.

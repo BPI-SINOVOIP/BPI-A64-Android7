@@ -1,9 +1,30 @@
 /*
  * Linux cfg80211 driver - Dongle Host Driver (DHD) related
  *
- * $Copyright Open Broadcom Corporation$
+ * Copyright (C) 1999-2017, Broadcom Corporation
+ * 
+ *      Unless you and Broadcom execute a separate written software license
+ * agreement governing use of this software, this software is licensed to you
+ * under the terms of the GNU General Public License version 2 (the "GPL"),
+ * available at http://www.broadcom.com/licenses/GPLv2.php, with the
+ * following added to such license:
+ * 
+ *      As a special exception, the copyright holders of this software give you
+ * permission to link this software with independent modules, and to copy and
+ * distribute the resulting executable under terms of your choice, provided that
+ * you also meet, for each linked independent module, the terms and conditions of
+ * the license of that module.  An independent module is a module which is not
+ * derived from this software.  The special exception does not apply to any
+ * modifications of the software.
+ * 
+ *      Notwithstanding the above, under no circumstances may you combine this
+ * software in any way with any other Broadcom software provided under a license
+ * other than the GPL, without Broadcom's express prior written consent.
  *
- * $Id: wl_cfg_btcoex.c 467328 2014-04-03 01:23:40Z $
+ *
+ * <<Broadcom-WL-IPTag/Open:>>
+ *
+ * $Id: wl_cfg_btcoex.c 699163 2017-05-12 05:18:23Z $
  */
 
 #include <net/rtnetlink.h>
@@ -24,7 +45,7 @@ extern void dhd_pktfilter_offload_enable(dhd_pub_t * dhd, char *arg, int enable,
 #endif
 
 struct btcoex_info {
-	struct timer_list timer;
+	timer_list_compat_t timer;
 	u32 timer_ms;
 	u32 timer_on;
 	u32 ts_dhcp_start;	/* ms ts ecord time stats */
@@ -73,7 +94,7 @@ dev_wlc_intvar_get_reg(struct net_device *dev, char *name,
 
 	bcm_mkiovar(name, (char *)(&reg), sizeof(reg),
 		(char *)(&var), sizeof(var.buf));
-	error = wldev_ioctl(dev, WLC_GET_VAR, (char *)(&var), sizeof(var.buf), false);
+	error = wldev_ioctl_get(dev, WLC_GET_VAR, (char *)(&var), sizeof(var.buf));
 
 	*retval = dtoh32(var.val);
 	return (error);
@@ -82,15 +103,11 @@ dev_wlc_intvar_get_reg(struct net_device *dev, char *name,
 static int
 dev_wlc_bufvar_set(struct net_device *dev, char *name, char *buf, int len)
 {
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 31)
-	char ioctlbuf_local[1024];
-#else
-	static char ioctlbuf_local[1024];
-#endif /* LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 31) */
+	char ioctlbuf_local[WLC_IOCTL_SMLEN];
 
 	bcm_mkiovar(name, buf, len, ioctlbuf_local, sizeof(ioctlbuf_local));
 
-	return (wldev_ioctl(dev, WLC_SET_VAR, ioctlbuf_local, sizeof(ioctlbuf_local), true));
+	return (wldev_ioctl_set(dev, WLC_SET_VAR, ioctlbuf_local, sizeof(ioctlbuf_local)));
 }
 /*
 get named driver variable to uint register value and return error indication
@@ -289,7 +306,14 @@ static void wl_cfg80211_bt_handler(struct work_struct *work)
 {
 	struct btcoex_info *btcx_inf;
 
+#if defined(STRICT_GCC_WARNINGS) && defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-qual"
+#endif
 	btcx_inf = container_of(work, struct btcoex_info, work);
+#if defined(STRICT_GCC_WARNINGS) && defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
 
 	if (btcx_inf->timer_on) {
 		btcx_inf->timer_on = 0;
@@ -369,9 +393,7 @@ void* wl_cfg80211_btcoex_init(struct net_device *ndev)
 	btco_inf->ts_dhcp_ok = 0;
 	/* Set up timer for BT  */
 	btco_inf->timer_ms = 10;
-	init_timer(&btco_inf->timer);
-	btco_inf->timer.data = (ulong)btco_inf;
-	btco_inf->timer.function = wl_cfg80211_bt_timerfunc;
+	init_timer_compat(&btco_inf->timer, wl_cfg80211_bt_timerfunc, btco_inf);
 
 	btco_inf->dev = ndev;
 
@@ -419,19 +441,24 @@ int wl_cfg80211_set_btcoex_dhcp(struct net_device *dev, dhd_pub_t *dhd, char *co
 	if (strnicmp((char *)&powermode_val, "1", strlen("1")) == 0) {
 		WL_TRACE_HW4(("DHCP session starts\n"));
 
-#if defined(DHCP_SCAN_SUPPRESS)
-		/* Suppress scan during the DHCP */
-		wl_cfg80211_scan_suppress(dev, 1);
-#endif /* OEM_ANDROID */
 
 #ifdef PKT_FILTER_SUPPORT
 		dhd->dhcp_in_progress = 1;
 
+#if defined(WL_VIRTUAL_APSTA) && defined(APSTA_BLOCK_ARP_DURING_DHCP)
+		if ((dhd->op_mode & DHD_FLAG_CONCURR_STA_HOSTAP_MODE) ==
+			DHD_FLAG_CONCURR_STA_HOSTAP_MODE) {
+			/* Block ARP frames while DHCP of STA interface is in
+			 * progress in case of STA/SoftAP concurrent mode
+			 */
+			wl_cfg80211_block_arp(dev, TRUE);
+		} else
+#endif /* WL_VIRTUAL_APSTA && APSTA_BLOCK_ARP_DURING_DHCP */
 		if (dhd->early_suspended) {
 			WL_TRACE_HW4(("DHCP in progressing , disable packet filter!!!\n"));
 			dhd_enable_packet_filter(0, dhd);
 		}
-#endif
+#endif /* PKT_FILTER_SUPPORT */
 
 		/* Retrieve and saved orig regs value */
 		if ((saved_status == FALSE) &&
@@ -463,7 +490,8 @@ int wl_cfg80211_set_btcoex_dhcp(struct net_device *dev, dhd_pub_t *dhd, char *co
 
 					btco_inf->bt_state = BT_DHCP_START;
 					btco_inf->timer_on = 1;
-					mod_timer(&btco_inf->timer, btco_inf->timer.expires);
+					mod_timer(&btco_inf->timer,
+						timer_expires(&btco_inf->timer));
 					WL_TRACE(("enable BT DHCP Timer\n"));
 				}
 		}
@@ -474,17 +502,20 @@ int wl_cfg80211_set_btcoex_dhcp(struct net_device *dev, dhd_pub_t *dhd, char *co
 	else if (strnicmp((char *)&powermode_val, "2", strlen("2")) == 0) {
 
 
-#if defined(DHCP_SCAN_SUPPRESS)
-		/* Since DHCP is complete, enable the scan back */
-		wl_cfg80211_scan_suppress(dev, 0);
-#endif /* OEM_ANDROID */
 
 #ifdef PKT_FILTER_SUPPORT
 		dhd->dhcp_in_progress = 0;
 		WL_TRACE_HW4(("DHCP is complete \n"));
 
-		/* Enable packet filtering */
+#if defined(WL_VIRTUAL_APSTA) && defined(APSTA_BLOCK_ARP_DURING_DHCP)
+		if ((dhd->op_mode & DHD_FLAG_CONCURR_STA_HOSTAP_MODE) ==
+			DHD_FLAG_CONCURR_STA_HOSTAP_MODE) {
+			/* Unblock ARP frames */
+			wl_cfg80211_block_arp(dev, FALSE);
+		} else
+#endif /* WL_VIRTUAL_APSTA && APSTA_BLOCK_ARP_DURING_DHCP */
 		if (dhd->early_suspended) {
+			/* Enable packet filtering */
 			WL_TRACE_HW4(("DHCP is complete , enable packet filter!!!\n"));
 			dhd_enable_packet_filter(1, dhd);
 		}

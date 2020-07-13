@@ -16,21 +16,22 @@
 
 package com.android.cellbroadcastreceiver;
 
-import android.app.KeyguardManager;
+import android.app.ActivityManagerNative;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
-import android.app.ActivityManagerNative;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Binder;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.RemoteException;
 import android.os.UserHandle;
 import android.preference.PreferenceManager;
 import android.provider.Telephony;
+import android.telephony.CarrierConfigManager;
 import android.telephony.CellBroadcastMessage;
 import android.telephony.SmsCbCmasInfo;
 import android.telephony.SmsCbEtwsInfo;
@@ -38,6 +39,11 @@ import android.telephony.SmsCbLocation;
 import android.telephony.SmsCbMessage;
 import android.telephony.SubscriptionManager;
 import android.util.Log;
+
+import com.android.cellbroadcastreceiver.CellBroadcastAlertAudio.ToneType;
+import com.android.cellbroadcastreceiver.CellBroadcastOtherChannelsManager.CellBroadcastChannelRange;
+import com.android.internal.annotations.VisibleForTesting;
+import com.android.internal.telephony.PhoneConstants;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -50,7 +56,7 @@ import java.util.Locale;
  * (but not when the user views a previously received broadcast).
  */
 public class CellBroadcastAlertService extends Service {
-    private static final String TAG = "CellBroadcastAlertService";
+    private static final String TAG = "CBAlertService";
 
     /** Intent action to display alert dialog/notification, after verifying the alert is new. */
     static final String SHOW_NEW_ALERT_ACTION = "cellbroadcastreceiver.SHOW_NEW_ALERT";
@@ -164,6 +170,12 @@ public class CellBroadcastAlertService extends Service {
         }
 
         final CellBroadcastMessage cbm = new CellBroadcastMessage(message);
+        int subId = intent.getExtras().getInt(PhoneConstants.SUBSCRIPTION_KEY);
+        if (SubscriptionManager.isValidSubscriptionId(subId)) {
+            cbm.setSubId(subId);
+        } else {
+            Log.e(TAG, "Invalid subscription id");
+        }
 
         if (!isMessageEnabledByUser(cbm)) {
             Log.d(TAG, "ignoring alert of type " + cbm.getServiceCategory() +
@@ -256,12 +268,15 @@ public class CellBroadcastAlertService extends Service {
             return;
         }
 
-        if (CellBroadcastConfigService.isEmergencyAlertMessage(cbm)) {
+        if (isEmergencyMessage(this, cbm)) {
             // start alert sound / vibration / TTS and display full-screen alert
             openEmergencyAlertNotification(cbm);
         } else {
-            // add notification to the bar
-            addToNotificationBar(cbm);
+            // add notification to the bar by passing the list of unread non-emergency
+            // CellBroadcastMessages
+            ArrayList<CellBroadcastMessage> messageList = CellBroadcastReceiverApp
+                    .addNewMessageToList(cbm);
+            addToNotificationBar(cbm, messageList, this, false);
         }
     }
 
@@ -285,7 +300,8 @@ public class CellBroadcastAlertService extends Service {
 
         // Check if ETWS/CMAS test message is forced to disabled on the device.
         boolean forceDisableEtwsCmasTest =
-                CellBroadcastSettings.isEtwsCmasTestMessageForcedDisabled(this);
+                CellBroadcastSettings.isFeatureEnabled(this,
+                        CarrierConfigManager.KEY_CARRIER_FORCE_DISABLE_ETWS_CMAS_TEST_BOOL, false);
 
         if (message.isEtwsTestMessage()) {
             return emergencyAlertEnabled &&
@@ -365,26 +381,47 @@ public class CellBroadcastAlertService extends Service {
         audioIntent.setAction(CellBroadcastAlertAudio.ACTION_START_ALERT_AUDIO);
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
 
-        int duration;   // alert audio duration in ms
-        if (message.isCmasMessage()) {
-            // CMAS requirement: duration of the audio attention signal is 10.5 seconds.
-            duration = 10500;
-        } else {
-            duration = Integer.parseInt(prefs.getString(
-                    CellBroadcastSettings.KEY_ALERT_SOUND_DURATION,
-                    CellBroadcastSettings.ALERT_SOUND_DEFAULT_DURATION)) * 1000;
-        }
-        audioIntent.putExtra(CellBroadcastAlertAudio.ALERT_AUDIO_DURATION_EXTRA, duration);
-
+        ToneType toneType = ToneType.CMAS_DEFAULT;
         if (message.isEtwsMessage()) {
             // For ETWS, always vibrate, even in silent mode.
             audioIntent.putExtra(CellBroadcastAlertAudio.ALERT_AUDIO_VIBRATE_EXTRA, true);
             audioIntent.putExtra(CellBroadcastAlertAudio.ALERT_AUDIO_ETWS_VIBRATE_EXTRA, true);
+            toneType = ToneType.ETWS_DEFAULT;
+
+            if (message.getEtwsWarningInfo() != null) {
+                int warningType = message.getEtwsWarningInfo().getWarningType();
+
+                switch (warningType) {
+                    case SmsCbEtwsInfo.ETWS_WARNING_TYPE_EARTHQUAKE:
+                    case SmsCbEtwsInfo.ETWS_WARNING_TYPE_EARTHQUAKE_AND_TSUNAMI:
+                        toneType = ToneType.EARTHQUAKE;
+                        break;
+                    case SmsCbEtwsInfo.ETWS_WARNING_TYPE_TSUNAMI:
+                        toneType = ToneType.TSUNAMI;
+                        break;
+                    case SmsCbEtwsInfo.ETWS_WARNING_TYPE_OTHER_EMERGENCY:
+                        toneType = ToneType.OTHER;
+                        break;
+                }
+            }
         } else {
             // For other alerts, vibration can be disabled in app settings.
             audioIntent.putExtra(CellBroadcastAlertAudio.ALERT_AUDIO_VIBRATE_EXTRA,
                     prefs.getBoolean(CellBroadcastSettings.KEY_ENABLE_ALERT_VIBRATE, true));
+            int channel = message.getServiceCategory();
+            ArrayList<CellBroadcastChannelRange> ranges= CellBroadcastOtherChannelsManager.
+                    getInstance().getCellBroadcastChannelRanges(getApplicationContext(),
+                    message.getSubId());
+            if (ranges != null) {
+                for (CellBroadcastChannelRange range : ranges) {
+                    if (channel >= range.mStartId && channel <= range.mEndId) {
+                        toneType = range.mToneType;
+                        break;
+                    }
+                }
+            }
         }
+        audioIntent.putExtra(CellBroadcastAlertAudio.ALERT_AUDIO_TONE_TYPE, toneType);
 
         String messageBody = message.getMessageBody();
 
@@ -396,14 +433,15 @@ public class CellBroadcastAlertService extends Service {
             if (message.isEtwsMessage()) {
                 // Only do TTS for ETWS secondary message.
                 // There is no text in ETWS primary message. When we construct the ETWS primary
-                // message, we hardcode "ETWS" as the body hence we don't want to speak that out here.
-                
+                // message, we hardcode "ETWS" as the body hence we don't want to speak that out
+                // here.
+
                 // Also in many cases we see the secondary message comes few milliseconds after
                 // the primary one. If we play TTS for the primary one, It will be overwritten by
                 // the secondary one immediately anyway.
                 if (!message.getEtwsWarningInfo().isPrimary()) {
-                    // Since only Japanese carriers are using ETWS, if there is no language specified
-                    // in the ETWS message, we'll use Japanese as the default language.
+                    // Since only Japanese carriers are using ETWS, if there is no language
+                    // specified in the ETWS message, we'll use Japanese as the default language.
                     defaultLanguage = "ja";
                 }
             } else {
@@ -421,18 +459,11 @@ public class CellBroadcastAlertService extends Service {
         }
         startService(audioIntent);
 
-        // Decide which activity to start based on the state of the keyguard.
-        Class c = CellBroadcastAlertDialog.class;
-        KeyguardManager km = (KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE);
-        if (km.inKeyguardRestrictedInputMode()) {
-            // Use the full screen activity for security.
-            c = CellBroadcastAlertFullScreen.class;
-        }
-
         ArrayList<CellBroadcastMessage> messageList = new ArrayList<CellBroadcastMessage>(1);
         messageList.add(message);
 
-        Intent alertDialogIntent = createDisplayMessageIntent(this, c, messageList);
+        Intent alertDialogIntent = createDisplayMessageIntent(this, CellBroadcastAlertDialog.class,
+                messageList);
         alertDialogIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(alertDialogIntent);
     }
@@ -442,32 +473,32 @@ public class CellBroadcastAlertService extends Service {
      * high-priority immediate intent for emergency alerts.
      * @param message the alert to display
      */
-    private void addToNotificationBar(CellBroadcastMessage message) {
-        int channelTitleId = CellBroadcastResources.getDialogTitleResource(message);
-        CharSequence channelName = getText(channelTitleId);
+    static void addToNotificationBar(CellBroadcastMessage message,
+                                     ArrayList<CellBroadcastMessage> messageList, Context context,
+                                     boolean fromSaveState) {
+        int channelTitleId = CellBroadcastResources.getDialogTitleResource(context, message);
+        CharSequence channelName = context.getText(channelTitleId);
         String messageBody = message.getMessageBody();
 
-        // Pass the list of unread non-emergency CellBroadcastMessages
-        ArrayList<CellBroadcastMessage> messageList = CellBroadcastReceiverApp
-                .addNewMessageToList(message);
-
         // Create intent to show the new messages when user selects the notification.
-        Intent intent = createDisplayMessageIntent(this, CellBroadcastAlertDialog.class,
+        Intent intent = createDisplayMessageIntent(context, CellBroadcastAlertDialog.class,
                 messageList);
-        intent.putExtra(CellBroadcastAlertFullScreen.FROM_NOTIFICATION_EXTRA, true);
 
-        PendingIntent pi = PendingIntent.getActivity(this, NOTIFICATION_ID, intent,
+        intent.putExtra(CellBroadcastAlertDialog.FROM_NOTIFICATION_EXTRA, true);
+        intent.putExtra(CellBroadcastAlertDialog.FROM_SAVE_STATE_NOTIFICATION_EXTRA, fromSaveState);
+
+        PendingIntent pi = PendingIntent.getActivity(context, NOTIFICATION_ID, intent,
                 PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_UPDATE_CURRENT);
 
         // use default sound/vibration/lights for non-emergency broadcasts
-        Notification.Builder builder = new Notification.Builder(this)
+        Notification.Builder builder = new Notification.Builder(context)
                 .setSmallIcon(R.drawable.ic_notify_alert)
                 .setTicker(channelName)
                 .setWhen(System.currentTimeMillis())
                 .setContentIntent(pi)
                 .setCategory(Notification.CATEGORY_SYSTEM)
                 .setPriority(Notification.PRIORITY_HIGH)
-                .setColor(getResources().getColor(R.color.notification_color))
+                .setColor(context.getResources().getColor(R.color.notification_color))
                 .setVisibility(Notification.VISIBILITY_PUBLIC)
                 .setDefaults(Notification.DEFAULT_ALL);
 
@@ -477,14 +508,13 @@ public class CellBroadcastAlertService extends Service {
         int unreadCount = messageList.size();
         if (unreadCount > 1) {
             // use generic count of unread broadcasts if more than one unread
-            builder.setContentTitle(getString(R.string.notification_multiple_title));
-            builder.setContentText(getString(R.string.notification_multiple, unreadCount));
+            builder.setContentTitle(context.getString(R.string.notification_multiple_title));
+            builder.setContentText(context.getString(R.string.notification_multiple, unreadCount));
         } else {
             builder.setContentTitle(channelName).setContentText(messageBody);
         }
 
-        NotificationManager notificationManager =
-            (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
+        NotificationManager notificationManager = NotificationManager.from(context);
 
         notificationManager.notify(NOTIFICATION_ID, builder.build());
     }
@@ -497,8 +527,53 @@ public class CellBroadcastAlertService extends Service {
         return intent;
     }
 
+    @VisibleForTesting
     @Override
     public IBinder onBind(Intent intent) {
-        return null;    // clients can't bind to this service
+        return new LocalBinder();
+    }
+
+    @VisibleForTesting
+    class LocalBinder extends Binder {
+        public CellBroadcastAlertService getService() {
+            return CellBroadcastAlertService.this;
+        }
+    }
+
+    /**
+     * Check if the cell broadcast message is an emergency message or not
+     * @param context Device context
+     * @param cbm Cell broadcast message
+     * @return True if the message is an emergency message, otherwise false.
+     */
+    public static boolean isEmergencyMessage(Context context, CellBroadcastMessage cbm) {
+        boolean isEmergency = false;
+
+        if (cbm == null) {
+            return false;
+        }
+
+        int id = cbm.getServiceCategory();
+        int subId = cbm.getSubId();
+
+        if (cbm.isEmergencyAlertMessage()) {
+            isEmergency = true;
+        } else {
+            ArrayList<CellBroadcastChannelRange> ranges = CellBroadcastOtherChannelsManager.
+                    getInstance().getCellBroadcastChannelRanges(context, subId);
+
+            if (ranges != null) {
+                for (CellBroadcastChannelRange range : ranges) {
+                    if (range.mStartId <= id && range.mEndId >= id) {
+                        isEmergency = range.mIsEmergency;
+                        break;
+                    }
+                }
+            }
+        }
+
+        Log.d(TAG, "isEmergencyMessage: " + isEmergency + ", subId = " + subId + ", " +
+                "message id = " + id);
+        return isEmergency;
     }
 }

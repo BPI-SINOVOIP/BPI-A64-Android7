@@ -1,0 +1,7 @@
+[
+  {
+    "name": "$result",
+    "reason": "Failed to parse branch from: foo/var@{missing-hash}",
+    "status_code": 1
+  }
+]

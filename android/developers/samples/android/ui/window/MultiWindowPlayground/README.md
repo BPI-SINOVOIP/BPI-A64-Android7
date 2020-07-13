@@ -47,8 +47,9 @@ Alternatively, the preferred and minimum sizes can be set in a new
 
 Pre-requisites
 --------------
-- Android SDK Preview N
-- Android Build Tools v23.0.0
+
+- Android SDK 24
+- Android Build Tools v24.0.2
 - Android Support Repository
 
 Screenshots

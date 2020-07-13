@@ -419,10 +419,11 @@
 
     <!-- Strings for Location GNSS tests -->
     <string name="location_gnss_constellation_type_test">GNSS Measurement Constellation Test</string>
-    <string name="location_gnss_measure_no_location_test">GNSS Measurement WhenNoLocation Test</string>
+    <string name="location_gnss_measure_no_location_test">GNSS Measurement Before Location Test</string>
     <string name="location_gnss_reg_test">GNSS Measurement Registration Test</string>
     <string name="location_gnss_value_test">GNSS Measurement Values Test</string>
     <string name="location_gnss_nav_msg_test">GNSS Navigation Message Test</string>
+    <string name="location_gnss_status_test">GNSS Status Test</string>
     <string name="location_gnss_test_info">This test verifies basic GNSS behavior.
         Make sure the device has line of sight to GNSS satellites
         (for example, stationary on a windowsill.  If needed, try again, outside, also with the
@@ -991,6 +992,10 @@
     </string>
     <string name="its_test_passed">All Camera ITS tests passed.  Pass button enabled!</string>
     <string name="its_test_failed">Some Camera ITS tests failed.</string>
+    <string name="its_version_mismatch">
+        CtsVerifier and ITS script version mismatch. Please update CtsVerifier and ITS script.
+    </string>
+    <string name="its_test_progress">ITS test progress will be shown here.</string>
 
     <!-- Strings for the Camera Flashlight test activity -->
     <string name="camera_flashlight_test">Camera Flashlight</string>
@@ -1199,6 +1204,16 @@
     <string name="package_priority_high">Find \"%s\" in the \"Notifications\" settings panel, and allow it to Override Do Not Disturb.</string>
     <string name="package_priority_default">Find \"%s\" in the \"Notifications\" settings panel, and disallow it to Override Do Not Disturb.</string>
     <string name="package_priority_user_order">Check that ranker respects user priorities.</string>
+
+    <string name="shortcut_reset_test">Shortcut Reset Rate-limiting Test</string>
+    <string name="shortcut_reset_info">This test checks that when an inline-reply happens, ShortcutManager\'s rate-limiting
+        is reset.</string>
+    <string name="shortcut_reset_bot">Verifying that the CTS Robot helper package is installed.</string>
+    <string name="shortcut_reset_start">Showing the notification.</string>
+    <string name="shortcut_reset_prompt_inline_reply">Open the notification shade,
+        find the \"Shortcut Reset Rate-limiting Test\" notification, type something in the inline-reply field and
+        press the send button.</string>
+    <string name="shortcut_reset_check_result">Check ShortcutManager rate-limit has been reset.</string>
 
     <string name="attention_test">Notification Attention Management Test</string>
     <string name="attention_info">This test checks that the NotificationManagerService is
@@ -2217,8 +2232,7 @@ You should be prompted to select credentials; choose the ones you just installed
     <string name="device_owner_disallow_config_wifi_info">
         Please press the Set restriction button to set the user restriction.
         Then press Go to open the WiFi page in Settings.
-        Confirm that:\n
-        \n
+        Confirm that:\n\n
         - You cannot view WiFi networks in range.\n
         - Trying to edit, add or remove any existing WiFi configs triggers a support message.\n
         \n
@@ -2229,12 +2243,23 @@ You should be prompted to select credentials; choose the ones you just installed
         Device should have a sim card to perform this test.
         Please press the Set restriction button to set the user restriction.
         Then press Go to open the Cellular network page in Settings.
-        Confirm that:\n
-        \n
+        Confirm that:\n\n
         - Data roaming is disabled.\n
-        - Enabling data roaming is not possible and triggers a support message.\n
-        \n
+        - Enabling data roaming is not possible and triggers a support message.\n\n
         Use the Back button to return to this page.
+    </string>
+    <string name="device_owner_disallow_factory_reset">Disallow factory reset</string>
+    <string name="device_owner_disallow_factory_reset_info">
+        Please press the Set button to set the user restriction.\n
+        1. Go to the factory reset settings. It is often located in \"Backup &amp; reset\" settings.\n
+        Confirm that:\n
+           - Factory data reset is disabled.\n
+           - Pressing factory data reset is not possible and triggers a support message.\n\n
+        2. Go to OEM unlocking settings, if this device has this Settings option. It is often located under \"Developer options\".\n
+        Confirm that:\n
+           - Oem Unlocking is disabled.\n
+           - Enabling Oem unlocking is not possible and triggers a support message.\n\n
+        Return back to this page.
     </string>
     <string name="device_owner_user_restriction_set">Set restriction</string>
     <string name="device_owner_settings_go">Go</string>
@@ -2583,9 +2608,9 @@ You should be prompted to select credentials; choose the ones you just installed
     Is there an option to turn off parental controls on this device?
     </string>
     <string name="tv_parental_control_test_block_tv_ma">
-    Select the \"Launch TV app\" button and block the \"Fake\" rating for \"CtsVerifier\" rating
+    Select the \"Launch TV app\" button and block the \"Custom Rating\" for \"CtsVerifier\" rating
     system in the parental control settings. If the rating system is disabled by default, enable it.
-    If the \"Fake\" rating is already blocked, unblock it, save, and then block again.
+    If the \"Custom Rating\" is already blocked, unblock it, save, and then block again.
     </string>
     <string name="tv_parental_control_test_verify_receive_broadcast2">
     TV input service must have received ACTION_BLOCKED_RATINGS_CHANGED broadcast.
@@ -2680,7 +2705,7 @@ You should be prompted to select credentials; choose the ones you just installed
     </string>
 
     <string name="overlay_view_text">Overlay View Dummy Text</string>
-    <string name="fake_rating">Fake</string>
+    <string name="custom_rating">Example of input app specific custom rating.</string>
 
     <!-- A list of fully-qualified test classes that should not be run. -->
     <string-array name="disabled_tests" />

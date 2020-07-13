@@ -1,0 +1,17 @@
+group = 'com.android.tools'
+archivesBaseName = 'sdkuilib'
+
+dependencies {
+    compile project(':base:sdklib')
+    compile project(':swt:swtmenubar')
+
+    testCompile project(':base:testutils')
+    testCompile project(':base:sdklib-test')
+    testCompile 'junit:junit:3.8.1'
+}
+
+sourceSets {
+    main.resources.srcDir 'src/main/java'
+    test.resources.srcDir 'src/test/java'
+}
+

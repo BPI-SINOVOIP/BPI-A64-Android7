@@ -47,6 +47,11 @@
     <string name="callFailed_unobtainable_number" msgid="124621797631734731">"Número inválido"</string>
     <string name="incall_error_missing_voicemail_number" msgid="3651090591812220874">"Número do correio de voz desconhecido."</string>
     <string name="callFailed_video_call_tty_enabled" msgid="186585701668604271">"Não é possível efetuar videochamadas quando o teletipo está ativado."</string>
+    <string name="callEnded_pulled" msgid="437630601519502587">"A chamada foi transferida para outro dispositivo."</string>
     <string name="ringtone_silent" msgid="249805466934178869">"Nenhum"</string>
     <string name="ringtone_unknown" msgid="2303463713486734520">"Toque desconhecido"</string>
+    <string name="callFailed_maximum_reached" msgid="4823790040422765056">"Todas as linhas disponíveis estão a ser utilizadas. Para fazer uma chamada, desligue uma das chamadas neste dispositivo ou num dos seus outros dispositivos."</string>
+    <string name="callFailed_data_disabled" msgid="3885826754435317856">"A chamada terminou porque os dados móveis estavam desativados."</string>
+    <string name="callFailed_data_limit_reached_description" msgid="1439284832802552582">"A chamada terminou porque atingiu o limite dos dados móveis."</string>
+    <string name="callFailed_data_limit_reached" msgid="7045770594965160282">"O limite de dados foi atingido. A chamada foi terminada."</string>
 </resources>

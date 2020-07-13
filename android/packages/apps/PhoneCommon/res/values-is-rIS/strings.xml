@@ -47,6 +47,11 @@
     <string name="callFailed_unobtainable_number" msgid="124621797631734731">"Ógilt númer"</string>
     <string name="incall_error_missing_voicemail_number" msgid="3651090591812220874">"Talhólfsnúmer óþekkt."</string>
     <string name="callFailed_video_call_tty_enabled" msgid="186585701668604271">"Getur ekki hringt myndsímtöl þegar kveikt er á fjarrita."</string>
+    <string name="callEnded_pulled" msgid="437630601519502587">"Símtal flutt í annað tæki."</string>
     <string name="ringtone_silent" msgid="249805466934178869">"Ekkert"</string>
     <string name="ringtone_unknown" msgid="2303463713486734520">"Óþekktur hringitónn"</string>
+    <string name="callFailed_maximum_reached" msgid="4823790040422765056">"Allar línur eru uppteknar. Til að hringja símtal þarftu að ljúka einu símtali á þessu tæki eða á öðrum tækjum."</string>
+    <string name="callFailed_data_disabled" msgid="3885826754435317856">"Símtalinu lauk vegna þess að slökkt var á farsímagögnum."</string>
+    <string name="callFailed_data_limit_reached_description" msgid="1439284832802552582">"Símtalinu lauk vegna þess að farsímagagnahámarki var náð."</string>
+    <string name="callFailed_data_limit_reached" msgid="7045770594965160282">"Gagnamörkum náð. Símtali slitið."</string>
 </resources>

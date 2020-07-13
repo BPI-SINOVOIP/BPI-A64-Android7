@@ -60,6 +60,7 @@ import com.android.settingslib.RestrictedPreference;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class WirelessSettings extends SettingsPreferenceFragment implements Indexable {
@@ -75,6 +76,7 @@ public class WirelessSettings extends SettingsPreferenceFragment implements Inde
     private static final String KEY_MOBILE_NETWORK_SETTINGS = "mobile_network_settings";
     private static final String KEY_MANAGE_MOBILE_PLAN = "manage_mobile_plan";
     private static final String KEY_WFC_SETTINGS = "wifi_calling_settings";
+    private static final String KEY_NETWORK_RESET = "network_reset";
 
     public static final String EXIT_ECM_RESULT = "exit_ecm_result";
     public static final int REQUEST_CODE_EXIT_ECM = 1;
@@ -354,6 +356,12 @@ public class WirelessSettings extends SettingsPreferenceFragment implements Inde
             p.setEnabled(!TetherSettings
                     .isProvisioningNeededButUnavailable(getActivity()));
         }
+
+        // Remove network reset if not allowed
+        if (RestrictedLockUtils.hasBaseUserRestriction(activity,
+                UserManager.DISALLOW_NETWORK_RESET, UserHandle.myUserId())) {
+            removePreference(KEY_NETWORK_RESET);
+        }
     }
 
     @Override
@@ -377,11 +385,12 @@ public class WirelessSettings extends SettingsPreferenceFragment implements Inde
 
         // update WFC setting
         final Context context = getActivity();
-        if (ImsManager.isWfcEnabledByPlatform(context)) {
+        if (ImsManager.isWfcEnabledByPlatform(context) &&
+                ImsManager.isWfcProvisionedOnDevice(context)) {
             getPreferenceScreen().addPreference(mButtonWfc);
 
             mButtonWfc.setSummary(WifiCallingSettings.getWfcModeSummary(
-                    context, ImsManager.getWfcMode(context)));
+                    context, ImsManager.getWfcMode(context, mTm.isNetworkRoaming())));
         } else {
             removePreference(KEY_WFC_SETTINGS);
         }
@@ -431,6 +440,10 @@ public class WirelessSettings extends SettingsPreferenceFragment implements Inde
             @Override
             public List<SearchIndexableResource> getXmlResourcesToIndex(
                     Context context, boolean enabled) {
+                // Remove wireless settings from search in demo mode
+                if (UserManager.isDeviceInDemoMode(context)) {
+                    return Collections.emptyList();
+                }
                 SearchIndexableResource sir = new SearchIndexableResource(context);
                 sir.xmlResId = R.xml.wireless_settings;
                 return Arrays.asList(sir);
@@ -495,8 +508,14 @@ public class WirelessSettings extends SettingsPreferenceFragment implements Inde
                     result.add(KEY_TETHER_SETTINGS);
                 }
 
-                if (!ImsManager.isWfcEnabledByPlatform(context)) {
+                if (!ImsManager.isWfcEnabledByPlatform(context) ||
+                        !ImsManager.isWfcProvisionedOnDevice(context)) {
                     result.add(KEY_WFC_SETTINGS);
+                }
+
+                if (RestrictedLockUtils.hasBaseUserRestriction(context,
+                        UserManager.DISALLOW_NETWORK_RESET, UserHandle.myUserId())) {
+                    result.add(KEY_NETWORK_RESET);
                 }
 
                 return result;

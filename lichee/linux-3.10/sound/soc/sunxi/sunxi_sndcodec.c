@@ -19,7 +19,6 @@
 #include <linux/gpio.h>
 #include <linux/io.h>
 #include <linux/input.h>
-#include <linux/android_switch.h>
 #include <sound/pcm.h>
 #include <sound/soc.h>
 #include <sound/jack.h>
@@ -28,6 +27,7 @@
 #include <sound/soc-dapm.h>
 #include "sunxi_codec.h"
 #include <linux/delay.h>
+#include <linux/switch.h>
 
 #include "sunxi_rw_func.h"
 

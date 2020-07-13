@@ -31,7 +31,13 @@ def main():
         fd_modes = props['android.statistics.info.availableFaceDetectModes']
         a = props['android.sensor.info.activeArraySize']
         aw, ah = a['right'] - a['left'], a['bottom'] - a['top']
-        cam.do_3a()
+        gain, exp, _, _, focus = cam.do_3a(get_results=True)
+        print 'iso = %d' % gain
+        print 'exp = %.2fms' % (exp*1.0E-6)
+        if focus == 0.0:
+            print 'fd = infinity'
+        else:
+            print 'fd = %.2fcm' % (1.0E2/focus)
         for fd_mode in fd_modes:
             assert(FD_MODE_OFF <= fd_mode <= FD_MODE_FULL)
             req = its.objects.auto_capture_request()
@@ -41,6 +47,9 @@ def main():
                 md = cap['metadata']
                 assert(md['android.statistics.faceDetectMode'] == fd_mode)
                 faces = md['android.statistics.faces']
+                img = its.image.convert_capture_to_rgb_image(cap, props=props)
+                img_name = "%s_fd_mode_%s.jpg" % (NAME, fd_mode)
+                its.image.write_image(img, img_name)
 
                 # 0 faces should be returned for OFF mode
                 if fd_mode == FD_MODE_OFF:

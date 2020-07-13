@@ -1657,6 +1657,22 @@ VkImageUsageFlags getValidImageUsageFlags (VkFormat, VkFormatFeatureFlags suppor
 
 bool isValidImageUsageFlagCombination (VkImageUsageFlags usage)
 {
+	if ((usage & VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT) != 0)
+	{
+		const VkImageUsageFlags		allowedFlags	= VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT
+													| VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT
+													| VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT
+													| VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;
+
+		// Only *_ATTACHMENT_BIT flags can be combined with TRANSIENT_ATTACHMENT_BIT
+		if ((usage & ~allowedFlags) != 0)
+			return false;
+
+		// TRANSIENT_ATTACHMENT_BIT is not valid without COLOR_ or DEPTH_STENCIL_ATTACHMENT_BIT
+		if ((usage & (VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT|VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)) == 0)
+			return false;
+	}
+
 	return usage != 0;
 }
 
@@ -1727,26 +1743,55 @@ VkSampleCountFlags getRequiredOptimalTilingSampleCounts (const VkPhysicalDeviceL
 {
 	if (!isCompressedFormat(format))
 	{
-		const tcu::TextureFormat		tcuFormat	= mapVkFormat(format);
+		const tcu::TextureFormat		tcuFormat		= mapVkFormat(format);
+		const bool						hasDepthComp	= (tcuFormat.order == tcu::TextureFormat::D || tcuFormat.order == tcu::TextureFormat::DS);
+		const bool						hasStencilComp	= (tcuFormat.order == tcu::TextureFormat::S || tcuFormat.order == tcu::TextureFormat::DS);
+		const bool						isColorFormat	= !hasDepthComp && !hasStencilComp;
+		VkSampleCountFlags				sampleCounts	= ~(VkSampleCountFlags)0;
 
-		if (usageFlags & VK_IMAGE_USAGE_STORAGE_BIT)
-			return deviceLimits.storageImageSampleCounts;
-		else if (tcuFormat.order == tcu::TextureFormat::D)
-			return deviceLimits.sampledImageDepthSampleCounts;
-		else if (tcuFormat.order == tcu::TextureFormat::S)
-			return deviceLimits.sampledImageStencilSampleCounts;
-		else if (tcuFormat.order == tcu::TextureFormat::DS)
-			return deviceLimits.sampledImageDepthSampleCounts & deviceLimits.sampledImageStencilSampleCounts;
-		else
+		DE_ASSERT((hasDepthComp || hasStencilComp) != isColorFormat);
+
+		if ((usageFlags & VK_IMAGE_USAGE_STORAGE_BIT) != 0)
+			sampleCounts &= deviceLimits.storageImageSampleCounts;
+
+		if ((usageFlags & VK_IMAGE_USAGE_SAMPLED_BIT) != 0)
 		{
-			const tcu::TextureChannelClass	chnClass	= tcu::getTextureChannelClass(tcuFormat.type);
+			if (hasDepthComp)
+				sampleCounts &= deviceLimits.sampledImageDepthSampleCounts;
 
-			if (chnClass == tcu::TEXTURECHANNELCLASS_UNSIGNED_INTEGER ||
-				chnClass == tcu::TEXTURECHANNELCLASS_SIGNED_INTEGER)
-				return deviceLimits.sampledImageIntegerSampleCounts;
-			else
-				return deviceLimits.sampledImageColorSampleCounts;
+			if (hasStencilComp)
+				sampleCounts &= deviceLimits.sampledImageStencilSampleCounts;
+
+			if (isColorFormat)
+			{
+				const tcu::TextureChannelClass	chnClass	= tcu::getTextureChannelClass(tcuFormat.type);
+
+				if (chnClass == tcu::TEXTURECHANNELCLASS_UNSIGNED_INTEGER ||
+					chnClass == tcu::TEXTURECHANNELCLASS_SIGNED_INTEGER)
+					sampleCounts &= deviceLimits.sampledImageIntegerSampleCounts;
+				else
+					sampleCounts &= deviceLimits.sampledImageColorSampleCounts;
+			}
 		}
+
+		if ((usageFlags & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT) != 0)
+			sampleCounts &= deviceLimits.framebufferColorSampleCounts;
+
+		if ((usageFlags & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT) != 0)
+		{
+			if (hasDepthComp)
+				sampleCounts &= deviceLimits.framebufferDepthSampleCounts;
+
+			if (hasStencilComp)
+				sampleCounts &= deviceLimits.framebufferStencilSampleCounts;
+		}
+
+		// If there is no usage flag set that would have corresponding device limit,
+		// only VK_SAMPLE_COUNT_1_BIT is required.
+		if (sampleCounts == ~(VkSampleCountFlags)0)
+			sampleCounts &= VK_SAMPLE_COUNT_1_BIT;
+
+		return sampleCounts;
 	}
 	else
 		return VK_SAMPLE_COUNT_1_BIT;
@@ -1842,8 +1887,26 @@ tcu::TestStatus imageFormatProperties (Context& context, ImageFormatPropertyCase
 
 				if (tiling == VK_IMAGE_TILING_OPTIMAL)
 				{
-					const VkSampleCountFlags	requiredSampleCounts	= getRequiredOptimalTilingSampleCounts(deviceLimits, format, curUsageFlags);
-					results.check((properties.sampleCounts & requiredSampleCounts) == requiredSampleCounts, "Required sample counts not supported");
+					// Vulkan API specification has changed since initial Android Nougat release.
+					// For NYC CTS we need to tolerate old behavior as well and issue compatibility
+					// warning instead.
+					//
+					// See spec issues 272, 282, 302, 445 and CTS issues 369, 440.
+					const bool	requiredByNewSpec	= (imageType == VK_IMAGE_TYPE_2D && !(curCreateFlags & VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT) &&
+													  ((supportedFeatures & (VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT)) ||
+													  ((supportedFeatures & VK_FORMAT_FEATURE_STORAGE_IMAGE_BIT) && deviceFeatures.shaderStorageImageMultisample)));
+
+					if (requiredByNewSpec)
+					{
+						const VkSampleCountFlags	requiredSampleCounts	= getRequiredOptimalTilingSampleCounts(deviceLimits, format, curUsageFlags);
+
+						results.check((properties.sampleCounts & requiredSampleCounts) == requiredSampleCounts, "Required sample counts not supported");
+					}
+					else if (properties.sampleCounts != VK_SAMPLE_COUNT_1_BIT)
+					{
+						results.addResult(QP_TEST_RESULT_COMPATIBILITY_WARNING,
+									      "Implementation supports more sample counts than allowed by the spec");
+					}
 				}
 				else
 					results.check(properties.sampleCounts == VK_SAMPLE_COUNT_1_BIT, "sampleCounts != VK_SAMPLE_COUNT_1_BIT");

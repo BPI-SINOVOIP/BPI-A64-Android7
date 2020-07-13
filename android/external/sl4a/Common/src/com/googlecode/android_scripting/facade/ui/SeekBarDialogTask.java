@@ -32,7 +32,6 @@ import org.json.JSONObject;
 /**
  * Wrapper class for dialog box with seek bar.
  *
- * @author MeanEYE.rcf (meaneye.rcf@gmail.com)
  */
 public class SeekBarDialogTask extends DialogTask {
 

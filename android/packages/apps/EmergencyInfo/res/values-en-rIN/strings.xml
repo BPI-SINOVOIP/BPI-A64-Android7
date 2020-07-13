@@ -96,7 +96,8 @@
     <string name="user_emergency_info_title" msgid="7827058167207376581">"Emergency information"</string>
     <string name="user_emergency_info_consent" msgid="5636028073450797246">"Information that you enter here can help the first-response team in an emergency. It is stored on your device only and anyone can read it from the emergency dialler without unlocking your phone."</string>
     <string name="emergency_info_continue" msgid="5453201508537906087">"Continue"</string>
-    <string name="no_info_provided" msgid="6775035037534954056">"No emergency information provided"</string>
+    <string name="no_info_provided" msgid="716200382010821001">"No information about the phone\'s owner"</string>
+    <string name="tap_pencil" msgid="2723698054265296934">"If this is your phone, tap the pencil icon to add information that will be displayed here in case of emergency"</string>
     <string name="clear_all" msgid="8899013032870561633">"Clear all"</string>
     <string name="clear" msgid="3648880442502887163">"Clear"</string>
     <string name="clear_all_message" msgid="1548432000373861295">"Clear all information and contacts?"</string>

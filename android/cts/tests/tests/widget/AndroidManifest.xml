@@ -222,7 +222,8 @@
         </activity>
 
         <activity android:name="android.widget.cts.PopupWindowCtsActivity"
-            android:label="PopupWindowCtsActivity">
+            android:label="PopupWindowCtsActivity"
+            android:theme="@android:style/Theme.Holo">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.FRAMEWORK_INSTRUMENTATION_TEST" />
@@ -374,6 +375,14 @@
 
         <activity android:name="android.widget.cts.DatePickerDialogCtsActivity"
                   android:label="DatePickerDialogCtsActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.FRAMEWORK_INSTRUMENTATION_TEST" />
+            </intent-filter>
+        </activity>
+
+        <activity android:name="android.widget.cts.TimePickerDialogCtsActivity"
+                  android:label="TimePickerDialogCtsActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.FRAMEWORK_INSTRUMENTATION_TEST" />

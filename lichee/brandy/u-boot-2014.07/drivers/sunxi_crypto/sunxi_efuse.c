@@ -158,3 +158,16 @@ int sid_get_security_status(void)
 	return 0;
 #endif
 }
+
+u32 sunxi_get_soc_bin(void)
+{
+	u32 value;
+
+	value = sid_read_key(EFUSE_CHIPD) >> 8 & 0x3;
+	if (value == 0x1)
+		return 1;
+	else if (value == 0x2)
+		return 2;
+	else
+		return 0;
+}

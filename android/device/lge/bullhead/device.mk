@@ -36,6 +36,7 @@ PRODUCT_COPY_FILES += \
     device/lge/bullhead/init.bullhead.usb.rc:root/init.bullhead.usb.rc \
     device/lge/bullhead/fstab.bullhead:root/fstab.bullhead \
     device/lge/bullhead/ueventd.bullhead.rc:root/ueventd.bullhead.rc \
+    device/lge/bullhead/init.recovery.bullhead.rc:root/init.recovery.bullhead.rc \
     device/lge/bullhead/init.bullhead.ramdump.rc:root/init.bullhead.ramdump.rc \
     device/lge/bullhead/init.bullhead.fp.rc:root/init.bullhead.fp.rc
 
@@ -75,7 +76,8 @@ PRODUCT_COPY_FILES += \
 # Input device files
 PRODUCT_COPY_FILES += \
     device/lge/bullhead/gpio-keys.kl:system/usr/keylayout/gpio-keys.kl \
-    device/lge/bullhead/qpnp_pon.kl:system/usr/keylayout/qpnp_pon.kl
+    device/lge/bullhead/qpnp_pon.kl:system/usr/keylayout/qpnp_pon.kl \
+    device/lge/bullhead/uinput-fpc.kl:system/usr/keylayout/uinput-fpc.kl
 
 # for launcher layout
 PRODUCT_PACKAGES += \
@@ -447,8 +449,10 @@ PRODUCT_PACKAGES += \
 
 # Modem debugger/misc
 ifneq (,$(filter userdebug eng, $(TARGET_BUILD_VARIANT)))
+ifeq (,$(filter aosp_bullhead, $(TARGET_PRODUCT)))
 PRODUCT_PACKAGES += \
-    QXDMLogger
+    QXDMLoggerV2
+endif # aosp_bullhead
 
 PRODUCT_COPY_FILES += \
     device/lge/bullhead/init.bullhead.diag.rc.userdebug:root/init.bullhead.diag.rc \

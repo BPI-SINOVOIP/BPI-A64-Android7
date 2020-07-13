@@ -144,7 +144,7 @@ void hwc_down_limit(SUNXI_hwcdev_context_t *Globctx, int local_mem[NUMBEROFDISPL
 {
     HWC_UNREFERENCED_PARAMETER(local_mem);
     int i = 0, tmp_mem_thruput0 = 0;
-    if(Globctx->has_secure != 0)
+    if((Globctx->has_secure != 0) || (Globctx->has_3D != 0))
     {
         Globctx->memlimit = Globctx->max_mem_limit;
         return;

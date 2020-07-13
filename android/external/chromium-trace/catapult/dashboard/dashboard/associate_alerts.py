@@ -62,7 +62,7 @@ class AssociateAlertsHandler(request_handler.RequestHandler):
     Args:
       urlsafe_keys: Comma-separated Alert keys in urlsafe format.
     """
-    # Get information about Alert entities and related Test entities,
+    # Get information about Alert entities and related TestMetadata entities,
     # so that they can be compared with recent bugs.
     alert_keys = [ndb.Key(urlsafe=k) for k in urlsafe_keys.split(',')]
     alert_entities = ndb.get_multi(alert_keys)
@@ -85,7 +85,7 @@ class AssociateAlertsHandler(request_handler.RequestHandler):
 
   def _FetchBugs(self):
     http = oauth2_decorator.DECORATOR.http()
-    issue_tracker = issue_tracker_service.IssueTrackerService(http=http)
+    issue_tracker = issue_tracker_service.IssueTrackerService(http)
     response = issue_tracker.List(
         q='opened-after:today-5', label='Type-Bug-Regression,Performance',
         sort='-id')
@@ -112,7 +112,7 @@ class AssociateAlertsHandler(request_handler.RequestHandler):
           {'error': 'Invalid bug ID "%s".' % str(bug_id)})
       return
 
-    # Get Anomaly entities and related Test entities.
+    # Get Anomaly entities and related TestMetadata entities.
     alert_keys = [ndb.Key(urlsafe=k) for k in urlsafe_keys.split(',')]
     alert_entities = ndb.get_multi(alert_keys)
 

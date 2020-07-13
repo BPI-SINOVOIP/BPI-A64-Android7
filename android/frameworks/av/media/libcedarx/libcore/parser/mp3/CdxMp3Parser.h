@@ -12,6 +12,8 @@
 #ifndef _CDX_MP3_PARSER_H_
 #define _CDX_MP3_PARSER_H_
 
+#include "Id3Base.h"
+
 #define ENABLE_INFO_DEBUG       1
 #define ENABLE_FILE_DEBUG       0
 #define AV_TIME_BASE            1000000
@@ -161,6 +163,7 @@ typedef struct MP3ParserImpl{
     cdx_uint16      mChannels;
     cdx_uint32      mSampleRate;
     cdx_int32       mBitRate;
+    cdx_int32       mavgBitRate;
     cdx_uint32      mFrameSize;
     cdx_int32       readPacketSize;
     /*Duration*/
@@ -169,6 +172,8 @@ typedef struct MP3ParserImpl{
     cdx_uint32      mSeeking;
     cdx_int64       mSeekingTime;
     int             teeFd;
+
+    ID3*            id3v1;
 } MP3ParserImpl;
 
 #endif

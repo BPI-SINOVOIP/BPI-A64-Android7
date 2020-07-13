@@ -23,6 +23,10 @@ LOCAL_SRC_FILES := $(call all-subdir-java-files)
 LOCAL_JAVA_RESOURCE_DIRS := res 
 LOCAL_JAR_MANIFEST := MANIFEST.mf
 
+LOCAL_STATIC_JAVA_LIBRARIES := \
+  compatibility-host-util \
+  dexlib2
+
 LOCAL_MODULE := cts-api-coverage
 LOCAL_MODULE_TAGS := optional
 

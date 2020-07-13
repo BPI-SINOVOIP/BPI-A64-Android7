@@ -96,7 +96,8 @@
     <string name="user_emergency_info_title" msgid="7827058167207376581">"Hädaabiteave"</string>
     <string name="user_emergency_info_consent" msgid="5636028073450797246">"Siin sisestatud teave aitab hädaolukorras esimesena reageerinuid. See salvestatakse ainult teie seadmesse ja kõik saavad seda teie telefoni avamata hädaabikõne helistamisprogrammis lugeda."</string>
     <string name="emergency_info_continue" msgid="5453201508537906087">"Jätka"</string>
-    <string name="no_info_provided" msgid="6775035037534954056">"Hädaabiteavet pole esitatud"</string>
+    <string name="no_info_provided" msgid="716200382010821001">"Telefoni omaniku kohta pole teavet"</string>
+    <string name="tap_pencil" msgid="2723698054265296934">"Kui see on teie telefon, puudutage pliiatsiikooni, et lisada teave, mis siin hädaolukorras kuvatakse"</string>
     <string name="clear_all" msgid="8899013032870561633">"Kustuta kõik"</string>
     <string name="clear" msgid="3648880442502887163">"Kustuta"</string>
     <string name="clear_all_message" msgid="1548432000373861295">"Kas kustutada kogu teave ja kõik kontaktid?"</string>

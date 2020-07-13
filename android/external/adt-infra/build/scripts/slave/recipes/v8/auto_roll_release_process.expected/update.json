@@ -1,0 +1,303 @@
+[
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[BUILD]/scripts/slave/bot_update.py",
+      "--master",
+      "client.v8.fyi",
+      "--builder",
+      "Auto-roll - release process",
+      "--slave",
+      "TestSlavename",
+      "--spec",
+      "cache_dir = None\nsolutions = [{'custom_vars': {'chromium_trunk': 'svn://svn-mirror.golo.chromium.org/chrome/trunk'}, 'deps_file': 'DEPS', 'managed': True, 'name': 'v8', 'url': 'https://chromium.googlesource.com/v8/v8'}]",
+      "--root",
+      "v8",
+      "--revision_mapping_file",
+      "{\"v8\": \"got_revision\"}",
+      "--output_json",
+      "/path/to/tmp/json",
+      "--revision",
+      "v8@HEAD",
+      "--force",
+      "--no_shallow",
+      "--output_manifest"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "bot_update",
+    "~followup_annotations": [
+      "@@@STEP_TEXT@Some step text@@@",
+      "@@@STEP_LOG_LINE@json.output@{@@@",
+      "@@@STEP_LOG_LINE@json.output@  \"did_run\": true, @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"manifest\": {@@@",
+      "@@@STEP_LOG_LINE@json.output@    \"v8\": {@@@",
+      "@@@STEP_LOG_LINE@json.output@      \"repository\": \"https://fake.org/v8.git\", @@@",
+      "@@@STEP_LOG_LINE@json.output@      \"revision\": \"f2cbea7e89a45f46819777bb78a1f5bd0241f64c\"@@@",
+      "@@@STEP_LOG_LINE@json.output@    }@@@",
+      "@@@STEP_LOG_LINE@json.output@  }, @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"patch_failure\": false, @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"patch_root\": \"v8\", @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"properties\": {@@@",
+      "@@@STEP_LOG_LINE@json.output@    \"got_revision\": \"f2cbea7e89a45f46819777bb78a1f5bd0241f64c\", @@@",
+      "@@@STEP_LOG_LINE@json.output@    \"got_revision_cp\": \"refs/heads/master@{#50110}\"@@@",
+      "@@@STEP_LOG_LINE@json.output@  }, @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"root\": \"v8\", @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"step_text\": \"Some step text\"@@@",
+      "@@@STEP_LOG_LINE@json.output@}@@@",
+      "@@@STEP_LOG_END@json.output@@@",
+      "@@@SET_BUILD_PROPERTY@got_revision@\"f2cbea7e89a45f46819777bb78a1f5bd0241f64c\"@@@",
+      "@@@SET_BUILD_PROPERTY@got_revision_cp@\"refs/heads/master@{#50110}\"@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[BUILD]/scripts/tools/runit.py",
+      "[BUILD]/scripts/tools/pycurl.py",
+      "https://v8-status.appspot.com/lkgr"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "get new lkgr",
+    "stdout": "/path/to/tmp/",
+    "~followup_annotations": [
+      "@@@STEP_LOG_LINE@logs@New candidate: c1a7fd0c98a80c52fcf6763850d2ee1c41cfe8d6 (396002)@@@",
+      "@@@STEP_LOG_END@logs@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "git",
+      "fetch",
+      "https://chromium.googlesource.com/v8/v8",
+      "+refs/heads/lkgr:refs/heads/lkgr"
+    ],
+    "cwd": "[SLAVE_BUILD]/v8",
+    "name": "git fetch"
+  },
+  {
+    "cmd": [
+      "git",
+      "show-ref",
+      "-s",
+      "refs/heads/lkgr"
+    ],
+    "cwd": "[SLAVE_BUILD]/v8",
+    "name": "git show-ref refs/heads/lkgr",
+    "stdout": "/path/to/tmp/",
+    "~followup_annotations": [
+      "@@@STEP_LOG_LINE@ref@74882b7a8e55268d1658f83efefa1c2585cee723@@@",
+      "@@@STEP_LOG_END@ref@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "git",
+      "update-ref",
+      "refs/heads/lkgr",
+      "c1a7fd0c98a80c52fcf6763850d2ee1c41cfe8d6"
+    ],
+    "cwd": "[SLAVE_BUILD]/v8",
+    "name": "git update-ref"
+  },
+  {
+    "cmd": [
+      "git",
+      "push",
+      "https://chromium.googlesource.com/v8/v8",
+      "refs/heads/lkgr:refs/heads/lkgr"
+    ],
+    "cwd": "[SLAVE_BUILD]/v8",
+    "name": "git push"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "\nimport shutil\nimport sys\nshutil.copy(sys.argv[1], sys.argv[2])\n",
+      "[SLAVE_BUILD]/refs_heads_lkgr.log",
+      "/path/to/tmp/"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "Read refs_heads_lkgr.log"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "\nimport shutil\nimport sys\nshutil.copy(sys.argv[1], sys.argv[2])\n",
+      "\nc1a7fd0c98a80c52fcf6763850d2ee1c41cfe8d6 396004",
+      "[SLAVE_BUILD]/refs_heads_lkgr.log"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "Write refs_heads_lkgr.log"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "RECIPE_MODULE[gsutil]/resources/gsutil_wrapper.py",
+      "--",
+      "[DEPOT_TOOLS]/gsutil.py",
+      "----",
+      "cp",
+      "[SLAVE_BUILD]/refs_heads_lkgr.log",
+      "gs://chromium-v8-auto-roll/v8_release_process/refs_heads_lkgr.log"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "gsutil upload",
+    "~followup_annotations": [
+      "@@@STEP_LINK@gsutil.upload@https://storage.cloud.google.com/chromium-v8-auto-roll/v8_release_process/refs_heads_lkgr.log@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "git",
+      "fetch",
+      "https://chromium.googlesource.com/v8/v8",
+      "+refs/heads/candidate:refs/heads/candidate"
+    ],
+    "cwd": "[SLAVE_BUILD]/v8",
+    "name": "git fetch (2)"
+  },
+  {
+    "cmd": [
+      "git",
+      "show-ref",
+      "-s",
+      "refs/heads/candidate"
+    ],
+    "cwd": "[SLAVE_BUILD]/v8",
+    "name": "git show-ref refs/heads/candidate",
+    "stdout": "/path/to/tmp/",
+    "~followup_annotations": [
+      "@@@STEP_LOG_LINE@ref@74882b7a8e55268d1658f83efefa1c2585cee723@@@",
+      "@@@STEP_LOG_END@ref@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "git",
+      "fetch",
+      "https://chromium.googlesource.com/v8/v8",
+      "+refs/heads/roll:refs/heads/roll"
+    ],
+    "cwd": "[SLAVE_BUILD]/v8",
+    "name": "git fetch (3)"
+  },
+  {
+    "cmd": [
+      "git",
+      "show-ref",
+      "-s",
+      "refs/heads/roll"
+    ],
+    "cwd": "[SLAVE_BUILD]/v8",
+    "name": "git show-ref refs/heads/roll",
+    "stdout": "/path/to/tmp/",
+    "~followup_annotations": [
+      "@@@STEP_LOG_LINE@ref@74882b7a8e55268d1658f83efefa1c2585cee723@@@",
+      "@@@STEP_LOG_END@ref@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "\nimport shutil\nimport sys\nshutil.copy(sys.argv[1], sys.argv[2])\n",
+      "[SLAVE_BUILD]/timestamp.txt",
+      "/path/to/tmp/"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "check timestamp"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[SLAVE_BUILD]/v8/tools/release/check_clusterfuzz.py",
+      "--key-file",
+      "[SLAVE_BUILD]/.cf_key",
+      "--results-file",
+      "/path/to/tmp/json"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "check clusterfuzz",
+    "stderr": "/path/to/tmp/err",
+    "stdout": "/path/to/tmp/out"
+  },
+  {
+    "cmd": [
+      "echo",
+      "Current candidate is 10h old (limit: 8h)."
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "log"
+  },
+  {
+    "cmd": [
+      "git",
+      "update-ref",
+      "refs/heads/candidate",
+      "c1a7fd0c98a80c52fcf6763850d2ee1c41cfe8d6"
+    ],
+    "cwd": "[SLAVE_BUILD]/v8",
+    "name": "git update-ref (2)"
+  },
+  {
+    "cmd": [
+      "git",
+      "push",
+      "https://chromium.googlesource.com/v8/v8",
+      "refs/heads/candidate:refs/heads/candidate"
+    ],
+    "cwd": "[SLAVE_BUILD]/v8",
+    "name": "git push (2)"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "\nimport shutil\nimport sys\nshutil.copy(sys.argv[1], sys.argv[2])\n",
+      "c1a7fd0c98a80c52fcf6763850d2ee1c41cfe8d6 396008",
+      "[SLAVE_BUILD]/refs_heads_candidate.log"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "Write refs_heads_candidate.log"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "RECIPE_MODULE[gsutil]/resources/gsutil_wrapper.py",
+      "--",
+      "[DEPOT_TOOLS]/gsutil.py",
+      "----",
+      "cp",
+      "[SLAVE_BUILD]/refs_heads_candidate.log",
+      "gs://chromium-v8-auto-roll/v8_release_process/refs_heads_candidate.log"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "gsutil upload (2)",
+    "~followup_annotations": [
+      "@@@STEP_LINK@gsutil.upload@https://storage.cloud.google.com/chromium-v8-auto-roll/v8_release_process/refs_heads_candidate.log@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "\nimport shutil\nimport sys\nshutil.copy(sys.argv[1], sys.argv[2])\n",
+      "396010",
+      "[SLAVE_BUILD]/timestamp.txt"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "update timestamp"
+  },
+  {
+    "name": "$result",
+    "recipe_result": null,
+    "status_code": 0
+  }
+]

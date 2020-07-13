@@ -1,0 +1,549 @@
+[
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "RECIPE_MODULE[gsutil]/resources/gsutil_wrapper.py",
+      "--",
+      "[DEPOT_TOOLS]/gsutil.py",
+      "----",
+      "cp",
+      "gs://chrome-amp-keys/main_pool/api_key",
+      "[BUILD]/site_config/.amp_main_pool_key"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "gsutil download amp api key"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "RECIPE_MODULE[gsutil]/resources/gsutil_wrapper.py",
+      "--",
+      "[DEPOT_TOOLS]/gsutil.py",
+      "----",
+      "cp",
+      "gs://chrome-amp-keys/main_pool/api_secret",
+      "[BUILD]/site_config/.amp_main_pool_secret"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "gsutil download amp api secret"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[SLAVE_BUILD]/src/build/android/test_runner.py",
+      "gtest",
+      "-s",
+      "example_gtest_suite",
+      "--enable-platform-mode",
+      "-e",
+      "remote_device",
+      "--api-key-file",
+      "[BUILD]/site_config/.amp_main_pool_key",
+      "--api-secret-file",
+      "[BUILD]/site_config/.amp_main_pool_secret",
+      "--api-address",
+      "127.0.0.1",
+      "--api-port",
+      "80",
+      "--api-protocol",
+      "http",
+      "--device-type",
+      "Android",
+      "--remote-device",
+      "SampleDevice",
+      "--remote-device-os",
+      "SampleDeviceOS",
+      "--trigger",
+      "/path/to/tmp/json",
+      "--verbose"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "[trigger] example_gtest_suite",
+    "~followup_annotations": [
+      "@@@STEP_TEXT@on Foo Fone 1.2.3@@@",
+      "@@@STEP_LOG_LINE@json.output@{@@@",
+      "@@@STEP_LOG_LINE@json.output@  \"env\": {@@@",
+      "@@@STEP_LOG_LINE@json.output@    \"device\": {@@@",
+      "@@@STEP_LOG_LINE@json.output@      \"brand\": \"Foo\", @@@",
+      "@@@STEP_LOG_LINE@json.output@      \"name\": \"Fone\", @@@",
+      "@@@STEP_LOG_LINE@json.output@      \"os_version\": \"1.2.3\"@@@",
+      "@@@STEP_LOG_LINE@json.output@    }@@@",
+      "@@@STEP_LOG_LINE@json.output@  }, @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"test_run\": {@@@",
+      "@@@STEP_LOG_LINE@json.output@    \"test_run_id\": \"T35TRUN1D\"@@@",
+      "@@@STEP_LOG_LINE@json.output@  }@@@",
+      "@@@STEP_LOG_LINE@json.output@}@@@",
+      "@@@STEP_LOG_END@json.output@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "\nimport shutil\nimport sys\nshutil.copy(sys.argv[1], sys.argv[2])\n",
+      "{\"env\": {\"device\": {\"brand\": \"Foo\", \"name\": \"Fone\", \"os_version\": \"1.2.3\"}}, \"test_run\": {\"test_run_id\": \"T35TRUN1D\"}}",
+      "[TMP_BASE]/amp_trigger_tmp_1/T35TRUN1D.json"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "[trigger] save example_gtest_suite"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[SLAVE_BUILD]/src/build/android/test_runner.py",
+      "instrumentation",
+      "--apk-under-test",
+      "ApkUnderTest.apk",
+      "--test-apk",
+      "TestApk.apk",
+      "--isolate-file-path",
+      "isolate_file.isolate",
+      "--annotation",
+      "SmallTest",
+      "--additional-apk",
+      "ExtraApk1.apk",
+      "--additional-apk",
+      "ExtraApk2.apk",
+      "--enable-platform-mode",
+      "-e",
+      "remote_device",
+      "--api-key-file",
+      "[BUILD]/site_config/.amp_main_pool_key",
+      "--api-secret-file",
+      "[BUILD]/site_config/.amp_main_pool_secret",
+      "--api-address",
+      "127.0.0.1",
+      "--api-port",
+      "80",
+      "--api-protocol",
+      "http",
+      "--device-type",
+      "Android",
+      "--remote-device",
+      "SampleDevice",
+      "--remote-device-os",
+      "SampleDeviceOS",
+      "--trigger",
+      "/path/to/tmp/json",
+      "--verbose"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "[trigger] example_instrumentation_suite",
+    "~followup_annotations": [
+      "@@@STEP_TEXT@on Foo Fone 1.2.3@@@",
+      "@@@STEP_LOG_LINE@json.output@{@@@",
+      "@@@STEP_LOG_LINE@json.output@  \"env\": {@@@",
+      "@@@STEP_LOG_LINE@json.output@    \"device\": {@@@",
+      "@@@STEP_LOG_LINE@json.output@      \"brand\": \"Foo\", @@@",
+      "@@@STEP_LOG_LINE@json.output@      \"name\": \"Fone\", @@@",
+      "@@@STEP_LOG_LINE@json.output@      \"os_version\": \"1.2.3\"@@@",
+      "@@@STEP_LOG_LINE@json.output@    }@@@",
+      "@@@STEP_LOG_LINE@json.output@  }, @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"test_run\": {@@@",
+      "@@@STEP_LOG_LINE@json.output@    \"test_run_id\": \"T35TRUN1D\"@@@",
+      "@@@STEP_LOG_LINE@json.output@  }@@@",
+      "@@@STEP_LOG_LINE@json.output@}@@@",
+      "@@@STEP_LOG_END@json.output@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "\nimport shutil\nimport sys\nshutil.copy(sys.argv[1], sys.argv[2])\n",
+      "{\"env\": {\"device\": {\"brand\": \"Foo\", \"name\": \"Fone\", \"os_version\": \"1.2.3\"}}, \"test_run\": {\"test_run_id\": \"T35TRUN1D\"}}",
+      "[TMP_BASE]/amp_trigger_tmp_1/T35TRUN1D.json"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "[trigger] save example_instrumentation_suite"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[SLAVE_BUILD]/src/build/android/test_runner.py",
+      "uirobot",
+      "--minutes",
+      "5",
+      "--app-under-test",
+      "Example.apk",
+      "--enable-platform-mode",
+      "-e",
+      "remote_device",
+      "--api-key-file",
+      "[BUILD]/site_config/.amp_main_pool_key",
+      "--api-secret-file",
+      "[BUILD]/site_config/.amp_main_pool_secret",
+      "--api-address",
+      "127.0.0.1",
+      "--api-port",
+      "80",
+      "--api-protocol",
+      "http",
+      "--device-type",
+      "Android",
+      "--remote-device",
+      "SampleDevice",
+      "--remote-device-os",
+      "SampleDeviceOS",
+      "--trigger",
+      "/path/to/tmp/json",
+      "--verbose"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "[trigger] example_uirobot_suite",
+    "~followup_annotations": [
+      "@@@STEP_TEXT@on Foo Fone 1.2.3@@@",
+      "@@@STEP_LOG_LINE@json.output@{@@@",
+      "@@@STEP_LOG_LINE@json.output@  \"env\": {@@@",
+      "@@@STEP_LOG_LINE@json.output@    \"device\": {@@@",
+      "@@@STEP_LOG_LINE@json.output@      \"brand\": \"Foo\", @@@",
+      "@@@STEP_LOG_LINE@json.output@      \"name\": \"Fone\", @@@",
+      "@@@STEP_LOG_LINE@json.output@      \"os_version\": \"1.2.3\"@@@",
+      "@@@STEP_LOG_LINE@json.output@    }@@@",
+      "@@@STEP_LOG_LINE@json.output@  }, @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"test_run\": {@@@",
+      "@@@STEP_LOG_LINE@json.output@    \"test_run_id\": \"T35TRUN1D\"@@@",
+      "@@@STEP_LOG_LINE@json.output@  }@@@",
+      "@@@STEP_LOG_LINE@json.output@}@@@",
+      "@@@STEP_LOG_END@json.output@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "\nimport shutil\nimport sys\nshutil.copy(sys.argv[1], sys.argv[2])\n",
+      "{\"env\": {\"device\": {\"brand\": \"Foo\", \"name\": \"Fone\", \"os_version\": \"1.2.3\"}}, \"test_run\": {\"test_run_id\": \"T35TRUN1D\"}}",
+      "[TMP_BASE]/amp_trigger_tmp_1/T35TRUN1D.json"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "[trigger] save example_uirobot_suite"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "\nimport shutil\nimport sys\nshutil.copy(sys.argv[1], sys.argv[2])\n",
+      "[TMP_BASE]/amp_trigger_tmp_1/T35TRUN1D.json",
+      "/path/to/tmp/json"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "[collect] load example_gtest_suite",
+    "~followup_annotations": [
+      "@@@STEP_LOG_LINE@json.output@{@@@",
+      "@@@STEP_LOG_LINE@json.output@  \"env\": {@@@",
+      "@@@STEP_LOG_LINE@json.output@    \"device\": {@@@",
+      "@@@STEP_LOG_LINE@json.output@      \"brand\": \"Foo\", @@@",
+      "@@@STEP_LOG_LINE@json.output@      \"name\": \"Fone\", @@@",
+      "@@@STEP_LOG_LINE@json.output@      \"os_version\": \"1.2.3\"@@@",
+      "@@@STEP_LOG_LINE@json.output@    }@@@",
+      "@@@STEP_LOG_LINE@json.output@  }@@@",
+      "@@@STEP_LOG_LINE@json.output@}@@@",
+      "@@@STEP_LOG_END@json.output@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[SLAVE_BUILD]/src/build/android/test_runner.py",
+      "gtest",
+      "-s",
+      "example_gtest_suite",
+      "--enable-platform-mode",
+      "-e",
+      "remote_device",
+      "--api-key-file",
+      "[BUILD]/site_config/.amp_main_pool_key",
+      "--api-secret-file",
+      "[BUILD]/site_config/.amp_main_pool_secret",
+      "--api-address",
+      "127.0.0.1",
+      "--api-port",
+      "80",
+      "--api-protocol",
+      "http",
+      "--device-type",
+      "Android",
+      "--collect",
+      "[TMP_BASE]/amp_trigger_tmp_1/T35TRUN1D.json",
+      "--results-path",
+      "[TMP_BASE]/amp_results_tmp_2/T35TRUN1D/results.zip",
+      "--verbose"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "[collect] example_gtest_suite",
+    "~followup_annotations": [
+      "@@@STEP_TEXT@on Foo Fone 1.2.3@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "\nimport shutil\nimport sys\nshutil.copy(sys.argv[1], sys.argv[2])\n",
+      "[TMP_BASE]/amp_trigger_tmp_1/T35TRUN1D.json",
+      "/path/to/tmp/json"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "[upload logcat] load example_gtest_suite data",
+    "~followup_annotations": [
+      "@@@STEP_LOG_LINE@json.output@{@@@",
+      "@@@STEP_LOG_LINE@json.output@  \"test_run\": {@@@",
+      "@@@STEP_LOG_LINE@json.output@    \"test_run_id\": \"12345abcde\"@@@",
+      "@@@STEP_LOG_LINE@json.output@  }@@@",
+      "@@@STEP_LOG_LINE@json.output@}@@@",
+      "@@@STEP_LOG_END@json.output@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "RECIPE_MODULE[zip]/resources/unzip.py"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "[upload logcat] unzip results for example_gtest_suite",
+    "stdin": "{\"output\": \"[TMP_BASE]/amp_results_tmp_2/T35TRUN1D/unzipped_results\", \"use_python_zip\": false, \"zip_file\": \"[TMP_BASE]/amp_results_tmp_2/T35TRUN1D/results.zip\"}"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "RECIPE_MODULE[gsutil]/resources/gsutil_wrapper.py",
+      "--",
+      "[DEPOT_TOOLS]/gsutil.py",
+      "----",
+      "cp",
+      "[TMP_BASE]/amp_results_tmp_2/T35TRUN1D/unzipped_results/appurify_results/logcat.txt",
+      "gs://chrome-amp-results/logcats/logcat_example_gtest_suite_T35TRUN1D.txt"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "gsutil [upload logcat] example_gtest_suite",
+    "~followup_annotations": [
+      "@@@STEP_LINK@logcat@https://storage.cloud.google.com/chrome-amp-results/logcats/logcat_example_gtest_suite_T35TRUN1D.txt@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "\nimport shutil\nimport sys\nshutil.copy(sys.argv[1], sys.argv[2])\n",
+      "[TMP_BASE]/amp_trigger_tmp_1/T35TRUN1D.json",
+      "/path/to/tmp/json"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "[collect] load example_instrumentation_suite",
+    "~followup_annotations": [
+      "@@@STEP_LOG_LINE@json.output@{@@@",
+      "@@@STEP_LOG_LINE@json.output@  \"env\": {@@@",
+      "@@@STEP_LOG_LINE@json.output@    \"device\": {@@@",
+      "@@@STEP_LOG_LINE@json.output@      \"brand\": \"Foo\", @@@",
+      "@@@STEP_LOG_LINE@json.output@      \"name\": \"Fone\", @@@",
+      "@@@STEP_LOG_LINE@json.output@      \"os_version\": \"1.2.3\"@@@",
+      "@@@STEP_LOG_LINE@json.output@    }@@@",
+      "@@@STEP_LOG_LINE@json.output@  }@@@",
+      "@@@STEP_LOG_LINE@json.output@}@@@",
+      "@@@STEP_LOG_END@json.output@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[SLAVE_BUILD]/src/build/android/test_runner.py",
+      "instrumentation",
+      "--apk-under-test",
+      "ApkUnderTest.apk",
+      "--test-apk",
+      "TestApk.apk",
+      "--enable-platform-mode",
+      "-e",
+      "remote_device",
+      "--api-key-file",
+      "[BUILD]/site_config/.amp_main_pool_key",
+      "--api-secret-file",
+      "[BUILD]/site_config/.amp_main_pool_secret",
+      "--api-address",
+      "127.0.0.1",
+      "--api-port",
+      "80",
+      "--api-protocol",
+      "http",
+      "--device-type",
+      "Android",
+      "--collect",
+      "[TMP_BASE]/amp_trigger_tmp_1/T35TRUN1D.json",
+      "--results-path",
+      "[TMP_BASE]/amp_results_tmp_2/T35TRUN1D/results.zip",
+      "--verbose"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "[collect] example_instrumentation_suite",
+    "~followup_annotations": [
+      "@@@STEP_TEXT@on Foo Fone 1.2.3@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "\nimport shutil\nimport sys\nshutil.copy(sys.argv[1], sys.argv[2])\n",
+      "[TMP_BASE]/amp_trigger_tmp_1/T35TRUN1D.json",
+      "/path/to/tmp/json"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "[upload logcat] load example_instrumentation_suite data",
+    "~followup_annotations": [
+      "@@@STEP_LOG_LINE@json.output@{@@@",
+      "@@@STEP_LOG_LINE@json.output@  \"test_run\": {@@@",
+      "@@@STEP_LOG_LINE@json.output@    \"test_run_id\": \"12345abcde\"@@@",
+      "@@@STEP_LOG_LINE@json.output@  }@@@",
+      "@@@STEP_LOG_LINE@json.output@}@@@",
+      "@@@STEP_LOG_END@json.output@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "RECIPE_MODULE[zip]/resources/unzip.py"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "[upload logcat] unzip results for example_instrumentation_suite",
+    "stdin": "{\"output\": \"[TMP_BASE]/amp_results_tmp_2/T35TRUN1D/unzipped_results\", \"use_python_zip\": false, \"zip_file\": \"[TMP_BASE]/amp_results_tmp_2/T35TRUN1D/results.zip\"}"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "RECIPE_MODULE[gsutil]/resources/gsutil_wrapper.py",
+      "--",
+      "[DEPOT_TOOLS]/gsutil.py",
+      "----",
+      "cp",
+      "[TMP_BASE]/amp_results_tmp_2/T35TRUN1D/unzipped_results/appurify_results/logcat.txt",
+      "gs://chrome-amp-results/logcats/logcat_example_instrumentation_suite_T35TRUN1D.txt"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "gsutil [upload logcat] example_instrumentation_suite",
+    "~followup_annotations": [
+      "@@@STEP_LINK@logcat@https://storage.cloud.google.com/chrome-amp-results/logcats/logcat_example_instrumentation_suite_T35TRUN1D.txt@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "\nimport shutil\nimport sys\nshutil.copy(sys.argv[1], sys.argv[2])\n",
+      "[TMP_BASE]/amp_trigger_tmp_1/T35TRUN1D.json",
+      "/path/to/tmp/json"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "[collect] load example_uirobot_suite",
+    "~followup_annotations": [
+      "@@@STEP_LOG_LINE@json.output@{@@@",
+      "@@@STEP_LOG_LINE@json.output@  \"env\": {@@@",
+      "@@@STEP_LOG_LINE@json.output@    \"device\": {@@@",
+      "@@@STEP_LOG_LINE@json.output@      \"brand\": \"Foo\", @@@",
+      "@@@STEP_LOG_LINE@json.output@      \"name\": \"Fone\", @@@",
+      "@@@STEP_LOG_LINE@json.output@      \"os_version\": \"1.2.3\"@@@",
+      "@@@STEP_LOG_LINE@json.output@    }@@@",
+      "@@@STEP_LOG_LINE@json.output@  }@@@",
+      "@@@STEP_LOG_LINE@json.output@}@@@",
+      "@@@STEP_LOG_END@json.output@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[SLAVE_BUILD]/src/build/android/test_runner.py",
+      "uirobot",
+      "--minutes",
+      "5",
+      "--enable-platform-mode",
+      "-e",
+      "remote_device",
+      "--api-key-file",
+      "[BUILD]/site_config/.amp_main_pool_key",
+      "--api-secret-file",
+      "[BUILD]/site_config/.amp_main_pool_secret",
+      "--api-address",
+      "127.0.0.1",
+      "--api-port",
+      "80",
+      "--api-protocol",
+      "http",
+      "--device-type",
+      "Android",
+      "--collect",
+      "[TMP_BASE]/amp_trigger_tmp_1/T35TRUN1D.json",
+      "--results-path",
+      "[TMP_BASE]/amp_results_tmp_2/T35TRUN1D/results.zip",
+      "--verbose"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "[collect] example_uirobot_suite",
+    "~followup_annotations": [
+      "@@@STEP_TEXT@on Foo Fone 1.2.3@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "\nimport shutil\nimport sys\nshutil.copy(sys.argv[1], sys.argv[2])\n",
+      "[TMP_BASE]/amp_trigger_tmp_1/T35TRUN1D.json",
+      "/path/to/tmp/json"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "[upload logcat] load example_uirobot_suite data",
+    "~followup_annotations": [
+      "@@@STEP_LOG_LINE@json.output@{@@@",
+      "@@@STEP_LOG_LINE@json.output@  \"test_run\": {@@@",
+      "@@@STEP_LOG_LINE@json.output@    \"test_run_id\": \"12345abcde\"@@@",
+      "@@@STEP_LOG_LINE@json.output@  }@@@",
+      "@@@STEP_LOG_LINE@json.output@}@@@",
+      "@@@STEP_LOG_END@json.output@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "RECIPE_MODULE[zip]/resources/unzip.py"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "[upload logcat] unzip results for example_uirobot_suite",
+    "stdin": "{\"output\": \"[TMP_BASE]/amp_results_tmp_2/T35TRUN1D/unzipped_results\", \"use_python_zip\": false, \"zip_file\": \"[TMP_BASE]/amp_results_tmp_2/T35TRUN1D/results.zip\"}"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "RECIPE_MODULE[gsutil]/resources/gsutil_wrapper.py",
+      "--",
+      "[DEPOT_TOOLS]/gsutil.py",
+      "----",
+      "cp",
+      "[TMP_BASE]/amp_results_tmp_2/T35TRUN1D/unzipped_results/appurify_results/logcat.txt",
+      "gs://chrome-amp-results/logcats/logcat_example_uirobot_suite_T35TRUN1D.txt"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "gsutil [upload logcat] example_uirobot_suite",
+    "~followup_annotations": [
+      "@@@STEP_LINK@logcat@https://storage.cloud.google.com/chrome-amp-results/logcats/logcat_example_uirobot_suite_T35TRUN1D.txt@@@"
+    ]
+  },
+  {
+    "name": "$result",
+    "recipe_result": null,
+    "status_code": 0
+  }
+]

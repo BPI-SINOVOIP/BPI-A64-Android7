@@ -9,9 +9,10 @@ found in the LICENSE file.
 <link rel="import" href="/tracing/importer/import.html">
 <link rel="import" href="/tracing/model/counter.html">
 <link rel="import" href="/tracing/model/model.html">
-<link rel="import" href="/tracing/model/slice.html">
+<link rel="import" href="/tracing/model/scoped_id.html">
 <link rel="import" href="/tracing/model/slice_group.html">
 <link rel="import" href="/tracing/model/stack_frame.html">
+<link rel="import" href="/tracing/model/thread_slice.html">
 <link rel="import" href="/tracing/model/thread_time_slice.html">
 <link rel="import" href="/tracing/model/user_model/stub_expectation.html">
 
@@ -79,7 +80,7 @@ tr.exportTo('tr.c', function() {
   TestUtils.newAsyncSliceNamed = function(
       name, start, duration, startThread, endThread) {
     var asyncSliceConstructor =
-        tr.model.AsyncSlice.getConstructor('', name);
+        tr.model.AsyncSlice.subTypes.getConstructor('', name);
 
     var s = new asyncSliceConstructor('', name, 0, start);
     s.duration = duration;
@@ -115,7 +116,7 @@ tr.exportTo('tr.c', function() {
       isTopLevel = false;
 
     var asyncSliceConstructor =
-        tr.model.AsyncSlice.getConstructor(cat, title);
+        tr.model.AsyncSlice.subTypes.getConstructor(cat, title);
 
     var slice = new asyncSliceConstructor(
         cat,
@@ -128,7 +129,7 @@ tr.exportTo('tr.c', function() {
     if (options.id)
       slice.id = options.id;
     else
-      slice.id = tr.b.GUID.allocate();
+      slice.id = tr.b.GUID.allocateSimple();
 
     if (options.startStackFrame)
       slice.startStackFrame = options.startStackFrame;
@@ -176,7 +177,7 @@ tr.exportTo('tr.c', function() {
     if (options.id !== undefined)
       id = options.id;
     else
-      id = tr.b.GUID.allocate();
+      id = tr.b.GUID.allocateSimple();
 
     var event = new tr.model.FlowEvent(
         options.cat ? options.cat : 'cat',
@@ -236,14 +237,16 @@ tr.exportTo('tr.c', function() {
 
     var cpuSD = _maybeGetCpuStartAndCpuDurationFromDict(options);
 
+    var cat = options.cat ? options.cat : 'cat';
+
     var type;
     if (options.type)
       type = options.type;
     else
-      type = tr.model.Slice;
+      type = tr.model.ThreadSlice.subTypes.getConstructor(cat, title);
 
     var slice = new type(
-        options.cat ? options.cat : 'cat',
+        cat,
         title,
         colorId,
         sd.start,
@@ -251,6 +254,8 @@ tr.exportTo('tr.c', function() {
         sd.duration,
         cpuSD.start, cpuSD.duration);
 
+    if (options.isTopLevel)
+      slice.isTopLevel = true;
 
     return slice;
   };
@@ -258,11 +263,23 @@ tr.exportTo('tr.c', function() {
   TestUtils.newStackTrace = function(model, titles) {
     var frame = undefined;
     titles.forEach(function(title) {
-      frame = new tr.model.StackFrame(frame, tr.b.GUID.allocate(), title, 7);
+      frame = new tr.model.StackFrame(
+          frame, tr.b.GUID.allocateSimple(), title, 7);
       if (model)
         model.addStackFrame(frame);
     });
     return frame;
+  };
+
+  TestUtils.newSnapshot = function(model, options) {
+    return model.getOrCreateProcess(options.pid || 1).objects.addSnapshot(
+        new tr.model.ScopedId(options.scope || tr.model.OBJECT_DEFAULT_SCOPE,
+                              options.id || '0x1'),
+        options.category || 'cat',
+        options.name || 'A',
+        options.ts || 0,
+        options.args || {},
+        options.baseTypeName);
   };
 
   TestUtils.findSliceNamed = function(slices, name) {
@@ -415,10 +432,10 @@ tr.exportTo('tr.c', function() {
   TestUtils.addSourceListing = function(test, source) {
     var testSourceEl = document.createElement('pre');
     testSourceEl.style.fontFamily = 'monospace';
-    testSourceEl.textContent = source;
+    Polymer.dom(testSourceEl).textContent = source;
 
     var copyButtonEl = document.createElement('button');
-    copyButtonEl.textContent = 'Copy into to clipboard';
+    Polymer.dom(copyButtonEl).textContent = 'Copy into to clipboard';
     copyButtonEl.addEventListener('click', function() {
       var selection = window.getSelection();
 
@@ -441,8 +458,8 @@ tr.exportTo('tr.c', function() {
     });
 
     var outputEl = document.createElement('div');
-    outputEl.appendChild(copyButtonEl);
-    outputEl.appendChild(testSourceEl);
+    Polymer.dom(outputEl).appendChild(copyButtonEl);
+    Polymer.dom(outputEl).appendChild(testSourceEl);
     test.addHTMLOutput(outputEl);
   };
 

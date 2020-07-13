@@ -2,13 +2,40 @@
  * Linux-specific abstractions to gain some independence from linux kernel versions.
  * Pave over some 2.2 versus 2.4 versus 2.6 kernel differences.
  *
- * $Copyright Open Broadcom Corporation$
+ * Copyright (C) 1999-2017, Broadcom Corporation
+ * 
+ *      Unless you and Broadcom execute a separate written software license
+ * agreement governing use of this software, this software is licensed to you
+ * under the terms of the GNU General Public License version 2 (the "GPL"),
+ * available at http://www.broadcom.com/licenses/GPLv2.php, with the
+ * following added to such license:
+ * 
+ *      As a special exception, the copyright holders of this software give you
+ * permission to link this software with independent modules, and to copy and
+ * distribute the resulting executable under terms of your choice, provided that
+ * you also meet, for each linked independent module, the terms and conditions of
+ * the license of that module.  An independent module is a module which is not
+ * derived from this software.  The special exception does not apply to any
+ * modifications of the software.
+ * 
+ *      Notwithstanding the above, under no circumstances may you combine this
+ * software in any way with any other Broadcom software provided under a license
+ * other than the GPL, without Broadcom's express prior written consent.
  *
- * $Id: linuxver.h 431983 2013-10-25 06:53:27Z $
+ *
+ * <<Broadcom-WL-IPTag/Open:>>
+ *
+ * $Id: linuxver.h 646721 2016-06-30 12:36:41Z $
  */
 
 #ifndef _linuxver_h_
 #define _linuxver_h_
+
+#if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-but-set-variable"
+#pragma GCC diagnostic ignored "-Wunused-but-set-parameter"
+#endif
 
 #include <typedefs.h>
 #include <linux/version.h>
@@ -21,11 +48,11 @@
 #include <linux/autoconf.h>
 #endif
 #endif /* (LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 0)) */
-#include <linux/module.h>
 
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 1, 0))
 #include <linux/kconfig.h>
 #endif
+#include <linux/module.h>
 
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(2, 3, 0))
 /* __NO_VERSION__ must be defined for all linkables except one in 2.2 */
@@ -320,6 +347,42 @@ static inline void pci_free_consistent(struct pci_dev *hwdev, size_t size,
 
 #endif /* DMA mapping */
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 15, 0)
+
+typedef struct timer_list timer_list_compat_t;
+
+#define init_timer_compat(timer_compat, cb, priv) \
+	init_timer(timer_compat); \
+	(timer_compat)->data = (ulong)priv; \
+	(timer_compat)->function = cb
+#define timer_set_private(timer_compat, priv) (timer_compat)->data = (ulong)priv
+#define timer_expires(timer_compat) (timer_compat)->expires
+
+#else /* LINUX_VERSION_CODE < KERNEL_VERSION(4, 15, 0) */
+
+typedef struct timer_list_compat {
+	struct timer_list timer;
+	void *arg;
+	void (*callback)(ulong arg);
+} timer_list_compat_t;
+
+extern void timer_cb_compat(struct timer_list *tl);
+
+#define init_timer_compat(timer_compat, cb, priv) \
+	(timer_compat)->arg = priv; \
+	(timer_compat)->callback = cb; \
+	timer_setup(&(timer_compat)->timer, timer_cb_compat, 0);
+#define timer_set_private(timer_compat, priv) (timer_compat)->arg = priv
+#define timer_expires(timer_compat) (timer_compat)->timer.expires
+
+#define del_timer(t) del_timer(&((t)->timer))
+#define del_timer_sync(t) del_timer_sync(&((t)->timer))
+#define timer_pending(t) timer_pending(&((t)->timer))
+#define add_timer(t) add_timer(&((t)->timer))
+#define mod_timer(t, j) mod_timer(&((t)->timer), j)
+
+#endif /* LINUX_VERSION_CODE < KERNEL_VERSION(4, 15, 0) */
+
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(2, 3, 43))
 
 #define dev_kfree_skb_any(a)		dev_kfree_skb(a)
@@ -586,10 +649,16 @@ static inline bool binary_sema_up(tsk_ctl_t *tsk)
 	(tsk_ctl)->proc_name = name;  \
 	(tsk_ctl)->terminated = FALSE; \
 	(tsk_ctl)->p_task  = kthread_run(thread_func, tsk_ctl, (char*)name); \
-	(tsk_ctl)->thr_pid = (tsk_ctl)->p_task->pid; \
-	spin_lock_init(&((tsk_ctl)->spinlock)); \
-	DBG_THR(("%s(): thread:%s:%lx started\n", __FUNCTION__, \
-		(tsk_ctl)->proc_name, (tsk_ctl)->thr_pid)); \
+	if (IS_ERR((tsk_ctl)->p_task)) { \
+		(tsk_ctl)->thr_pid = DHD_PID_KT_INVALID; \
+		DBG_THR(("%s(): thread:%s:%lx failed\n", __FUNCTION__, \
+			(tsk_ctl)->proc_name, (tsk_ctl)->thr_pid)); \
+	} else { \
+		(tsk_ctl)->thr_pid = (tsk_ctl)->p_task->pid; \
+		spin_lock_init(&((tsk_ctl)->spinlock)); \
+		DBG_THR(("%s(): thread:%s:%lx started\n", __FUNCTION__, \
+			(tsk_ctl)->proc_name, (tsk_ctl)->thr_pid)); \
+	}; \
 }
 
 #define PROC_STOP(tsk_ctl) \
@@ -716,7 +785,7 @@ not match our unaligned address for < 2.6.24
  * Overide latest kfifo functions with
  * older version to work on older kernels
  */
-#if (LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 33)) && !defined(WL_COMPAT_WIRELESS)
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 33))
 #define kfifo_in_spinlocked(a, b, c, d)		kfifo_put(a, (u8 *)b, c)
 #define kfifo_out_spinlocked(a, b, c, d)	kfifo_get(a, (u8 *)b, c)
 #define kfifo_esize(a)				1
@@ -726,5 +795,17 @@ not match our unaligned address for < 2.6.24
 #define kfifo_out_spinlocked(a, b, c, d)	kfifo_out_locked(a, b, c, d)
 #define kfifo_esize(a)				1
 #endif /* (LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 33)) */
+
+#if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6)
+#pragma GCC diagnostic pop
+#endif
+
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(3, 9, 0))
+#include <linux/fs.h>
+static inline struct inode *file_inode(const struct file *f)
+{
+	return f->f_dentry->d_inode;
+}
+#endif /* (LINUX_VERSION_CODE < KERNEL_VERSION(3, 9, 0)) */
 
 #endif /* _linuxver_h_ */

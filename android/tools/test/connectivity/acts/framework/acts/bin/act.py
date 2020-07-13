@@ -18,6 +18,7 @@ from builtins import str
 
 import argparse
 import multiprocessing
+import os
 import signal
 import sys
 import traceback
@@ -31,6 +32,13 @@ from acts.utils import concurrent_exec
 from acts.utils import load_config
 from acts.utils import valid_filename_chars
 
+# An environment variable defining the base location for ACTS logs.
+_ENV_ACTS_LOGPATH = 'ACTS_LOGPATH'
+
+# An environment variable defining the test search paths for ACTS.
+_ENV_ACTS_TESTPATHS = 'ACTS_TESTPATHS'
+_PATH_SEPARATOR = ':'
+
 
 def _validate_test_config(test_config):
     """Validates the raw configuration loaded from the config file.
@@ -40,7 +48,8 @@ def _validate_test_config(test_config):
     for k in Config.reserved_keys.value:
         if k not in test_config:
             raise USERError(("Required key {} missing in test "
-            "config.").format(k))
+                             "config.").format(k))
+
 
 def _validate_testbed_name(name):
     """Validates the name of a test bed.
@@ -61,6 +70,7 @@ def _validate_testbed_name(name):
     for l in name:
         if l not in valid_filename_chars:
             raise USERError("Char '%s' is not allowed in test bed names." % l)
+
 
 def _validate_testbed_configs(testbed_configs):
     """Validates the testbed configurations.
@@ -83,10 +93,12 @@ def _validate_testbed_configs(testbed_configs):
             raise USERError("Duplicate testbed name {} found.".format(name))
         seen_names.add(name)
 
+
 def _verify_test_class_name(test_cls_name):
     if not test_cls_name.endswith("Test"):
         raise USERError(("Requested test class '%s' does not follow the test "
                          "class naming convention *Test.") % test_cls_name)
+
 
 def _parse_one_test_specifier(item):
     """Parse one test specifier from command line input.
@@ -121,12 +133,13 @@ def _parse_one_test_specifier(item):
         for elem in test_case_names.split(','):
             test_case_name = elem.strip()
             if not test_case_name.startswith("test_"):
-                    raise USERError(("Requested test case '%s' in test class "
-                                    "'%s' does not follow the test case "
-                                    "naming convention test_*.") % (
-                                    test_case_name, test_cls_name))
+                raise USERError(("Requested test case '%s' in test class "
+                                 "'%s' does not follow the test case "
+                                 "naming convention test_*.") %
+                                (test_case_name, test_cls_name))
             clean_names.append(test_case_name)
         return (test_cls_name, clean_names)
+
 
 def parse_test_list(test_list):
     """Parse user provided test list into internal format for test_runner.
@@ -139,7 +152,7 @@ def parse_test_list(test_list):
         result.append(_parse_one_test_specifier(elem))
     return result
 
-def load_test_config_file(test_config_path, tb_filters=None):
+def load_test_config_file(test_config_path, tb_filters, test_paths, log_path):
     """Processes the test configuration file provied by user.
 
     Loads the configuration file into a json object, unpacks each testbed
@@ -148,27 +161,52 @@ def load_test_config_file(test_config_path, tb_filters=None):
 
     Args:
         test_config_path: Path to the test configuration file.
+        tb_filters: A subset of test bed names to be pulled from the
+            config file. If None, then all test beds will be selected.
+        test_paths: A list of command-line default for the test path.
+            If None, then the paths must be specified within the config file.
+        log_path: A command-line default for the log path. If None, then the
+            log path must be specified in the config file.
 
     Returns:
         A list of test configuration json objects to be passed to TestRunner.
     """
     try:
         configs = load_config(test_config_path)
+        if test_paths:
+            configs[Config.key_test_paths.value] = test_paths
+        if log_path:
+            configs[Config.key_log_path.value] = log_path
         if tb_filters:
             tbs = []
             for tb in configs[Config.key_testbed.value]:
                 if tb[Config.key_testbed_name.value] in tb_filters:
                     tbs.append(tb)
             if len(tbs) != len(tb_filters):
-                print("Expect to find %d test bed configs, found %d." % (
-                    len(tb_filters), len(tbs)))
+                print("Expect to find %d test bed configs, found %d." %
+                      (len(tb_filters), len(tbs)))
                 print("Check if you have the correct test bed names.")
                 return None
             configs[Config.key_testbed.value] = tbs
+
+        if (not Config.key_log_path.value in configs and
+                _ENV_ACTS_LOGPATH in os.environ):
+            print('Using environment log path: %s' %
+                  (os.environ[_ENV_ACTS_LOGPATH]))
+            configs[Config.key_log_path.value] = os.environ[_ENV_ACTS_LOGPATH]
+        if (not Config.key_test_paths.value in configs and
+                _ENV_ACTS_TESTPATHS in os.environ):
+            print('Using environment test paths: %s' %
+                  (os.environ[_ENV_ACTS_TESTPATHS]))
+            configs[Config.key_test_paths.value] = os.environ[
+                _ENV_ACTS_TESTPATHS].split(_PATH_SEPARATOR)
+
         _validate_test_config(configs)
         _validate_testbed_configs(configs[Config.key_testbed.value])
         k_log_path = Config.key_log_path.value
         configs[k_log_path] = abs_path(configs[k_log_path])
+        config_path, _ = os.path.split(abs_path(test_config_path))
+        configs[Config.key_config_path] = config_path
         tps = configs[Config.key_test_paths.value]
     except USERError as e:
         print("Something is wrong in the test configurations.")
@@ -181,6 +219,9 @@ def load_test_config_file(test_config_path, tb_filters=None):
     # Unpack testbeds into separate json objects.
     beds = configs.pop(Config.key_testbed.value)
     config_jsons = []
+    # TODO: See if there is a better way to do this: b/29836695
+    config_path, _ = os.path.split(abs_path(test_config_path))
+    configs[Config.key_config_path] = config_path
     for original_bed_config in beds:
         new_test_config = dict(configs)
         new_test_config[Config.key_testbed.value] = original_bed_config
@@ -191,6 +232,7 @@ def load_test_config_file(test_config_path, tb_filters=None):
         new_test_config.update(original_bed_config)
         config_jsons.append(new_test_config)
     return config_jsons
+
 
 def _run_test(test_runner, repeat=1):
     """Instantiate and runs TestRunner.
@@ -214,12 +256,15 @@ def _run_test(test_runner, repeat=1):
     finally:
         test_runner.stop()
 
+
 def _gen_term_signal_handler(test_runners):
     def termination_sig_handler(signal_num, frame):
         for t in test_runners:
             t.stop()
         sys.exit(1)
+
     return termination_sig_handler
+
 
 def _run_tests_parallel(process_args):
     print("Executing {} concurrent test runs.".format(len(process_args)))
@@ -228,12 +273,14 @@ def _run_tests_parallel(process_args):
         if r is False or isinstance(r, Exception):
             return False
 
+
 def _run_tests_sequential(process_args):
     ok = True
     for args in process_args:
         if _run_test(*args) is False:
             ok = False
     return ok
+
 
 def _parse_test_file(fpath):
     try:
@@ -252,31 +299,77 @@ def _parse_test_file(fpath):
         print("Error loading test file.")
         raise
 
+
 def main(argv):
-    parser = argparse.ArgumentParser(description=("Specify tests to run. If "
-                 "nothing specified, run all test cases found."))
-    parser.add_argument('-c', '--config', nargs=1, type=str, required=True,
-        metavar="<PATH>", help="Path to the test configuration file.")
-    parser.add_argument('--test_args', nargs='+', type=str,
+    parser = argparse.ArgumentParser(description=(
+        "Specify tests to run. If "
+        "nothing specified, run all test cases found."))
+    parser.add_argument(
+        '-c',
+        '--config',
+        nargs=1,
+        type=str,
+        required=True,
+        metavar="<PATH>",
+        help="Path to the test configuration file.")
+    parser.add_argument(
+        '--test_args',
+        nargs='+',
+        type=str,
         metavar="Arg1 Arg2 ...",
         help=("Command-line arguments to be passed to every test case in a "
               "test run. Use with caution."))
-    parser.add_argument('-d', '--debug', action="store_true",
+    parser.add_argument(
+        '-d',
+        '--debug',
+        action="store_true",
         help=("Set this flag if manual debugging is required."))
-    parser.add_argument('-p', '--parallel', action="store_true",
+    parser.add_argument(
+        '-p',
+        '--parallel',
+        action="store_true",
         help=("If set, tests will be executed on all testbeds in parallel. "
               "Otherwise, tests are executed iteratively testbed by testbed."))
-    parser.add_argument('-r', '--repeat', type=int,
+    parser.add_argument(
+        '-r',
+        '--repeat',
+        type=int,
         metavar="<NUMBER>",
         help="Number of times to run the specified test cases.")
-    parser.add_argument('-tb', '--testbed', nargs='+', type=str,
+    parser.add_argument(
+        '-tb',
+        '--testbed',
+        nargs='+',
+        type=str,
         metavar="[<TEST BED NAME1> <TEST BED NAME2> ...]",
         help="Specify which test beds to run tests on.")
+    parser.add_argument(
+        '-lp',
+        '--logpath',
+        type=str,
+        metavar="<PATH>",
+        help=("Root path under which all logs will be placed."))
+    parser.add_argument(
+        '-tp',
+        '--testpaths',
+        nargs='*',
+        type=str,
+        metavar="<PATH> <PATH>",
+        help=("One or more non-recursive test class search paths."))
+
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument('-tc', '--testclass', nargs='+', type=str,
+    group.add_argument(
+        '-tc',
+        '--testclass',
+        nargs='+',
+        type=str,
         metavar="[TestClass1 TestClass2:test_xxx ...]",
         help="A list of test classes/cases to run.")
-    group.add_argument('-tf', '--testfile', nargs=1, type=str,
+    group.add_argument(
+        '-tf',
+        '--testfile',
+        nargs=1,
+        type=str,
         metavar="<PATH>",
         help=("Path to a file containing a comma delimited list of test "
               "classes to run."))
@@ -290,7 +383,8 @@ def main(argv):
         test_list = args.testclass
     if args.repeat:
         repeat = args.repeat
-    parsed_configs = load_test_config_file(args.config[0], args.testbed)
+    parsed_configs = load_test_config_file(args.config[0], args.testbed,
+            args.testpaths, args.logpath)
     if not parsed_configs:
         print("Encountered error when parsing the config file, abort!")
         sys.exit(1)
@@ -322,6 +416,6 @@ def main(argv):
         sys.exit(1)
     sys.exit(0)
 
+
 if __name__ == "__main__":
     main(sys.argv[1:])
-

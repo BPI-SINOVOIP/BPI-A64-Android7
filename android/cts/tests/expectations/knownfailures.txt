@@ -1,5 +1,12 @@
 [
 {
+  description: "Disable ListeningPortsTest",
+  names: [
+    "android.security.cts.ListeningPortsTest"
+  ],
+  bug: 31803630
+},
+{
   description: "some AlarmClockTests are not robust across different device types",
   names: [
     "android.alarmclock.cts.DismissAlarmTest#testAll",
@@ -149,13 +156,6 @@
     "android.hardware.camera2.cts.AllocationTest#testParamSensitivity"
   ],
   bug: 17530117
-},
-{
-  description: "Current implementation of uninstallAllUserCaCerts does not throw expected security exception, wait for fix from framework",
-  names: [
-    "android.admin.cts.DevicePolicyManagerTest#testUninstallAllUserCaCerts_failIfNotProfileOwner"
-  ],
-  bug: 17508787
 },
 {
   description: "Test is not yet properly implemented",
@@ -327,5 +327,12 @@
   description: "Still investigating this, root cause unknown yet",
   bug: 27578806,
   names: ["com.android.cts.cpptools.RunAsHostTest#testRunAs"]
+},
+{
+  description: "Wired headset tests are no longer a requirement per CDD",
+  names: [
+    "android.telecom.cts.WiredHeadsetTest"
+  ],
+  bug: 26149528
 }
 ]

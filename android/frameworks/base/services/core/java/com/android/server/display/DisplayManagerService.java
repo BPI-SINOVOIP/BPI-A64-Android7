@@ -292,8 +292,8 @@ public final class DisplayManagerService extends SystemService {
                 if (mBrightSystemMode!=brightSystemMode){
                     Slog.v(TAG,"update:brightSystemMode="+brightSystemMode);
                     mBrightSystemMode = brightSystemMode;
-                    setDisplayEnhanceMode((mBrightSystemMode&0x01)>0?1:0);
                     setDisplayEnhanceDemoMode((mBrightSystemMode&0x02)>0?1:0);
+                    setDisplayEnhanceMode((mBrightSystemMode&0x01)>0?1:0);
                 }
                 if (mBrightnessLightMode!=brightnessLightMode){
                     Slog.v(TAG,"update:brightnessLightMode="+brightnessLightMode);
@@ -340,11 +340,17 @@ public final class DisplayManagerService extends SystemService {
 
     @Override
     public void onStart() {
+        // We need to pre-load the persistent data store so it's ready before the default display
+        // adapter is up so that we have it's configuration. We could load it lazily, but since
+        // we're going to have to read it in eventually we may as well do it here rather than after
+        // we've waited for the diplay to register itself with us.
+        mPersistentDataStore.loadIfNeeded();
         mHandler.sendEmptyMessage(MSG_REGISTER_DEFAULT_DISPLAY_ADAPTER);
 
         publishBinderService(Context.DISPLAY_SERVICE, new BinderService(),
                 true /*allowIsolated*/);
         publishLocalService(DisplayManagerInternal.class, new LocalService());
+        publishLocalService(DisplayTransformManager.class, new DisplayTransformManager());
     }
 
     @Override
@@ -646,12 +652,12 @@ public final class DisplayManagerService extends SystemService {
         }
     }
 
-    private void requestColorTransformInternal(int displayId, int colorTransformId) {
+    private void requestColorModeInternal(int displayId, int colorMode) {
         synchronized (mSyncRoot) {
             LogicalDisplay display = mLogicalDisplays.get(displayId);
             if (display != null &&
-                    display.getRequestedColorTransformIdLocked() != colorTransformId) {
-                display.setRequestedColorTransformIdLocked(colorTransformId);
+                    display.getRequestedColorModeLocked() != colorMode) {
+                display.setRequestedColorModeLocked(colorMode);
                 scheduleTraversalLocked(false);
             }
         }
@@ -797,10 +803,14 @@ public final class DisplayManagerService extends SystemService {
         device.mDebugLastLoggedDeviceInfo = info;
 
         mDisplayDevices.add(device);
-        addLogicalDisplayLocked(device);
+        LogicalDisplay display = addLogicalDisplayLocked(device);
         Runnable work = updateDisplayStateLocked(device);
         if (work != null) {
             work.run();
+        }
+        if (display != null && display.getPrimaryDisplayDeviceLocked() == device) {
+            int colorMode = mPersistentDataStore.getColorMode(device);
+            display.setRequestedColorModeLocked(colorMode);
         }
         scheduleTraversalLocked(false);
     }
@@ -819,6 +829,13 @@ public final class DisplayManagerService extends SystemService {
                         + "\", " + Display.stateToString(info.state));
             } else if (diff != 0) {
                 Slog.i(TAG, "Display device changed: " + info);
+            }
+            if ((diff & DisplayDeviceInfo.DIFF_COLOR_MODE) != 0) {
+                try {
+                    mPersistentDataStore.setColorMode(device, info.colorMode);
+                } finally {
+                    mPersistentDataStore.saveIfNeeded();
+                }
             }
             device.mDebugLastLoggedDeviceInfo = info;
 
@@ -889,7 +906,7 @@ public final class DisplayManagerService extends SystemService {
     }
     // Adds a new logical display based on the given display device.
     // Sends notifications if needed.
-    private void addLogicalDisplayLocked(DisplayDevice device) {
+    private LogicalDisplay addLogicalDisplayLocked(DisplayDevice device) {
         DisplayDeviceInfo deviceInfo = device.getDisplayDeviceInfoLocked();
         boolean isDefault = (deviceInfo.flags
                 & DisplayDeviceInfo.FLAG_DEFAULT_DISPLAY) != 0;
@@ -901,7 +918,7 @@ public final class DisplayManagerService extends SystemService {
         if (!isDefault && mSingleDisplayDemoMode) {
             Slog.i(TAG, "Not creating a logical display for a secondary display "
                     + " because single display demo mode is enabled: " + deviceInfo);
-            return;
+            return null;
         }
 
         final int displayId = assignDisplayIdLocked(isDefault);
@@ -913,7 +930,7 @@ public final class DisplayManagerService extends SystemService {
             // This should never happen currently.
             Slog.w(TAG, "Ignoring display device because the logical display "
                     + "created from it was not considered valid: " + deviceInfo);
-            return;
+            return null;
         }
 
         mLogicalDisplays.put(displayId, display);
@@ -924,6 +941,7 @@ public final class DisplayManagerService extends SystemService {
         }
 
         sendDisplayEventLocked(displayId, DisplayManagerGlobal.EVENT_DISPLAY_ADDED);
+        return display;
     }
 
     private int assignDisplayIdLocked(boolean isDefault) {
@@ -1191,6 +1209,9 @@ public final class DisplayManagerService extends SystemService {
             if (mDisplayPowerController != null) {
                 mDisplayPowerController.dump(pw);
             }
+
+            pw.println();
+            mPersistentDataStore.dump(pw);
         }
     }
 
@@ -1475,13 +1496,13 @@ public final class DisplayManagerService extends SystemService {
         }
 
         @Override // Binder call
-        public void requestColorTransform(int displayId, int colorTransformId) {
+        public void requestColorMode(int displayId, int colorMode) {
             mContext.enforceCallingOrSelfPermission(
-                    Manifest.permission.CONFIGURE_DISPLAY_COLOR_TRANSFORM,
-                    "Permission required to change the display color transform");
+                    Manifest.permission.CONFIGURE_DISPLAY_COLOR_MODE,
+                    "Permission required to change the display color mode");
             final long token = Binder.clearCallingIdentity();
             try {
-                requestColorTransformInternal(displayId, colorTransformId);
+                requestColorModeInternal(displayId, colorMode);
             } finally {
                 Binder.restoreCallingIdentity(token);
             }
@@ -1504,6 +1525,9 @@ public final class DisplayManagerService extends SystemService {
             if (width <= 0 || height <= 0 || densityDpi <= 0) {
                 throw new IllegalArgumentException("width, height, and densityDpi must be "
                         + "greater than 0");
+            }
+            if (surface != null && surface.isSingleBuffered()) {
+                throw new IllegalArgumentException("Surface can't be single-buffered");
             }
 
             if ((flags & DisplayManager.VIRTUAL_DISPLAY_FLAG_PUBLIC) != 0) {
@@ -1563,6 +1587,9 @@ public final class DisplayManagerService extends SystemService {
 
         @Override // Binder call
         public void setVirtualDisplaySurface(IVirtualDisplayCallback callback, Surface surface) {
+            if (surface != null && surface.isSingleBuffered()) {
+                throw new IllegalArgumentException("Surface can't be single-buffered");
+            }
             final long token = Binder.clearCallingIdentity();
             try {
                 setVirtualDisplaySurfaceInternal(callback.asBinder(), surface);

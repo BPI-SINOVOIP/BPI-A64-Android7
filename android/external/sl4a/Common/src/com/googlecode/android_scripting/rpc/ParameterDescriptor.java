@@ -21,7 +21,6 @@ import java.lang.reflect.Type;
 /**
  * RPC parameter description.
  *
- * @author igor.v.karp@gmail.com (Igor Karp)
  */
 public final class ParameterDescriptor {
   private final String value;

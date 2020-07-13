@@ -113,6 +113,13 @@ public abstract class AbstractYouTubeHelper extends AbstractStandardAppHelper {
     /**
      * Setup expectations: YouTube is on the video player page.
      *
+     * This method pauses the video if it is playing.
+     */
+    public abstract void pauseVideo();
+
+    /**
+     * Setup expectations: YouTube is on the video player page.
+     *
      * This method resumes the video if it is paused.
      */
     public abstract void resumeVideo();

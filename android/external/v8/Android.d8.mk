@@ -41,7 +41,12 @@ LOCAL_MODULE_TAGS := optional
 
 LOCAL_CFLAGS := \
 	-DV8_I18N_SUPPORT \
+	-Wno-endif-labels \
+	-Wno-import \
+	-Wno-format \
 	-Wno-unused-parameter \
+	-Wno-sign-compare \
+	-Wno-missing-field-initializers \
 	-std=gnu++0x \
 	-O0
 

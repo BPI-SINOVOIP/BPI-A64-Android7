@@ -1,0 +1,107 @@
+[
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[DEPOT_TOOLS]/gclient.py",
+      "config",
+      "--spec",
+      "cache_dir = None\nsolutions = [{'deps_file': 'DEPS', 'managed': True, 'name': 'pdfium', 'url': 'https://pdfium.googlesource.com/pdfium.git'}]"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "gclient setup"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[DEPOT_TOOLS]/gclient.py",
+      "sync",
+      "--nohooks",
+      "--force",
+      "--verbose",
+      "--delete_unversioned_trees",
+      "--output-json",
+      "/path/to/tmp/json"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "gclient sync",
+    "~followup_annotations": [
+      "@@@STEP_LOG_LINE@json.output@{@@@",
+      "@@@STEP_LOG_LINE@json.output@  \"solutions\": {@@@",
+      "@@@STEP_LOG_LINE@json.output@    \"pdfium/\": {@@@",
+      "@@@STEP_LOG_LINE@json.output@      \"revision\": 52055@@@",
+      "@@@STEP_LOG_LINE@json.output@    }@@@",
+      "@@@STEP_LOG_LINE@json.output@  }@@@",
+      "@@@STEP_LOG_LINE@json.output@}@@@",
+      "@@@STEP_LOG_END@json.output@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[SLAVE_BUILD]/pdfium/build/gyp_pdfium.py"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "env": {
+      "GYP_GENERATORS": "ninja"
+    },
+    "name": "gyp_pdfium"
+  },
+  {
+    "cmd": [
+      "ninja",
+      "-C",
+      "[SLAVE_BUILD]/pdfium/out/Debug"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "compile with ninja"
+  },
+  {
+    "cmd": [
+      "[SLAVE_BUILD]/pdfium/out/Debug/pdfium_unittests"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "unittests"
+  },
+  {
+    "cmd": [
+      "[SLAVE_BUILD]/pdfium/out/Debug/pdfium_embeddertests"
+    ],
+    "cwd": "[SLAVE_BUILD]/pdfium",
+    "name": "embeddertests"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[SLAVE_BUILD]/pdfium/testing/tools/run_javascript_tests.py"
+    ],
+    "cwd": "[SLAVE_BUILD]/pdfium",
+    "name": "javascript tests"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[SLAVE_BUILD]/pdfium/testing/tools/run_pixel_tests.py"
+    ],
+    "cwd": "[SLAVE_BUILD]/pdfium",
+    "name": "pixel tests"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[SLAVE_BUILD]/pdfium/testing/tools/run_corpus_tests.py"
+    ],
+    "cwd": "[SLAVE_BUILD]/pdfium",
+    "name": "corpus tests"
+  },
+  {
+    "name": "$result",
+    "recipe_result": null,
+    "status_code": 0
+  }
+]

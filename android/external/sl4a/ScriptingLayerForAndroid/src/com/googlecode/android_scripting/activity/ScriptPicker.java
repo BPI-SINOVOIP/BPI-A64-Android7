@@ -43,7 +43,6 @@ import java.util.List;
 /**
  * Presents available scripts and returns the selected one.
  *
- * @author Damon Kohler (damonkohler@gmail.com)
  */
 public class ScriptPicker extends ListActivity {
 

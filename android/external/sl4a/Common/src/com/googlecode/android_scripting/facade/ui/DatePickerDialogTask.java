@@ -27,7 +27,6 @@ import org.json.JSONObject;
 /**
  * Wrapper class for date picker dialog running in separate thread.
  *
- * @author MeanEYE.rcf (meaneye.rcf@gmail.com)
  */
 public class DatePickerDialogTask extends DialogTask {
   public static int mYear;

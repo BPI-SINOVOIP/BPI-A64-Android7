@@ -16,6 +16,9 @@
 
 package android.server.cts;
 
+import com.android.ddmlib.Log.LogLevel;
+import com.android.tradefed.log.LogUtil.CLog;
+
 import java.awt.Rectangle;
 
 public class ActivityManagerDockedStackTests extends ActivityManagerTestBase {
@@ -23,7 +26,6 @@ public class ActivityManagerDockedStackTests extends ActivityManagerTestBase {
     private static final String TEST_ACTIVITY_NAME = "TestActivity";
     private static final String NON_RESIZEABLE_ACTIVITY_NAME = "NonResizeableActivity";
     private static final String DOCKED_ACTIVITY_NAME = "DockedActivity";
-    private static final String LAUNCH_TO_SIDE_ACTIVITY_NAME = "LaunchToSideActivity";
     private static final String NO_RELAUNCH_ACTIVITY_NAME = "NoRelaunchActivity";
     private static final String SINGLE_INSTANCE_ACTIVITY_NAME = "SingleInstanceActivity";
     private static final String SINGLE_TASK_ACTIVITY_NAME = "SingleTaskActivity";
@@ -41,6 +43,11 @@ public class ActivityManagerDockedStackTests extends ActivityManagerTestBase {
     }
 
     public void testDockActivity() throws Exception {
+        if (!supportsMultiWindowMode()) {
+            CLog.logAndDisplay(LogLevel.INFO, "Skipping test: no multi-window support");
+            return;
+        }
+
         launchActivityInDockStack(TEST_ACTIVITY_NAME);
         mAmWmState.computeState(mDevice, new String[] {TEST_ACTIVITY_NAME});
         mAmWmState.assertContainsStack("Must contain home stack.", HOME_STACK_ID);
@@ -58,9 +65,14 @@ public class ActivityManagerDockedStackTests extends ActivityManagerTestBase {
     }
 
     public void testLaunchToSide() throws Exception {
-        launchActivityInDockStack(LAUNCH_TO_SIDE_ACTIVITY_NAME);
-        launchActivityToSide(LAUNCH_TO_SIDE_ACTIVITY_NAME);
-        mAmWmState.computeState(mDevice, new String[] {LAUNCH_TO_SIDE_ACTIVITY_NAME});
+        if (!supportsMultiWindowMode()) {
+            CLog.logAndDisplay(LogLevel.INFO, "Skipping test: no multi-window support");
+            return;
+        }
+
+        launchActivityInDockStack(LAUNCHING_ACTIVITY);
+        launchActivityToSide();
+        mAmWmState.computeState(mDevice, new String[] {LAUNCHING_ACTIVITY, TEST_ACTIVITY_NAME});
 
         mAmWmState.assertContainsStack(
                 "Must contain fullscreen stack.", FULLSCREEN_WORKSPACE_STACK_ID);
@@ -68,12 +80,12 @@ public class ActivityManagerDockedStackTests extends ActivityManagerTestBase {
     }
 
     public void testLaunchToSideAndBringToFront() throws Exception {
-        launchActivityInDockStack(LAUNCH_TO_SIDE_ACTIVITY_NAME);
+        launchActivityInDockStack(LAUNCHING_ACTIVITY);
         final String[] waitForFirstVisible = new String[] {TEST_ACTIVITY_NAME};
         final String[] waitForSecondVisible = new String[] {NO_RELAUNCH_ACTIVITY_NAME};
 
         // Launch activity to side.
-        launchActivityToSide(LAUNCH_TO_SIDE_ACTIVITY_NAME);
+        launchActivityToSide();
         mAmWmState.computeState(mDevice, waitForFirstVisible);
         int taskNumberInitial = mAmWmState.getAmState().getStackById(FULLSCREEN_WORKSPACE_STACK_ID)
                 .getTasks().size();
@@ -91,7 +103,7 @@ public class ActivityManagerDockedStackTests extends ActivityManagerTestBase {
                 NO_RELAUNCH_ACTIVITY_NAME);
 
         // Launch activity that was first launched to side. It should be brought to front.
-        launchActivityToSide(LAUNCH_TO_SIDE_ACTIVITY_NAME);
+        launchActivityToSide();
         mAmWmState.computeState(mDevice, waitForFirstVisible);
         int taskNumberFinal = mAmWmState.getAmState().getStackById(FULLSCREEN_WORKSPACE_STACK_ID)
                 .getTasks().size();
@@ -102,11 +114,11 @@ public class ActivityManagerDockedStackTests extends ActivityManagerTestBase {
     }
 
     public void testLaunchToSideMultiple() throws Exception {
-        launchActivityInDockStack(LAUNCH_TO_SIDE_ACTIVITY_NAME);
+        launchActivityInDockStack(LAUNCHING_ACTIVITY);
         final String[] waitForActivitiesVisible = new String[] {TEST_ACTIVITY_NAME};
 
         // Launch activity to side.
-        launchActivityToSide(LAUNCH_TO_SIDE_ACTIVITY_NAME);
+        launchActivityToSide();
         mAmWmState.computeState(mDevice, waitForActivitiesVisible);
         int taskNumberInitial = mAmWmState.getAmState().getStackById(FULLSCREEN_WORKSPACE_STACK_ID)
                 .getTasks().size();
@@ -115,7 +127,7 @@ public class ActivityManagerDockedStackTests extends ActivityManagerTestBase {
                         .getTaskByActivityName(TEST_ACTIVITY_NAME, FULLSCREEN_WORKSPACE_STACK_ID));
 
         // Try to launch to side same activity again.
-        launchActivityToSide(LAUNCH_TO_SIDE_ACTIVITY_NAME);
+        launchActivityToSide();
         mAmWmState.computeState(mDevice, waitForActivitiesVisible);
         int taskNumberFinal = mAmWmState.getAmState().getStackById(FULLSCREEN_WORKSPACE_STACK_ID)
                 .getTasks().size();
@@ -141,11 +153,11 @@ public class ActivityManagerDockedStackTests extends ActivityManagerTestBase {
 
     private void launchTargetToSide(String targetActivityName,
                                     boolean taskCountMustIncrement) throws Exception {
-        launchActivityInDockStack(LAUNCH_TO_SIDE_ACTIVITY_NAME);
+        launchActivityInDockStack(LAUNCHING_ACTIVITY);
         final String[] waitForActivitiesVisible = new String[] {targetActivityName};
 
         // Launch activity to side with data.
-        launchActivityToSide(LAUNCH_TO_SIDE_ACTIVITY_NAME, true, false, targetActivityName);
+        launchActivityToSide(true, false, targetActivityName);
         mAmWmState.computeState(mDevice, waitForActivitiesVisible);
         int taskNumberInitial = mAmWmState.getAmState().getStackById(FULLSCREEN_WORKSPACE_STACK_ID)
                 .getTasks().size();
@@ -154,7 +166,7 @@ public class ActivityManagerDockedStackTests extends ActivityManagerTestBase {
                         .getTaskByActivityName(targetActivityName, FULLSCREEN_WORKSPACE_STACK_ID));
 
         // Try to launch to side same activity again with different data.
-        launchActivityToSide(LAUNCH_TO_SIDE_ACTIVITY_NAME, true, false, targetActivityName);
+        launchActivityToSide(true, false, targetActivityName);
         mAmWmState.computeState(mDevice, waitForActivitiesVisible);
         int taskNumberSecondLaunch = mAmWmState.getAmState()
                 .getStackById(FULLSCREEN_WORKSPACE_STACK_ID).getTasks().size();
@@ -172,7 +184,7 @@ public class ActivityManagerDockedStackTests extends ActivityManagerTestBase {
                         .getTaskByActivityName(targetActivityName, FULLSCREEN_WORKSPACE_STACK_ID));
 
         // Try to launch to side same activity again with no data.
-        launchActivityToSide(LAUNCH_TO_SIDE_ACTIVITY_NAME, false, false, targetActivityName);
+        launchActivityToSide(false, false, targetActivityName);
         mAmWmState.computeState(mDevice, waitForActivitiesVisible);
         int taskNumberFinal = mAmWmState.getAmState().getStackById(FULLSCREEN_WORKSPACE_STACK_ID)
                 .getTasks().size();
@@ -191,11 +203,11 @@ public class ActivityManagerDockedStackTests extends ActivityManagerTestBase {
     }
 
     public void testLaunchToSideMultipleWithFlag() throws Exception {
-        launchActivityInDockStack(LAUNCH_TO_SIDE_ACTIVITY_NAME);
+        launchActivityInDockStack(LAUNCHING_ACTIVITY);
         final String[] waitForActivitiesVisible = new String[] {TEST_ACTIVITY_NAME};
 
         // Launch activity to side.
-        launchActivityToSide(LAUNCH_TO_SIDE_ACTIVITY_NAME);
+        launchActivityToSide();
         mAmWmState.computeState(mDevice, waitForActivitiesVisible);
         int taskNumberInitial = mAmWmState.getAmState().getStackById(FULLSCREEN_WORKSPACE_STACK_ID)
                 .getTasks().size();
@@ -204,7 +216,7 @@ public class ActivityManagerDockedStackTests extends ActivityManagerTestBase {
                         .getTaskByActivityName(TEST_ACTIVITY_NAME, FULLSCREEN_WORKSPACE_STACK_ID));
 
         // Try to launch to side same activity again, but with Intent#FLAG_ACTIVITY_MULTIPLE_TASK.
-        launchActivityToSide(LAUNCH_TO_SIDE_ACTIVITY_NAME, false, true);
+        launchActivityToSide(false, true);
         mAmWmState.computeState(mDevice, waitForActivitiesVisible);
         int taskNumberFinal = mAmWmState.getAmState().getStackById(FULLSCREEN_WORKSPACE_STACK_ID)
                 .getTasks().size();
@@ -218,9 +230,14 @@ public class ActivityManagerDockedStackTests extends ActivityManagerTestBase {
     }
 
     public void testRotationWhenDocked() throws Exception {
-        launchActivityInDockStack(LAUNCH_TO_SIDE_ACTIVITY_NAME);
-        launchActivityToSide(LAUNCH_TO_SIDE_ACTIVITY_NAME);
-        final String[] waitForActivitiesVisible = new String[] {LAUNCH_TO_SIDE_ACTIVITY_NAME};
+        if (!supportsMultiWindowMode()) {
+            CLog.logAndDisplay(LogLevel.INFO, "Skipping test: no multi-window support");
+            return;
+        }
+
+        launchActivityInDockStack(LAUNCHING_ACTIVITY);
+        launchActivityToSide();
+        final String[] waitForActivitiesVisible = new String[] {LAUNCHING_ACTIVITY};
         mAmWmState.computeState(mDevice, waitForActivitiesVisible);
         mAmWmState.assertContainsStack(
                 "Must contain fullscreen stack.", FULLSCREEN_WORKSPACE_STACK_ID);
@@ -251,11 +268,15 @@ public class ActivityManagerDockedStackTests extends ActivityManagerTestBase {
     }
 
     public void testRotationWhenDockedWhileLocked() throws Exception {
-        launchActivityInDockStack(LAUNCH_TO_SIDE_ACTIVITY_NAME);
-        launchActivityToSide(LAUNCH_TO_SIDE_ACTIVITY_NAME);
-        final String[] waitForActivitiesVisible = new String[] {LAUNCH_TO_SIDE_ACTIVITY_NAME};
+        if (!supportsMultiWindowMode()) {
+            CLog.logAndDisplay(LogLevel.INFO, "Skipping test: no multi-window support");
+            return;
+        }
+
+        launchActivityInDockStack(LAUNCHING_ACTIVITY);
+        launchActivityToSide();
+        final String[] waitForActivitiesVisible = new String[] {LAUNCHING_ACTIVITY};
         mAmWmState.computeState(mDevice, waitForActivitiesVisible);
-        mAmWmState.assertSanity();
         mAmWmState.assertContainsStack(
                 "Must contain fullscreen stack.", FULLSCREEN_WORKSPACE_STACK_ID);
         mAmWmState.assertContainsStack("Must contain docked stack.", DOCKED_STACK_ID);
@@ -282,6 +303,11 @@ public class ActivityManagerDockedStackTests extends ActivityManagerTestBase {
     }
 
     public void testResizeDockedStack() throws Exception {
+        if (!supportsMultiWindowMode()) {
+            CLog.logAndDisplay(LogLevel.INFO, "Skipping test: no multi-window support");
+            return;
+        }
+
         launchActivityInDockStack(DOCKED_ACTIVITY_NAME);
         launchActivityInStack(TEST_ACTIVITY_NAME, FULLSCREEN_WORKSPACE_STACK_ID);
         resizeDockedStack(STACK_SIZE, STACK_SIZE, TASK_SIZE, TASK_SIZE);
@@ -298,6 +324,11 @@ public class ActivityManagerDockedStackTests extends ActivityManagerTestBase {
     }
 
     public void testActivityLifeCycleOnResizeDockedStack() throws Exception {
+        if (!supportsMultiWindowMode()) {
+            CLog.logAndDisplay(LogLevel.INFO, "Skipping test: no multi-window support");
+            return;
+        }
+
         executeShellCommand(getAmStartCmd(TEST_ACTIVITY_NAME));
         mAmWmState.computeState(mDevice, new String[] {TEST_ACTIVITY_NAME});
         final Rectangle fullScreenBounds =
@@ -345,29 +376,12 @@ public class ActivityManagerDockedStackTests extends ActivityManagerTestBase {
         return newBounds;
     }
 
-    private void launchActivityToSide(String activityName) throws Exception {
-        launchActivityToSide(activityName, false, false);
+    private void launchActivityToSide() throws Exception {
+        launchActivityToSide(false, false);
     }
 
-    private void launchActivityToSide(String activityName, boolean randomData,
-                                      boolean multipleTaskFlag) throws Exception {
-        launchActivityToSide(activityName, randomData, multipleTaskFlag, null);
-    }
-
-    private void launchActivityToSide(String activityName, boolean randomData,
-                                      boolean multipleTaskFlag, String targetActivityName)
+    private void launchActivityToSide(boolean randomData, boolean multipleTaskFlag)
             throws Exception {
-        StringBuilder commandBuilder = new StringBuilder(getAmStartCmd(activityName));
-        commandBuilder.append(" -f 0x20000000 --ez launch_to_the_side true");
-        if (randomData) {
-            commandBuilder.append(" --ez random_data true");
-        }
-        if (multipleTaskFlag) {
-            commandBuilder.append(" --ez multiple_task true");
-        }
-        if (targetActivityName != null) {
-            commandBuilder.append(" --es target_activity ").append(targetActivityName);
-        }
-        executeShellCommand(commandBuilder.toString());
+        launchActivityToSide(randomData, multipleTaskFlag, null);
     }
 }

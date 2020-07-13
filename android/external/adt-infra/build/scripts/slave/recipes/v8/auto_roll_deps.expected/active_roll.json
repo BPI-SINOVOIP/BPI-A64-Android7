@@ -1,0 +1,48 @@
+[
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[BUILD]/scripts/slave/cleanup_temp.py"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "cleanup_temp"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[BUILD]/scripts/tools/runit.py",
+      "[BUILD]/scripts/tools/pycurl.py",
+      "https://v8-roll.appspot.com/status"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "check roll status",
+    "stdout": "/path/to/tmp/",
+    "~followup_annotations": [
+      "@@@STEP_TEXT@Rolling activated@@@",
+      "@@@STEP_LOG_LINE@stdout@1@@@",
+      "@@@STEP_LOG_END@stdout@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[BUILD]/scripts/tools/pycurl.py",
+      "https://codereview.chromium.org/search?owner=v8-autoroll%40chromium.org&limit=30&closed=3&format=json",
+      "--outfile",
+      "/path/to/tmp/"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "check active roll",
+    "~followup_annotations": [
+      "@@@STEP_TEXT@Active rolls found.@@@"
+    ]
+  },
+  {
+    "name": "$result",
+    "recipe_result": null,
+    "status_code": 0
+  }
+]

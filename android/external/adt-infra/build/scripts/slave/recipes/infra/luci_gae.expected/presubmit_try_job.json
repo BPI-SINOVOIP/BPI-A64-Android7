@@ -1,0 +1,147 @@
+[
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[BUILD]/scripts/slave/bot_update.py",
+      "--master",
+      "tryserver.infra",
+      "--builder",
+      "Luci-GAE Presubmit",
+      "--slave",
+      "TestSlavename",
+      "--spec",
+      "cache_dir = '[ROOT]/git_cache'\nsolutions = [{'deps_file': '.DEPS.git', 'managed': True, 'name': 'infra', 'url': 'https://chromium.googlesource.com/infra/infra.git'}]",
+      "--root",
+      "infra/go/src/github.com/luci/gae",
+      "--revision_mapping_file",
+      "{\"infra/go/src/github.com/luci/gae\": \"got_revision\"}",
+      "--issue",
+      "12853011",
+      "--patchset",
+      "1",
+      "--rietveld_server",
+      "https://codereview.chromium.org",
+      "--output_json",
+      "/path/to/tmp/json",
+      "--revision",
+      "infra@origin/master",
+      "--revision",
+      "infra/go/src/github.com/luci/gae@HEAD",
+      "--revision",
+      "infra/go/src/github.com/luci/luci-go@origin/master",
+      "--force",
+      "--output_manifest"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "bot_update",
+    "~followup_annotations": [
+      "@@@STEP_TEXT@Some step text@@@",
+      "@@@STEP_LOG_LINE@json.output@{@@@",
+      "@@@STEP_LOG_LINE@json.output@  \"did_run\": true, @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"manifest\": {@@@",
+      "@@@STEP_LOG_LINE@json.output@    \"infra/go/src/github.com/luci/gae\": {@@@",
+      "@@@STEP_LOG_LINE@json.output@      \"repository\": \"https://fake.org/infra/go/src/github.com/luci/gae.git\", @@@",
+      "@@@STEP_LOG_LINE@json.output@      \"revision\": \"1baeb5a8a8ba8145cc2d047ac027a5a5e30ab846\"@@@",
+      "@@@STEP_LOG_LINE@json.output@    }@@@",
+      "@@@STEP_LOG_LINE@json.output@  }, @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"patch_failure\": false, @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"patch_root\": \"infra/go/src/github.com/luci/gae\", @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"properties\": {@@@",
+      "@@@STEP_LOG_LINE@json.output@    \"got_revision\": \"1baeb5a8a8ba8145cc2d047ac027a5a5e30ab846\", @@@",
+      "@@@STEP_LOG_LINE@json.output@    \"got_revision_cp\": \"refs/heads/master@{#34600}\"@@@",
+      "@@@STEP_LOG_LINE@json.output@  }, @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"root\": \"infra\", @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"step_text\": \"Some step text\"@@@",
+      "@@@STEP_LOG_LINE@json.output@}@@@",
+      "@@@STEP_LOG_END@json.output@@@",
+      "@@@SET_BUILD_PROPERTY@got_revision@\"1baeb5a8a8ba8145cc2d047ac027a5a5e30ab846\"@@@",
+      "@@@SET_BUILD_PROPERTY@got_revision_cp@\"refs/heads/master@{#34600}\"@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "git",
+      "-c",
+      "user.email=commit-bot@chromium.org",
+      "-c",
+      "user.name=The Commit Bot",
+      "commit",
+      "-a",
+      "-m",
+      "Committed patch"
+    ],
+    "cwd": "[SLAVE_BUILD]/infra/go/src/github.com/luci/gae",
+    "name": "commit git patch"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[DEPOT_TOOLS]/gclient.py",
+      "runhooks"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "gclient runhooks"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[SLAVE_BUILD]/infra/go/env.py",
+      "go",
+      "version"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "go third parties"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[SLAVE_BUILD]/infra/go/env.py",
+      "python",
+      "[DEPOT_TOOLS]/presubmit_support.py",
+      "--root",
+      "[SLAVE_BUILD]/infra/go/src/github.com/luci/gae",
+      "--commit",
+      "--verbose",
+      "--verbose",
+      "--issue",
+      "12853011",
+      "--patchset",
+      "1",
+      "--skip_canned",
+      "CheckRietveldTryJobExecution",
+      "--skip_canned",
+      "CheckTreeIsOpen",
+      "--skip_canned",
+      "CheckBuildbotPendingBuilds",
+      "--rietveld_url",
+      "https://codereview.chromium.org",
+      "--rietveld_fetch",
+      "--upstream",
+      "1baeb5a8a8ba8145cc2d047ac027a5a5e30ab846",
+      "--trybot-json",
+      "/path/to/tmp/json",
+      "--rietveld_email",
+      ""
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "env": {
+      "PRESUBMIT_BUILDER": "1"
+    },
+    "name": "presubmit",
+    "~followup_annotations": [
+      "@@@STEP_LOG_LINE@json.output@[@@@",
+      "@@@STEP_LOG_LINE@json.output@  []@@@",
+      "@@@STEP_LOG_LINE@json.output@]@@@",
+      "@@@STEP_LOG_END@json.output@@@"
+    ]
+  },
+  {
+    "name": "$result",
+    "recipe_result": null,
+    "status_code": 0
+  }
+]

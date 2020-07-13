@@ -45,7 +45,8 @@ public class MediaStore_Video_ThumbnailsTest extends AndroidTestCase {
     private FileCopyHelper mFileHelper;
 
     private boolean hasCodec() {
-        return MediaUtils.hasCodecForResourceAndDomain(mContext, R.raw.testvideo, "video/");
+        return MediaUtils.hasCodecForResourceAndDomain(
+                mContext, R.raw.testthumbvideo, "video/");
     }
 
     @Override
@@ -127,7 +128,7 @@ public class MediaStore_Video_ThumbnailsTest extends AndroidTestCase {
         mResolver.delete(Media.EXTERNAL_CONTENT_URI,
                 "_data=?", new String[] { file.getAbsolutePath() });
         file.delete();
-        mFileHelper.copyToExternalStorage(R.raw.testvideo, file);
+        mFileHelper.copyToExternalStorage(R.raw.testthumbvideo, file);
 
         ContentValues values = new ContentValues();
         values.put(VideoColumns.DATA, file.getAbsolutePath());

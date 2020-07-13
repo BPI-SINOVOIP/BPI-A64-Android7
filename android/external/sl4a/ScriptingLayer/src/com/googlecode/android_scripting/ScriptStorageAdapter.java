@@ -35,7 +35,6 @@ import java.util.List;
 /**
  * Manages storage and retrieval of scripts on the file system.
  *
- * @author Damon Kohler (damonkohler@gmail.com)
  */
 public class ScriptStorageAdapter {
 

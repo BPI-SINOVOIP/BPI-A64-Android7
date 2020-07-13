@@ -22,6 +22,7 @@ import android.content.res.Configuration;
 import android.content.res.TypedArray;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.StringRes;
 import android.support.v4.view.GravityCompat;
@@ -114,14 +115,14 @@ public class ActionBarDrawerToggle implements DrawerLayout.DrawerListener {
     private final Delegate mActivityImpl;
     private final DrawerLayout mDrawerLayout;
 
-    private DrawerToggle mSlider;
+    private DrawerArrowDrawable mSlider;
     private Drawable mHomeAsUpIndicator;
-    private boolean mDrawerIndicatorEnabled = true;
+    boolean mDrawerIndicatorEnabled = true;
     private boolean mHasCustomUpIndicator;
     private final int mOpenDrawerContentDescRes;
     private final int mCloseDrawerContentDescRes;
     // used in toolbar mode when DrawerToggle is disabled
-    private View.OnClickListener mToolbarNavigationClickListener;
+    View.OnClickListener mToolbarNavigationClickListener;
     // If developer does not set displayHomeAsUp, DrawerToggle won't show up.
     // DrawerToggle logs a warning if this case is detected
     private boolean mWarnedForDisplayHomeAsUp = false;
@@ -187,9 +188,8 @@ public class ActionBarDrawerToggle implements DrawerLayout.DrawerListener {
      * the
      * animation.
      */
-    <T extends Drawable & DrawerToggle> ActionBarDrawerToggle(Activity activity, Toolbar toolbar,
-            DrawerLayout drawerLayout, T slider,
-            @StringRes int openDrawerContentDescRes,
+    ActionBarDrawerToggle(Activity activity, Toolbar toolbar, DrawerLayout drawerLayout,
+            DrawerArrowDrawable slider, @StringRes int openDrawerContentDescRes,
             @StringRes int closeDrawerContentDescRes) {
         if (toolbar != null) {
             mActivityImpl = new ToolbarCompatDelegate(toolbar);
@@ -217,8 +217,7 @@ public class ActionBarDrawerToggle implements DrawerLayout.DrawerListener {
         mOpenDrawerContentDescRes = openDrawerContentDescRes;
         mCloseDrawerContentDescRes = closeDrawerContentDescRes;
         if (slider == null) {
-            mSlider = new DrawerArrowDrawableToggle(activity,
-                    mActivityImpl.getActionBarThemedContext());
+            mSlider = new DrawerArrowDrawable(mActivityImpl.getActionBarThemedContext());
         } else {
             mSlider = slider;
         }
@@ -237,9 +236,9 @@ public class ActionBarDrawerToggle implements DrawerLayout.DrawerListener {
      */
     public void syncState() {
         if (mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
-            mSlider.setPosition(1);
+            setPosition(1);
         } else {
-            mSlider.setPosition(0);
+            setPosition(0);
         }
         if (mDrawerIndicatorEnabled) {
             setActionBarUpIndicator((Drawable) mSlider,
@@ -281,7 +280,7 @@ public class ActionBarDrawerToggle implements DrawerLayout.DrawerListener {
         return false;
     }
 
-    private void toggle() {
+    void toggle() {
         int drawerLockMode = mDrawerLayout.getDrawerLockMode(GravityCompat.START);
         if (mDrawerLayout.isDrawerVisible(GravityCompat.START)
                 && (drawerLockMode != DrawerLayout.LOCK_MODE_LOCKED_OPEN)) {
@@ -366,6 +365,23 @@ public class ActionBarDrawerToggle implements DrawerLayout.DrawerListener {
         }
     }
 
+    /**
+     * @return DrawerArrowDrawable that is currently shown by the ActionBarDrawerToggle.
+     */
+    @NonNull
+    public DrawerArrowDrawable getDrawerArrowDrawable() {
+        return mSlider;
+    }
+
+    /**
+     * Sets the DrawerArrowDrawable that should be shown by this ActionBarDrawerToggle.
+     *
+     * @param drawable DrawerArrowDrawable that should be shown by this ActionBarDrawerToggle.
+     */
+    public void setDrawerArrowDrawable(@NonNull DrawerArrowDrawable drawable) {
+        mSlider = drawable;
+        syncState();
+    }
 
     /**
      * {@link DrawerLayout.DrawerListener} callback method. If you do not use your
@@ -377,7 +393,7 @@ public class ActionBarDrawerToggle implements DrawerLayout.DrawerListener {
      */
     @Override
     public void onDrawerSlide(View drawerView, float slideOffset) {
-        mSlider.setPosition(Math.min(1f, Math.max(0, slideOffset)));
+        setPosition(Math.min(1f, Math.max(0, slideOffset)));
     }
 
     /**
@@ -389,7 +405,7 @@ public class ActionBarDrawerToggle implements DrawerLayout.DrawerListener {
      */
     @Override
     public void onDrawerOpened(View drawerView) {
-        mSlider.setPosition(1);
+        setPosition(1);
         if (mDrawerIndicatorEnabled) {
             setActionBarDescription(mCloseDrawerContentDescRes);
         }
@@ -404,7 +420,7 @@ public class ActionBarDrawerToggle implements DrawerLayout.DrawerListener {
      */
     @Override
     public void onDrawerClosed(View drawerView) {
-        mSlider.setPosition(0);
+        setPosition(0);
         if (mDrawerIndicatorEnabled) {
             setActionBarDescription(mOpenDrawerContentDescRes);
         }
@@ -466,36 +482,13 @@ public class ActionBarDrawerToggle implements DrawerLayout.DrawerListener {
         return mActivityImpl.getThemeUpIndicator();
     }
 
-    static class DrawerArrowDrawableToggle extends DrawerArrowDrawable implements DrawerToggle {
-        private final Activity mActivity;
-
-        public DrawerArrowDrawableToggle(Activity activity, Context themedContext) {
-            super(themedContext);
-            mActivity = activity;
+    private void setPosition(float position) {
+        if (position == 1f) {
+            mSlider.setVerticalMirror(true);
+        } else if (position == 0f) {
+            mSlider.setVerticalMirror(false);
         }
-
-        public void setPosition(float position) {
-            if (position == 1f) {
-                setVerticalMirror(true);
-            } else if (position == 0f) {
-                setVerticalMirror(false);
-            }
-            setProgress(position);
-        }
-
-        public float getPosition() {
-            return getProgress();
-        }
-    }
-
-    /**
-     * Interface for toggle drawables. Can be public in the future
-     */
-    static interface DrawerToggle {
-
-        public void setPosition(float position);
-
-        public float getPosition();
+        mSlider.setProgress(position);
     }
 
     /**
@@ -506,7 +499,7 @@ public class ActionBarDrawerToggle implements DrawerLayout.DrawerListener {
         final Activity mActivity;
         ActionBarDrawerToggleHoneycomb.SetIndicatorInfo mSetIndicatorInfo;
 
-        private HoneycombDelegate(Activity activity) {
+        HoneycombDelegate(Activity activity) {
             mActivity = activity;
         }
 
@@ -536,10 +529,13 @@ public class ActionBarDrawerToggle implements DrawerLayout.DrawerListener {
 
         @Override
         public void setActionBarUpIndicator(Drawable themeImage, int contentDescRes) {
-            mActivity.getActionBar().setDisplayShowHomeEnabled(true);
-            mSetIndicatorInfo = ActionBarDrawerToggleHoneycomb.setActionBarUpIndicator(
-                    mSetIndicatorInfo, mActivity, themeImage, contentDescRes);
-            mActivity.getActionBar().setDisplayShowHomeEnabled(false);
+            final ActionBar actionBar = mActivity.getActionBar();
+            if (actionBar != null) {
+                actionBar.setDisplayShowHomeEnabled(true);
+                mSetIndicatorInfo = ActionBarDrawerToggleHoneycomb.setActionBarUpIndicator(
+                        mSetIndicatorInfo, mActivity, themeImage, contentDescRes);
+                actionBar.setDisplayShowHomeEnabled(false);
+            }
         }
 
         @Override
@@ -556,7 +552,7 @@ public class ActionBarDrawerToggle implements DrawerLayout.DrawerListener {
 
         final Activity mActivity;
 
-        private JellybeanMr2Delegate(Activity activity) {
+        JellybeanMr2Delegate(Activity activity) {
             mActivity = activity;
         }
 

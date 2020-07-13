@@ -57,7 +57,7 @@ class ItsSession(object):
     LOCK_PORT = CLIENT_PORT_START + MAX_NUM_PORTS
 
     # Seconds timeout on each socket operation.
-    SOCK_TIMEOUT = 10.0
+    SOCK_TIMEOUT = 20.0
     # Additional timeout in seconds when ITS service is doing more complicated
     # operations, for example: issuing warmup requests before actual capture.
     EXTRA_SOCK_TIMEOUT = 5.0
@@ -67,9 +67,17 @@ class ItsSession(object):
     PACKAGE = 'com.android.cts.verifier.camera.its'
     INTENT_START = 'com.android.cts.verifier.camera.its.START'
     ACTION_ITS_RESULT = 'com.android.cts.verifier.camera.its.ACTION_ITS_RESULT'
+    EXTRA_VERSION = 'camera.its.extra.VERSION'
+    CURRENT_ITS_VERSION = '1.0' # version number to sync with CtsVerifier
     EXTRA_CAMERA_ID = 'camera.its.extra.CAMERA_ID'
-    EXTRA_SUCCESS = 'camera.its.extra.SUCCESS'
-    EXTRA_SUMMARY = 'camera.its.extra.SUMMARY'
+    EXTRA_RESULTS = 'camera.its.extra.RESULTS'
+
+    RESULT_PASS = 'PASS'
+    RESULT_FAIL = 'FAIL'
+    RESULT_NOT_EXECUTED = 'NOT_EXECUTED'
+    RESULT_VALUES = {RESULT_PASS, RESULT_FAIL, RESULT_NOT_EXECUTED}
+    RESULT_KEY = 'result'
+    SUMMARY_KEY = 'summary'
 
     adb = "adb -d"
     device_id = ""
@@ -746,15 +754,24 @@ def get_device_id():
     Return the device ID provided in the command line if it's connected. If no
     device ID is provided in the command line and there is only one device
     connected, return the device ID by parsing the result of "adb devices".
+    Also, if the environment variable ANDROID_SERIAL is set, use it as device
+    id. When both ANDROID_SERIAL and device argument present, device argument
+    takes priority.
 
     Raise an exception if no device is connected; or the device ID provided in
     the command line is not connected; or no device ID is provided in the
-    command line and there are more than 1 device connected.
+    command line or environment variable and there are more than 1 device
+    connected.
 
     Returns:
         Device ID string.
     """
     device_id = None
+
+    # Check if device id is set in env
+    if "ANDROID_SERIAL" in os.environ:
+        device_id = os.environ["ANDROID_SERIAL"]
+
     for s in sys.argv[1:]:
         if s[:7] == "device=" and len(s) > 7:
             device_id = str(s[7:])
@@ -781,34 +798,43 @@ def get_device_id():
 
     return device_id
 
-def report_result(device_id, camera_id, success, summary_path=None):
+def report_result(device_id, camera_id, results):
     """Send a pass/fail result to the device, via an intent.
 
     Args:
         device_id: The ID string of the device to report the results to.
         camera_id: The ID string of the camera for which to report pass/fail.
-        success: Boolean, indicating if the result was pass or fail.
-        summary_path: (Optional) path to ITS summary file on host PC
-
+        results: a dictionary contains all ITS scenes as key and result/summary
+                 of current ITS run. See test_report_result unit test for
+                 an example.
     Returns:
         Nothing.
     """
     adb = "adb -s " + device_id
-    device_summary_path = "/sdcard/camera_" + camera_id + "_its_summary.txt"
-    if summary_path is not None:
-        _run("%s push %s %s" % (
-                adb, summary_path, device_summary_path))
-        _run("%s shell am broadcast -a %s --es %s %s --es %s %s --es %s %s" % (
-                adb, ItsSession.ACTION_ITS_RESULT,
-                ItsSession.EXTRA_CAMERA_ID, camera_id,
-                ItsSession.EXTRA_SUCCESS, 'True' if success else 'False',
-                ItsSession.EXTRA_SUMMARY, device_summary_path))
-    else:
-        _run("%s shell am broadcast -a %s --es %s %s --es %s %s --es %s %s" % (
-                adb, ItsSession.ACTION_ITS_RESULT,
-                ItsSession.EXTRA_CAMERA_ID, camera_id,
-                ItsSession.EXTRA_SUCCESS, 'True' if success else 'False',
-                ItsSession.EXTRA_SUMMARY, "null"))
+    # Validate/process results argument
+    for scene in results:
+        result_key = ItsSession.RESULT_KEY
+        summary_key = ItsSession.SUMMARY_KEY
+        if result_key not in results[scene]:
+            raise its.error.Error('ITS result not found for ' + scene)
+        if results[scene][result_key] not in ItsSession.RESULT_VALUES:
+            raise its.error.Error('Unknown ITS result for %s: %s' % (
+                    scene, results[result_key]))
+        if summary_key in results[scene]:
+            device_summary_path = "/sdcard/its_camera%s_%s.txt" % (
+                    camera_id, scene)
+            _run("%s push %s %s" % (
+                    adb, results[scene][summary_key], device_summary_path))
+            results[scene][summary_key] = device_summary_path
+    json_results = json.dumps(results)
+    cmd = "%s shell am broadcast -a %s --es %s %s --es %s %s --es %s \'%s\'" % (
+            adb, ItsSession.ACTION_ITS_RESULT,
+            ItsSession.EXTRA_VERSION, ItsSession.CURRENT_ITS_VERSION,
+            ItsSession.EXTRA_CAMERA_ID, camera_id,
+            ItsSession.EXTRA_RESULTS, json_results)
+    if len(cmd) > 4095:
+        print "ITS command string might be too long! len:", len(cmd)
+    _run(cmd)
 
 def _run(cmd):
     """Replacement for os.system, with hiding of stdout+stderr messages.
@@ -821,8 +847,20 @@ class __UnitTest(unittest.TestCase):
     """Run a suite of unit tests on this module.
     """
 
-    # TODO: Add some unit tests.
-    None
+    """
+    # TODO: this test currently needs connected device to pass
+    #       Need to remove that dependency before enabling the test
+    def test_report_result(self):
+        device_id = get_device_id()
+        camera_id = "1"
+        result_key = ItsSession.RESULT_KEY
+        results = {"scene0":{result_key:"PASS"},
+                   "scene1":{result_key:"PASS"},
+                   "scene2":{result_key:"PASS"},
+                   "scene3":{result_key:"PASS"},
+                   "sceneNotExist":{result_key:"FAIL"}}
+        report_result(device_id, camera_id, results)
+    """
 
 if __name__ == '__main__':
     unittest.main()

@@ -173,7 +173,7 @@ public class DirectBootHostTest extends DeviceTestCase implements IAbiReceiver, 
                     getDevice().executeShellCommand("sm set-emulate-fbe false");
                     getDevice().waitForDeviceOnline();
                 } else {
-                    getDevice().nonBlockingReboot();
+                    getDevice().rebootUntilOnline();
                 }
                 waitForBootCompleted();
             }

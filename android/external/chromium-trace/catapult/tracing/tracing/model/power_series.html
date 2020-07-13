@@ -6,6 +6,8 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/range.html">
+<link rel="import" href="/tracing/base/sorted_array_utils.html">
+<link rel="import" href="/tracing/base/unit_scale.html">
 <link rel="import" href="/tracing/model/event_container.html">
 <link rel="import" href="/tracing/model/power_sample.html">
 
@@ -59,30 +61,44 @@ tr.exportTo('tr.model', function() {
      * Returns the total energy (in Joules) consumed between the specified
      * start and end timestamps (in milliseconds).
      */
-    getEnergyConsumed: function(start, end) {
+    getEnergyConsumedInJ: function(start, end) {
       var measurementRange = tr.b.Range.fromExplicitRange(start, end);
 
-      var energyConsumed = 0;
-      for (var i = 0; i < this.samples.length; i++) {
+      var energyConsumedInJ = 0;
+      var startIndex = tr.b.findLowIndexInSortedArray(
+          this.samples, x => x.start, start) - 1;
+      var endIndex = tr.b.findLowIndexInSortedArray(
+          this.samples, x => x.start, end);
+
+      if (startIndex < 0)
+        startIndex = 0;
+
+      for (var i = startIndex; i < endIndex; i++) {
         var sample = this.samples[i];
         var nextSample = this.samples[i + 1];
 
         var sampleRange = new tr.b.Range();
         sampleRange.addValue(sample.start);
-        sampleRange.addValue(nextSample ? nextSample.start : Infinity);
+        sampleRange.addValue(nextSample ? nextSample.start : sample.start);
 
-        var timeIntersection = measurementRange.findIntersection(sampleRange);
+        var intersectionRangeInMs = measurementRange.findIntersection(
+            sampleRange);
 
-        // Divide by 1000 to convert milliwatts to watts.
-        var powerInWatts = sample.power / 1000.0;
+        var durationInS = tr.b.convertUnit(intersectionRangeInMs.duration,
+            tr.b.UnitScale.Metric.MILLI, tr.b.UnitScale.Metric.NONE);
 
-        // Divide by 1000 to convert milliseconds to seconds.
-        var durationInSeconds = timeIntersection.duration / 1000;
-
-        energyConsumed += durationInSeconds * powerInWatts;
+        energyConsumedInJ += durationInS * sample.powerInW;
       }
 
-      return energyConsumed;
+      return energyConsumedInJ;
+    },
+
+    getSamplesWithinRange: function(start, end) {
+      var startIndex = tr.b.findLowIndexInSortedArray(
+          this.samples, x => x.start, start);
+      var endIndex = tr.b.findLowIndexInSortedArray(
+          this.samples, x => x.start, end);
+      return this.samples.slice(startIndex, endIndex);
     },
 
     shiftTimestampsForward: function(amount) {
@@ -100,14 +116,9 @@ tr.exportTo('tr.model', function() {
       this.bounds.addValue(this.samples_[this.samples_.length - 1].start);
     },
 
-    iterateAllEventsInThisContainer: function(eventTypePredicate, callback,
-                                              opt_this) {
-      if (eventTypePredicate.call(opt_this, PowerSample))
-        this.samples_.forEach(callback, opt_this);
+    childEvents: function*() {
+      yield * this.samples_;
     },
-
-    iterateAllChildEventContainers: function(callback, opt_this) {
-    }
   };
 
   return {

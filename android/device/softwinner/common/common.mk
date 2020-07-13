@@ -10,6 +10,7 @@ PRODUCT_COPY_FILES += \
     device/softwinner/common/ueventd.common.rc:root/ueventd.common.rc \
 	device/softwinner/common/init.wireless.broadcom.rc:root/init.wireless.broadcom.rc \
 	device/softwinner/common/init.wireless.realtek.rc:root/init.wireless.realtek.rc \
+	device/softwinner/common/init.wireless.xradio.rc:root/init.wireless.xradio.rc
 
 ifeq ($(TARGET_BUILD_VARIANT),eng)
 PRODUCT_PROPERTY_OVERRIDES += \
@@ -17,13 +18,11 @@ PRODUCT_PROPERTY_OVERRIDES += \
        dalvik.vm.dex2oat-filter=""
 endif
 
-# ----BPI Remove Allwinner APK Start --------
 # preinstall apk
 #PRODUCT_PACKAGES += \
 #    DragonFire \
-#    DragonPhone \
-#    DragonAging \
-# ----BPI Remove Allwinner APK End --------
+#    DragonComposite \
+#    DragonAging
 	
 # usb
 PRODUCT_PACKAGES += \

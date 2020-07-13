@@ -1,0 +1,27 @@
+[
+  {
+    "cmd": [],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "trigger",
+    "trigger_specs": [
+      {
+        "buildbot_changes": [
+          {
+            "author": "someone@chromium.org",
+            "comments": "hello world!",
+            "revision": "deadbeef"
+          }
+        ],
+        "builder_name": "cross-compiler"
+      }
+    ],
+    "~followup_annotations": [
+      "@@@STEP_TEXT@cross-compiler@@@"
+    ]
+  },
+  {
+    "name": "$result",
+    "recipe_result": null,
+    "status_code": 0
+  }
+]

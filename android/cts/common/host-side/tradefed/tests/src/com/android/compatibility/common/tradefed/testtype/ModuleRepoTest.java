@@ -36,6 +36,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 public class ModuleRepoTest extends TestCase {
 
@@ -59,8 +60,8 @@ public class ModuleRepoTest extends TestCase {
     private static final List<String> DEVICE_TOKENS = new ArrayList<>();
     private static final List<String> TEST_ARGS= new ArrayList<>();
     private static final List<String> MODULE_ARGS = new ArrayList<>();
-    private static final List<String> INCLUDES = new ArrayList<>();
-    private static final List<String> EXCLUDES = new ArrayList<>();
+    private static final Set<String> INCLUDES = new HashSet<>();
+    private static final Set<String> EXCLUDES = new HashSet<>();
     private static final Set<String> FILES = new HashSet<>();
     private static final String FILENAME = "%s.config";
     private static final String ABI_32 = "armeabi-v7a";
@@ -184,9 +185,9 @@ public class ModuleRepoTest extends TestCase {
     }
 
     public void testFiltering() throws Exception {
-        List<String> includeFilters = new ArrayList<>();
+        Set<String> includeFilters = new HashSet<>();
         includeFilters.add(MODULE_NAME_A);
-        List<String> excludeFilters = new ArrayList<>();
+        Set<String> excludeFilters = new HashSet<>();
         excludeFilters.add(ID_A_32);
         excludeFilters.add(MODULE_NAME_B);
         mRepo.initialize(1, mTestsDir, ABIS, DEVICE_TOKENS, TEST_ARGS, MODULE_ARGS, includeFilters,
@@ -234,8 +235,8 @@ public class ModuleRepoTest extends TestCase {
         abis.add(new Abi(ABI_64, "64"));
         ArrayList<String> emptyList = new ArrayList<>();
 
-        mRepo.initialize(3, mTestsDir, abis, DEVICE_TOKENS, emptyList, emptyList, emptyList,
-                         emptyList, mBuild);
+        mRepo.initialize(3, mTestsDir, abis, DEVICE_TOKENS, emptyList, emptyList, INCLUDES,
+                         EXCLUDES, mBuild);
 
         List<IModuleDef> modules = new ArrayList<>();
         modules.addAll(mRepo.getLargeModules());
@@ -260,6 +261,26 @@ public class ModuleRepoTest extends TestCase {
         assertTrue("Should be initialized", mRepo.isInitialized());
 
         assertArrayEquals(EXPECTED_MODULE_IDS, mRepo.getModuleIds());
+    }
+
+    public void testIsPrepared() {
+        mRepo.initialize(3, mTestsDir, ABIS, DEVICE_TOKENS, TEST_ARGS, MODULE_ARGS, INCLUDES,
+                EXCLUDES, mBuild);
+        assertTrue("Should be initialized", mRepo.isInitialized());
+        mRepo.setPrepared(true);
+        mRepo.setPrepared(true);
+        mRepo.setPrepared(true); // each shard should call setPrepared() once
+        assertTrue(mRepo.isPrepared(0, TimeUnit.MINUTES));
+    }
+
+    public void testIsNotPrepared() {
+        mRepo.initialize(3, mTestsDir, ABIS, DEVICE_TOKENS, TEST_ARGS, MODULE_ARGS, INCLUDES,
+                EXCLUDES, mBuild);
+        assertTrue("Should be initialized", mRepo.isInitialized());
+        mRepo.setPrepared(true);
+        mRepo.setPrepared(false); // mRepo should return false for setPrepared() after third call
+        mRepo.setPrepared(true);
+        assertFalse(mRepo.isPrepared(0, TimeUnit.MINUTES));
     }
 
     private void assertArrayEquals(Object[] expected, Object[] actual) {

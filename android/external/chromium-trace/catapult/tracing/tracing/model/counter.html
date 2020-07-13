@@ -5,10 +5,10 @@ Use of this source code is governed by a BSD-style license that can be
 found in the LICENSE file.
 -->
 
-<link rel="import" href="/tracing/model/counter_series.html">
-<link rel="import" href="/tracing/model/event_container.html">
 <link rel="import" href="/tracing/base/guid.html">
 <link rel="import" href="/tracing/base/range.html">
+<link rel="import" href="/tracing/model/counter_series.html">
+<link rel="import" href="/tracing/model/event_container.html">
 
 <script>
 'use strict';
@@ -56,13 +56,11 @@ tr.exportTo('tr.model', function() {
       return this.name_;
     },
 
-    iterateAllEventsInThisContainer: function(eventTypePredicate,
-                                              callback, opt_this) {
+    childEvents: function*() {
     },
 
-    iterateAllChildEventContainers: function(callback, opt_this) {
-      for (var i = 0; i < this.series_.length; i++)
-        callback.call(opt_this, this.series_[i]);
+    childEventContainers: function*() {
+      yield * this.series;
     },
 
     set timestamps(arg) {

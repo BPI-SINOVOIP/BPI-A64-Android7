@@ -7,6 +7,7 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/ui/base/dom_helpers.html">
+<link rel="import" href="/tracing/ui/base/table.html">
 <link rel="import" href="/tracing/value/numeric.html">
 <link rel="import" href="/tracing/value/ui/scalar_span.html">
 
@@ -102,12 +103,14 @@ tr.exportTo('tr.ui.analysis', function() {
         var prefixEl = tr.ui.b.createSpan({textContent: prefix});
         // Enforce same width of '+++' and '---'.
         prefixEl.style.fontFamily = 'monospace';
-        titleEl.appendChild(prefixEl);
-        titleEl.appendChild(tr.ui.b.asHTMLOrTextNode(NO_BREAK_SPACE));
+        Polymer.dom(titleEl).appendChild(prefixEl);
+        Polymer.dom(titleEl).appendChild(
+            tr.ui.b.asHTMLOrTextNode(NO_BREAK_SPACE));
       }
       if (color !== undefined)
         titleEl.style.color = color;
-      titleEl.appendChild(tr.ui.b.asHTMLOrTextNode(formattedTitle));
+      Polymer.dom(titleEl).appendChild(
+          tr.ui.b.asHTMLOrTextNode(formattedTitle));
       return titleEl;
     },
 
@@ -329,7 +332,9 @@ tr.exportTo('tr.ui.analysis', function() {
       var fieldEl = document.createElement('span');
       fieldEl.style.display = 'flex';
       fieldEl.style.alignItems = 'center';
-      fieldEl.appendChild(tr.ui.b.asHTMLOrTextNode(formattedFields));
+      fieldEl.style.justifyContent = 'flex-end';
+      Polymer.dom(fieldEl).appendChild(
+          tr.ui.b.asHTMLOrTextNode(formattedFields));
 
       // Add info icons with tooltips.
       infos.forEach(function(info) {
@@ -337,11 +342,11 @@ tr.exportTo('tr.ui.analysis', function() {
         infoEl.style.paddingLeft = '4px';
         infoEl.style.cursor = 'help';
         infoEl.style.fontWeight = 'bold';
-        infoEl.textContent = info.icon;
+        Polymer.dom(infoEl).textContent = info.icon;
         if (info.color !== undefined)
           infoEl.style.color = info.color;
         infoEl.title = info.message;
-        fieldEl.appendChild(infoEl);
+        Polymer.dom(fieldEl).appendChild(infoEl);
       }, this);
 
       // Set the color of the element.
@@ -565,15 +570,15 @@ tr.exportTo('tr.ui.analysis', function() {
       if (firstString === undefined) {
         // String was added ("+NEW_VALUE" in red).
         var spanEl = tr.ui.b.createSpan({color: 'red'});
-        spanEl.appendChild(tr.ui.b.asHTMLOrTextNode('+'));
-        spanEl.appendChild(tr.ui.b.asHTMLOrTextNode(
+        Polymer.dom(spanEl).appendChild(tr.ui.b.asHTMLOrTextNode('+'));
+        Polymer.dom(spanEl).appendChild(tr.ui.b.asHTMLOrTextNode(
             this.formatSingleField(lastString)));
         return spanEl;
       } else if (lastString === undefined) {
         // String was removed ("-OLD_VALUE" in green).
         var spanEl = tr.ui.b.createSpan({color: 'green'});
-        spanEl.appendChild(tr.ui.b.asHTMLOrTextNode('-'));
-        spanEl.appendChild(tr.ui.b.asHTMLOrTextNode(
+        Polymer.dom(spanEl).appendChild(tr.ui.b.asHTMLOrTextNode('-'));
+        Polymer.dom(spanEl).appendChild(tr.ui.b.asHTMLOrTextNode(
             this.formatSingleField(firstString)));
         return spanEl;
       } else if (firstString === lastString) {
@@ -582,11 +587,11 @@ tr.exportTo('tr.ui.analysis', function() {
       } else {
         // String changed ("OLD_VALUE -> NEW_VALUE" in orange).
         var spanEl = tr.ui.b.createSpan({color: 'DarkOrange'});
-        spanEl.appendChild(tr.ui.b.asHTMLOrTextNode(
+        Polymer.dom(spanEl).appendChild(tr.ui.b.asHTMLOrTextNode(
             this.formatSingleField(firstString)));
-        spanEl.appendChild(tr.ui.b.asHTMLOrTextNode(
+        Polymer.dom(spanEl).appendChild(tr.ui.b.asHTMLOrTextNode(
             ' ' + RIGHTWARDS_ARROW + ' '));
-        spanEl.appendChild(tr.ui.b.asHTMLOrTextNode(
+        Polymer.dom(spanEl).appendChild(tr.ui.b.asHTMLOrTextNode(
             this.formatSingleField(lastString)));
         return spanEl;
       }
@@ -655,6 +660,8 @@ tr.exportTo('tr.ui.analysis', function() {
   NumericMemoryColumn.prototype = {
     __proto__: MemoryColumn.prototype,
 
+    align: tr.ui.b.TableFormat.ColumnAlignment.RIGHT,
+
     aggregateCells: function(row, subRows) {
       var subRowCells = subRows.map(this.cell, this);
 
@@ -719,9 +726,14 @@ tr.exportTo('tr.ui.analysis', function() {
     },
 
     formatSingleField: function(numeric) {
-      if (numeric === undefined)
-        return '';
-      return tr.v.ui.createScalarSpan(numeric);
+      var formattingContext = this.getFormattingContext(numeric.unit);
+      var config = formattingContext !== undefined ?
+          { context: formattingContext } : undefined;
+      return tr.v.ui.createScalarSpan(numeric, config);
+    },
+
+    getFormattingContext: function(unit) {
+      return undefined;
     },
 
     formatMultipleFieldsDiff: function(firstNumeric, lastNumeric) {
@@ -830,9 +842,10 @@ tr.exportTo('tr.ui.analysis', function() {
     });
   }
 
-  function createCells(timeToValues, valueFieldsGetter) {
+  function createCells(timeToValues, valueFieldsGetter, opt_this) {
+    opt_this = opt_this || this;
     var fieldNameToFields = tr.b.invertArrayOfDicts(
-        timeToValues, valueFieldsGetter);
+        timeToValues, valueFieldsGetter, opt_this);
     return tr.b.mapItems(fieldNameToFields, function(fieldName, fields) {
       return new tr.ui.analysis.MemoryCell(fields);
     });
@@ -846,6 +859,22 @@ tr.exportTo('tr.ui.analysis', function() {
     };
   }
 
+  // TODO(petrcermak): Use a context manager instead
+  // (https://github.com/catapult-project/catapult/issues/2420).
+  function DetailsNumericMemoryColumn(name, cellPath, aggregationMode) {
+    NumericMemoryColumn.call(this, name, cellPath, aggregationMode);
+  }
+
+  DetailsNumericMemoryColumn.prototype = {
+    __proto__: NumericMemoryColumn.prototype,
+
+    getFormattingContext: function(unit) {
+      if (unit.baseUnit === tr.b.Unit.byName.sizeInBytes)
+        return { unitPrefix: tr.b.UnitScale.Binary.KIBI };
+      return undefined;
+    }
+  };
+
   return {
     TitleColumn: TitleColumn,
     MemoryColumn: MemoryColumn,
@@ -856,7 +885,8 @@ tr.exportTo('tr.ui.analysis', function() {
     aggregateTableRowCellsRecursively: aggregateTableRowCellsRecursively,
     aggregateTableRowCells: aggregateTableRowCells,
     createCells: createCells,
-    createWarningInfo: createWarningInfo
+    createWarningInfo: createWarningInfo,
+    DetailsNumericMemoryColumn: DetailsNumericMemoryColumn
   };
 });
 </script>

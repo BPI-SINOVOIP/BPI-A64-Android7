@@ -1,0 +1,24 @@
+[
+  {
+    "allow_subannotations": true,
+    "cmd": [
+      "python",
+      "RECIPE_MODULE[skia]/resources/trigger_wait_ct_task.py",
+      "--issue",
+      "123",
+      "--patchset",
+      "2001",
+      "--requester",
+      "superman@krypton",
+      "--benchmark",
+      "rasterize_and_record_micro"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "Cluster Telemetry rasterize_and_record_micro run"
+  },
+  {
+    "name": "$result",
+    "recipe_result": null,
+    "status_code": 0
+  }
+]

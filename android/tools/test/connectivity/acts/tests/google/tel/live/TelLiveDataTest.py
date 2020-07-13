@@ -90,7 +90,6 @@ from acts.test_utils.tel.tel_voice_utils import phone_setup_volte
 from acts.test_utils.wifi.wifi_test_utils import WifiEnums
 from acts.utils import disable_doze
 from acts.utils import enable_doze
-from acts.utils import load_config
 from acts.utils import rand_ascii_str
 
 
@@ -142,7 +141,7 @@ class TelLiveDataTest(TelephonyBaseTest):
                       "test_lte_multi_bearer_stress",
                       "test_wcdma_multi_bearer_stress",
                       "test_tethering_4g_to_2gwifi_stress",)
-        self.stress_test_number = int(self.user_params["stress_test_number"])
+        self.stress_test_number = self.get_stress_test_number()
         self.wifi_network_ssid = self.user_params["wifi_network_ssid"]
 
         try:
@@ -1242,6 +1241,12 @@ class TelLiveDataTest(TelephonyBaseTest):
         """
         ad = self.android_devices[0]
 
+        if (not wait_for_cell_data_connection(self.log,
+                                              self.android_devices[0], True) or
+                not verify_http_connection(self.log, self.android_devices[0])):
+            self.log.error("Failed cell data call for entitlement check.")
+            return False
+
         result = ad.droid.carrierConfigIsTetheringModeAllowed(
             TETHERING_MODE_WIFI, MAX_WAIT_TIME_TETHERING_ENTITLEMENT_CHECK)
         self.log.info("{} tethering entitlement check result: {}.".format(
@@ -1370,7 +1375,7 @@ class TelLiveDataTest(TelephonyBaseTest):
         if not WifiUtils.start_wifi_tethering(self.log, ad_host, ssid,
                                               password,
                                               WifiUtils.WIFI_CONFIG_APBAND_2G):
-            self.log.error("Provider start WiFi tethering failed.")
+            self.log.error("Start WiFi tethering failed.")
             result = False
         time.sleep(WAIT_TIME_ANDROID_STATE_SETTLING)
         if not ensure_wifi_connected(self.log, ad_client, ssid, password):
@@ -1381,7 +1386,7 @@ class TelLiveDataTest(TelephonyBaseTest):
                 ad_client.serial))
             result = False
         if not WifiUtils.stop_wifi_tethering(self.log, ad_host):
-            self.log.error("Provider strop WiFi tethering failed.")
+            self.log.error("Stop WiFi tethering failed.")
             result = False
         return result
 

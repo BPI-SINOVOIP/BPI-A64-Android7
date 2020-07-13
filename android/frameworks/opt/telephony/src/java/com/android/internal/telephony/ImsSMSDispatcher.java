@@ -25,6 +25,7 @@ import android.os.Message;
 import android.provider.Telephony.Sms.Intents;
 import android.telephony.Rlog;
 
+import com.android.internal.annotations.VisibleForTesting;
 import com.android.internal.telephony.cdma.CdmaInboundSmsHandler;
 import com.android.internal.telephony.cdma.CdmaSMSDispatcher;
 import com.android.internal.telephony.gsm.GsmInboundSmsHandler;
@@ -64,6 +65,7 @@ public class ImsSMSDispatcher extends SMSDispatcher {
         mGsmDispatcher = new GsmSMSDispatcher(phone, usageMonitor, this, mGsmInboundSmsHandler);
         SmsBroadcastUndelivered.initialize(phone.getContext(),
             mGsmInboundSmsHandler, mCdmaInboundSmsHandler);
+        InboundSmsHandler.registerNewMessageNotificationActionHandler(phone.getContext());
 
         mCi.registerForOn(this, EVENT_RADIO_ON, null);
         mCi.registerForImsNetworkStateChanged(this, EVENT_IMS_STATE_CHANGED, null);
@@ -208,8 +210,9 @@ public class ImsSMSDispatcher extends SMSDispatcher {
         }
     }
 
+    @VisibleForTesting
     @Override
-    protected void injectSmsPdu(byte[] pdu, String format, PendingIntent receivedIntent) {
+    public void injectSmsPdu(byte[] pdu, String format, PendingIntent receivedIntent) {
         Rlog.d(TAG, "ImsSMSDispatcher:injectSmsPdu");
         try {
             // TODO We need to decide whether we should allow injecting GSM(3gpp)
@@ -218,9 +221,14 @@ public class ImsSMSDispatcher extends SMSDispatcher {
                     android.telephony.SmsMessage.createFromPdu(pdu, format);
 
             // Only class 1 SMS are allowed to be injected.
-            if (msg.getMessageClass() != android.telephony.SmsMessage.MessageClass.CLASS_1) {
-                if (receivedIntent != null)
+            if (msg == null ||
+                    msg.getMessageClass() != android.telephony.SmsMessage.MessageClass.CLASS_1) {
+                if (msg == null) {
+                    Rlog.e(TAG, "injectSmsPdu: createFromPdu returned null");
+                }
+                if (receivedIntent != null) {
                     receivedIntent.send(Intents.RESULT_SMS_GENERIC_ERROR);
+                }
                 return;
             }
 

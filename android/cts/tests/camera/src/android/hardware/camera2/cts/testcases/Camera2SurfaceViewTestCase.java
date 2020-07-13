@@ -222,9 +222,11 @@ public class Camera2SurfaceViewTestCase extends
      * Does _not_ wait for the device to go idle
      */
     protected void stopPreview() throws Exception {
-        if (VERBOSE) Log.v(TAG, "Stopping preview");
         // Stop repeat, wait for captures to complete, and disconnect from surfaces
-        mSession.close();
+        if (mSession != null) {
+            if (VERBOSE) Log.v(TAG, "Stopping preview");
+            mSession.close();
+        }
     }
 
     /**
@@ -232,11 +234,13 @@ public class Camera2SurfaceViewTestCase extends
      * resulting in an idle device.
      */
     protected void stopPreviewAndDrain() throws Exception {
-        if (VERBOSE) Log.v(TAG, "Stopping preview and waiting for idle");
         // Stop repeat, wait for captures to complete, and disconnect from surfaces
-        mSession.close();
-        mSessionListener.getStateWaiter().waitForState(BlockingSessionCallback.SESSION_CLOSED,
-                /*timeoutMs*/WAIT_FOR_RESULT_TIMEOUT_MS);
+        if (mSession != null) {
+            if (VERBOSE) Log.v(TAG, "Stopping preview and waiting for idle");
+            mSession.close();
+            mSessionListener.getStateWaiter().waitForState(BlockingSessionCallback.SESSION_CLOSED,
+                    /*timeoutMs*/WAIT_FOR_RESULT_TIMEOUT_MS);
+        }
     }
 
     /**

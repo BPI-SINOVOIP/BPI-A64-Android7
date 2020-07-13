@@ -22,11 +22,14 @@ import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.Nullable;
-import android.support.v4.content.ContextCompat;
+import android.support.annotation.RestrictTo;
 import android.support.v4.widget.TintableCompoundButton;
 import android.support.v7.appcompat.R;
+import android.support.v7.content.res.AppCompatResources;
 import android.util.AttributeSet;
 import android.widget.CheckBox;
+
+import static android.support.annotation.RestrictTo.Scope.GROUP_ID;
 
 /**
  * A {@link CheckBox} which supports compatible features on older version of the platform,
@@ -43,7 +46,6 @@ import android.widget.CheckBox;
  */
 public class AppCompatCheckBox extends CheckBox implements TintableCompoundButton {
 
-    private AppCompatDrawableManager mDrawableManager;
     private AppCompatCompoundButtonHelper mCompoundButtonHelper;
 
     public AppCompatCheckBox(Context context) {
@@ -56,8 +58,7 @@ public class AppCompatCheckBox extends CheckBox implements TintableCompoundButto
 
     public AppCompatCheckBox(Context context, AttributeSet attrs, int defStyleAttr) {
         super(TintContextWrapper.wrap(context), attrs, defStyleAttr);
-        mDrawableManager = AppCompatDrawableManager.get();
-        mCompoundButtonHelper = new AppCompatCompoundButtonHelper(this, mDrawableManager);
+        mCompoundButtonHelper = new AppCompatCompoundButtonHelper(this);
         mCompoundButtonHelper.loadFromAttributes(attrs, defStyleAttr);
     }
 
@@ -71,9 +72,7 @@ public class AppCompatCheckBox extends CheckBox implements TintableCompoundButto
 
     @Override
     public void setButtonDrawable(@DrawableRes int resId) {
-        setButtonDrawable(mDrawableManager != null
-                ? mDrawableManager.getDrawable(getContext(), resId)
-                : ContextCompat.getDrawable(getContext(), resId));
+        setButtonDrawable(AppCompatResources.getDrawable(getContext(), resId));
     }
 
     @Override
@@ -88,6 +87,7 @@ public class AppCompatCheckBox extends CheckBox implements TintableCompoundButto
      * This should be accessed from {@link android.support.v4.widget.CompoundButtonCompat}
      * @hide
      */
+    @RestrictTo(GROUP_ID)
     @Override
     public void setSupportButtonTintList(@Nullable ColorStateList tint) {
         if (mCompoundButtonHelper != null) {
@@ -99,6 +99,7 @@ public class AppCompatCheckBox extends CheckBox implements TintableCompoundButto
      * This should be accessed from {@link android.support.v4.widget.CompoundButtonCompat}
      * @hide
      */
+    @RestrictTo(GROUP_ID)
     @Nullable
     @Override
     public ColorStateList getSupportButtonTintList() {
@@ -111,6 +112,7 @@ public class AppCompatCheckBox extends CheckBox implements TintableCompoundButto
      * This should be accessed from {@link android.support.v4.widget.CompoundButtonCompat}
      * @hide
      */
+    @RestrictTo(GROUP_ID)
     @Override
     public void setSupportButtonTintMode(@Nullable PorterDuff.Mode tintMode) {
         if (mCompoundButtonHelper != null) {
@@ -122,6 +124,7 @@ public class AppCompatCheckBox extends CheckBox implements TintableCompoundButto
      * This should be accessed from {@link android.support.v4.widget.CompoundButtonCompat}
      * @hide
      */
+    @RestrictTo(GROUP_ID)
     @Nullable
     @Override
     public PorterDuff.Mode getSupportButtonTintMode() {

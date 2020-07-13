@@ -322,6 +322,10 @@ A868 FE00; phags-pa letter reversed shaping subjoined ya; # PHAGS-PA SUBJOINED L
 2639 FE0F; emoji style; # WHITE FROWNING FACE
 263A FE0E; text style;  # WHITE SMILING FACE
 263A FE0F; emoji style; # WHITE SMILING FACE
+2640 FE0E; text style;  # FEMALE SIGN
+2640 FE0F; emoji style; # FEMALE SIGN
+2642 FE0E; text style;  # MALE SIGN
+2642 FE0F; emoji style; # MALE SIGN
 2648 FE0E; text style;  # ARIES
 2648 FE0F; emoji style; # ARIES
 2649 FE0E; text style;  # TAURUS
@@ -366,6 +370,8 @@ A868 FE00; phags-pa letter reversed shaping subjoined ya; # PHAGS-PA SUBJOINED L
 2693 FE0F; emoji style; # ANCHOR
 2694 FE0E; text style;  # CROSSED SWORDS
 2694 FE0F; emoji style; # CROSSED SWORDS
+2695 FE0E; text style;  # STAFF OF AESCULAPIUS
+2695 FE0F; emoji style; # STAFF OF AESCULAPIUS
 2696 FE0E; text style;  # SCALES
 2696 FE0F; emoji style; # SCALES
 2697 FE0E; text style;  # ALEMBIC

@@ -1,0 +1,7 @@
+[
+  {
+    "name": "$result",
+    "reason": "A release branch must be specified.",
+    "status_code": 1
+  }
+]

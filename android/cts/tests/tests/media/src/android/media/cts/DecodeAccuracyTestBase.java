@@ -20,6 +20,7 @@ import android.media.cts.R;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.content.res.Resources;
@@ -101,6 +102,12 @@ public class DecodeAccuracyTestBase
         super.tearDown();
     }
 
+    protected void bringActivityToFront() {
+        Intent intent = new Intent(mContext, DecodeAccuracyTestActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+        mActivity.startActivity(intent);
+    }
+
     protected TestHelper getHelper() {
         return testHelper;
     }
@@ -165,6 +172,7 @@ public class DecodeAccuracyTestBase
          * This must be called before decodeFramesAndDisplay.
          */
         private boolean prepare(Surface surface, VideoFormat videoFormat) {
+            Log.i(TAG, "Preparing to decode the media file.");
             if (!setExtractorDataSource(videoFormat)) {
                 return false;
             }
@@ -181,6 +189,7 @@ public class DecodeAccuracyTestBase
         /* The function decode video frames and display in a surface. */
         private PlayerResult decodeFramesAndDisplay(
                 Surface surface, int numOfTotalFrames, long timeOutMs) {
+            Log.i(TAG, "Starting decoding.");
             checkNotNull(decoder);
             int numOfDecodedFrames = 0;
             long decodeStart = 0;
@@ -219,11 +228,12 @@ public class DecodeAccuracyTestBase
                         numOfDecodedFrames++;
                     }
                 } catch (IllegalStateException exception) {
-                    Log.e(TAG, "IllegalStateException in decodeFramesAndDisplay " + exception);
+                    Log.e(TAG, "IllegalStateException in decodeFramesAndDisplay", exception);
                     break;
                 }
             }
             long totalTime = SystemClock.elapsedRealtime() - decodeStart;
+            Log.i(TAG, "Finishing decoding.");
             return new PlayerResult(true, true, numOfTotalFrames == numOfDecodedFrames, totalTime);
         }
 
@@ -290,12 +300,12 @@ public class DecodeAccuracyTestBase
                 decoder.stop();
             } catch (IllegalStateException exception) {
                 // IllegalStateException happens when decoder fail to start.
-                Log.e(TAG, "IllegalStateException in decoder stop" + exception);
+                Log.e(TAG, "IllegalStateException in decoder stop", exception);
             } finally {
                 try {
                     decoder.release();
                 } catch (IllegalStateException exception) {
-                    Log.e(TAG, "IllegalStateException in decoder release" + exception);
+                    Log.e(TAG, "IllegalStateException in decoder release", exception);
                 }
             }
             decoder = null;
@@ -308,7 +318,7 @@ public class DecodeAccuracyTestBase
             try {
                 extractor.release();
             } catch (IllegalStateException exception) {
-                Log.e(TAG, "IllegalStateException in extractor release" + exception);
+                Log.e(TAG, "IllegalStateException in extractor release", exception);
             }
         }
 
@@ -521,7 +531,8 @@ public class DecodeAccuracyTestBase
 /* Factory for manipulating a {@link View}. */
 abstract class VideoViewFactory {
 
-    public final long VIEW_AVAILABLE_TIMEOUT_MS = TimeUnit.SECONDS.toMillis(1);
+    public static final long VIEW_WAITTIME_MS = TimeUnit.SECONDS.toMillis(1);
+    public static final long DEFAULT_VIEW_AVAILABLE_TIMEOUT_MS = TimeUnit.SECONDS.toMillis(3);
     public static final int VIEW_WIDTH = 480;
     public static final int VIEW_HEIGHT = 360;
 
@@ -533,11 +544,19 @@ abstract class VideoViewFactory {
 
     public abstract View createView(Context context);
 
-    public abstract void waitForViewIsAvailable();
+    public void waitForViewIsAvailable() throws Exception {
+        waitForViewIsAvailable(DEFAULT_VIEW_AVAILABLE_TIMEOUT_MS);
+    };
+
+    public abstract void waitForViewIsAvailable(long timeOutMs) throws Exception;
 
     public abstract Surface getSurface();
 
     public abstract VideoViewSnapshot getVideoViewSnapshot();
+
+    public boolean hasLooper() {
+        return Looper.myLooper() != null;
+    }
 
 }
 
@@ -555,6 +574,7 @@ class TextureViewFactory extends VideoViewFactory implements TextureView.Surface
 
     @Override
     public TextureView createView(Context context) {
+        Log.i(TAG, "Creating a " + NAME);
         textureView = DecodeAccuracyTestBase.checkNotNull(new TextureView(context));
         textureView.setSurfaceTextureListener(this);
         return textureView;
@@ -581,16 +601,22 @@ class TextureViewFactory extends VideoViewFactory implements TextureView.Surface
     }
 
     @Override
-    public void waitForViewIsAvailable() {
-        while (!textureView.isAvailable()) {
+    public void waitForViewIsAvailable(long timeOutMs) throws Exception {
+        final long start = SystemClock.elapsedRealtime();
+        while (SystemClock.elapsedRealtime() - start < timeOutMs && !textureView.isAvailable()) {
             synchronized (syncToken) {
                 try {
-                    syncToken.wait(VIEW_AVAILABLE_TIMEOUT_MS);
-                } catch (InterruptedException exception) {
-                    Log.e(TAG, "Taking too long to attach a TextureView to a window.", exception);
+                    syncToken.wait(VIEW_WAITTIME_MS);
+                } catch (InterruptedException e) {
+                    Log.e(TAG, "Exception occurred when attaching a TextureView to a window.", e);
+                    throw new InterruptedException(e.getMessage());
                 }
             }
         }
+        if (!textureView.isAvailable()) {
+            throw new InterruptedException("Taking too long to attach a TextureView to a window.");
+        }
+        Log.i(TAG, NAME + " is available.");
     }
 
     @Override
@@ -646,7 +672,10 @@ class SurfaceViewFactory extends VideoViewFactory implements SurfaceHolder.Callb
 
     @Override
     public View createView(Context context) {
-        Looper.prepare();
+        Log.i(TAG, "Creating a " + NAME);
+        if (!super.hasLooper()) {
+            Looper.prepare();
+        }
         surfaceView = new SurfaceView(context);
         surfaceHolder = surfaceView.getHolder();
         surfaceHolder.addCallback(this);
@@ -654,16 +683,22 @@ class SurfaceViewFactory extends VideoViewFactory implements SurfaceHolder.Callb
     }
 
     @Override
-    public void waitForViewIsAvailable() {
-        while (!getSurface().isValid()) {
+    public void waitForViewIsAvailable(long timeOutMs) throws Exception {
+        final long start = SystemClock.elapsedRealtime();
+        while (SystemClock.elapsedRealtime() - start < timeOutMs && !getSurface().isValid()) {
             synchronized (syncToken) {
                 try {
-                    syncToken.wait(VIEW_AVAILABLE_TIMEOUT_MS);
-                } catch (InterruptedException exception) {
-                    Log.e(TAG, "Taking too long to attach a SurfaceView to a window.", exception);
+                    syncToken.wait(VIEW_WAITTIME_MS);
+                } catch (InterruptedException e) {
+                    Log.e(TAG, "Exception occurred when attaching a SurfaceView to a window.", e);
+                    throw new InterruptedException(e.getMessage());
                 }
             }
         }
+        if (!getSurface().isValid()) {
+            throw new InterruptedException("Taking too long to attach a SurfaceView to a window.");
+        }
+        Log.i(TAG, NAME + " is available.");
     }
 
     @Override
@@ -722,6 +757,7 @@ class GLSurfaceViewFactory extends VideoViewFactory {
 
     @Override
     public View createView(Context context) {
+        Log.i(TAG, "Creating a " + NAME);
         // Do all GL rendering in the GL thread.
         glSurfaceViewThread = new GLSurfaceViewThread();
         glSurfaceViewThread.start();
@@ -730,16 +766,25 @@ class GLSurfaceViewFactory extends VideoViewFactory {
     }
 
     @Override
-    public void waitForViewIsAvailable() {
-        while (glSurfaceViewThread.getSurface() == null) {
+    public void waitForViewIsAvailable(long timeOutMs) throws Exception {
+        final long start = SystemClock.elapsedRealtime();
+        while (SystemClock.elapsedRealtime() - start < timeOutMs
+                && glSurfaceViewThread.getSurface() == null) {
             synchronized (surfaceSyncToken) {
                 try {
-                    surfaceSyncToken.wait(VIEW_AVAILABLE_TIMEOUT_MS);
-                } catch (InterruptedException exception) {
-                    Log.e(TAG, "Taking too long for the surface to become available.", exception);
+                    surfaceSyncToken.wait(VIEW_WAITTIME_MS);
+                } catch (InterruptedException e) {
+                    Log.e(TAG, "Exception occurred when waiting for the surface from"
+                            + " GLSurfaceView to become available.", e);
+                    throw new InterruptedException(e.getMessage());
                 }
             }
         }
+        if (glSurfaceViewThread.getSurface() == null) {
+            throw new InterruptedException("Taking too long for the surface from"
+                    + " GLSurfaceView to become available.");
+        }
+        Log.i(TAG, NAME + " is available.");
     }
 
     @Override
@@ -1144,8 +1189,8 @@ class SurfaceViewSnapshot extends VideoViewSnapshot  {
                         }
                         Thread.sleep(PIXELCOPY_REQUEST_SLEEP_MS);
                     }
-                } catch (InterruptedException ex) {
-                    Log.w(TAG, "Pixel Copy is stopped/interrupted before it finishes", ex);
+                } catch (InterruptedException e) {
+                    Log.w(TAG, "Pixel Copy is stopped/interrupted before it finishes.", e);
                 }
                 copyHelper.release();
             }
@@ -1191,8 +1236,13 @@ class SurfaceViewSnapshot extends VideoViewSnapshot  {
 
         public int request(SurfaceView source, Bitmap dest) {
             synchronized (this) {
-                PixelCopy.request(source, dest, this, handler);
-                return getResultLocked();
+                try {
+                    PixelCopy.request(source, dest, this, handler);
+                    return getResultLocked();
+                } catch (Exception e) {
+                    Log.e(TAG, "Exception occurred when copying a SurfaceView.", e);
+                    return -1;
+                }
             }
         }
 
@@ -1243,8 +1293,8 @@ class GLSurfaceViewSnapshot extends VideoViewSnapshot {
     public synchronized void run() {
         try {
             waitForByteBuffer();
-        } catch (InterruptedException exception) {
-            Log.w(TAG, exception.getMessage());
+        } catch (InterruptedException e) {
+            Log.w(TAG, e.getMessage());
             Log.w(TAG, "ByteBuffer may contain incorrect pixels.");
         }
         // Get ByteBuffer anyway. Let the test fail if ByteBuffer contains incorrect pixels.

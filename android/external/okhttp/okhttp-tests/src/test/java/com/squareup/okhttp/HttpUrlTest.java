@@ -553,7 +553,10 @@ public final class HttpUrlTest {
   @Test public void queryCharacters() throws Exception {
     new UrlComponentEncodingTester()
         .override(Encoding.IDENTITY, '?', '`')
-        .override(Encoding.PERCENT, '\'')
+        // ANDROID-CHANGED: http://b/30405333
+        // .override(Encoding.PERCENT, '\'')
+        .override(Encoding.IDENTITY, '\'')
+        // ANDROID-CHANGED end.
         .override(Encoding.SKIP, '#', '+')
         .skipForUri('%', '\\', '^', '`', '{', '|', '}')
         .test(Component.QUERY);

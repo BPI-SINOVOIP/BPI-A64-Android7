@@ -20,6 +20,7 @@ import android.content.res.TypedArray;
 import android.graphics.drawable.Drawable;
 import android.os.Build.VERSION;
 import android.support.annotation.NonNull;
+import android.support.annotation.RestrictTo;
 import android.support.v17.leanback.R;
 import android.support.v17.leanback.transition.TransitionHelper;
 import android.support.v17.leanback.transition.TransitionListener;
@@ -47,6 +48,7 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
 
+import static android.support.annotation.RestrictTo.Scope.GROUP_ID;
 import static android.support.v17.leanback.widget.GuidedAction.EDITING_ACTIVATOR_VIEW;
 import static android.support.v17.leanback.widget.GuidedAction.EDITING_DESCRIPTION;
 import static android.support.v17.leanback.widget.GuidedAction.EDITING_NONE;
@@ -163,15 +165,15 @@ public class GuidedActionsStylist implements FragmentAnimationProvider {
      */
     public static class ViewHolder extends RecyclerView.ViewHolder implements FacetProvider {
 
-        private GuidedAction mAction;
+        GuidedAction mAction;
         private View mContentView;
-        private TextView mTitleView;
-        private TextView mDescriptionView;
-        private View mActivatorView;
-        private ImageView mIconView;
-        private ImageView mCheckmarkView;
-        private ImageView mChevronView;
-        private int mEditingMode = EDITING_NONE;
+        TextView mTitleView;
+        TextView mDescriptionView;
+        View mActivatorView;
+        ImageView mIconView;
+        ImageView mCheckmarkView;
+        ImageView mChevronView;
+        int mEditingMode = EDITING_NONE;
         private final boolean mIsSubAction;
 
         final AccessibilityDelegate mDelegate = new AccessibilityDelegate() {
@@ -362,9 +364,10 @@ public class GuidedActionsStylist implements FragmentAnimationProvider {
 
     private static String TAG = "GuidedActionsStylist";
 
-    private ViewGroup mMainView;
+    ViewGroup mMainView;
     private VerticalGridView mActionsGridView;
-    private VerticalGridView mSubActionsGridView;
+    VerticalGridView mSubActionsGridView;
+    private View mSubActionsBackground;
     private View mBgView;
     private View mContentView;
     private boolean mButtonActions;
@@ -385,7 +388,7 @@ public class GuidedActionsStylist implements FragmentAnimationProvider {
     private EditListener mEditListener;
 
     private GuidedAction mExpandedAction = null;
-    private Object mExpandTransition;
+    Object mExpandTransition;
 
     /**
      * Creates a view appropriate for displaying a list of GuidedActions, using the provided
@@ -421,6 +424,8 @@ public class GuidedActionsStylist implements FragmentAnimationProvider {
             if (!mButtonActions) {
                 mSubActionsGridView = (VerticalGridView) mMainView.findViewById(
                         R.id.guidedactions_sub_list);
+                mSubActionsBackground = mMainView.findViewById(
+                        R.id.guidedactions_sub_list_background);
             }
         }
         mActionsGridView.setFocusable(false);
@@ -476,6 +481,7 @@ public class GuidedActionsStylist implements FragmentAnimationProvider {
         mExpandTransition = null;
         mActionsGridView = null;
         mSubActionsGridView = null;
+        mSubActionsBackground = null;
         mContentView = null;
         mBgView = null;
         mMainView = null;
@@ -886,6 +892,7 @@ public class GuidedActionsStylist implements FragmentAnimationProvider {
      * Sets listener for reporting view being edited.
      * @hide
      */
+    @RestrictTo(GROUP_ID)
     public void setEditListener(EditListener listener) {
         mEditListener = listener;
     }
@@ -1044,6 +1051,7 @@ public class GuidedActionsStylist implements FragmentAnimationProvider {
             }
         }
         TransitionHelper.include(changeGridBounds, mSubActionsGridView);
+        TransitionHelper.include(changeGridBounds, mSubActionsBackground);
         TransitionHelper.addTransition(set, slideAndFade);
         // note that we don't run ChangeBounds for activating view due to the rounding problem
         // of multiple level views ChangeBounds animation causing vertical jittering.
@@ -1073,6 +1081,7 @@ public class GuidedActionsStylist implements FragmentAnimationProvider {
                     }
                     mSubActionsGridView.removeOnLayoutChangeListener(this);
                     mMainView.post(new Runnable() {
+                        @Override
                         public void run() {
                             if (mMainView == null) {
                                 return;
@@ -1146,12 +1155,14 @@ public class GuidedActionsStylist implements FragmentAnimationProvider {
                 lp.height = ViewGroup.MarginLayoutParams.MATCH_PARENT;
                 mSubActionsGridView.setLayoutParams(lp);
                 mSubActionsGridView.setVisibility(View.VISIBLE);
+                mSubActionsBackground.setVisibility(View.VISIBLE);
                 mSubActionsGridView.requestFocus();
                 mSubActionsGridView.setSelectedPosition(0);
                 ((GuidedActionAdapter) mSubActionsGridView.getAdapter())
                         .setActions(avh.getAction().getSubActions());
             } else if (mSubActionsGridView.getVisibility() == View.VISIBLE) {
                 mSubActionsGridView.setVisibility(View.INVISIBLE);
+                mSubActionsBackground.setVisibility(View.INVISIBLE);
                 ViewGroup.MarginLayoutParams lp =
                         (ViewGroup.MarginLayoutParams) mSubActionsGridView.getLayoutParams();
                 lp.height = 0;

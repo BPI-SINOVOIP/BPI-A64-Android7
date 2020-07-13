@@ -23,7 +23,6 @@ import java.util.concurrent.TimeUnit;
 /**
  * FutureResult represents an eventual execution result for asynchronous operations.
  *
- * @author Damon Kohler (damonkohler@gmail.com)
  */
 public class FutureResult<T> implements Future<T> {
 

@@ -1,0 +1,86 @@
+[
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "\nimport json, os, sys\nif os.path.exists(sys.argv[1]) and os.path.isdir(sys.argv[1]):\n  with open(sys.argv[2], 'w') as f:\n    json.dump(os.listdir(sys.argv[1]), f)\n",
+      "[SLAVE_BUILD]/src/out/Release",
+      "/path/to/tmp/json"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "listdir build_dir",
+    "~followup_annotations": [
+      "@@@STEP_LOG_LINE@json.output@[@@@",
+      "@@@STEP_LOG_LINE@json.output@  \"chrome\", @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"icu.dat\", @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"lib.host\"@@@",
+      "@@@STEP_LOG_LINE@json.output@]@@@",
+      "@@@STEP_LOG_END@json.output@@@",
+      "@@@STEP_LOG_LINE@python.inline@@@@",
+      "@@@STEP_LOG_LINE@python.inline@import json, os, sys@@@",
+      "@@@STEP_LOG_LINE@python.inline@if os.path.exists(sys.argv[1]) and os.path.isdir(sys.argv[1]):@@@",
+      "@@@STEP_LOG_LINE@python.inline@  with open(sys.argv[2], 'w') as f:@@@",
+      "@@@STEP_LOG_LINE@python.inline@    json.dump(os.listdir(sys.argv[1]), f)@@@",
+      "@@@STEP_LOG_END@python.inline@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "RECIPE_MODULE[archive]/resources/zip_archive.py",
+      "[TMP_BASE]/chrome_staging_tmp_1",
+      "chrome-asan-linux-release-refs_heads_B1-123456",
+      "[\"chrome\", \"icu.dat\"]",
+      "[SLAVE_BUILD]/src/out/Release"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "zipping"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[DEPOT_TOOLS]/gsutil.py",
+      "--",
+      "-h",
+      "x-goog-meta-Cr-Commit-Position:refs/heads/B1@{#123456}",
+      "-h",
+      "x-goog-meta-Cr-Commit-Position-Number:123456",
+      "-h",
+      "x-goog-meta-Cr-Git-Commit:5e3250aadda2b170692f8e762d43b7e8deadbeef",
+      "cp",
+      "-a",
+      "public-read",
+      "[TMP_BASE]/chrome_staging_tmp_1/chrome-asan-linux-release-refs_heads_B1-123456.zip",
+      "gs://chromium/linux-release-subdir/chrome-asan-linux-release-refs_heads_B1-123456.zip"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "gsutil upload",
+    "~followup_annotations": [
+      "@@@STEP_LINK@gsutil.upload@https://storage.cloud.google.com/chromium/linux-release-subdir/chrome-asan-linux-release-refs_heads_B1-123456.zip@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "\nimport os\nimport sys\nos.remove(sys.argv[1])\n",
+      "[TMP_BASE]/chrome_staging_tmp_1/chrome-asan-linux-release-refs_heads_B1-123456.zip"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "chrome-asan-linux-release-refs_heads_B1-123456.zip",
+    "~followup_annotations": [
+      "@@@STEP_LOG_LINE@python.inline@@@@",
+      "@@@STEP_LOG_LINE@python.inline@import os@@@",
+      "@@@STEP_LOG_LINE@python.inline@import sys@@@",
+      "@@@STEP_LOG_LINE@python.inline@os.remove(sys.argv[1])@@@",
+      "@@@STEP_LOG_END@python.inline@@@"
+    ]
+  },
+  {
+    "name": "$result",
+    "recipe_result": null,
+    "status_code": 0
+  }
+]

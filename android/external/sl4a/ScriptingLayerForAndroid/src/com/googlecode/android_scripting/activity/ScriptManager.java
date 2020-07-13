@@ -71,7 +71,6 @@ import java.util.Map.Entry;
 /**
  * Manages creation, deletion, and execution of stored scripts.
  *
- * @author Damon Kohler (damonkohler@gmail.com)
  */
 public class ScriptManager extends ListActivity {
 

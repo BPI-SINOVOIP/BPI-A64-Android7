@@ -75,6 +75,12 @@ public class UiBenchJankTestsHelper {
                 expectedTextCmp);
     }
 
+    public void launchActivityAndAssert(String activityName, String verifyText) {
+        launchActivity(activityName, verifyText);
+        mContents = mDevice.wait(Until.findObject(By.res("android", "content")), TIMEOUT);
+        Assert.assertNotNull(activityName + " isn't found", mContents);
+    }
+
     /**
      * To perform the fling down and up on given content for flingCount number
      * of times
@@ -83,11 +89,15 @@ public class UiBenchJankTestsHelper {
      * @param flingCount
      */
     public void flingUpDown(UiObject2 content, long timeout, int flingCount) {
+        flingUpDown(content, timeout, flingCount, false);
+    }
+
+    public void flingUpDown(UiObject2 content, long timeout, int flingCount, boolean reverse) {
         for (int count = 0; count < flingCount; count++) {
             SystemClock.sleep(timeout);
-            content.fling(Direction.DOWN);
+            content.fling(reverse ? Direction.UP : Direction.DOWN);
             SystemClock.sleep(timeout);
-            content.fling(Direction.UP);
+            content.fling(reverse ? Direction.DOWN : Direction.UP);
         }
     }
 

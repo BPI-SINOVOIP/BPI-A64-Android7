@@ -88,7 +88,7 @@ public class ViewInfoActivity extends EmergencyTabActivity {
         // Show a TextView with "No information provided" if there are no fragments.
         if (getNumberFragments() == 0) {
             mViewFlipper.setDisplayedChild(
-                    mViewFlipper.indexOfChild(findViewById(R.id.no_info_text_view)));
+                    mViewFlipper.indexOfChild(findViewById(R.id.no_info)));
         } else {
             mViewFlipper.setDisplayedChild(mViewFlipper.indexOfChild(findViewById(R.id.tabs)));
         }

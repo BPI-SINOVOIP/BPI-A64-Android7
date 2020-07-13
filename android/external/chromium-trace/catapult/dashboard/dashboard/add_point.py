@@ -19,7 +19,7 @@ from dashboard import math_utils
 from dashboard import post_data_handler
 from dashboard.models import graph_data
 
-_TASK_QUEUE_NAME = 'add-point-queue'
+_TASK_QUEUE_NAME = 'new-points-queue'
 
 # Number of rows to process per task queue task. This limits the task size
 # and execution time (Limits: 100KB object size and 10 minutes execution time).
@@ -425,7 +425,7 @@ def _ExtractValueAndError(trace):
       if trace.get('none_value_reason'):
         return float('nan'), float('nan')
       raise BadRequestError('Expected list of scalar values, got: %r' % values)
-    if not all(isinstance(v, float) or isinstance(v, int) for v in values):
+    if not all(_IsNumber(v) for v in values):
       raise BadRequestError('Non-number found in values list: %r' % values)
     value = math_utils.Mean(values)
     std = trace.get('std')
@@ -439,6 +439,10 @@ def _ExtractValueAndError(trace):
     return _GeomMeanAndStdDevFromHistogram(trace)
 
   raise BadRequestError('Invalid value type in chart object: %r' % trace_type)
+
+
+def _IsNumber(v):
+  return isinstance(v, float) or isinstance(v, int) or isinstance(v, long)
 
 
 def _EscapeName(name):
@@ -598,7 +602,7 @@ def _ValidateTestPath(test_path):
 
 
 def _ValidateTestPathPartName(name):
-  """Checks whether a Master, Bot or Test name is OK."""
+  """Checks whether a Master, Bot or TestMetadata name is OK."""
   # NDB Datastore doesn't allow key names to start and with "__" and "__".
   if name.startswith('__') and name.endswith('__'):
     raise BadRequestError(
@@ -627,16 +631,19 @@ def _ValidateRowId(row_dict, test_map):
     logging.warning('Test %s has no last added revision entry.', test_path)
     return
 
-  if not _IsAcceptableRowId(row_id, last_row_id):
+  allow_jump = (
+      master.endswith('Internal') or
+      (master.endswith('QA') and bot.startswith('release-tests-')))
+  if not _IsAcceptableRowId(row_id, last_row_id, allow_jump=allow_jump):
     raise BadRequestError(
         'Invalid ID (revision) %d; compared to previous ID %s, it was larger '
         'or smaller by too much.' % (row_id, last_row_id))
 
 
-def _IsAcceptableRowId(row_id, last_row_id):
+def _IsAcceptableRowId(row_id, last_row_id, allow_jump=False):
   """Checks whether the given row id (aka revision) is not too large or small.
 
-  For each data series (i.e. Test entity), we assume that row IDs are
+  For each data series (i.e. TestMetadata entity), we assume that row IDs are
   monotonically increasing. On a given chart, points are sorted by these
   row IDs. This way, points can arrive out of order but still be shown
   correctly in the chart.
@@ -666,6 +673,12 @@ def _IsAcceptableRowId(row_id, last_row_id):
   # Too big of a decrease.
   if row_id < 0.5 * last_row_id:
     return False
+  # TODO(perezju): We temporarily allow for a big jump on special cased bots,
+  # while we migrate from using commit position to timestamp as row id.
+  # The jump is only allowed into a timestamp falling within Aug-Dec 2016.
+  # This special casing should be removed after finishing the migration.
+  if allow_jump and 1470009600 < row_id < 1483228800:
+    return True
   # Too big of an increase.
   if row_id > 2 * last_row_id:
     return False
@@ -700,7 +713,7 @@ def GetAndValidateRowProperties(row):
 
   This includes the default "value" and "error" columns as well as all
   supplemental columns, but it doesn't include "revision", and it doesn't
-  include input fields that are properties of the parent Test, such as
+  include input fields that are properties of the parent TestMetadata, such as
   "units".
 
   This method is responsible for validating all properties that are to be

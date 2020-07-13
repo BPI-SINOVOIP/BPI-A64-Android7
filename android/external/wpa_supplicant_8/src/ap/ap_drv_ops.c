@@ -679,6 +679,16 @@ int hostapd_drv_send_action(struct hostapd_data *hapd, unsigned int freq,
 					 len, 0);
 }
 
+#if defined(ENABLE_XR_CHANGES)
+int hostapd_drv_set_wowlan(struct hostapd_data *hapd,
+struct wpa_driver_wowlan_params *wowlan_params)
+{
+	if (!hapd->driver->set_wowlan)
+		return -1;
+	return hapd->driver->set_wowlan(hapd->drv_priv, wowlan_params);
+}
+#endif
+
 
 int hostapd_start_dfs_cac(struct hostapd_iface *iface,
 			  enum hostapd_hw_mode mode, int freq,

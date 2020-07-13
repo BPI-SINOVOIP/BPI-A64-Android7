@@ -7,17 +7,16 @@ found in the LICENSE file.
 
 <link rel="import" href="/tracing/base/iteration_helpers.html">
 <link rel="import" href="/tracing/base/range.html">
+<link rel="import" href="/tracing/base/unit.html">
 <link rel="import" href="/tracing/model/memory_allocator_dump.html">
-<link rel="import"
-    href="/tracing/ui/analysis/memory_dump_heap_details_pane.html">
+<link rel="import" href="/tracing/ui/analysis/memory_dump_heap_details_pane.html">
 <link rel="import" href="/tracing/ui/analysis/memory_dump_sub_view_util.html">
 <link rel="import" href="/tracing/ui/analysis/stacked_pane.html">
 <link rel="import" href="/tracing/ui/base/dom_helpers.html">
 <link rel="import" href="/tracing/ui/base/table.html">
-<link rel="import" href="/tracing/value/unit.html">
 
-<polymer-element name="tr-ui-a-memory-dump-allocator-details-pane"
-    extends="tr-ui-a-stacked-pane">
+
+<dom-module id='tr-ui-a-memory-dump-allocator-details-pane'>
   <template>
     <style>
       :host {
@@ -62,7 +61,7 @@ found in the LICENSE file.
       <tr-ui-b-table id="table"></tr-ui-b-table>
     </div>
   </template>
-</polymer-element>
+</dom-module>
 <script>
 'use strict';
 
@@ -210,7 +209,7 @@ tr.exportTo('tr.ui.analysis', function() {
 
     appendSizeIfDefined: function(size) {
       if (size !== undefined)
-        this.append(' (', tr.v.Unit.byName.sizeInBytes.format(size), ')');
+        this.append(' (', tr.b.Unit.byName.sizeInBytes.format(size), ')');
     },
 
     appendSomeTimestampsQuantifier: function() {
@@ -225,12 +224,12 @@ tr.exportTo('tr.ui.analysis', function() {
 
   /** @constructor */
   function EffectiveSizeColumn(name, cellPath, aggregationMode) {
-    tr.ui.analysis.NumericMemoryColumn.call(
+    tr.ui.analysis.DetailsNumericMemoryColumn.call(
         this, name, cellPath, aggregationMode);
   }
 
   EffectiveSizeColumn.prototype = {
-    __proto__: tr.ui.analysis.NumericMemoryColumn.prototype,
+    __proto__: tr.ui.analysis.DetailsNumericMemoryColumn.prototype,
 
     addInfos: function(numerics, memoryAllocatorDumps, infos) {
       if (memoryAllocatorDumps === undefined)
@@ -350,12 +349,12 @@ tr.exportTo('tr.ui.analysis', function() {
 
   /** @constructor */
   function SizeColumn(name, cellPath, aggregationMode) {
-    tr.ui.analysis.NumericMemoryColumn.call(
+    tr.ui.analysis.DetailsNumericMemoryColumn.call(
         this, name, cellPath, aggregationMode);
   }
 
   SizeColumn.prototype = {
-    __proto__: tr.ui.analysis.NumericMemoryColumn.prototype,
+    __proto__: tr.ui.analysis.DetailsNumericMemoryColumn.prototype,
 
     addInfos: function(numerics, memoryAllocatorDumps, infos) {
       if (memoryAllocatorDumps === undefined)
@@ -471,17 +470,17 @@ tr.exportTo('tr.ui.analysis', function() {
     {
       condition: 'page_size',
       importance: 0,
-      columnConstructor: tr.ui.analysis.NumericMemoryColumn
+      columnConstructor: tr.ui.analysis.DetailsNumericMemoryColumn
     },
     {
       condition: /size/,
       importance: 5,
-      columnConstructor: tr.ui.analysis.NumericMemoryColumn
+      columnConstructor: tr.ui.analysis.DetailsNumericMemoryColumn
     },
     {
       // All other columns.
       importance: 0,
-      columnConstructor: tr.ui.analysis.NumericMemoryColumn
+      columnConstructor: tr.ui.analysis.DetailsNumericMemoryColumn
     }
   ];
 
@@ -492,7 +491,10 @@ tr.exportTo('tr.ui.analysis', function() {
     }
   ];
 
-  Polymer('tr-ui-a-memory-dump-allocator-details-pane', {
+  Polymer({
+    is: 'tr-ui-a-memory-dump-allocator-details-pane',
+    behaviors: [tr.ui.analysis.StackedPane],
+
     created: function() {
       this.memoryAllocatorDumps_ = undefined;
       this.heapDumps_ = undefined;
@@ -518,7 +520,7 @@ tr.exportTo('tr.ui.analysis', function() {
      */
     set memoryAllocatorDumps(memoryAllocatorDumps) {
       this.memoryAllocatorDumps_ = memoryAllocatorDumps;
-      this.scheduleRebuildPane_();
+      this.scheduleRebuild_();
     },
 
     get memoryAllocatorDumps() {
@@ -530,19 +532,19 @@ tr.exportTo('tr.ui.analysis', function() {
     // (view) instead.
     set heapDumps(heapDumps) {
       this.heapDumps_ = heapDumps;
-      this.scheduleRebuildPane_();
+      this.scheduleRebuild_();
     },
 
     set aggregationMode(aggregationMode) {
       this.aggregationMode_ = aggregationMode;
-      this.scheduleRebuildPane_();
+      this.scheduleRebuild_();
     },
 
     get aggregationMode() {
       return this.aggregationMode_;
     },
 
-    rebuildPane_: function() {
+    onRebuild_: function() {
       if (this.memoryAllocatorDumps_ === undefined ||
           this.memoryAllocatorDumps_.length === 0) {
         // Show the info text (hide the table).

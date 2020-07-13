@@ -53,11 +53,10 @@ tr.b.unittest.testSuite(function() {
     // Clicking the analysis link should focus the Binder1's timeslice.
     var didSelectionChangeHappen = false;
     view.addEventListener('requestSelectionChange', function(e) {
-      assert.equal(e.selection.length, 1);
-      assert.equal(e.selection[0], binderSlice);
+      assert.isTrue(e.selection.equals(new tr.model.EventSet(binderSlice)));
       didSelectionChangeHappen = true;
     });
-    view.shadowRoot.querySelector('tr-ui-a-analysis-link').click();
+    Polymer.dom(view.root).querySelector('tr-ui-a-analysis-link').click();
     assert.isTrue(didSelectionChangeHappen);
   });
 
@@ -83,11 +82,10 @@ tr.b.unittest.testSuite(function() {
     // Clicking the analysis link should focus the Android.launcher slice
     var didSelectionChangeHappen = false;
     view.addEventListener('requestSelectionChange', function(e) {
-      assert.equal(e.selection.length, 1);
-      assert.equal(e.selection[0], launcherSlice);
+      assert.isTrue(e.selection.equals(new tr.model.EventSet(launcherSlice)));
       didSelectionChangeHappen = true;
     });
-    view.shadowRoot.querySelector('tr-ui-a-analysis-link').click();
+    Polymer.dom(view.root).querySelector('tr-ui-a-analysis-link').click();
     assert.isTrue(didSelectionChangeHappen);
   });
 });

@@ -36,10 +36,10 @@
 using namespace android;
 
 // Periodic chores intervals in seconds
-#define DEFAULT_PERIODIC_CHORES_INTERVAL_FAST -1
+#define DEFAULT_PERIODIC_CHORES_INTERVAL_FAST (60*1)
 //For the designs without low battery detection,need to enable
 //the default 60*10s wakeup timer to periodic check.
-#define DEFAULT_PERIODIC_CHORES_INTERVAL_SLOW (60 * 30)
+#define DEFAULT_PERIODIC_CHORES_INTERVAL_SLOW (60 * 10)
 
 
 static struct healthd_config healthd_config = {
@@ -139,10 +139,14 @@ static void healthd_mode_nop_battery_update(
     struct android::BatteryProperties* /*props*/) {
 }
 
-int healthd_register_event(int fd, void (*handler)(uint32_t)) {
+int healthd_register_event(int fd, void (*handler)(uint32_t), EventWakeup wakeup) {
     struct epoll_event ev;
 
-    ev.events = EPOLLIN | EPOLLWAKEUP;
+    ev.events = EPOLLIN;
+
+    if (wakeup == EVENT_WAKEUP_FD)
+        ev.events |= EPOLLWAKEUP;
+
     ev.data.ptr = (void *)handler;
     if (epoll_ctl(epollfd, EPOLL_CTL_ADD, fd, &ev) == -1) {
         KLOG_ERROR(LOG_TAG,
@@ -248,7 +252,7 @@ static void uevent_init(void) {
     }
 
     fcntl(uevent_fd, F_SETFL, O_NONBLOCK);
-    if (healthd_register_event(uevent_fd, uevent_event))
+    if (healthd_register_event(uevent_fd, uevent_event, EVENT_WAKEUP_FD))
         KLOG_ERROR(LOG_TAG,
                    "register for uevent events failed\n");
 }
@@ -265,13 +269,13 @@ static void wakealarm_event(uint32_t /*epevents*/) {
 }
 
 static void wakealarm_init(void) {
-    wakealarm_fd = timerfd_create(CLOCK_BOOTTIME_ALARM, TFD_NONBLOCK);
+    wakealarm_fd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK);
     if (wakealarm_fd == -1) {
         KLOG_ERROR(LOG_TAG, "wakealarm_init: timerfd_create failed\n");
         return;
     }
 
-    if (healthd_register_event(wakealarm_fd, wakealarm_event))
+    if (healthd_register_event(wakealarm_fd, wakealarm_event, EVENT_WAKEUP_FD))
         KLOG_ERROR(LOG_TAG,
                    "Registration of wakealarm event failed\n");
 
@@ -289,7 +293,6 @@ static void healthd_mainloop(void) {
         if (timeout < 0 || (mode_timeout > 0 && mode_timeout < timeout))
             timeout = mode_timeout;
         nevents = epoll_wait(epollfd, events, eventct, timeout);
-
         if (nevents == -1) {
             if (errno == EINTR)
                 continue;

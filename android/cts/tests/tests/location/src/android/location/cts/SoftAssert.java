@@ -156,7 +156,9 @@ public class SoftAssert {
         if (testIsStrict) {
             Assert.assertTrue(message, condition);
         } else {
-            failAsWarning("", message);
+            if (!condition) {
+                failAsWarning("", message);
+            }
         }
     }
 

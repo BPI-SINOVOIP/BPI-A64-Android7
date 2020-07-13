@@ -20,6 +20,7 @@ import android.media.cts.R;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.util.Log;
 import android.view.View;
 
 @TargetApi(24)
@@ -31,6 +32,20 @@ public class DecodeAccuracyTest extends DecodeAccuracyTestBase {
     private static final String H264_CROPPED_VIDEO_FILE_NAME = "520x360h264decodertest.mp4";
     private static final int ALLOWED_GREATEST_PIXEL_DIFFERENCE = 90;
     private static final int OFFSET = 10;
+
+    private View videoView;
+    private VideoViewFactory videoViewFactory;
+
+    @Override
+    protected void tearDown() throws Exception {
+        if (videoView != null) {
+            getHelper().cleanUpView(videoView);
+        }
+        if (videoViewFactory != null) {
+            videoViewFactory.release();
+        }
+        super.tearDown();
+    }
 
     /* <------------- Tests Using H264 -------------> */
     public void testH264GLViewVideoDecode() throws Exception {
@@ -136,24 +151,33 @@ public class DecodeAccuracyTest extends DecodeAccuracyTestBase {
 
     private void runDecodeAccuracyTest(
             VideoViewFactory videoViewFactory, VideoFormat videoFormat, int goldenResId) {
-        checkNotNull(videoViewFactory);
         checkNotNull(videoFormat);
-        View videoView = videoViewFactory.createView(getHelper().getContext());
-        // If view is intended and available to display.
-        if (videoView != null) {
-            getHelper().generateView(videoView);
+        this.videoViewFactory = checkNotNull(videoViewFactory);
+        this.videoView = videoViewFactory.createView(getHelper().getContext());
+        final int maxRetries = 3;
+        for (int retry = 1; retry <= maxRetries; retry++) {
+            // If view is intended and available to display.
+            if (videoView != null) {
+                getHelper().generateView(videoView);
+            }
+            try {
+                videoViewFactory.waitForViewIsAvailable();
+                break;
+            } catch (Exception exception) {
+                Log.e(TAG, exception.getMessage());
+                if (retry == maxRetries) {
+                    fail("Timeout waiting for a valid surface.");
+                } else {
+                    Log.w(TAG, "Try again...");
+                    bringActivityToFront();
+                }
+            }
         }
-        videoViewFactory.waitForViewIsAvailable();
         // In the case of SurfaceView, VideoViewSnapshot can only capture incoming frames,
         // so it needs to be created before start decoding.
         final VideoViewSnapshot videoViewSnapshot = videoViewFactory.getVideoViewSnapshot();
         decodeVideo(videoFormat, videoViewFactory);
         validateResult(videoFormat, videoViewSnapshot, goldenResId);
-
-        if (videoView != null) {
-            getHelper().cleanUpView(videoView);
-        }
-        videoViewFactory.release();
     }
 
     private void decodeVideo(VideoFormat videoFormat, VideoViewFactory videoViewFactory) {

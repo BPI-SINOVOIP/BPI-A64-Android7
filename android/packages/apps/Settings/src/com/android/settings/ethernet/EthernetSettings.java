@@ -55,14 +55,15 @@ public class EthernetSettings extends SettingsPreferenceFragment implements
 	private static final boolean localLOGV = true;
 	
 	private EthernetEnabler mEthEnabler;
-    private static final String KEY_CONF_ETH = "ETHERNET_CONFIG";
+    	private static final String KEY_CONF_ETH = "ETHERNET_CONFIG";
 	private EthernetDialog mEthDialog = null;
 	private Preference mEthConfigPref;
 	private ConnectivityManager mCM;
 
     protected int getMetricsCategory() {
-		if (localLOGV) Slog.d(TAG, "getMetricsCategory");
-        return MetricsEvent.ETHERNET;
+	if (localLOGV) Slog.d(TAG, "getMetricsCategory");
+        //return MetricsEvent.ETHERNET;
+	return 497;
     }
 
     @Override
@@ -70,8 +71,7 @@ public class EthernetSettings extends SettingsPreferenceFragment implements
     	if (localLOGV) Slog.d(TAG, "onCreate");
         super.onCreate(savedInstanceState);
         addPreferencesFromResource(R.xml.ethernet_settings);
-        final PreferenceScreen preferenceScreen = getPreferenceScreen();
-        mEthConfigPref = preferenceScreen.findPreference(KEY_CONF_ETH);
+        mEthConfigPref = findPreference(KEY_CONF_ETH);
     }
 
     @Override
@@ -80,10 +80,9 @@ public class EthernetSettings extends SettingsPreferenceFragment implements
         super.onStart();
         // On/off switch is hidden for Setup Wizard (returns null)
         mEthEnabler = createEthernetEnabler();
-		mCM = (ConnectivityManager)getActivity().getSystemService(
-		        Context.CONNECTIVITY_SERVICE);
-		mEthDialog = new EthernetDialog(getActivity(),(EthernetManager)getSystemService(Context.ETHERNET_SERVICE),mCM);
-		mEthEnabler.setConfigDialog(mEthDialog);
+	mCM = (ConnectivityManager)getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
+	mEthDialog = new EthernetDialog(getActivity(),(EthernetManager)getSystemService(Context.ETHERNET_SERVICE),mCM);
+	mEthEnabler.setConfigDialog(mEthDialog);
     }
 
     @Override
@@ -117,7 +116,7 @@ public class EthernetSettings extends SettingsPreferenceFragment implements
      * @return new WifiEnabler or null (as overridden by WifiSettingsForSetupWizard)
      */
     /* package */ 
-	EthernetEnabler createEthernetEnabler() {
+    EthernetEnabler createEthernetEnabler() {
         final SettingsActivity activity = (SettingsActivity) getActivity();
         return new EthernetEnabler(activity, activity.getSwitchBar(),(EthernetManager)getSystemService(Context.ETHERNET_SERVICE));
     }
@@ -126,16 +125,18 @@ public class EthernetSettings extends SettingsPreferenceFragment implements
         return true;
     }
 
-    public boolean onPreferenceTreeClick(PreferenceScreen preferenceScreen, Preference preference) {
+    public boolean onPreferenceTreeClick(Preference preference) {
         if (preference == mEthConfigPref) {
-			final SettingsActivity activity = (SettingsActivity) getActivity();
-			if(activity.getSwitchBar().isChecked()) {
-				if(mEthDialog != null)
-		        	mEthDialog.show();
-			} else {
-				Toast.makeText(getActivity(), "please turn on ethernet", Toast.LENGTH_LONG).show();
-			}
+		final SettingsActivity activity = (SettingsActivity) getActivity();
+		if(activity.getSwitchBar().isChecked()) {
+			if(mEthDialog != null)
+	        	mEthDialog.show();
+		} else {
+			Toast.makeText(getActivity(), "please turn on ethernet", Toast.LENGTH_LONG).show();
+		}
         }
+	if (localLOGV) Slog.d(TAG, "onPreferenceTreeClick");
+	
         return false;
     }
 }

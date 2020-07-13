@@ -111,18 +111,15 @@ QCamera3PostProcessor::~QCamera3PostProcessor()
  *
  * PARAMETERS :
  *   @memory              : output buffer memory
- *   @postprocess_mask    : postprocess mask for the buffer
  *
  * RETURN     : int32_t type of status
  *              NO_ERROR  -- success
  *              none-zero failure code
  *==========================================================================*/
-int32_t QCamera3PostProcessor::init(QCamera3StreamMem *memory,
-        uint32_t postprocess_mask)
+int32_t QCamera3PostProcessor::init(QCamera3StreamMem *memory)
 {
     ATRACE_CALL();
     mOutputMem = memory;
-    mPostProcMask = postprocess_mask;
     m_dataProcTh.launch(dataProcessRoutine, this);
 
     return NO_ERROR;
@@ -604,7 +601,7 @@ int32_t QCamera3PostProcessor::processData(mm_camera_super_buf_t *input,
 int32_t QCamera3PostProcessor::processData(qcamera_fwk_input_pp_data_t *frame)
 {
     if (frame->reproc_config.reprocess_type != REPROCESS_TYPE_NONE) {
-        ATRACE_INT("Camera:Reprocess", 1);
+        KPI_ATRACE_INT("Camera:Reprocess", 1);
         pthread_mutex_lock(&mReprocJobLock);
         // enqueu to post proc input queue
         m_inputFWKPPQ.enqueue((void *)frame);
@@ -709,7 +706,7 @@ int32_t QCamera3PostProcessor::processJpegSettingData(
 int32_t QCamera3PostProcessor::processPPData(mm_camera_super_buf_t *frame)
 {
     qcamera_hal3_pp_data_t *job = (qcamera_hal3_pp_data_t *)m_ongoingPPQ.dequeue();
-    ATRACE_INT("Camera:Reprocess", 0);
+    KPI_ATRACE_INT("Camera:Reprocess", 0);
     if (job == NULL || ((NULL == job->src_frame) && (NULL == job->fwk_src_frame))) {
         LOGE("Cannot find reprocess job");
         return BAD_VALUE;
@@ -1631,6 +1628,12 @@ int32_t QCamera3PostProcessor::encodeData(qcamera_hal3_jpeg_data_t *jpeg_job_dat
                     jpg_job.encode_job.cam_exif_params.debug_params->asd_debug_params_valid;
             jpg_job.encode_job.p_metadata->is_statsdebug_stats_params_valid =
                     jpg_job.encode_job.cam_exif_params.debug_params->stats_debug_params_valid;
+            jpg_job.encode_job.p_metadata->is_statsdebug_bestats_params_valid =
+                    jpg_job.encode_job.cam_exif_params.debug_params->bestats_debug_params_valid;
+            jpg_job.encode_job.p_metadata->is_statsdebug_bhist_params_valid =
+                    jpg_job.encode_job.cam_exif_params.debug_params->bhist_debug_params_valid;
+            jpg_job.encode_job.p_metadata->is_statsdebug_3a_tuning_params_valid =
+                    jpg_job.encode_job.cam_exif_params.debug_params->q3a_tuning_debug_params_valid;
 
             if (jpg_job.encode_job.cam_exif_params.debug_params->ae_debug_params_valid) {
                 jpg_job.encode_job.p_metadata->statsdebug_ae_data =
@@ -1651,6 +1654,18 @@ int32_t QCamera3PostProcessor::encodeData(qcamera_hal3_jpeg_data_t *jpeg_job_dat
             if (jpg_job.encode_job.cam_exif_params.debug_params->stats_debug_params_valid) {
                 jpg_job.encode_job.p_metadata->statsdebug_stats_buffer_data =
                         jpg_job.encode_job.cam_exif_params.debug_params->stats_debug_params;
+            }
+            if (jpg_job.encode_job.cam_exif_params.debug_params->bestats_debug_params_valid) {
+                jpg_job.encode_job.p_metadata->statsdebug_bestats_buffer_data =
+                        jpg_job.encode_job.cam_exif_params.debug_params->bestats_debug_params;
+            }
+            if (jpg_job.encode_job.cam_exif_params.debug_params->bhist_debug_params_valid) {
+                jpg_job.encode_job.p_metadata->statsdebug_bhist_data =
+                        jpg_job.encode_job.cam_exif_params.debug_params->bhist_debug_params;
+            }
+            if (jpg_job.encode_job.cam_exif_params.debug_params->q3a_tuning_debug_params_valid) {
+                jpg_job.encode_job.p_metadata->statsdebug_3a_tuning_data =
+                        jpg_job.encode_job.cam_exif_params.debug_params->q3a_tuning_debug_params;
             }
         }
     } else {
@@ -1818,7 +1833,7 @@ void *QCamera3PostProcessor::dataProcessRoutine(void *data)
                                     // add into ongoing PP job Q
                                     pp_job->fwk_src_frame = fwk_frame;
                                     pme->m_ongoingPPQ.enqueue((void *)pp_job);
-                                    ret = pme->m_pReprocChannel->doReprocessOffline(fwk_frame);
+                                    ret = pme->m_pReprocChannel->doReprocessOffline(fwk_frame, true);
                                     if (NO_ERROR != ret) {
                                         // remove from ongoing PP job Q
                                         pme->m_ongoingPPQ.dequeue(false);

@@ -1,0 +1,17 @@
+[
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "RECIPE_MODULE[perf_dashboard]/resources/post_json.py"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "perf dashboard post",
+    "stdin": "{\"data\": [{\"bot\": \"multivm-windows-release\", \"buildername\": \"multivm-windows-perf-be\", \"buildnumber\": 75, \"error\": \"0.5\", \"master\": \"client.dart.fyi\", \"masterid\": \"client.dart.fyi\", \"revision\": 33241, \"supplemental_columns\": {\"r_webkit_rev\": \"167808\"}, \"test\": \"sunspider/string-unpack-code/ref\", \"units\": \"ms\", \"value\": \"18.5\"}, {\"bot\": \"multivm-windows-release\", \"buildername\": \"multivm-windows-perf-be\", \"buildnumber\": 75, \"error\": \"0.4898\", \"master\": \"client.dart.fyi\", \"masterid\": \"client.dart.fyi\", \"revision\": 33241, \"supplemental_columns\": {\"r_webkit_rev\": \"167808\"}, \"test\": \"sunspider/string-unpack-code\", \"units\": \"ms\", \"value\": \"18.4\"}], \"url\": \"https://chromeperf.appspot.com/add_point\"}"
+  },
+  {
+    "name": "$result",
+    "recipe_result": null,
+    "status_code": 0
+  }
+]

@@ -1485,7 +1485,6 @@ class DatabaseHelper extends SQLiteOpenHelper {
                             Settings.Global.CALL_AUTO_RETRY,
                             Settings.Global.DEBUG_APP,
                             Settings.Global.WAIT_FOR_DEBUGGER,
-                            Settings.Global.SHOW_PROCESSES,
                             Settings.Global.ALWAYS_FINISH_ACTIVITIES,
                     };
                     String[] secureToGlobal = {
@@ -2420,8 +2419,10 @@ class DatabaseHelper extends SQLiteOpenHelper {
           /* add by allwinner for kill_backfround */
             loadBooleanSetting(stmt, Settings.System.KILL_BACKGROUND_SERVICES,
                     R.bool.def_kill_background_services);
-
-
+			
+			loadIntegerSetting(stmt, Settings.System.BACKGROUND_SERVICES_LIMIT_COUNT,
+                    R.integer.def_background_services_limit_count);
+								
             /*
              * IMPORTANT: Do not add any more upgrade steps here as the global,
              * secure, and system settings are no longer stored in a database

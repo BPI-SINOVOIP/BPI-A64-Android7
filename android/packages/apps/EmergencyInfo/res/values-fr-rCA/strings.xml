@@ -96,7 +96,8 @@
     <string name="user_emergency_info_title" msgid="7827058167207376581">"Données d\'urgence"</string>
     <string name="user_emergency_info_consent" msgid="5636028073450797246">"Les données que vous entrez ici peuvent aider les premiers intervenants en cas d\'urgence. Elles sont stockées sur votre appareil seulement, et tout le monde peut y accéder à partir du composeur d\'urgence sans devoir déverrouiller votre téléphone."</string>
     <string name="emergency_info_continue" msgid="5453201508537906087">"Continuer"</string>
-    <string name="no_info_provided" msgid="6775035037534954056">"Les données en cas d\'urgence n\'ont pas été définies"</string>
+    <string name="no_info_provided" msgid="716200382010821001">"Aucun renseignement sur le propriétaire du téléphone"</string>
+    <string name="tap_pencil" msgid="2723698054265296934">"S\'il s\'agit de votre téléphone, touchez l\'icône représentant un crayon pour ajouter des renseignements qui seront affichés ici en cas d\'urgence."</string>
     <string name="clear_all" msgid="8899013032870561633">"Effacer tout"</string>
     <string name="clear" msgid="3648880442502887163">"Effacer"</string>
     <string name="clear_all_message" msgid="1548432000373861295">"Effacer toutes les données et tous les contacts?"</string>

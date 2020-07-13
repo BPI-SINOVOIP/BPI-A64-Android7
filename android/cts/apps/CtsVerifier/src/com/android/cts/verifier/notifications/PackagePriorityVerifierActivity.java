@@ -39,7 +39,7 @@ public class PackagePriorityVerifierActivity
     private static final String ACTION_CANCEL = "com.android.cts.robot.ACTION_CANCEL";
     private static final String EXTRA_ID = "ID";
     private static final String EXTRA_NOTIFICATION = "NOTIFICATION";
-    private static final String NOTIFICATION_BOT_PACKAGE = "com.android.cts.robot";
+    static final String NOTIFICATION_BOT_PACKAGE = "com.android.cts.robot";
     private CharSequence mAppLabel;
 
     @Override

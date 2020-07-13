@@ -16,13 +16,20 @@
 
 package android.support.v7.widget;
 
+import android.os.Build;
 import android.os.SystemClock;
+import android.support.annotation.RestrictTo;
 import android.support.v4.view.MotionEventCompat;
+import android.support.v4.view.ViewCompat;
 import android.support.v7.view.menu.ShowableListMenu;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.View.OnAttachStateChangeListener;
 import android.view.ViewConfiguration;
 import android.view.ViewParent;
+import android.view.ViewTreeObserver.OnGlobalLayoutListener;
+
+import static android.support.annotation.RestrictTo.Scope.GROUP_ID;
 
 
 /**
@@ -30,7 +37,9 @@ import android.view.ViewParent;
  *
  * @hide
  */
+@RestrictTo(GROUP_ID)
 public abstract class ForwardingListener implements View.OnTouchListener {
+
     /** Scaled touch slop, used for detecting movement outside bounds. */
     private final float mScaledTouchSlop;
 
@@ -41,7 +50,7 @@ public abstract class ForwardingListener implements View.OnTouchListener {
     private final int mLongPressTimeout;
 
     /** Source view from which events are forwarded. */
-    private final View mSrc;
+    final View mSrc;
 
     /** Runnable used to prevent conflicts with scrolling parents. */
     private Runnable mDisallowIntercept;
@@ -62,10 +71,46 @@ public abstract class ForwardingListener implements View.OnTouchListener {
 
     public ForwardingListener(View src) {
         mSrc = src;
+        src.setLongClickable(true);
+
+        if (Build.VERSION.SDK_INT >= 12) {
+            addDetachListenerApi12(src);
+        } else {
+            addDetachListenerBase(src);
+        }
+
         mScaledTouchSlop = ViewConfiguration.get(src.getContext()).getScaledTouchSlop();
         mTapTimeout = ViewConfiguration.getTapTimeout();
+
         // Use a medium-press timeout. Halfway between tap and long-press.
         mLongPressTimeout = (mTapTimeout + ViewConfiguration.getLongPressTimeout()) / 2;
+    }
+
+    private void addDetachListenerApi12(View src) {
+        src.addOnAttachStateChangeListener(new OnAttachStateChangeListener() {
+            @Override
+            public void onViewAttachedToWindow(View v) {}
+
+            @Override
+            public void onViewDetachedFromWindow(View v) {
+                onDetachedFromWindow();
+            }
+        });
+    }
+
+    private void addDetachListenerBase(View src) {
+        src.getViewTreeObserver().addOnGlobalLayoutListener(new OnGlobalLayoutListener() {
+            boolean mIsAttached = ViewCompat.isAttachedToWindow(mSrc);
+
+            @Override
+            public void onGlobalLayout() {
+                final boolean wasAttached = mIsAttached;
+                mIsAttached = ViewCompat.isAttachedToWindow(mSrc);
+                if (wasAttached && !mIsAttached) {
+                    onDetachedFromWindow();
+                }
+            }
+        });
     }
 
     /**
@@ -101,6 +146,15 @@ public abstract class ForwardingListener implements View.OnTouchListener {
 
         mForwarding = forwarding;
         return forwarding || wasForwarding;
+    }
+
+    private void onDetachedFromWindow() {
+        mForwarding = false;
+        mActivePointerId = MotionEvent.INVALID_POINTER_ID;
+
+        if (mDisallowIntercept != null) {
+            mSrc.removeCallbacks(mDisallowIntercept);
+        }
     }
 
     /**
@@ -199,7 +253,7 @@ public abstract class ForwardingListener implements View.OnTouchListener {
         }
     }
 
-    private void onLongPress() {
+    void onLongPress() {
         clearCallbacks();
 
         final View src = mSrc;
@@ -290,14 +344,22 @@ public abstract class ForwardingListener implements View.OnTouchListener {
     }
 
     private class DisallowIntercept implements Runnable {
+        DisallowIntercept() {
+        }
+
         @Override
         public void run() {
             final ViewParent parent = mSrc.getParent();
-            parent.requestDisallowInterceptTouchEvent(true);
+            if (parent != null) {
+                parent.requestDisallowInterceptTouchEvent(true);
+            }
         }
     }
 
     private class TriggerLongPress implements Runnable {
+        TriggerLongPress() {
+        }
+
         @Override
         public void run() {
             onLongPress();

@@ -43,8 +43,6 @@ import com.googlecode.android_scripting.interpreter.InterpreterDescriptor;
 /**
  * Base activity for distributing interpreters as APK's.
  *
- * @author Damon Kohler (damonkohler@gmail.com)
- * @author Alexey Reznichenko (alexey.reznichenko@gmail.com)
  */
 public abstract class Main extends Activity {
 

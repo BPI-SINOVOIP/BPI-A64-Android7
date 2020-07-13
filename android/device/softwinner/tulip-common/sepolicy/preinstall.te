@@ -11,3 +11,4 @@ allow preinstall toolbox_exec:file { getattr execute read open execute_no_trans 
 allow preinstall apk_data_file:dir { write getattr setattr read create open add_name };
 allow preinstall apk_data_file:file { read write create open setattr };
 allow preinstall system_file:dir { read open };
+allow preinstall rootfs:lnk_file getattr;

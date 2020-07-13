@@ -202,7 +202,9 @@ typedef void (chreMessageFreeFunction)(void *message, size_t messageSize);
  *     to.  Note that this is allowed to be our own instance.
  * @returns true if the event was enqueued, false otherwise.  Note that even
  *     if this method returns 'false', the 'freeCallback' will be invoked,
- *     if non-NULL.
+ *     if non-NULL.  Note in the 'false' case, the 'freeCallback' may be
+ *     invoked directly from within chreSendEvent(), so it's necessary
+ *     for nanoapp authors to avoid possible recursion with this.
  *
  * @see chreEventDataFreeFunction
  */
@@ -252,8 +254,9 @@ bool chreSendEvent(uint16_t eventType, void *eventData,
  *     to be NULL, in which case no callback will be invoked.
  * @returns true if the message was accepted for transmission, false otherwise.
  *     Note that even if this method returns 'false', the 'freeCallback' will
- *     be invoked, if non-NULL.
- *
+ *     be invoked, if non-NULL.  Note in the 'false' case, the 'freeCallback'
+ *     may be invoked directly from within chreSendMessageToHost(), so it's
+ *     necessary for nanoapp authors to avoid possible recursion with this.
  *
  * @see chreMessageFreeFunction
  */

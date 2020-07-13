@@ -1,0 +1,721 @@
+[
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[BUILD]/scripts/slave/bot_update.py",
+      "--master",
+      "client.webrtc",
+      "--builder",
+      "Android32 Tests (L Nexus5)",
+      "--slave",
+      "slavename",
+      "--spec",
+      "cache_dir = None\nsolutions = [{'deps_file': 'DEPS', 'managed': True, 'name': 'src', 'url': 'https://chromium.googlesource.com/external/webrtc'}, {'deps_file': 'DEPS', 'managed': True, 'name': 'webrtc-limited', 'url': 'https://chrome-internal.googlesource.com/chrome/deps/webrtc-limited'}]\ntarget_os = ['android']",
+      "--root",
+      "src",
+      "--revision_mapping_file",
+      "{\"src\": \"got_revision\"}",
+      "--output_json",
+      "/path/to/tmp/json",
+      "--revision",
+      "src@12345",
+      "--output_manifest"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "bot_update",
+    "~followup_annotations": [
+      "@@@STEP_TEXT@Some step text@@@",
+      "@@@STEP_LOG_LINE@json.output@{@@@",
+      "@@@STEP_LOG_LINE@json.output@  \"did_run\": true, @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"manifest\": {@@@",
+      "@@@STEP_LOG_LINE@json.output@    \"src\": {@@@",
+      "@@@STEP_LOG_LINE@json.output@      \"repository\": \"https://fake.org/src.git\", @@@",
+      "@@@STEP_LOG_LINE@json.output@      \"revision\": \"f27fede2220bcd326aee3e86ddfd4ebd0fe58cb9\"@@@",
+      "@@@STEP_LOG_LINE@json.output@    }@@@",
+      "@@@STEP_LOG_LINE@json.output@  }, @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"patch_failure\": false, @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"patch_root\": \"src\", @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"properties\": {@@@",
+      "@@@STEP_LOG_LINE@json.output@    \"got_revision\": \"f27fede2220bcd326aee3e86ddfd4ebd0fe58cb9\", @@@",
+      "@@@STEP_LOG_LINE@json.output@    \"got_revision_cp\": \"refs/heads/master@{#170242}\"@@@",
+      "@@@STEP_LOG_LINE@json.output@  }, @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"root\": \"src\", @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"step_text\": \"Some step text\"@@@",
+      "@@@STEP_LOG_LINE@json.output@}@@@",
+      "@@@STEP_LOG_END@json.output@@@",
+      "@@@SET_BUILD_PROPERTY@got_revision@\"f27fede2220bcd326aee3e86ddfd4ebd0fe58cb9\"@@@",
+      "@@@SET_BUILD_PROPERTY@got_revision_cp@\"refs/heads/master@{#170242}\"@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "RECIPE_MODULE[webrtc]/resources/cleanup_files.py",
+      "[SLAVE_BUILD]/src/out"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "clean test output files"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "\nimport shutil, sys, os\nshutil.rmtree(sys.argv[1], True)\nshutil.rmtree(sys.argv[2], True)\ntry:\n  os.remove(sys.argv[3])\nexcept OSError:\n  pass\nfor base, _dirs, files in os.walk(sys.argv[4]):\n  for f in files:\n    if f.endswith('.pyc'):\n      os.remove(os.path.join(base, f))\n",
+      "[SLAVE_BUILD]/src/out/Release/debug_info_dumps",
+      "[SLAVE_BUILD]/src/out/Release/test_logs",
+      "[SLAVE_BUILD]/src/out/build_product.zip",
+      "[SLAVE_BUILD]/src"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "clean local files",
+    "~followup_annotations": [
+      "@@@STEP_LOG_LINE@python.inline@@@@",
+      "@@@STEP_LOG_LINE@python.inline@import shutil, sys, os@@@",
+      "@@@STEP_LOG_LINE@python.inline@shutil.rmtree(sys.argv[1], True)@@@",
+      "@@@STEP_LOG_LINE@python.inline@shutil.rmtree(sys.argv[2], True)@@@",
+      "@@@STEP_LOG_LINE@python.inline@try:@@@",
+      "@@@STEP_LOG_LINE@python.inline@  os.remove(sys.argv[3])@@@",
+      "@@@STEP_LOG_LINE@python.inline@except OSError:@@@",
+      "@@@STEP_LOG_LINE@python.inline@  pass@@@",
+      "@@@STEP_LOG_LINE@python.inline@for base, _dirs, files in os.walk(sys.argv[4]):@@@",
+      "@@@STEP_LOG_LINE@python.inline@  for f in files:@@@",
+      "@@@STEP_LOG_LINE@python.inline@    if f.endswith('.pyc'):@@@",
+      "@@@STEP_LOG_LINE@python.inline@      os.remove(os.path.join(base, f))@@@",
+      "@@@STEP_LOG_END@python.inline@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[DEPOT_TOOLS]/gclient.py",
+      "runhooks"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "env": {
+      "GYP_CROSSCOMPILE": "1",
+      "GYP_DEFINES": "OS=android component=static_library fastbuild=1 gomadir='[BUILD]/goma' target_arch=arm use_goma=1",
+      "PATH": "[SLAVE_BUILD]/src/third_party/android_tools/sdk/platform-tools:[SLAVE_BUILD]/src/build/android:%(PATH)s"
+    },
+    "name": "gclient runhooks"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "\nimport os, sys\nfrom common import chromium_utils\n\nif os.path.exists(sys.argv[1]):\n  chromium_utils.RemoveDirectory(sys.argv[1])\n",
+      "[SLAVE_BUILD]/src/out/Release"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "rmtree build directory",
+    "~followup_annotations": [
+      "@@@STEP_LOG_LINE@python.inline@@@@",
+      "@@@STEP_LOG_LINE@python.inline@import os, sys@@@",
+      "@@@STEP_LOG_LINE@python.inline@from common import chromium_utils@@@",
+      "@@@STEP_LOG_LINE@python.inline@@@@",
+      "@@@STEP_LOG_LINE@python.inline@if os.path.exists(sys.argv[1]):@@@",
+      "@@@STEP_LOG_LINE@python.inline@  chromium_utils.RemoveDirectory(sys.argv[1])@@@",
+      "@@@STEP_LOG_END@python.inline@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[BUILD]/scripts/slave/extract_build.py",
+      "--target",
+      "Release",
+      "--build-url",
+      "gs://chromium-webrtc/android_rel",
+      "--build_revision",
+      "f27fede2220bcd326aee3e86ddfd4ebd0fe58cb9",
+      "--master-name",
+      "client.webrtc",
+      "--build-number",
+      "1337"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "extract build"
+  },
+  {
+    "cmd": [
+      "[BUILD]/scripts/slave/daemonizer.py",
+      "--",
+      "[SLAVE_BUILD]/src/build/android/adb_logcat_monitor.py",
+      "[SLAVE_BUILD]/src/out/logcat"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "env": {
+      "PATH": "[SLAVE_BUILD]/src/third_party/android_tools/sdk/platform-tools:[SLAVE_BUILD]/src/build/android:%(PATH)s"
+    },
+    "name": "spawn_logcat_monitor"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[BUILD]/scripts/slave/android/authorize_adb_devices.py",
+      "--verbose",
+      "--adb-path",
+      "[SLAVE_BUILD]/src/third_party/android_tools/sdk/platform-tools/adb"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "env": {
+      "PATH": "[SLAVE_BUILD]/src/third_party/android_tools/sdk/platform-tools:[SLAVE_BUILD]/src/build/android:%(PATH)s"
+    },
+    "name": "authorize_adb_devices"
+  },
+  {
+    "cmd": [
+      "[SLAVE_BUILD]/src/build/android/buildbot/bb_device_status_check.py",
+      "--json-output",
+      "/path/to/tmp/json",
+      "--blacklist-file",
+      "[SLAVE_BUILD]/src/out/bad_devices.json"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "env": {
+      "PATH": "[SLAVE_BUILD]/src/third_party/android_tools/sdk/platform-tools:[SLAVE_BUILD]/src/build/android:%(PATH)s"
+    },
+    "name": "device_status_check",
+    "~followup_annotations": [
+      "@@@STEP_TEXT@Online devices: 1@@@",
+      "@@@STEP_LOG_LINE@json.output@[@@@",
+      "@@@STEP_LOG_LINE@json.output@  {@@@",
+      "@@@STEP_LOG_LINE@json.output@    \"adb_status\": \"device\", @@@",
+      "@@@STEP_LOG_LINE@json.output@    \"battery\": {@@@",
+      "@@@STEP_LOG_LINE@json.output@      \"AC powered\": \"false\", @@@",
+      "@@@STEP_LOG_LINE@json.output@      \"USB powered\": \"true\", @@@",
+      "@@@STEP_LOG_LINE@json.output@      \"Wireless powered\": \"false\", @@@",
+      "@@@STEP_LOG_LINE@json.output@      \"health\": \"2\", @@@",
+      "@@@STEP_LOG_LINE@json.output@      \"level\": \"100\", @@@",
+      "@@@STEP_LOG_LINE@json.output@      \"present\": \"true\", @@@",
+      "@@@STEP_LOG_LINE@json.output@      \"scale\": \"100\", @@@",
+      "@@@STEP_LOG_LINE@json.output@      \"status\": \"5\", @@@",
+      "@@@STEP_LOG_LINE@json.output@      \"technology\": \"Li-ion\", @@@",
+      "@@@STEP_LOG_LINE@json.output@      \"temperature\": \"249\", @@@",
+      "@@@STEP_LOG_LINE@json.output@      \"voltage\": \"4286\"@@@",
+      "@@@STEP_LOG_LINE@json.output@    }, @@@",
+      "@@@STEP_LOG_LINE@json.output@    \"blacklisted\": false, @@@",
+      "@@@STEP_LOG_LINE@json.output@    \"build\": \"LRX21O\", @@@",
+      "@@@STEP_LOG_LINE@json.output@    \"build_detail\": \"google/razor/flo:5.0/LRX21O/1570415:userdebug/dev-keys\", @@@",
+      "@@@STEP_LOG_LINE@json.output@    \"imei_slice\": \"Unknown\", @@@",
+      "@@@STEP_LOG_LINE@json.output@    \"serial\": \"07a00ca4\", @@@",
+      "@@@STEP_LOG_LINE@json.output@    \"type\": \"flo\", @@@",
+      "@@@STEP_LOG_LINE@json.output@    \"usb_status\": true, @@@",
+      "@@@STEP_LOG_LINE@json.output@    \"wifi_ip\": \"\"@@@",
+      "@@@STEP_LOG_LINE@json.output@  }, @@@",
+      "@@@STEP_LOG_LINE@json.output@  {@@@",
+      "@@@STEP_LOG_LINE@json.output@    \"adb_status\": \"offline\", @@@",
+      "@@@STEP_LOG_LINE@json.output@    \"blacklisted\": true, @@@",
+      "@@@STEP_LOG_LINE@json.output@    \"serial\": \"03e0363a003c6ad4\", @@@",
+      "@@@STEP_LOG_LINE@json.output@    \"usb_status\": false@@@",
+      "@@@STEP_LOG_LINE@json.output@  }, @@@",
+      "@@@STEP_LOG_LINE@json.output@  {@@@",
+      "@@@STEP_LOG_LINE@json.output@    \"adb_status\": \"unauthorized\", @@@",
+      "@@@STEP_LOG_LINE@json.output@    \"blacklisted\": true, @@@",
+      "@@@STEP_LOG_LINE@json.output@    \"serial\": \"03e0363a003c6ad5\", @@@",
+      "@@@STEP_LOG_LINE@json.output@    \"usb_status\": true@@@",
+      "@@@STEP_LOG_LINE@json.output@  }, @@@",
+      "@@@STEP_LOG_LINE@json.output@  {@@@",
+      "@@@STEP_LOG_LINE@json.output@    \"adb_status\": \"device\", @@@",
+      "@@@STEP_LOG_LINE@json.output@    \"blacklisted\": true, @@@",
+      "@@@STEP_LOG_LINE@json.output@    \"serial\": \"03e0363a003c6ad6\", @@@",
+      "@@@STEP_LOG_LINE@json.output@    \"usb_status\": true@@@",
+      "@@@STEP_LOG_LINE@json.output@  }@@@",
+      "@@@STEP_LOG_LINE@json.output@]@@@",
+      "@@@STEP_LOG_END@json.output@@@",
+      "@@@STEP_LOG_LINE@flo LRX21O 07a00ca4@{@@@",
+      "@@@STEP_LOG_LINE@flo LRX21O 07a00ca4@  \"adb_status\": \"device\", @@@",
+      "@@@STEP_LOG_LINE@flo LRX21O 07a00ca4@  \"battery\": {@@@",
+      "@@@STEP_LOG_LINE@flo LRX21O 07a00ca4@    \"AC powered\": \"false\", @@@",
+      "@@@STEP_LOG_LINE@flo LRX21O 07a00ca4@    \"USB powered\": \"true\", @@@",
+      "@@@STEP_LOG_LINE@flo LRX21O 07a00ca4@    \"Wireless powered\": \"false\", @@@",
+      "@@@STEP_LOG_LINE@flo LRX21O 07a00ca4@    \"health\": \"2\", @@@",
+      "@@@STEP_LOG_LINE@flo LRX21O 07a00ca4@    \"level\": \"100\", @@@",
+      "@@@STEP_LOG_LINE@flo LRX21O 07a00ca4@    \"present\": \"true\", @@@",
+      "@@@STEP_LOG_LINE@flo LRX21O 07a00ca4@    \"scale\": \"100\", @@@",
+      "@@@STEP_LOG_LINE@flo LRX21O 07a00ca4@    \"status\": \"5\", @@@",
+      "@@@STEP_LOG_LINE@flo LRX21O 07a00ca4@    \"technology\": \"Li-ion\", @@@",
+      "@@@STEP_LOG_LINE@flo LRX21O 07a00ca4@    \"temperature\": \"249\", @@@",
+      "@@@STEP_LOG_LINE@flo LRX21O 07a00ca4@    \"voltage\": \"4286\"@@@",
+      "@@@STEP_LOG_LINE@flo LRX21O 07a00ca4@  }, @@@",
+      "@@@STEP_LOG_LINE@flo LRX21O 07a00ca4@  \"blacklisted\": false, @@@",
+      "@@@STEP_LOG_LINE@flo LRX21O 07a00ca4@  \"build\": \"LRX21O\", @@@",
+      "@@@STEP_LOG_LINE@flo LRX21O 07a00ca4@  \"build_detail\": \"google/razor/flo:5.0/LRX21O/1570415:userdebug/dev-keys\", @@@",
+      "@@@STEP_LOG_LINE@flo LRX21O 07a00ca4@  \"imei_slice\": \"Unknown\", @@@",
+      "@@@STEP_LOG_LINE@flo LRX21O 07a00ca4@  \"serial\": \"07a00ca4\", @@@",
+      "@@@STEP_LOG_LINE@flo LRX21O 07a00ca4@  \"type\": \"flo\", @@@",
+      "@@@STEP_LOG_LINE@flo LRX21O 07a00ca4@  \"usb_status\": true, @@@",
+      "@@@STEP_LOG_LINE@flo LRX21O 07a00ca4@  \"wifi_ip\": \"\"@@@",
+      "@@@STEP_LOG_LINE@flo LRX21O 07a00ca4@}@@@",
+      "@@@STEP_LOG_END@flo LRX21O 07a00ca4@@@",
+      "@@@STEP_LOG_LINE@03e0363a003c6ad4: missing@{@@@",
+      "@@@STEP_LOG_LINE@03e0363a003c6ad4: missing@  \"adb_status\": \"offline\", @@@",
+      "@@@STEP_LOG_LINE@03e0363a003c6ad4: missing@  \"blacklisted\": true, @@@",
+      "@@@STEP_LOG_LINE@03e0363a003c6ad4: missing@  \"serial\": \"03e0363a003c6ad4\", @@@",
+      "@@@STEP_LOG_LINE@03e0363a003c6ad4: missing@  \"usb_status\": false@@@",
+      "@@@STEP_LOG_LINE@03e0363a003c6ad4: missing@}@@@",
+      "@@@STEP_LOG_END@03e0363a003c6ad4: missing@@@",
+      "@@@STEP_LOG_LINE@03e0363a003c6ad5: adb status unauthorized@{@@@",
+      "@@@STEP_LOG_LINE@03e0363a003c6ad5: adb status unauthorized@  \"adb_status\": \"unauthorized\", @@@",
+      "@@@STEP_LOG_LINE@03e0363a003c6ad5: adb status unauthorized@  \"blacklisted\": true, @@@",
+      "@@@STEP_LOG_LINE@03e0363a003c6ad5: adb status unauthorized@  \"serial\": \"03e0363a003c6ad5\", @@@",
+      "@@@STEP_LOG_LINE@03e0363a003c6ad5: adb status unauthorized@  \"usb_status\": true@@@",
+      "@@@STEP_LOG_LINE@03e0363a003c6ad5: adb status unauthorized@}@@@",
+      "@@@STEP_LOG_END@03e0363a003c6ad5: adb status unauthorized@@@",
+      "@@@STEP_LOG_LINE@03e0363a003c6ad6: blacklisted@{@@@",
+      "@@@STEP_LOG_LINE@03e0363a003c6ad6: blacklisted@  \"adb_status\": \"device\", @@@",
+      "@@@STEP_LOG_LINE@03e0363a003c6ad6: blacklisted@  \"blacklisted\": true, @@@",
+      "@@@STEP_LOG_LINE@03e0363a003c6ad6: blacklisted@  \"serial\": \"03e0363a003c6ad6\", @@@",
+      "@@@STEP_LOG_LINE@03e0363a003c6ad6: blacklisted@  \"usb_status\": true@@@",
+      "@@@STEP_LOG_LINE@03e0363a003c6ad6: blacklisted@}@@@",
+      "@@@STEP_LOG_END@03e0363a003c6ad6: blacklisted@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[SLAVE_BUILD]/src/build/android/provision_devices.py",
+      "-t",
+      "Release",
+      "--blacklist-file",
+      "[SLAVE_BUILD]/src/out/bad_devices.json",
+      "--output-device-blacklist",
+      "/path/to/tmp/json"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "env": {
+      "PATH": "[SLAVE_BUILD]/src/third_party/android_tools/sdk/platform-tools:[SLAVE_BUILD]/src/build/android:%(PATH)s"
+    },
+    "name": "provision_devices"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[BUILD]/scripts/slave/daemonizer.py",
+      "--action",
+      "restart",
+      "--pid-file-path",
+      "/tmp/device_monitor.pid",
+      "--",
+      "RECIPE_MODULE[chromium_android]/resources/spawn_device_temp_monitor.py",
+      "[SLAVE_BUILD]/src/third_party/android_tools/sdk/platform-tools/adb",
+      "[\"07a00ca4\"]",
+      "client.webrtc",
+      "Android32 Tests (L Nexus5)"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "spawn_device_temp_monitor"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[SLAVE_BUILD]/src/webrtc/build/android/test_runner.py",
+      "gtest",
+      "-s",
+      "audio_decoder_unittests",
+      "--blacklist-file",
+      "[SLAVE_BUILD]/src/out/bad_devices.json",
+      "--verbose",
+      "--release",
+      "--isolate_file_path=[SLAVE_BUILD]/src/webrtc/modules/audio_decoder_unittests.isolate",
+      "-t",
+      "900"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "env": {
+      "PATH": "[SLAVE_BUILD]/src/third_party/android_tools/sdk/platform-tools:[SLAVE_BUILD]/src/build/android:%(PATH)s"
+    },
+    "name": "audio_decoder_unittests"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[SLAVE_BUILD]/src/webrtc/build/android/test_runner.py",
+      "gtest",
+      "-s",
+      "common_audio_unittests",
+      "--blacklist-file",
+      "[SLAVE_BUILD]/src/out/bad_devices.json",
+      "--verbose",
+      "--release",
+      "--isolate_file_path=[SLAVE_BUILD]/src/webrtc/common_audio/common_audio_unittests.isolate",
+      "-t",
+      "900"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "env": {
+      "PATH": "[SLAVE_BUILD]/src/third_party/android_tools/sdk/platform-tools:[SLAVE_BUILD]/src/build/android:%(PATH)s"
+    },
+    "name": "common_audio_unittests"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[SLAVE_BUILD]/src/webrtc/build/android/test_runner.py",
+      "gtest",
+      "-s",
+      "common_video_unittests",
+      "--blacklist-file",
+      "[SLAVE_BUILD]/src/out/bad_devices.json",
+      "--verbose",
+      "--release",
+      "--isolate_file_path=[SLAVE_BUILD]/src/webrtc/common_video/common_video_unittests.isolate",
+      "-t",
+      "900"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "env": {
+      "PATH": "[SLAVE_BUILD]/src/third_party/android_tools/sdk/platform-tools:[SLAVE_BUILD]/src/build/android:%(PATH)s"
+    },
+    "name": "common_video_unittests"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[SLAVE_BUILD]/src/webrtc/build/android/test_runner.py",
+      "gtest",
+      "-s",
+      "modules_tests",
+      "--blacklist-file",
+      "[SLAVE_BUILD]/src/out/bad_devices.json",
+      "--verbose",
+      "--release",
+      "--isolate_file_path=[SLAVE_BUILD]/src/webrtc/modules/modules_tests.isolate",
+      "-t",
+      "900"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "env": {
+      "PATH": "[SLAVE_BUILD]/src/third_party/android_tools/sdk/platform-tools:[SLAVE_BUILD]/src/build/android:%(PATH)s"
+    },
+    "name": "modules_tests"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[SLAVE_BUILD]/src/webrtc/build/android/test_runner.py",
+      "gtest",
+      "-s",
+      "modules_unittests",
+      "--blacklist-file",
+      "[SLAVE_BUILD]/src/out/bad_devices.json",
+      "--verbose",
+      "--release",
+      "--isolate_file_path=[SLAVE_BUILD]/src/webrtc/modules/modules_unittests.isolate",
+      "-t",
+      "900"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "env": {
+      "PATH": "[SLAVE_BUILD]/src/third_party/android_tools/sdk/platform-tools:[SLAVE_BUILD]/src/build/android:%(PATH)s"
+    },
+    "name": "modules_unittests"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[SLAVE_BUILD]/src/webrtc/build/android/test_runner.py",
+      "gtest",
+      "-s",
+      "system_wrappers_unittests",
+      "--blacklist-file",
+      "[SLAVE_BUILD]/src/out/bad_devices.json",
+      "--verbose",
+      "--release",
+      "--isolate_file_path=[SLAVE_BUILD]/src/webrtc/system_wrappers/system_wrappers_unittests.isolate",
+      "-t",
+      "900"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "env": {
+      "PATH": "[SLAVE_BUILD]/src/third_party/android_tools/sdk/platform-tools:[SLAVE_BUILD]/src/build/android:%(PATH)s"
+    },
+    "name": "system_wrappers_unittests"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[SLAVE_BUILD]/src/webrtc/build/android/test_runner.py",
+      "gtest",
+      "-s",
+      "test_support_unittests",
+      "--blacklist-file",
+      "[SLAVE_BUILD]/src/out/bad_devices.json",
+      "--verbose",
+      "--release",
+      "--isolate_file_path=[SLAVE_BUILD]/src/webrtc/test/test_support_unittests.isolate",
+      "-t",
+      "900"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "env": {
+      "PATH": "[SLAVE_BUILD]/src/third_party/android_tools/sdk/platform-tools:[SLAVE_BUILD]/src/build/android:%(PATH)s"
+    },
+    "name": "test_support_unittests"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[SLAVE_BUILD]/src/webrtc/build/android/test_runner.py",
+      "gtest",
+      "-s",
+      "tools_unittests",
+      "--blacklist-file",
+      "[SLAVE_BUILD]/src/out/bad_devices.json",
+      "--verbose",
+      "--release",
+      "--isolate_file_path=[SLAVE_BUILD]/src/webrtc/tools/tools_unittests.isolate",
+      "-t",
+      "900"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "env": {
+      "PATH": "[SLAVE_BUILD]/src/third_party/android_tools/sdk/platform-tools:[SLAVE_BUILD]/src/build/android:%(PATH)s"
+    },
+    "name": "tools_unittests"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[SLAVE_BUILD]/src/webrtc/build/android/test_runner.py",
+      "gtest",
+      "-s",
+      "video_engine_core_unittests",
+      "--blacklist-file",
+      "[SLAVE_BUILD]/src/out/bad_devices.json",
+      "--verbose",
+      "--release",
+      "--isolate_file_path=[SLAVE_BUILD]/src/webrtc/video_engine/video_engine_core_unittests.isolate",
+      "-t",
+      "900"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "env": {
+      "PATH": "[SLAVE_BUILD]/src/third_party/android_tools/sdk/platform-tools:[SLAVE_BUILD]/src/build/android:%(PATH)s"
+    },
+    "name": "video_engine_core_unittests"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[SLAVE_BUILD]/src/webrtc/build/android/test_runner.py",
+      "gtest",
+      "-s",
+      "video_engine_tests",
+      "--blacklist-file",
+      "[SLAVE_BUILD]/src/out/bad_devices.json",
+      "--verbose",
+      "--release",
+      "--isolate_file_path=[SLAVE_BUILD]/src/webrtc/video_engine_tests.isolate",
+      "-t",
+      "900"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "env": {
+      "PATH": "[SLAVE_BUILD]/src/third_party/android_tools/sdk/platform-tools:[SLAVE_BUILD]/src/build/android:%(PATH)s"
+    },
+    "name": "video_engine_tests"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[SLAVE_BUILD]/src/webrtc/build/android/test_runner.py",
+      "gtest",
+      "-s",
+      "voice_engine_unittests",
+      "--blacklist-file",
+      "[SLAVE_BUILD]/src/out/bad_devices.json",
+      "--verbose",
+      "--release",
+      "--isolate_file_path=[SLAVE_BUILD]/src/webrtc/voice_engine/voice_engine_unittests.isolate",
+      "-t",
+      "900"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "env": {
+      "PATH": "[SLAVE_BUILD]/src/third_party/android_tools/sdk/platform-tools:[SLAVE_BUILD]/src/build/android:%(PATH)s"
+    },
+    "name": "voice_engine_unittests"
+  },
+  {
+    "allow_subannotations": true,
+    "cmd": [
+      "python",
+      "-u",
+      "[BUILD]/scripts/slave/runtest.py",
+      "--target",
+      "Release",
+      "--test-platform",
+      "android",
+      "--xvfb",
+      "--factory-properties",
+      "{\"BUILD_CONFIG\": \"Release\", \"buildername\": \"Android32 Tests (L Nexus5)\", \"buildnumber\": 1337, \"mastername\": \"client.webrtc\", \"parent_buildername\": \"Android32 Builder\", \"parent_got_revision\": \"12345\", \"recipe\": \"webrtc/standalone\", \"revision\": \"12345\", \"slavename\": \"slavename\"}",
+      "--build-properties",
+      "{\"BUILD_CONFIG\": \"Release\", \"buildername\": \"Android32 Tests (L Nexus5)\", \"buildnumber\": 1337, \"mastername\": \"client.webrtc\", \"parent_buildername\": \"Android32 Builder\", \"parent_got_revision\": \"12345\", \"recipe\": \"webrtc/standalone\", \"revision\": \"12345\", \"slavename\": \"slavename\"}",
+      "--annotate=graphing",
+      "--results-url=https://chromeperf.appspot.com",
+      "--perf-dashboard-id=webrtc_perf_tests",
+      "--perf-id=webrtc-android-tests-nexus5",
+      "--perf-config",
+      "{'a_default_rev': 'r_webrtc_rev'}",
+      "--test-type=webrtc_perf_tests",
+      "--step-name=webrtc_perf_tests",
+      "--builder-name=Android32 Tests (L Nexus5)",
+      "--slave-name=slavename",
+      "--build-number=1337",
+      "--run-python-script",
+      "--revision=170242",
+      "[SLAVE_BUILD]/src/webrtc/build/android/test_runner.py",
+      "gtest",
+      "-s",
+      "webrtc_perf_tests",
+      "--verbose",
+      "--release",
+      "--isolate-file-path",
+      "[SLAVE_BUILD]/src/webrtc/webrtc_perf_tests.isolate",
+      "-t",
+      "1800"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "webrtc_perf_tests"
+  },
+  {
+    "cmd": [
+      "[SLAVE_BUILD]/src/build/android/adb_install_apk.py",
+      "[SLAVE_BUILD]/src/out/Release/apks/AppRTCDemo.apk",
+      "--release"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "env": {
+      "CHECKOUT_SOURCE_ROOT": "[SLAVE_BUILD]/src"
+    },
+    "name": "install AppRTCDemo"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[SLAVE_BUILD]/src/webrtc/build/android/test_runner.py",
+      "instrumentation",
+      "--test-apk",
+      "AppRTCDemoTest",
+      "--blacklist-file",
+      "[SLAVE_BUILD]/src/out/bad_devices.json",
+      "--verbose",
+      "--release"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "Instrumentation test AppRTCDemoTest"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[SLAVE_BUILD]/src/webrtc/build/android/test_runner.py",
+      "instrumentation",
+      "--test-apk",
+      "libjingle_peerconnection_android_unittest",
+      "--blacklist-file",
+      "[SLAVE_BUILD]/src/out/bad_devices.json",
+      "--verbose",
+      "--release"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "Instrumentation test libjingle_peerconnection_android_unittest"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[BUILD]/scripts/slave/daemonizer.py",
+      "--action",
+      "stop",
+      "--pid-file-path",
+      "/tmp/device_monitor.pid"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "shutdown_device_temp_monitor"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[BUILD]/scripts/slave/tee.py",
+      "[SLAVE_BUILD]/src/out/Release/full_log",
+      "--",
+      "[SLAVE_BUILD]/src/build/android/adb_logcat_printer.py",
+      "[SLAVE_BUILD]/src/out/logcat"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "logcat_dump"
+  },
+  {
+    "cmd": [
+      "[SLAVE_BUILD]/src/third_party/android_platform/development/scripts/stack",
+      "--arch",
+      "arm",
+      "--more-info",
+      "[SLAVE_BUILD]/src/out/Release/full_log"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "env": {
+      "PATH": "[SLAVE_BUILD]/src/third_party/android_tools/sdk/platform-tools:[SLAVE_BUILD]/src/build/android:%(PATH)s"
+    },
+    "name": "stack_tool_with_logcat_dump"
+  },
+  {
+    "cmd": [
+      "[SLAVE_BUILD]/src/build/android/tombstones.py",
+      "-a",
+      "-s",
+      "-w"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "env": {
+      "PATH": "[SLAVE_BUILD]/src/third_party/android_tools/sdk/platform-tools:[SLAVE_BUILD]/src/build/android:%(PATH)s"
+    },
+    "name": "stack_tool_for_tombstones"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "\nimport glob, os, sys\nfor report in glob.glob(sys.argv[1]):\n  with open(report, 'r') as f:\n    for l in f.readlines():\n      print l\n  os.remove(report)\n",
+      "[SLAVE_BUILD]/src/out/Release/test_logs/*.log"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "test_report",
+    "~followup_annotations": [
+      "@@@STEP_LOG_LINE@python.inline@@@@",
+      "@@@STEP_LOG_LINE@python.inline@import glob, os, sys@@@",
+      "@@@STEP_LOG_LINE@python.inline@for report in glob.glob(sys.argv[1]):@@@",
+      "@@@STEP_LOG_LINE@python.inline@  with open(report, 'r') as f:@@@",
+      "@@@STEP_LOG_LINE@python.inline@    for l in f.readlines():@@@",
+      "@@@STEP_LOG_LINE@python.inline@      print l@@@",
+      "@@@STEP_LOG_LINE@python.inline@  os.remove(report)@@@",
+      "@@@STEP_LOG_END@python.inline@@@"
+    ]
+  },
+  {
+    "name": "$result",
+    "recipe_result": null,
+    "status_code": 0
+  }
+]

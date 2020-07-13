@@ -47,6 +47,11 @@
     <string name="callFailed_unobtainable_number" msgid="124621797631734731">"Μη έγκυρος αριθμός"</string>
     <string name="incall_error_missing_voicemail_number" msgid="3651090591812220874">"Άγνωστος αριθμός αυτόματου τηλεφωνητή"</string>
     <string name="callFailed_video_call_tty_enabled" msgid="186585701668604271">"Δεν είναι δυνατή η πραγματοποίηση κλήσεων όταν είναι ενεργοποιημένο το TTY."</string>
+    <string name="callEnded_pulled" msgid="437630601519502587">"Η κλήση έχει μεταφερθεί σε άλλη συσκευή."</string>
     <string name="ringtone_silent" msgid="249805466934178869">"Κανένα"</string>
     <string name="ringtone_unknown" msgid="2303463713486734520">"Άγνωστος ήχος κλήσης"</string>
+    <string name="callFailed_maximum_reached" msgid="4823790040422765056">"Όλες οι διαθέσιμες γραμμές είναι σε χρήση. Για να πραγματοποιήσετε μια κλήση, αποσυνδέστε μία από τις κλήσεις σε αυτήν τη συσκευή ή σε μία από τις άλλες συσκευές σας."</string>
+    <string name="callFailed_data_disabled" msgid="3885826754435317856">"Η πρόσκληση έληξε, επειδή τα δεδομένα κινητής τηλεφωνίας έχουν απενεργοποιηθεί."</string>
+    <string name="callFailed_data_limit_reached_description" msgid="1439284832802552582">"Η κλήση τερματίστηκε, επειδή εξαντλήθηκε το όριο χρήσης δεδομένων κινητής τηλεφωνίας."</string>
+    <string name="callFailed_data_limit_reached" msgid="7045770594965160282">"Εξαντλήθηκε το όριο χρήσης δεδομένων. Η κλήση τερματίστηκε."</string>
 </resources>

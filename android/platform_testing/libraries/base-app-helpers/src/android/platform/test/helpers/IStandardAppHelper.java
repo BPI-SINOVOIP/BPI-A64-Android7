@@ -29,7 +29,7 @@ public interface IStandardAppHelper {
 
     /**
      * Setup expectation: None
-     *
+     * <p>
      * Presses back until the launcher package is visible, i.e. the home screen. This can be
      * overriden for custom functionality, however consider and document the exit state if doing so.
      */
@@ -37,7 +37,7 @@ public interface IStandardAppHelper {
 
     /**
      * Setup expectations: This application is on the initial launch screen.
-     *
+     * <p>
      * This method will dismiss all visible relevant dialogs and block until this process is
      * complete.
      */
@@ -45,25 +45,32 @@ public interface IStandardAppHelper {
 
     /**
      * Setup expectations: None
-     *
+     * <p>
      * @return the package name for this helper's application.
      */
     abstract String getPackage();
 
     /**
      * Setup expectations: None.
-     *
+     * <p>
      * @return the name for this application in the launcher.
      */
     abstract String getLauncherName();
 
     /**
      * Setup expectations: None
-     *
+     * <p>
      * This method will return the version String from PackageManager.
-     * @param pkgName the application package
-     * @throws NameNotFoundException if the package is not found in PM
+     *
      * @return the version as a String
+     * @throws NameNotFoundException if the package is not found in PM
      */
     abstract String getVersion() throws NameNotFoundException;
+
+    /**
+     * Setup expectations: None
+     * <p>
+     * @return true, if this app's package is the root (depth 0), and false otherwise
+     */
+    abstract boolean isAppInForeground();
 }

@@ -19,6 +19,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.res.Resources;
 import android.net.NetworkScoreManager;
 import android.net.NetworkScorerAppManager;
 import android.net.wifi.WifiConfiguration;
@@ -52,6 +53,7 @@ public class ConfigureWifiSettings extends SettingsPreferenceFragment
     private static final String KEY_NOTIFY_OPEN_NETWORKS = "notify_open_networks";
     private static final String KEY_CAPTIVE_PORTAL_DETECTION = "captive_portal_detection";
     private static final String KEY_SLEEP_POLICY = "sleep_policy";
+    private static final String KEY_CELLULAR_FALLBACK = "wifi_cellular_data_fallback";
     private static final String KEY_WIFI_ASSISTANT = "wifi_assistant";
 
     private WifiManager mWifiManager;
@@ -110,6 +112,20 @@ public class ConfigureWifiSettings extends SettingsPreferenceFragment
         captivePortalDetection.setEnabled(true);
 
         final Context context = getActivity();
+        if (avoidBadWifiConfig()) {
+            // Hide preference toggle, always avoid bad wifi networks.
+            removePreference(KEY_CELLULAR_FALLBACK);
+        } else {
+            // Show preference toggle, initialized based on current settings value.
+            boolean currentSetting = avoidBadWifiCurrentSettings();
+            SwitchPreference pref = (SwitchPreference) findPreference(KEY_CELLULAR_FALLBACK);
+            // TODO: can this ever be null? The return value of avoidBadWifiConfig() can only
+            // change if the resources change, but if that happens the activity will be recreated...
+            if (pref != null) {
+                pref.setChecked(currentSetting);
+            }
+        }
+
         mWifiAssistantPreference = (AppListSwitchPreference) findPreference(KEY_WIFI_ASSISTANT);
         Collection<NetworkScorerAppManager.NetworkScorerAppData> scorers =
                 NetworkScorerAppManager.getAllValidScorers(context);
@@ -155,6 +171,16 @@ public class ConfigureWifiSettings extends SettingsPreferenceFragment
         Log.e(TAG, "Invalid sleep policy value: " + value);
     }
 
+    private boolean avoidBadWifiConfig() {
+        return getActivity().getResources().getInteger(
+                com.android.internal.R.integer.config_networkAvoidBadWifi) == 1;
+    }
+
+    private boolean avoidBadWifiCurrentSettings() {
+        return "1".equals(Settings.Global.getString(getContentResolver(),
+                Settings.Global.NETWORK_AVOID_BAD_WIFI));
+    }
+
     @Override
     public boolean onPreferenceTreeClick(Preference preference) {
         String key = preference.getKey();
@@ -167,6 +193,11 @@ public class ConfigureWifiSettings extends SettingsPreferenceFragment
             Settings.Global.putInt(getContentResolver(),
                     Settings.Global.CAPTIVE_PORTAL_DETECTION_ENABLED,
                     ((SwitchPreference) preference).isChecked() ? 1 : 0);
+        } else if (KEY_CELLULAR_FALLBACK.equals(key)) {
+            // On: avoid bad wifi. Off: prompt.
+            String settingName = Settings.Global.NETWORK_AVOID_BAD_WIFI;
+            Settings.Global.putString(getContentResolver(), settingName,
+                    ((SwitchPreference) preference).isChecked() ? "1" : null);
         } else {
             return super.onPreferenceTreeClick(preference);
         }

@@ -20,12 +20,25 @@ import time
 import sys
 import textwrap
 import its.device
+from its.device import ItsSession
 
 def main():
     """Run all the automated tests, saving intermediate files, and producing
     a summary/report of the results.
 
     Script should be run from the top-level CameraITS directory.
+
+    Command line Arguments:
+        camera: the camera(s) to be tested. Use comma to separate multiple
+                camera Ids. Ex: "camera=0,1" or "camera=1"
+        scenes: the test scene(s) to be executed. Use comma to separate multiple
+                scenes. Ex: "scenes=scene0,scene1" or "scenes=0,1,sensor_fusion"
+                (sceneX can be abbreviated by X where X is a integer)
+        chart: [Experimental] another android device served as test chart
+               display. When this argument presents, change of test scene will
+               be handled automatically. Note that this argument requires
+               special physical/hardware setup to work and may not work on
+               all android devices.
     """
 
     SKIP_RET_CODE = 101
@@ -49,9 +62,9 @@ def main():
         "sensor_fusion":[]
     }
 
-    # Get all the scene0 and scene1 tests, which can be run using the same
-    # physical setup.
-    scenes = ["scene0", "scene1", "scene2", "scene3", "scene4", "scene5"]
+    all_scenes = ["scene0", "scene1", "scene2", "scene3", "scene4", "scene5"]
+
+    auto_scenes = ["scene0", "scene1", "scene2", "scene3", "scene4"]
 
     scene_req = {
         "scene0" : None,
@@ -74,12 +87,54 @@ def main():
     scene_extra_args = {
         "scene5" : ["doAF=False"]
     }
-    tests = []
-    for d in scenes:
-        tests += [(d,s[:-3],os.path.join("tests", d, s))
-                  for s in os.listdir(os.path.join("tests",d))
-                  if s[-3:] == ".py"]
-    tests.sort()
+
+    camera_ids = []
+    scenes = []
+    chart_host_id = None
+    for s in sys.argv[1:]:
+        if s[:7] == "camera=" and len(s) > 7:
+            camera_ids = s[7:].split(',')
+        elif s[:7] == "scenes=" and len(s) > 7:
+            scenes = s[7:].split(',')
+        elif s[:6] == 'chart=' and len(s) > 6:
+            chart_host_id = s[6:]
+
+    auto_scene_switch = chart_host_id is not None
+
+    # Run through all scenes if user does not supply one
+    possible_scenes = auto_scenes if auto_scene_switch else all_scenes
+    if not scenes:
+        scenes = possible_scenes
+    else:
+        # Validate user input scene names
+        valid_scenes = True
+        temp_scenes = []
+        for s in scenes:
+            if s in possible_scenes:
+                temp_scenes.append(s)
+            else:
+                try:
+                    # Try replace "X" to "sceneX"
+                    scene_num = int(s)
+                    scene_str = "scene" + s
+                    if scene_str not in possible_scenes:
+                        valid_scenes = False
+                        break
+                    temp_scenes.append(scene_str)
+                except ValueError:
+                    valid_scenes = False
+                    break
+
+        if not valid_scenes:
+            print "Unknown scene specifiied:", s
+            assert(False)
+        scenes = temp_scenes
+
+    # Initialize test results
+    results = {}
+    result_key = ItsSession.RESULT_KEY
+    for s in all_scenes:
+        results[s] = {result_key: ItsSession.RESULT_NOT_EXECUTED}
 
     # Make output directories to hold the generated files.
     topdir = tempfile.mkdtemp()
@@ -88,11 +143,6 @@ def main():
     device_id = its.device.get_device_id()
     device_id_arg = "device=" + device_id
     print "Testing device " + device_id
-
-    camera_ids = []
-    for s in sys.argv[1:]:
-        if s[:7] == "camera=" and len(s) > 7:
-            camera_ids.append(s[7:])
 
     # user doesn't specify camera id, run through all cameras
     if not camera_ids:
@@ -107,7 +157,15 @@ def main():
             for line in f:
                 camera_ids.append(line.replace('\n', ''))
 
-    print "Running ITS on the following cameras:", camera_ids
+    print "Running ITS on camera: %s, scene %s" % (camera_ids, scenes)
+
+    if auto_scene_switch:
+        print 'Waking up chart screen: ', chart_host_id
+        screen_id_arg = ('screen=%s' % chart_host_id)
+        cmd = ['python', os.path.join(os.environ['CAMERA_ITS_TOP'], 'tools',
+                                      'wake_up_screen.py'), screen_id_arg]
+        retcode = subprocess.call(cmd)
+        assert retcode == 0
 
     for camera_id in camera_ids:
         # Loop capturing images until user confirm test scene is correct
@@ -118,85 +176,117 @@ def main():
         for d in scenes:
             os.mkdir(os.path.join(topdir, camera_id, d))
 
-        print "Start running ITS on camera: ", camera_id
-        # Run each test, capturing stdout and stderr.
-        summary = "ITS test result summary for camera " + camera_id + "\n"
-        numpass = 0
-        numskip = 0
-        numnotmandatedfail = 0
-        numfail = 0
+        for scene in scenes:
+            tests = [(s[:-3],os.path.join("tests", scene, s))
+                     for s in os.listdir(os.path.join("tests",scene))
+                     if s[-3:] == ".py" and s[:4] == "test"]
+            tests.sort()
 
-        prev_scene = ""
-        for (scene,testname,testpath) in tests:
-            if scene != prev_scene and scene_req[scene] != None:
+            summary = "Cam" + camera_id + " " + scene + "\n"
+            numpass = 0
+            numskip = 0
+            num_not_mandated_fail = 0
+            numfail = 0
+            if scene_req[scene] != None:
                 out_path = os.path.join(topdir, camera_id, scene+".jpg")
                 out_arg = "out=" + out_path
-                scene_arg = "scene=" + scene_req[scene]
-                extra_args = scene_extra_args.get(scene, [])
-                cmd = ['python',
-                        os.path.join(os.getcwd(),"tools/validate_scene.py"),
-                        camera_id_arg, out_arg, scene_arg, device_id_arg] + \
-                        extra_args
+                if auto_scene_switch:
+                    scene_arg = "scene=" + scene
+                    cmd = ['python',
+                           os.path.join(os.getcwd(), 'tools/load_scene.py'),
+                           scene_arg, screen_id_arg]
+                else:
+                    scene_arg = "scene=" + scene_req[scene]
+                    extra_args = scene_extra_args.get(scene, [])
+                    cmd = ['python',
+                            os.path.join(os.getcwd(),"tools/validate_scene.py"),
+                            camera_id_arg, out_arg,
+                            scene_arg, device_id_arg] + extra_args
                 retcode = subprocess.call(cmd,cwd=topdir)
                 assert(retcode == 0)
-                print "Start running tests for", scene
-            prev_scene = scene
-            cmd = ['python', os.path.join(os.getcwd(),testpath)] + \
-                  sys.argv[1:] + [camera_id_arg]
-            outdir = os.path.join(topdir,camera_id,scene)
-            outpath = os.path.join(outdir,testname+"_stdout.txt")
-            errpath = os.path.join(outdir,testname+"_stderr.txt")
-            t0 = time.time()
-            with open(outpath,"w") as fout, open(errpath,"w") as ferr:
-                retcode = subprocess.call(cmd,stderr=ferr,stdout=fout,cwd=outdir)
-            t1 = time.time()
+            print "Start running ITS on camera %s, %s" % (camera_id, scene)
 
-            if retcode == 0:
-                retstr = "PASS "
-                numpass += 1
-            elif retcode == SKIP_RET_CODE:
-                retstr = "SKIP "
-                numskip += 1
-            elif retcode != 0 and testname in NOT_YET_MANDATED[scene]:
-                retstr = "FAIL*"
-                numnotmandatedfail += 1
+            # Run each test, capturing stdout and stderr.
+            for (testname,testpath) in tests:
+                if auto_scene_switch:
+                    # Send an input event to keep the screen not dimmed.
+                    # Since we are not using camera of chart screen, FOCUS event
+                    # should does nothing but keep the screen from dimming.
+                    # The "sleep after x minutes of inactivity" display setting
+                    # determines how long this command can keep screen bright.
+                    # Setting it to something like 30 minutes should be enough.
+                    cmd = ('adb -s %s shell input keyevent FOCUS'
+                           % chart_host_id)
+                    subprocess.call(cmd.split())
+                cmd = ['python', os.path.join(os.getcwd(),testpath)] + \
+                      sys.argv[1:] + [camera_id_arg]
+                outdir = os.path.join(topdir,camera_id,scene)
+                outpath = os.path.join(outdir,testname+"_stdout.txt")
+                errpath = os.path.join(outdir,testname+"_stderr.txt")
+                t0 = time.time()
+                with open(outpath,"w") as fout, open(errpath,"w") as ferr:
+                    retcode = subprocess.call(
+                            cmd,stderr=ferr,stdout=fout,cwd=outdir)
+                t1 = time.time()
+
+                test_failed = False
+                if retcode == 0:
+                    retstr = "PASS "
+                    numpass += 1
+                elif retcode == SKIP_RET_CODE:
+                    retstr = "SKIP "
+                    numskip += 1
+                elif retcode != 0 and testname in NOT_YET_MANDATED[scene]:
+                    retstr = "FAIL*"
+                    num_not_mandated_fail += 1
+                else:
+                    retstr = "FAIL "
+                    numfail += 1
+                    test_failed = True
+
+                msg = "%s %s/%s [%.1fs]" % (retstr, scene, testname, t1-t0)
+                print msg
+                msg_short = "%s %s [%.1fs]" % (retstr, testname, t1-t0)
+                if test_failed:
+                    summary += msg_short + "\n"
+
+            if numskip > 0:
+                skipstr = ", %d test%s skipped" % (
+                        numskip, "s" if numskip > 1 else "")
             else:
-                retstr = "FAIL "
-                numfail += 1
+                skipstr = ""
 
-            msg = "%s %s/%s [%.1fs]" % (retstr, scene, testname, t1-t0)
-            print msg
-            summary += msg + "\n"
-            if retcode != 0 and retcode != SKIP_RET_CODE:
-                # Dump the stderr if the test fails
-                with open (errpath, "r") as error_file:
-                    errors = error_file.read()
-                    summary += errors + "\n"
+            test_result = "\n%d / %d tests passed (%.1f%%)%s" % (
+                    numpass + num_not_mandated_fail, len(tests) - numskip,
+                    100.0 * float(numpass + num_not_mandated_fail) /
+                            (len(tests) - numskip)
+                            if len(tests) != numskip else 100.0,
+                    skipstr)
+            print test_result
 
-        if numskip > 0:
-            skipstr = ", %d test%s skipped" % (numskip, "s" if numskip > 1 else "")
-        else:
-            skipstr = ""
+            if num_not_mandated_fail > 0:
+                msg = "(*) tests are not yet mandated"
+                print msg
 
-        test_result = "\n%d / %d tests passed (%.1f%%)%s" % (
-                numpass + numnotmandatedfail, len(tests) - numskip,
-                100.0 * float(numpass + numnotmandatedfail) / (len(tests) - numskip)
-                    if len(tests) != numskip else 100.0,
-                skipstr)
-        print test_result
-        summary += test_result + "\n"
+            summary_path = os.path.join(topdir, camera_id, scene, "summary.txt")
+            with open(summary_path, "w") as f:
+                f.write(summary)
 
-        if numnotmandatedfail > 0:
-            msg = "(*) tests are not yet mandated"
-            print msg
-            summary += msg + "\n"
+            passed = numfail == 0
+            results[scene][result_key] = (ItsSession.RESULT_PASS if passed
+                    else ItsSession.RESULT_FAIL)
+            results[scene][ItsSession.SUMMARY_KEY] = summary_path
 
-        result = numfail == 0
         print "Reporting ITS result to CtsVerifier"
-        summary_path = os.path.join(topdir, camera_id, "summary.txt")
-        with open(summary_path, "w") as f:
-            f.write(summary)
-        its.device.report_result(device_id, camera_id, result, summary_path)
+        its.device.report_result(device_id, camera_id, results)
+
+    if auto_scene_switch:
+        print 'Shutting down chart screen: ', chart_host_id
+        screen_id_arg = ('screen=%s' % chart_host_id)
+        cmd = ['python', os.path.join(os.environ['CAMERA_ITS_TOP'], 'tools',
+                                      'turn_off_screen.py'), screen_id_arg]
+        retcode = subprocess.call(cmd)
+        assert retcode == 0
 
     print "ITS tests finished. Please go back to CtsVerifier and proceed"
 

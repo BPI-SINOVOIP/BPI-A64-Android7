@@ -41,6 +41,9 @@ import com.androidplot.xy.SimpleXYSeries;
 import com.androidplot.xy.XYSeries;
 import com.androidplot.xy.*;
 
+import com.android.compatibility.common.util.CddTest;
+
+@CddTest(requirement="7.8.3")
 public class HifiUltrasoundSpeakerTestActivity extends PassFailButtons.Activity {
 
   public enum Status {

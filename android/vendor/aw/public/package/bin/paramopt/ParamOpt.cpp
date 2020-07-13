@@ -466,7 +466,9 @@ int main() {
             width_dp, height_dp, screenSize, bSupport64Bit, totalMem);
 
     /* low memory property*/
-    config_low_ram_property(screenSize, densityDPI, bSupport64Bit, totalMem);
+    if (!property_get("ro.config.low_ram", buf, "")) {
+		config_low_ram_property(screenSize, densityDPI, bSupport64Bit, totalMem);
+	}
 
     /* dalvik.vm.heapgrowthlimit property*/
     if (!property_get("dalvik.vm.heapgrowthlimit", buf, "")) {

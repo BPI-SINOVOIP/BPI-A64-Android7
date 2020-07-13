@@ -52,6 +52,7 @@
         <option name="package" value="com.android.compatibility.common.deviceinfo"/>
         <option name="src-dir" value="/sdcard/device-info-files/"/>
         <option name="dest-dir" value="device-info-files/"/>
+        <option name="temp-dir" value="temp-device-info-files/"/>
     </target_preparer>
 
     <!-- The following values are used in cts/common/device-side/util/DeviceReportLog.java,

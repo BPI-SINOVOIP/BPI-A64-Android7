@@ -99,14 +99,12 @@ def _MakeBisectFYITryJob(test_name, bisect_config):
     raise auto_bisect.NotBisectableError('Could not select a bisect bot.')
 
   config_python_string = utils.BisectConfigPythonString(bisect_config)
-  use_recipe = bool(start_try_job.GetBisectDirectorForTester(bisect_bot))
   bisect_job = try_job.TryJob(
       bot=bisect_bot,
       config=config_python_string,
       bug_id=bisect_config.get('bug_id', -1),
-      master_name='ChromiumPerf',
+      master_name=bisect_config.get('master_name', 'ChromiumPerf'),
       job_type='bisect-fyi',
-      use_buildbucket=use_recipe,
       job_name=test_name)
 
   return bisect_job
@@ -163,7 +161,7 @@ def _SendEmailAlert(errors_list):
   """Sends email alert about bisect integration tests failures."""
   mail.send_mail(
       sender='gasper-alerts@google.com',
-      to='auto-bisect-team@google.com',
+      to='chrome-performance-monitoring-alerts@google.com',
       subject='[Bisect FYI Alert]Failed to run bisect integration tests.',
       body=_TextBody(errors_list))
 

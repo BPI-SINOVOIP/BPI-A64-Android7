@@ -21,7 +21,6 @@ import android.app.ProgressDialog;
 /**
  * Wrapper class for progress dialog running in separate thread
  *
- * @author MeanEYE.rcf (meaneye.rcf@gmail.com)
  */
 class ProgressDialogTask extends DialogTask {
 

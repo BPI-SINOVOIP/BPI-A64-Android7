@@ -1,0 +1,3 @@
+<component name="DependencyValidationManager">
+  <scope name="obsoleteplugin" pattern="file[community-main]:plugins/android//*||file[community-main]:plugins/android-designer//*" />
+</component>

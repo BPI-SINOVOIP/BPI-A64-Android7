@@ -1,0 +1,127 @@
+<idea-plugin version="2">
+  <name>Google Cloud Tools For Android Studio</name>
+  <description>Cloud Tools for Android Studio</description>
+  <version>0.2.8</version>
+  <vendor>Google</vendor>
+  <id>com.google.gct</id>
+
+  <!-- please see http://confluence.jetbrains.net/display/IDEADEV/Build+Number+Ranges for description -->
+  <idea-version since-build="107.105"/>
+
+  <depends>org.jetbrains.android</depends>
+  <depends>org.jetbrains.idea.maven</depends>
+  <depends>org.jetbrains.plugins.gradle</depends>
+
+  <application-components>
+    <!-- Disable temporarily
+    <component>
+      <implementation-class>com.google.gct.idea.appengine.synchronization.SampleSyncRegistration</implementation-class>
+    </component>
+    -->
+    <component>
+      <implementation-class>com.google.gct.idea.appengine.initialization.CloudPluginRegistration</implementation-class>
+    </component>
+  </application-components>
+
+  <project-components>
+  </project-components>
+
+  <depends>org.jetbrains.plugins.gradle</depends>
+  <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
+     <projectResolve implementation="com.google.gct.idea.appengine.gradle.project.AppEngineGradleProjectResolver"/>
+  </extensions>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <facetType implementation="com.google.gct.idea.appengine.gradle.facet.AppEngineGradleFacetType"/>
+    <!-- facet detector disabled for now, use the gradle project importer to add the facet
+    <framework.detector implementation="com.google.gct.idea.appengine.gradle.facet.AppEngineFrameworkDetector"/>
+    -->
+    <externalProjectDataService implementation="com.google.gct.idea.appengine.gradle.service.AppEngineGradleProjectDataService" />
+
+    <!-- Temporarily disable
+    <applicationConfigurable instance="com.google.gct.idea.appengine.synchronization.SampleSyncConfigurable"></applicationConfigurable>
+    -->
+
+    <configurationType implementation="com.google.gct.idea.appengine.run.AppEngineRunConfigurationType"/>
+    <!-- hide this, it was causing context menus to pick appengine, fix and re-enable
+    <runConfigurationProducer implementation="com.google.gct.idea.appengine.run.AppEngineRunConfigurationProducer"/>
+    -->
+
+    <!-- Dom for the App Engine config file -->
+    <dom.fileDescription implementation="com.google.gct.idea.appengine.dom.AppEngineWebFileDescription"/>
+
+    <implicitUsageProvider implementation="com.google.gct.idea.appengine.validation.EndpointImplicitUsageProvider"/>
+
+    <localInspection language="JAVA" shortName="ApiName" bundle="messages.EndpointBundle"  hasStaticDescription="true"
+                     key="api.name.name" groupKey="inspections.group.name" enabledByDefault="true" level="ERROR"
+                     implementationClass="com.google.gct.idea.appengine.validation.ApiNameInspection"/>
+
+    <localInspection language="JAVA" shortName="ApiNamespace" bundle="messages.EndpointBundle"  hasStaticDescription="true"
+                     key="api.namespace.name" groupKey="inspections.group.name" enabledByDefault="true" level="ERROR"
+                     implementationClass="com.google.gct.idea.appengine.validation.ApiNamespaceInspection"/>
+
+    <localInspection language="JAVA" shortName="ApiParameter" bundle="messages.EndpointBundle"  hasStaticDescription="true"
+                     key="api.parameter.name" groupKey="inspections.group.name" enabledByDefault="true"
+                     level="ERROR" implementationClass="com.google.gct.idea.appengine.validation.ApiParameterInspection"/>
+
+    <localInspection language="JAVA" shortName="Constructor" bundle="messages.EndpointBundle"  hasStaticDescription="true"
+                     key="constructor.name" groupKey="inspections.group.name" enabledByDefault="true"
+                     level="ERROR" implementationClass="com.google.gct.idea.appengine.validation.ConstructorInspection"/>
+
+    <localInspection language="JAVA" shortName="FullJavaName" bundle="messages.EndpointBundle"  hasStaticDescription="true"
+                     key="backend.name.name" groupKey="inspections.group.name" enabledByDefault="true"
+                     level="ERROR" implementationClass="com.google.gct.idea.appengine.validation.FullJavaNameInspection"/>
+
+    <localInspection language="JAVA" shortName="FullMethodName" bundle="messages.EndpointBundle"  hasStaticDescription="true"
+                     key="full.method.name.name" groupKey="inspections.group.name" enabledByDefault="true"
+                     level="ERROR" implementationClass="com.google.gct.idea.appengine.validation.FullMethodNameInspection"/>
+
+    <localInspection language="JAVA" shortName="InvalidParameterAnnotations" bundle="messages.EndpointBundle"  hasStaticDescription="true"
+                     key="invalid.parameter.annotations.name" groupKey="inspections.group.name" enabledByDefault="true"
+                     level="ERROR" implementationClass="com.google.gct.idea.appengine.validation.InvalidParameterAnnotationsInspection"/>
+
+    <localInspection language="JAVA" shortName="MethodName" bundle="messages.EndpointBundle"  hasStaticDescription="true"
+                     key="method.name.name" groupKey="inspections.group.name" enabledByDefault="true"
+                     level="ERROR" implementationClass="com.google.gct.idea.appengine.validation.MethodNameInspection"/>
+
+    <localInspection language="JAVA" shortName="MethodParameterType" bundle="messages.EndpointBundle"  hasStaticDescription="true"
+                     key="method.parameter.type.name" groupKey="inspections.group.name" enabledByDefault="true"
+                     level="ERROR" implementationClass="com.google.gct.idea.appengine.validation.MethodParameterTypeInspection"/>
+
+    <localInspection language="JAVA" shortName="MethodReturnType" bundle="messages.EndpointBundle"  hasStaticDescription="true"
+                     key="method.return.type.name" groupKey="inspections.group.name" enabledByDefault="true"
+                     level="ERROR" implementationClass="com.google.gct.idea.appengine.validation.MethodReturnTypeInspection"/>
+
+    <localInspection language="JAVA" shortName="NamedResource" bundle="messages.EndpointBundle"  hasStaticDescription="true"
+                     key="named.resource.name" groupKey="inspections.group.name" enabledByDefault="true"
+                     level="ERROR" implementationClass="com.google.gct.idea.appengine.validation.NamedResourceInspection"/>
+
+    <localInspection language="JAVA" shortName="ResourceParameter" bundle="messages.EndpointBundle"  hasStaticDescription="true"
+                     key="resource.parameter.name" groupKey="inspections.group.name" enabledByDefault="true"
+                     level="ERROR" implementationClass="com.google.gct.idea.appengine.validation.ResourceParameterInspection"/>
+
+    <localInspection language="JAVA" shortName="RestSignature" bundle="messages.EndpointBundle"  hasStaticDescription="true"
+                     key="unique.rest.signature.name" groupKey="inspections.group.name" enabledByDefault="true"
+                     level="ERROR" implementationClass="com.google.gct.idea.appengine.validation.RestSignatureInspection"/>
+  </extensions>
+
+  <extensions defaultExtensionNs="org.jetbrains.android">
+    <newModuleWizardPathFactory implementation="com.google.gct.idea.appengine.wizard.BackendWizardPathFactory"/>
+  </extensions>
+
+  <actions>
+    <action id="GoogleCloudTools.GenerateEndpoint"
+            class="com.google.gct.idea.appengine.gradle.action.GenerateEndpointAction"
+            text="Generate Endpoint"
+            icon="/icons/cloudEndpoints.png"/>
+    <group id="com.google.gct.intellij.endpoints.MenuGroup"
+           text="Google Cloud Tools"
+           description="Endpoints Actions"
+           popup="true"
+           icon="/icons/cloudPlatform.png">
+      <reference id="GoogleCloudTools.GenerateEndpoint"/>
+      <add-to-group group-id="ToolsMenu" anchor="last"/>
+    </group>
+  </actions>
+
+</idea-plugin>

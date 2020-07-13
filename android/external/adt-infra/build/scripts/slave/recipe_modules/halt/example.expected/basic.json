@@ -1,0 +1,22 @@
+[
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "import sys; sys.exit(1)"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "Recipe failed. Reason: Fake failure",
+    "~followup_annotations": [
+      "step returned non-zero exit code: 1",
+      "@@@STEP_LOG_LINE@python.inline@import sys; sys.exit(1)@@@",
+      "@@@STEP_LOG_END@python.inline@@@",
+      "@@@STEP_FAILURE@@@"
+    ]
+  },
+  {
+    "name": "$result",
+    "reason": "Step('Recipe failed. Reason: Fake failure') failed with return_code 1",
+    "status_code": 1
+  }
+]

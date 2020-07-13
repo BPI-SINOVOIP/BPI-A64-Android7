@@ -107,9 +107,6 @@ static int phy_config_interrupt(struct phy_device *phydev, u32 interrupts)
 static inline int phy_aneg_done(struct phy_device *phydev)
 {
 	int retval;
-	
-	if (phydev->drv->aneg_done)
-		return phydev->drv->aneg_done(phydev);
 
 	retval = phy_read(phydev, MII_BMSR);
 

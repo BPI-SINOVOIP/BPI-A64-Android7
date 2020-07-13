@@ -172,7 +172,6 @@ uint32_t chreGetInstanceId(void);
  *          leading zeros if needed to meet the minimum.
  *    - 'f' context: Number of digits to output after the decimal
  *          point (to the right of it).
- *    - 'g' context: Maximum number of digits to be output.
  *    - 's' context: Maximum number of characters to output.
  *
  * Integral format specifiers:
@@ -281,6 +280,8 @@ bool chreTimerCancel(uint32_t timerId);
  * @param abortCode  A value indicating the reason for aborting.  (Note that
  *    in this version of the API, there is no way for anyone to access this
  *    code, but future APIs may expose it.)
+ * @returns Never.  This method does not return, as the CHRE stops nanoapp
+ *    execution immediately.
  */
 void chreAbort(uint32_t abortCode);
 

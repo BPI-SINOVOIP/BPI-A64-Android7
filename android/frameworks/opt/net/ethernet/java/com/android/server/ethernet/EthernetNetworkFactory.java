@@ -72,7 +72,7 @@ import java.io.PrintWriter;
 class EthernetNetworkFactory {
     private static final String NETWORK_TYPE = "Ethernet";
     private static final String TAG = "EthernetNetworkFactory";
-    private static final int NETWORK_SCORE = 70;
+    private static final int NETWORK_SCORE = 100;
     private static final boolean DBG = true;
 
     /** Tracks interface changes. Called from NetworkManagementService. */

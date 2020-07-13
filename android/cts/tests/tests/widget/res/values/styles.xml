@@ -193,6 +193,11 @@
         <item name="android:windowSwipeToDismiss">false</item>
     </style>
 
+    <style name="Theme_Holo_With_Material_Pickers" parent="@android:style/Theme.Holo">
+        <item name="android:timePickerStyle">@android:style/Widget.Material.TimePicker</item>
+        <item name="android:datePickerStyle">@android:style/Widget.Material.DatePicker</item>
+    </style>
+
     <style name="PopupEmptyStyle" />
 
     <style name="TabWidgetCustomStyle" parent="android:Widget.TabWidget">

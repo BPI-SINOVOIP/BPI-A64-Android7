@@ -96,7 +96,8 @@
     <string name="user_emergency_info_title" msgid="7827058167207376581">"緊急資料"</string>
     <string name="user_emergency_info_consent" msgid="5636028073450797246">"您在此輸入的資料將有助急救員處理緊急情況。雖然這些資料只會儲存在您的裝置中，但任何人士無需將手機解鎖也可從緊急撥號器看到。"</string>
     <string name="emergency_info_continue" msgid="5453201508537906087">"繼續"</string>
-    <string name="no_info_provided" msgid="6775035037534954056">"沒有緊急資料提供"</string>
+    <string name="no_info_provided" msgid="716200382010821001">"沒有關於手機擁有者的資料"</string>
+    <string name="tap_pencil" msgid="2723698054265296934">"如果這部手機屬於您，請輕按鉛筆圖示，以加入發生緊急事件時在此顯示的資料"</string>
     <string name="clear_all" msgid="8899013032870561633">"全部清除"</string>
     <string name="clear" msgid="3648880442502887163">"清除"</string>
     <string name="clear_all_message" msgid="1548432000373861295">"要清除所有資料和聯絡人嗎？"</string>

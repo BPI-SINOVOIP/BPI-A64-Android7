@@ -3,6 +3,7 @@ import init.sun50iw1p1.usb.rc
 import init.${ro.zygote}.rc
 #import init.wireless.broadcom.rc
 import init.wireless.realtek.rc
+#import init.wireless.xradio.rc
 
 on early-init
     mount debugfs debugfs /sys/kernel/debug/ mode=755
@@ -17,6 +18,8 @@ on init
     symlink /sdcard /storage/sdcard0
 
     mkdir /oem 0550 system system
+    setprop ro.boot.flash.locked 1
+
 on early-fs
     insmod nand.ko
     mount_all /fstab.sun50iw1p1
@@ -55,7 +58,6 @@ on fs
     insmod /system/vendor/modules/gc0328c.ko
     insmod /system/vendor/modules/gc2145.ko
     insmod /system/vendor/modules/vfe_v4l2.ko
-
 	# network
     insmod /system/vendor/modules/usbnet.ko
     insmod /system/vendor/modules/asix.ko
@@ -141,9 +143,10 @@ on charger
     start adbd
     start console
 
-ifeq ($(BOARD_WIDEVINE_OEMCRYPTO_LEVEL), 1)
 service optee /system/bin/tee_supplicant
-    class core
     user root
     group root
-endif
+	
+on property:ro.boot.verifiedbootstate=green
+    start optee
+

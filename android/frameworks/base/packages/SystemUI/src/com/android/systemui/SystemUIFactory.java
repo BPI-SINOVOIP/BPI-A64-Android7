@@ -23,8 +23,12 @@ import android.view.ViewGroup;
 
 import com.android.internal.widget.LockPatternUtils;
 import com.android.keyguard.ViewMediatorCallback;
+import com.android.systemui.R;
+import com.android.systemui.assist.AssistManager;
+import com.android.systemui.statusbar.BaseStatusBar;
 import com.android.systemui.statusbar.ScrimView;
 import com.android.systemui.statusbar.phone.KeyguardBouncer;
+import com.android.systemui.statusbar.phone.LockscreenWallpaper;
 import com.android.systemui.statusbar.phone.NotificationIconAreaController;
 import com.android.systemui.statusbar.phone.PhoneStatusBar;
 import com.android.systemui.statusbar.phone.QSTileHost;
@@ -90,7 +94,7 @@ public class SystemUIFactory {
     }
 
     public ScrimController createScrimController(ScrimView scrimBehind, ScrimView scrimInFront,
-            View headsUpScrim) {
+            View headsUpScrim, LockscreenWallpaper lockscreenWallpaper) {
         return new ScrimController(scrimBehind, scrimInFront, headsUpScrim);
     }
 
@@ -115,5 +119,9 @@ public class SystemUIFactory {
 
     public <T> T createInstance(Class<T> classType) {
         return null;
+    }
+
+    public AssistManager createAssistManager(BaseStatusBar bar, Context context) {
+        return new AssistManager(bar, context);
     }
 }

@@ -104,16 +104,16 @@ public class PlaybackOverlaySupportFragment extends DetailsSupportFragment {
         public boolean handleInputEvent(InputEvent event);
     }
 
-    private static final String TAG = "PlaybackOverlaySupportFragment";
-    private static final boolean DEBUG = false;
+    static final String TAG = "PlaybackOverlaySupportFragment";
+    static final boolean DEBUG = false;
     private static final int ANIMATION_MULTIPLIER = 1;
 
-    private static int START_FADE_OUT = 1;
+    static int START_FADE_OUT = 1;
 
     // Fading status
-    private static final int IDLE = 0;
+    static final int IDLE = 0;
     private static final int IN = 1;
-    private static final int OUT = 2;
+    static final int OUT = 2;
 
     private int mPaddingTop;
     private int mPaddingBottom;
@@ -123,18 +123,18 @@ public class PlaybackOverlaySupportFragment extends DetailsSupportFragment {
     private int mBgLightColor;
     private int mShowTimeMs;
     private int mMajorFadeTranslateY, mMinorFadeTranslateY;
-    private int mAnimationTranslateY;
-    private OnFadeCompleteListener mFadeCompleteListener;
+    int mAnimationTranslateY;
+    OnFadeCompleteListener mFadeCompleteListener;
     private InputEventHandler mInputEventHandler;
-    private boolean mFadingEnabled = true;
-    private int mFadingStatus = IDLE;
-    private int mBgAlpha;
+    boolean mFadingEnabled = true;
+    int mFadingStatus = IDLE;
+    int mBgAlpha;
     private ValueAnimator mBgFadeInAnimator, mBgFadeOutAnimator;
     private ValueAnimator mControlRowFadeInAnimator, mControlRowFadeOutAnimator;
     private ValueAnimator mDescriptionFadeInAnimator, mDescriptionFadeOutAnimator;
     private ValueAnimator mOtherRowFadeInAnimator, mOtherRowFadeOutAnimator;
     private boolean mTranslateAnimationEnabled;
-    private boolean mResetControlsToPrimaryActionsPending;
+    boolean mResetControlsToPrimaryActionsPending;
     private RecyclerView.ItemAnimator mItemAnimator;
 
     private final Animator.AnimatorListener mFadeListener =
@@ -183,6 +183,7 @@ public class PlaybackOverlaySupportFragment extends DetailsSupportFragment {
 
     private final VerticalGridView.OnTouchInterceptListener mOnTouchInterceptListener =
             new VerticalGridView.OnTouchInterceptListener() {
+        @Override
         public boolean onInterceptTouchEvent(MotionEvent event) {
             return onInterceptInputEvent(event);
         }
@@ -190,25 +191,26 @@ public class PlaybackOverlaySupportFragment extends DetailsSupportFragment {
 
     private final VerticalGridView.OnKeyInterceptListener mOnKeyInterceptListener =
             new VerticalGridView.OnKeyInterceptListener() {
+        @Override
         public boolean onInterceptKeyEvent(KeyEvent event) {
             return onInterceptInputEvent(event);
         }
     };
 
-    private void setBgAlpha(int alpha) {
+    void setBgAlpha(int alpha) {
         mBgAlpha = alpha;
         if (mRootView != null) {
             mRootView.getBackground().setAlpha(alpha);
         }
     }
 
-    private void enableVerticalGridAnimations(boolean enable) {
+    void enableVerticalGridAnimations(boolean enable) {
         if (getVerticalGridView() != null) {
             getVerticalGridView().setAnimateChildLayout(enable);
         }
     }
 
-    private void resetControlsToPrimaryActions(ItemBridgeAdapter.ViewHolder vh) {
+    void resetControlsToPrimaryActions(ItemBridgeAdapter.ViewHolder vh) {
         if (vh == null && getVerticalGridView() != null) {
             vh = (ItemBridgeAdapter.ViewHolder) getVerticalGridView().findViewHolderForPosition(0);
         }
@@ -310,7 +312,7 @@ public class PlaybackOverlaySupportFragment extends DetailsSupportFragment {
         return mFadingStatus == IDLE && mBgAlpha == 0;
     }
 
-    private boolean onInterceptInputEvent(InputEvent event) {
+    boolean onInterceptInputEvent(InputEvent event) {
         final boolean controlsHidden = areControlsHidden();
         if (DEBUG) Log.v(TAG, "onInterceptInputEvent hidden " + controlsHidden + " " + event);
         boolean consumeEvent = false;
@@ -367,7 +369,7 @@ public class PlaybackOverlaySupportFragment extends DetailsSupportFragment {
         getVerticalGridView().setOnKeyInterceptListener(mOnKeyInterceptListener);
     }
 
-    private void startFadeTimer() {
+    void startFadeTimer() {
         if (mHandler != null) {
             mHandler.removeMessages(START_FADE_OUT);
             mHandler.sendEmptyMessageDelayed(START_FADE_OUT, mShowTimeMs);
@@ -400,7 +402,7 @@ public class PlaybackOverlaySupportFragment extends DetailsSupportFragment {
     private TimeInterpolator mLogDecelerateInterpolator = new LogDecelerateInterpolator(100,0);
     private TimeInterpolator mLogAccelerateInterpolator = new LogAccelerateInterpolator(100,0);
 
-    private View getControlRowView() {
+    View getControlRowView() {
         if (getVerticalGridView() == null) {
             return null;
         }
@@ -522,7 +524,7 @@ public class PlaybackOverlaySupportFragment extends DetailsSupportFragment {
         mDescriptionFadeOutAnimator.addUpdateListener(listener);
     }
 
-    private void fade(boolean fadeIn) {
+    void fade(boolean fadeIn) {
         if (DEBUG) Log.v(TAG, "fade " + fadeIn);
         if (getView() == null) {
             return;
@@ -679,7 +681,7 @@ public class PlaybackOverlaySupportFragment extends DetailsSupportFragment {
         }
     }
 
-    private void updateControlsBottomSpace(ItemBridgeAdapter.ViewHolder vh) {
+    void updateControlsBottomSpace(ItemBridgeAdapter.ViewHolder vh) {
         // Add extra space between rows 0 and 1
         if (vh == null && getVerticalGridView() != null) {
             vh = (ItemBridgeAdapter.ViewHolder)
@@ -744,7 +746,15 @@ public class PlaybackOverlaySupportFragment extends DetailsSupportFragment {
         super.onDestroyView();
     }
 
+    @Override
+    public void onStart() {
+        super.onStart();
+        // Workaround problem VideoView forcing itself to focused, let controls take focus.
+        getRowsSupportFragment().getView().requestFocus();
+    }
+
     private final DataObserver mObserver = new DataObserver() {
+        @Override
         public void onChanged() {
             updateControlsBottomSpace(null);
         }
@@ -754,10 +764,13 @@ public class PlaybackOverlaySupportFragment extends DetailsSupportFragment {
         ArrayList<View> mViews = new ArrayList<View>();
         ArrayList<Integer> mLayerType = new ArrayList<Integer>();
 
+        @Override
         public void onAnimationCancel(Animator animation) {
         }
+        @Override
         public void onAnimationRepeat(Animator animation) {
         }
+        @Override
         public void onAnimationStart(Animator animation) {
             getViews(mViews);
             for (View view : mViews) {
@@ -765,6 +778,7 @@ public class PlaybackOverlaySupportFragment extends DetailsSupportFragment {
                 view.setLayerType(View.LAYER_TYPE_HARDWARE, null);
             }
         }
+        @Override
         public void onAnimationEnd(Animator animation) {
             for (int i = 0; i < mViews.size(); i++) {
                 mViews.get(i).setLayerType(mLayerType.get(i), null);

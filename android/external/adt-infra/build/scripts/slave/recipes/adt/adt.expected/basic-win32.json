@@ -1,0 +1,174 @@
+[
+  {
+    "cmd": [
+      "C:\\cygwin\\bin\\find",
+      ".",
+      "-delete"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "env": {
+      "ANDROID_SDK_ROOT": "/Users/chying/Android/android-sdk",
+      "PATH": "C:\\Program Files\\GnuWin32\\bin;C:\\cygwin\\bin;%(PATH)s;/Users/chying/Android/android-sdk/tools;/Users/chying/Android/android-sdk/platform-tools"
+    },
+    "name": "Clean slave build directory"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[BUILD]\\..\\emu_test\\utils\\download_unzip_image.py",
+      "--file",
+      "/images/emu_gspoller_windows/sdk-repo-windows-tools-2344972.zip",
+      "--ip",
+      "172.27.213.40",
+      "--user",
+      "user"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "env": {
+      "ANDROID_SDK_ROOT": "/Users/chying/Android/android-sdk",
+      "PATH": "C:\\Program Files\\GnuWin32\\bin;C:\\cygwin\\bin;%(PATH)s;/Users/chying/Android/android-sdk/tools;/Users/chying/Android/android-sdk/platform-tools"
+    },
+    "name": "Download and Unzip Images"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[BUILD]\\..\\emu_test\\dotest.py",
+      "-l",
+      "INFO",
+      "-exec",
+      "[SLAVE_BUILD]\\tools\\emulator",
+      "-s",
+      "logs-3077\\boot_test_public_sysimage",
+      "-p",
+      "test_boot.*",
+      "-c",
+      "[BUILD]\\..\\emu_test\\config\\boot_cfg.csv",
+      "-n",
+      "Win 7 32-bit HD 4400",
+      "-f",
+      "{\"tot_image\": \"no\"}"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "env": {
+      "ANDROID_SDK_ROOT": "/Users/chying/Android/android-sdk",
+      "PATH": "C:\\Program Files\\GnuWin32\\bin;C:\\cygwin\\bin;%(PATH)s;/Users/chying/Android/android-sdk/tools;/Users/chying/Android/android-sdk/platform-tools"
+    },
+    "name": "Boot Test - Public System Image",
+    "stderr": "/path/to/tmp/err"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[BUILD]\\..\\emu_test\\dotest.py",
+      "-l",
+      "INFO",
+      "-exec",
+      "[SLAVE_BUILD]\\tools\\emulator",
+      "-s",
+      "logs-3077\\boot_test_LMP_sysimage",
+      "-p",
+      "test_boot.*",
+      "-c",
+      "[BUILD]\\..\\emu_test\\config\\boot_cfg.csv",
+      "-n",
+      "Win 7 32-bit HD 4400",
+      "-f",
+      "{\"tot_image\": \"yes\", \"api\": \"22\"}"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "env": {
+      "ANDROID_SDK_ROOT": "/Users/chying/Android/android-sdk",
+      "PATH": "C:\\Program Files\\GnuWin32\\bin;C:\\cygwin\\bin;%(PATH)s;/Users/chying/Android/android-sdk/tools;/Users/chying/Android/android-sdk/platform-tools"
+    },
+    "name": "Boot Test - LMP System Image",
+    "stderr": "/path/to/tmp/err"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[BUILD]\\..\\emu_test\\dotest.py",
+      "-l",
+      "INFO",
+      "-exec",
+      "[SLAVE_BUILD]\\tools\\emulator",
+      "-s",
+      "logs-3077\\boot_test_MNC_sysimage",
+      "-p",
+      "test_boot.*",
+      "-c",
+      "[BUILD]\\..\\emu_test\\config\\boot_cfg.csv",
+      "-n",
+      "Win 7 32-bit HD 4400",
+      "-f",
+      "{\"tot_image\": \"yes\", \"api\": \"23\"}"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "env": {
+      "ANDROID_SDK_ROOT": "/Users/chying/Android/android-sdk",
+      "PATH": "C:\\Program Files\\GnuWin32\\bin;C:\\cygwin\\bin;%(PATH)s;/Users/chying/Android/android-sdk/tools;/Users/chying/Android/android-sdk/platform-tools"
+    },
+    "name": "Boot Test - MNC System Image",
+    "stderr": "/path/to/tmp/err"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[BUILD]\\..\\emu_test\\dotest.py",
+      "-l",
+      "INFO",
+      "-exec",
+      "[SLAVE_BUILD]\\tools\\emulator",
+      "-s",
+      "logs-3077\\CTS_test",
+      "-p",
+      "test_cts.*",
+      "-c",
+      "[BUILD]\\..\\emu_test\\config\\cts_cfg.csv",
+      "-n",
+      "Win 7 32-bit HD 4400",
+      "-f",
+      "{\"tot_image\": \"no\"}"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "env": {
+      "ANDROID_SDK_ROOT": "/Users/chying/Android/android-sdk",
+      "PATH": "C:\\Program Files\\GnuWin32\\bin;C:\\cygwin\\bin;%(PATH)s;/Users/chying/Android/android-sdk/tools;/Users/chying/Android/android-sdk/platform-tools"
+    },
+    "name": "Run Emulator CTS Test",
+    "stderr": "/path/to/tmp/err"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[BUILD]\\..\\emu_test\\utils\\zip_upload_logs.py",
+      "--dir",
+      "logs-3077",
+      "--name",
+      "build-3077.zip",
+      "--ip",
+      "172.27.213.40",
+      "--user",
+      "user",
+      "--dst",
+      "/home/slave_logs/Win 7 32-bit HD 4400/"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "env": {
+      "ANDROID_SDK_ROOT": "/Users/chying/Android/android-sdk",
+      "PATH": "C:\\Program Files\\GnuWin32\\bin;C:\\cygwin\\bin;%(PATH)s;/Users/chying/Android/android-sdk/tools;/Users/chying/Android/android-sdk/platform-tools"
+    },
+    "name": "Zip and Upload Logs"
+  },
+  {
+    "name": "$result",
+    "recipe_result": null,
+    "status_code": 0
+  }
+]

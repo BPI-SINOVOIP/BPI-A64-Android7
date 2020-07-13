@@ -16,24 +16,18 @@ package android.accessibilityservice.cts;
 
 import android.accessibilityservice.AccessibilityServiceInfo;
 import android.accessibilityservice.AccessibilityService.SoftKeyboardController;
+import android.app.Activity;
 import android.app.UiAutomation;
-import android.content.ContentResolver;
-import android.content.Context;
 import android.os.Bundle;
-import android.os.ParcelFileDescriptor;
 import android.os.SystemClock;
-import android.provider.Settings;
 import android.test.ActivityInstrumentationTestCase2;
+import android.view.View;
 import android.view.accessibility.AccessibilityEvent;
-import android.view.accessibility.AccessibilityManager;
 
 import android.accessibilityservice.cts.R;
+import android.view.accessibility.AccessibilityWindowInfo;
+import android.view.inputmethod.InputMethodManager;
 
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
 
@@ -91,7 +85,11 @@ public class AccessibilitySoftKeyboardModesTest extends ActivityInstrumentationT
 
     @Override
     public void tearDown() throws Exception {
+        mKeyboardController.setShowMode(SHOW_MODE_AUTO);
         mService.runOnServiceSync(() -> mService.disableSelf());
+        Activity activity = getActivity();
+        activity.getSystemService(InputMethodManager.class)
+                .hideSoftInputFromWindow(activity.getCurrentFocus().getWindowToken(), 0);
     }
 
     public void testApiReturnValues_shouldChangeValueOnRequestAndSendCallback() throws Exception {
@@ -109,7 +107,7 @@ public class AccessibilitySoftKeyboardModesTest extends ActivityInstrumentationT
                 };
         mKeyboardController.addOnShowModeChangedListener(listener);
 
-        // The soft keyboard should be in its' default mode.
+        // The soft keyboard should be in its default mode.
         assertEquals(SHOW_MODE_AUTO, mKeyboardController.getShowMode());
 
         // Set the show mode to SHOW_MODE_HIDDEN.
@@ -130,56 +128,18 @@ public class AccessibilitySoftKeyboardModesTest extends ActivityInstrumentationT
         assertTrue(mKeyboardController.removeOnShowModeChangedListener(listener));
     }
 
-    public void testHideSoftKeyboard_shouldHideAndShowKeyboardOnRequest() throws Exception {
-        // The soft keyboard should be in its' default mode.
+    public void testHideSoftKeyboard_shouldHideKeyboardOnRequest() throws Exception {
+        // The soft keyboard should be in its default mode.
         assertEquals(SHOW_MODE_AUTO, mKeyboardController.getShowMode());
 
-        // Note: This Activity always has a visible keyboard (due to windowSoftInputMode being set
-        // to stateAlwaysVisible).
-        waitForIdle();
-        int numWindowsWithIme = mUiAutomation.getWindows().size();
-
+        forceImeToBeShown();
+        waitForImePresentToBe(true);
         // Request the keyboard be hidden.
         assertTrue(mKeyboardController.setShowMode(SHOW_MODE_HIDDEN));
-        waitForWindowStateChanged();
-        waitForIdle();
 
-        // Make sure the keyboard is hidden.
-        assertEquals(numWindowsWithIme - 1, mUiAutomation.getWindows().size());
+        waitForImePresentToBe(false);
 
-        // Request the default keyboard mode.
         assertTrue(mKeyboardController.setShowMode(SHOW_MODE_AUTO));
-        waitForWindowStateChanged();
-        waitForIdle();
-
-        // Make sure the keyboard is visible.
-        assertEquals(numWindowsWithIme, mUiAutomation.getWindows().size());
-    }
-
-    public void testHideSoftKeyboard_shouldHideKeyboardUntilServiceIsDisabled() throws Exception {
-        // The soft keyboard should be in its' default mode.
-        assertEquals(SHOW_MODE_AUTO, mKeyboardController.getShowMode());
-
-        // Note: This Activity always has a visible keyboard (due to windowSoftInputMode being set
-        // to stateAlwaysVisible).
-        waitForIdle();
-        int numWindowsWithIme = mUiAutomation.getWindows().size();
-
-        // Set the show mode to SHOW_MODE_HIDDEN.
-        assertTrue(mKeyboardController.setShowMode(SHOW_MODE_HIDDEN));
-        waitForWindowStateChanged();
-        waitForIdle();
-
-        // Make sure the keyboard is hidden.
-        assertEquals(numWindowsWithIme - 1, mUiAutomation.getWindows().size());
-
-        // Make sure we can see the soft keyboard once all Accessibility Services are disabled.
-        mService.disableSelf();
-        waitForWindowStateChanged();
-        waitForIdle();
-
-        // See how many windows are present.
-        assertEquals(numWindowsWithIme, mUiAutomation.getWindows().size());
     }
 
     private void waitForCallbackValueWithLock(int expectedValue) throws Exception {
@@ -202,7 +162,7 @@ public class AccessibilitySoftKeyboardModesTest extends ActivityInstrumentationT
                 + "> does not match expected value < " + expectedValue + ">");
     }
 
-    private void waitForWindowStateChanged() throws Exception {
+    private void waitForWindowChanges() {
         try {
             mUiAutomation.executeAndWaitForEvent(new Runnable() {
                 @Override
@@ -223,8 +183,31 @@ public class AccessibilitySoftKeyboardModesTest extends ActivityInstrumentationT
         }
     }
 
-    private void waitForIdle() throws TimeoutException {
-        mUiAutomation.waitForIdle(TIMEOUT_ACCESSIBILITY_STATE_IDLE, TIMEOUT_ASYNC_PROCESSING);
+    private boolean isImeWindowPresent() {
+        List<AccessibilityWindowInfo> windows = mUiAutomation.getWindows();
+        for (int i = 0; i < windows.size(); i++) {
+            if (windows.get(i).getType() == AccessibilityWindowInfo.TYPE_INPUT_METHOD) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void waitForImePresentToBe(boolean imeShown) {
+        long timeOutTime = System.currentTimeMillis() + TIMEOUT_ASYNC_PROCESSING;
+        while (isImeWindowPresent() != imeShown) {
+            assertTrue(System.currentTimeMillis() < timeOutTime);
+            waitForWindowChanges();
+        }
+    }
+
+    private void forceImeToBeShown() {
+        getInstrumentation().runOnMainSync(() -> {
+            Activity activity = getActivity();
+            View editText = activity.findViewById(R.id.edit_text);
+            activity.getSystemService(InputMethodManager.class)
+                    .showSoftInput(editText, InputMethodManager.SHOW_FORCED);
+        });
     }
 
     /**

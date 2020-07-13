@@ -26,7 +26,6 @@ import java.io.Serializable;
  * Interface implemented by objects listening to events on the event queue inside of the
  * {@link SerivceManager}.
  *
- * @author Felix Arends (felix.arends@gmail.com)
  */
 public interface Trigger extends Serializable {
   /**

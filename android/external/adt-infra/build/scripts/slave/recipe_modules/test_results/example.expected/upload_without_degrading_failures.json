@@ -1,0 +1,34 @@
+[
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "RECIPE_MODULE[test_results]/resources/upload_gtest_test_results.py",
+      "--input-gtest-json",
+      "{\"disabled_tests\": [\"Disabled.Test\"], \"per_iteration_data\": [{\"Skipped.Test\": [{\"elapsed_time_ms\": 0, \"status\": \"SKIPPED\"}]}]}",
+      "--master-name",
+      "example.master",
+      "--builder-name",
+      "ExampleBuilder",
+      "--build-number",
+      "123",
+      "--test-type",
+      "example-test-type",
+      "--test-results-server",
+      "localhost",
+      "--chrome-revision",
+      "2"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "Upload to test-results [example-test-type]",
+    "~followup_annotations": [
+      "step returned non-zero exit code: 1",
+      "@@@STEP_FAILURE@@@"
+    ]
+  },
+  {
+    "name": "$result",
+    "recipe_result": null,
+    "status_code": 0
+  }
+]

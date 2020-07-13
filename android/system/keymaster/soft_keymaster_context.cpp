@@ -493,6 +493,21 @@ keymaster_error_t SoftKeymasterContext::UpgradeKeyBlob(const KeymasterKeyBlob& k
 
     // Handle cases 1 & 2.
     bool set_changed = false;
+
+    if (os_version_ == 0) {
+        // We need to allow "upgrading" OS version to zero, to support upgrading from proper
+        // numbered releases to unnumbered development and preview releases.
+
+        int key_os_version_pos = sw_enforced.find(TAG_OS_VERSION);
+        if (key_os_version_pos != -1) {
+            uint32_t key_os_version = sw_enforced[key_os_version_pos].integer;
+            if (key_os_version != 0) {
+                sw_enforced[key_os_version_pos].integer = os_version_;
+                set_changed = true;
+            }
+        }
+    }
+
     if (!UpgradeIntegerTag(TAG_OS_VERSION, os_version_, &sw_enforced, &set_changed) ||
         !UpgradeIntegerTag(TAG_OS_PATCHLEVEL, os_patchlevel_, &sw_enforced, &set_changed))
         // One of the version fields would have been a downgrade. Not allowed.

@@ -1,0 +1,43 @@
+[
+  {
+    "cmd": [
+      "echo",
+      "billy"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "env": {
+      "climate": "rainy",
+      "mood": "excellent"
+    },
+    "name": "grandparent.mom.child"
+  },
+  {
+    "cmd": [
+      "echo",
+      "sam"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "env": {
+      "climate": "cloudy",
+      "mood": "excellent"
+    },
+    "name": "grandparent.dad.child"
+  },
+  {
+    "cmd": [
+      "echo",
+      "testb"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "env": {
+      "climate": "sunny",
+      "mood": "excellent"
+    },
+    "name": "grandparent.aunt"
+  },
+  {
+    "name": "$result",
+    "recipe_result": null,
+    "status_code": 0
+  }
+]

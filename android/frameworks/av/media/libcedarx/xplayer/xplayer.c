@@ -1107,6 +1107,12 @@ int updateVideoInfo(XPlayer* p)
         {
             logw("PlayerSetVideoStreamInfo() fail, video stream not supported.");
         }
+
+        ret = PlayerConfigDropLaytedFrame(mPriData->mPlayer, 1);
+        if(ret != 0)
+        {
+            logw("PlayerConfigDropLaytedFrame() fail.");
+        }
     }
 #endif
 
@@ -1161,7 +1167,7 @@ int checkVideoSupported(const MediaInfo *mi)
     if (mi->pVideoStreamInfo->nWidth >= WIDTH_4K ||
         mi->pVideoStreamInfo->nHeight >= HEIGHT_4K)
     {
-#if !defined(CONF_H265_4K_P2P)
+#if !defined(CONF_H265_4K)
         if (mi->pVideoStreamInfo->eCodecFormat == VIDEO_CODEC_FORMAT_H265)
         {
             loge("Not support H265 4K video !!");

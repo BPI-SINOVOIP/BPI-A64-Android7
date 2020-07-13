@@ -14,16 +14,6 @@ import logging
 import os
 import sys
 
-
-# We need to set logging format here to make sure that any other modules
-# imported by telemetry doesn't set the logging format before this, which will
-# make this a no-op call.
-# (See: https://docs.python.org/2/library/logging.html#logging.basicConfig)
-logging.basicConfig(
-    format='(%(levelname)s) %(asctime)s %(module)s.%(funcName)s:%(lineno)d  '
-           '%(message)s')
-
-
 from telemetry import benchmark
 from telemetry.core import discover
 from telemetry import decorators
@@ -33,11 +23,25 @@ from telemetry.internal.util import binary_manager
 from telemetry.internal.util import command_line
 from telemetry.internal.util import ps_util
 from telemetry.util import matching
-from telemetry import project_config
 
 
-# TODO(aiolos): Remove this once clients move over to project_config version.
-ProjectConfig = project_config.ProjectConfig
+# Right now, we only have one of each of our power perf bots. This means that
+# all eligible Telemetry benchmarks are run unsharded, which results in very
+# long (12h) cycle times. We'd like to reduce the number of tests that we run
+# on each bot drastically until we get more of the same hardware to shard tests
+# with, but we can't do so until we've verified that the hardware configuration
+# is a viable one for Chrome Telemetry tests. This is done by seeing at least
+# one all-green test run. As this happens for each bot, we'll add it to this
+# whitelist, making it eligible to run only BattOr power tests.
+GOOD_POWER_PERF_BOT_WHITELIST = [
+  "Mac Power Dual-GPU Perf",
+  "Mac Power Low-End Perf"
+]
+
+
+DEFAULT_LOG_FORMAT = (
+  '(%(levelname)s) %(asctime)s %(module)s.%(funcName)s:%(lineno)d  '
+  '%(message)s')
 
 
 def _IsBenchmarkEnabled(benchmark_class, possible_browser):
@@ -306,6 +310,12 @@ def _GetJsonBenchmarkList(possible_browser, possible_reference_browser,
     }
   }
   """
+  # TODO(charliea): Remove this once we have more power perf bots.
+  only_run_battor_benchmarks = False
+  print 'Environment variables: ', os.environ
+  if os.environ.get('BUILDBOT_BUILDERNAME') in GOOD_POWER_PERF_BOT_WHITELIST:
+    only_run_battor_benchmarks = True
+
   output = {
     'version': 1,
     'steps': {
@@ -316,6 +326,12 @@ def _GetJsonBenchmarkList(possible_browser, possible_reference_browser,
       continue
 
     base_name = benchmark_class.Name()
+    # TODO(charliea): Remove this once we have more power perf bots.
+    # Only run battor power benchmarks to reduce the cycle time of this bot.
+    # TODO(rnephew): Enable media.* and power.* tests when Mac BattOr issue
+    # is solved.
+    if only_run_battor_benchmarks and not base_name.startswith('battor'):
+      continue
     base_cmd = [sys.executable, os.path.realpath(sys.argv[0]),
                 '-v', '--output-format=chartjson', '--upload-results',
                 base_name]
@@ -349,10 +365,23 @@ def _GetJsonBenchmarkList(possible_browser, possible_reference_browser,
         'perf_dashboard_id': perf_dashboard_id,
       }
 
+  # Make sure that page_cycler_v2.typical_25 is assigned to the same device
+  # as page_cycler.typical_25 benchmark.
+  # TODO(nednguyen): remove this hack when crbug.com/618156 is resolved.
+  if ('page_cycler_v2.typical_25' in output['steps'] and
+      'page_cycler.typical_25' in output['steps']):
+    output['steps']['page_cycler_v2.typical_25']['device_affinity'] = (
+      output['steps']['page_cycler.typical_25']['device_affinity'])
+
   return json.dumps(output, indent=2, sort_keys=True)
 
 
-def main(environment, extra_commands=None):
+def main(environment, extra_commands=None, **log_config_kwargs):
+  # The log level is set in browser_options.
+  log_config_kwargs.pop('level', None)
+  log_config_kwargs.setdefault('format', DEFAULT_LOG_FORMAT)
+  logging.basicConfig(**log_config_kwargs)
+
   ps_util.EnableListingStrayProcessesUponExitHook()
 
   # Get the command name from the command line.
@@ -388,7 +417,7 @@ def main(environment, extra_commands=None):
   else:
     command = Run
 
-  binary_manager.InitDependencyManager(environment.client_config)
+  binary_manager.InitDependencyManager(environment.client_configs)
 
   # Parse and run the command.
   parser = command.CreateParser()

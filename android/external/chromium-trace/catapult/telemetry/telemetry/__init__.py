@@ -27,14 +27,18 @@ def _AddDirToPythonPath(*path_parts):
 
 
 # Add Catapult dependencies to our path.
-# util depends on catapult_base, so we can't use it to get the catapult dir.
+# util depends on py_utils, so we can't use it to get the catapult dir.
 _CATAPULT_DIR = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), '..', '..')
-_AddDirToPythonPath(_CATAPULT_DIR, 'catapult_base')
+_AddDirToPythonPath(_CATAPULT_DIR, 'common', 'py_utils')
 _AddDirToPythonPath(_CATAPULT_DIR, 'dependency_manager')
 _AddDirToPythonPath(_CATAPULT_DIR, 'devil')
+_AddDirToPythonPath(_CATAPULT_DIR, 'systrace')
 _AddDirToPythonPath(_CATAPULT_DIR, 'tracing')
 _AddDirToPythonPath(_CATAPULT_DIR, 'common', 'py_trace_event')
+_AddDirToPythonPath(_CATAPULT_DIR, 'common', 'battor')
+_AddDirToPythonPath(_CATAPULT_DIR, 'tracing', 'tracing_build')
+_AddDirToPythonPath(_CATAPULT_DIR, 'third_party', 'py_vulcanize')
 
 
 from telemetry.core import util
@@ -52,7 +56,7 @@ _AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'pexpect')
 _AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'png')
 _AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'pyfakefs')
 _AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'pyserial')
-_AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'webpagereplay')
+_AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'web-page-replay')
 _AddDirToPythonPath(util.GetTelemetryThirdPartyDir(), 'websocket-client')
 
 # Install Telemtry global hooks.

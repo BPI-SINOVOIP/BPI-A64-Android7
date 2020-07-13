@@ -183,7 +183,7 @@ static int CdxAtracParserGetMediaInfo(CdxParserT *parser, CdxMediaInfoT *mediaIn
     else
         CDX_LOGW("atrac file Unable To Seek");
 
-    audio = &mediaInfo->program[0].audio[mediaInfo->program[0].audioNum];
+    audio = &mediaInfo->program[0].audio[0];
     audio->eCodecFormat = AUDIO_CODEC_FORMAT_ATRC;
     audio->nChannelNum = atrac->mChannels;
     audio->nSampleRate = atrac->mSampleRate;

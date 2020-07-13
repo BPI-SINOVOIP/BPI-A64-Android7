@@ -1428,7 +1428,7 @@ regulator2      = "axp81x_dcdc2 none vdd-cpua"
 regulator3      = "axp81x_dcdc3 none"
 regulator4      = "axp81x_dcdc4 none"
 regulator5      = "axp81x_dcdc5 none vcc-dram"
-regulator6      = "axp81x_dcdc6 none vdd-sys"
+regulator6      = "axp81x_dcdc6 none vdd-sys vdd-gpu"
 regulator7      = "axp81x_dcdc7 none"
 regulator8      = "axp81x_rtc none"
 regulator9      = "axp81x_aldo1 none iovdd-csi"
@@ -1550,16 +1550,40 @@ Vdevice_1           = port:PB02<4><1><2><default>
 
 ;----------------------------------------------------------------------------------
 ;mali400 parameters
-;normal_freq      : the normal frequency of gpu
-;scene_ctrl_status: scene control status, if this is enabled, android layer can ask
-;                   gpu driver to change frequency in certain scene
+;regulator_id     : the regulator id GPU used.
+;dvfs_status      : dvfs status, if this is enabled, DVFS will work.
 ;temp_ctrl_status : temperature control status, if this is enabled, the gpu frequency
-;                   will drop down if gpu's temperature is too high
+;                   will drop down if the temperature of gpu is too high.
+;scene_ctrl_status: scene control status, if this is enabled, android layer can ask
+;                   gpu driver to change frequency in certain scene.
+;max_level        : maximum level, which is used when thermal system does not restrict
+;                    GPU power consumption.
+;begin_level      : the corresponding frequency and voltage will be used during GPU
+;                    initialization.
+;lv<x>_freq       : frequency in MHz of certain level.
+;lv<x>_volt       : voltage in mV of certain level.
 ;----------------------------------------------------------------------------------
 [gpu_mali400_0]
-normal_freq       = 456
-scene_ctrl_status = 0
+regulator_id      = "vdd-gpu"
+dvfs_status       = 0
 temp_ctrl_status  = 1
+scene_ctrl_status = 1
+
+max_level   = 3
+begin_level = 3
+
+lv0_freq = 144
+lv0_volt = 1100
+
+lv1_freq = 264
+lv1_volt = 1100
+
+lv2_freq = 384
+lv2_volt = 1100
+
+lv3_freq = 456
+lv3_volt = 1100
+
 ;----------------------------------------------------------------------------------
 [secure]
 dram_region_mbytes       = 64

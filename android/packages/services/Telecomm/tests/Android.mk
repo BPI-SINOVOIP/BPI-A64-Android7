@@ -21,11 +21,17 @@ LOCAL_STATIC_JAVA_LIBRARIES := \
         android-ex-camera2 \
         android-support-v4 \
         guava \
-        mockito-target
+        mockito-target \
+        platform-test-annotations
 
 LOCAL_SRC_FILES := \
         $(call all-java-files-under, src) \
-        $(call all-java-files-under, ../src)
+        $(call all-java-files-under, ../src) \
+        $(call all-proto-files-under, ../proto)
+
+LOCAL_PROTOC_OPTIMIZE_TYPE := nano
+LOCAL_PROTOC_FLAGS := --proto_path=$(LOCAL_PATH)/../proto/
+LOCAL_PROTO_JAVA_OUTPUT_PARAMS := optional_field_style=accessors
 
 LOCAL_RESOURCE_DIR := \
     $(LOCAL_PATH)/res \
@@ -45,6 +51,9 @@ LOCAL_PACKAGE_NAME := TelecomUnitTests
 LOCAL_CERTIFICATE := platform
 
 LOCAL_MODULE_TAGS := tests
+
+LOCAL_JACK_COVERAGE_INCLUDE_FILTER := com.android.server.telecom.*
+LOCAL_JACK_COVERAGE_EXCLUDE_FILTER := com.android.server.telecom.tests.*
 
 include frameworks/base/packages/SettingsLib/common.mk
 

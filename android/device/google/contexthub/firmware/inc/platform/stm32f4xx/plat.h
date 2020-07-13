@@ -25,7 +25,6 @@ extern "C" {
 #include <stdbool.h>
 #include <seos.h>
 
-
 enum PlatSleepDevID
 {
     Stm32sleepDevTim2, /* we use this for short sleeps in WFI mode */
@@ -36,6 +35,7 @@ enum PlatSleepDevID
     Stm32sleepDevSpi2, /* we use this to prevent stop mode during spi2 xfers */
     Stm32sleepDevSpi3, /* we use this to prevent stop mode during spi3 xfers */
     Stm32sleepDevI2c1, /* we use this to prevent stop mode during i2c1 xfers */
+    Stm32sleepDevExti, /* we use this for max external interrupt latency */
 
     Stm32sleepDevNum,  //must be last always, and must be <= PLAT_MAX_SLEEP_DEVS
 };

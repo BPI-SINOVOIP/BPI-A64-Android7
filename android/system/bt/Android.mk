@@ -10,6 +10,7 @@ else
 endif
 
 ifeq ($(BOARD_HAVE_BLUETOOTH_RTK),true)
+$(error "RTK BLUETOOTH")
 # RealTek Bluetooth private configuration table
   bdroid_CFLAGS := -Wno-unused-parameter
   rtkbt_bdroid_C_INCLUDES += $(LOCAL_PATH)/bta/hh

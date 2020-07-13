@@ -40,9 +40,9 @@ import static org.junit.Assert.assertTrue;
 public class GridLayoutTest {
     @Rule public final ActivityTestRule<GridLayoutTestActivity> mActivityTestRule;
 
-    private View mLeftView;
-    private View mRightView;
-    private View mGridView;
+    View mLeftView;
+    View mRightView;
+    View mGridView;
 
     public GridLayoutTest() {
         mActivityTestRule = new ActivityTestRule<>(GridLayoutTestActivity.class);
@@ -124,7 +124,7 @@ public class GridLayoutTest {
         assertTrue("test sanity", left > 0);
         assertTrue("test sanity", right > 0);
         assertTrue("test sanity", total > 0);
-        assertTrue("right should be taller than left", right > left);
+        assertTrue("right should be taller than left", right >= left);
         assertTrue("total height should be smaller than what it could be",
                 total < ((ViewGroup) mGridView.getParent()).getHeight());
     }

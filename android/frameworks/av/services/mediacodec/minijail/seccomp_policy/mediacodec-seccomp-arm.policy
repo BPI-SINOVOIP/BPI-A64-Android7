@@ -43,6 +43,7 @@ fstatat64: 1
 ugetrlimit: 1
 pselect6: 1
 getdents64: 1
+sysinfo: 1
 
 # for attaching to debuggerd on process crash
 sigaction: 1

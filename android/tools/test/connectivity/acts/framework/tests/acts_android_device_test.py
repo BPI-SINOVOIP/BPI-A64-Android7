@@ -79,15 +79,16 @@ class MockAdbProxy():
         if (params == "getprop | grep ro.build.product" or
             params == "getprop | grep ro.product.name"):
             return b"[ro.build.product]: [FakeModel]"
+        elif params == "getprop sys.boot_completed":
+            return b"1"
+        elif params == "bugreportz":
+            return b'OK:/path/bugreport.zip\n'
 
     def bugreport(self, params):
-        expected = os.path.join(MOCK_LOG_PATH,
-                                "AndroidDevice%s" % self.serial,
-                                "BugReports",
-                                "test_something,sometime,%s.txt" % (
-                                    self.serial))
-        expected = " > %s" % expected
-        assert params == expected, "Expected '%s', got '%s'." % (expected,
+        expected = os.path.join(logging.log_path,
+                                "AndroidDevice%s" % self.serial, "BugReports",
+                                "test_something,sometime,%s" % (self.serial))
+        assert expected in params, "Expected '%s', got '%s'." % (expected,
                                                                  params)
 
     def __getattr__(self, name):
@@ -172,6 +173,25 @@ class ActsAndroidDeviceTest(unittest.TestCase):
         with self.assertRaisesRegexp(android_device.AndroidDeviceError,
                                      expected_msg):
             ad = android_device.get_device(ads, serial=target_serial)
+
+    def test_start_services_on_ads(self):
+        """Makes sure when an AndroidDevice fails to start some services, all
+        AndroidDevice objects get cleaned up.
+        """
+        msg = "Some error happened."
+        ads = get_mock_ads(3)
+        ads[0].start_services = mock.MagicMock()
+        ads[0].clean_up = mock.MagicMock()
+        ads[1].start_services = mock.MagicMock()
+        ads[1].clean_up = mock.MagicMock()
+        ads[2].start_services = mock.MagicMock(
+            side_effect=android_device.AndroidDeviceError(msg))
+        ads[2].clean_up = mock.MagicMock()
+        with self.assertRaisesRegexp(android_device.AndroidDeviceError, msg):
+            android_device._start_services_on_ads(ads)
+        ads[0].clean_up.assert_called_once_with()
+        ads[1].clean_up.assert_called_once_with()
+        ads[2].clean_up.assert_called_once_with()
 
     # Tests for android_device.AndroidDevice class.
     # These tests mock out any interaction with the OS and real android device

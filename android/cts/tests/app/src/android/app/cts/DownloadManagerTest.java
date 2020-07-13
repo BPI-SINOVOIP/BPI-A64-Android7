@@ -34,6 +34,8 @@ import android.text.format.DateUtils;
 import android.util.Log;
 import android.webkit.cts.CtsTestServer;
 
+import com.android.compatibility.common.util.CddTest;
+
 import java.io.File;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -181,6 +183,7 @@ public class DownloadManagerTest extends AndroidTestCase {
         }
     }
 
+    @CddTest(requirement="7.6.1")
     public void testMinimumDownload() throws Exception {
         final DownloadCompleteReceiver receiver = new DownloadCompleteReceiver();
         try {

@@ -12,7 +12,7 @@ BUILD_EMULATOR_OPENGL := true
 BUILD_EMULATOR_OPENGL_DRIVER := true
 
 # share the same one across all mini-emulators
-BOARD_EGL_CFG := device/generic/goldfish/opengl/system/egl/egl.cfg
+BOARD_EGL_CFG := device/generic/goldfish-opengl/system/egl/egl.cfg
 
 TARGET_USERIMAGES_USE_EXT4 := true
 BOARD_SYSTEMIMAGE_PARTITION_SIZE := 786432000

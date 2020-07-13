@@ -306,7 +306,9 @@ class CrOSInterface(object):
     if self.local:
       if destfile is not None and destfile != filename:
         shutil.copyfile(filename, destfile)
-      return
+        return
+      else:
+        raise OSError('No such file or directory %s' % filename)
 
     if destfile is None:
       destfile = os.path.basename(filename)
@@ -326,15 +328,12 @@ class CrOSInterface(object):
     Returns:
       A string containing the contents of the file.
     """
-    # TODO: handle the self.local case
-    assert not self.local
-    t = tempfile.NamedTemporaryFile()
-    self.GetFile(filename, t.name)
-    with open(t.name, 'r') as f2:
-      res = f2.read()
-      logging.debug("GetFileContents(%s)->%s" % (filename, res))
-      f2.close()
-      return res
+    with tempfile.NamedTemporaryFile() as t:
+      self.GetFile(filename, t.name)
+      with open(t.name, 'r') as f2:
+        res = f2.read()
+        logging.debug("GetFileContents(%s)->%s" % (filename, res))
+        return res
 
   def ListProcesses(self):
     """Returns (pid, cmd, ppid, state) of all processes on the device."""
@@ -477,7 +476,12 @@ class CrOSInterface(object):
     mount_prefix = 'guestfs' if is_guest else '/home/.shadow/'
     return mount and mount.startswith(mount_prefix)
 
-  def TakeScreenShot(self, screenshot_prefix):
+  def TakeScreenshot(self, file_path):
+    stdout, stderr = self.RunCmdOnDevice(
+        ['/usr/local/autotest/bin/screenshot.py', file_path])
+    return stdout == '' and stderr == ''
+
+  def TakeScreenshotWithPrefix(self, screenshot_prefix):
     """Takes a screenshot, useful for debugging failures."""
     # TODO(achuith): Find a better location for screenshots. Cros autotests
     # upload everything in /var/log so use /var/log/screenshots for now.
@@ -491,11 +495,28 @@ class CrOSInterface(object):
       screenshot_file = ('%s%s-%d%s' %
                          (SCREENSHOT_DIR, screenshot_prefix, i, SCREENSHOT_EXT))
       if not self.FileExistsOnDevice(screenshot_file):
-        self.RunCmdOnDevice([
-            '/usr/local/autotest/bin/screenshot.py', screenshot_file
-        ])
-        return
+        return self.TakeScreenshot(screenshot_file)
     logging.warning('screenshot directory full.')
+    return False
+
+  def GetArchName(self):
+    return self.RunCmdOnDevice(['uname', '-m'])[0]
+
+  def IsRunningOnVM(self):
+    return self.RunCmdOnDevice(['crossystem', 'inside_vm'])[0] != '0'
+
+  def LsbReleaseValue(self, key, default):
+    """/etc/lsb-release is a file with key=value pairs."""
+    lines = self.GetFileContents('/etc/lsb-release').split('\n')
+    for l in lines:
+      m = re.match(r'([^=]*)=(.*)', l)
+      if m and m.group(1) == key:
+        return m.group(2)
+    return default
+
+  def GetDeviceTypeName(self):
+    """DEVICETYPE in /etc/lsb-release is CHROMEBOOK, CHROMEBIT, etc."""
+    return self.LsbReleaseValue(key='DEVICETYPE', default='CHROMEBOOK')
 
   def RestartUI(self, clear_enterprise_policy):
     logging.info('(Re)starting the ui (logs the user out)')

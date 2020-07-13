@@ -157,10 +157,10 @@ public abstract class PlaybackControlSupportGlue implements OnActionClickedListe
      */
     public static final int PLAYBACK_SPEED_FAST_L4 = 14;
 
-    private static final String TAG = "PlaybackControlSupportGlue";
-    private static final boolean DEBUG = false;
+    static final String TAG = "PlaybackControlSupportGlue";
+    static final boolean DEBUG = false;
 
-    private static final int MSG_UPDATE_PLAYBACK_STATE = 100;
+    static final int MSG_UPDATE_PLAYBACK_STATE = 100;
     private static final int UPDATE_PLAYBACK_STATE_DELAY_MS = 2000;
     private static final int NUMBER_OF_SEEK_SPEEDS = PLAYBACK_SPEED_FAST_L4 -
             PLAYBACK_SPEED_FAST_L0 + 1;
@@ -176,7 +176,7 @@ public abstract class PlaybackControlSupportGlue implements OnActionClickedListe
     private PlaybackControlsRow.SkipPreviousAction mSkipPreviousAction;
     private PlaybackControlsRow.FastForwardAction mFastForwardAction;
     private PlaybackControlsRow.RewindAction mRewindAction;
-    private OnItemViewClickedListener mExternalOnItemViewClickedListener;
+    OnItemViewClickedListener mExternalOnItemViewClickedListener;
     private int mPlaybackSpeed = PLAYBACK_SPEED_NORMAL;
     private boolean mFadeWhenPlaying = true;
 
@@ -485,7 +485,7 @@ public abstract class PlaybackControlSupportGlue implements OnActionClickedListe
     /**
      * Called when the given action is invoked, either by click or keyevent.
      */
-    private boolean dispatchAction(Action action, KeyEvent keyEvent) {
+    boolean dispatchAction(Action action, KeyEvent keyEvent) {
         boolean handled = false;
         if (action == mPlayPauseAction) {
             boolean canPlay = keyEvent == null ||
@@ -591,7 +591,7 @@ public abstract class PlaybackControlSupportGlue implements OnActionClickedListe
         onRowChanged(mControlsRow);
     }
 
-    private void updatePlaybackState() {
+    void updatePlaybackState() {
         if (hasValidMedia()) {
             mPlaybackSpeed = getCurrentSpeedId();
             updatePlaybackState(mPlaybackSpeed);
@@ -655,10 +655,7 @@ public abstract class PlaybackControlSupportGlue implements OnActionClickedListe
         if (mFastForwardAction != null) {
             int index = 0;
             if (playbackSpeed >= PLAYBACK_SPEED_FAST_L0) {
-                index = playbackSpeed - PLAYBACK_SPEED_FAST_L0;
-                if (playbackSpeed < getMaxForwardSpeedId()) {
-                    index++;
-                }
+                index = playbackSpeed - PLAYBACK_SPEED_FAST_L0 + 1;
             }
             if (mFastForwardAction.getIndex() != index) {
                 mFastForwardAction.setIndex(index);
@@ -668,10 +665,7 @@ public abstract class PlaybackControlSupportGlue implements OnActionClickedListe
         if (mRewindAction != null) {
             int index = 0;
             if (playbackSpeed <= -PLAYBACK_SPEED_FAST_L0) {
-                index = -playbackSpeed - PLAYBACK_SPEED_FAST_L0;
-                if (-playbackSpeed < getMaxRewindSpeedId()) {
-                    index++;
-                }
+                index = -playbackSpeed - PLAYBACK_SPEED_FAST_L0 + 1;
             }
             if (mRewindAction.getIndex() != index) {
                 mRewindAction.setIndex(index);
@@ -826,6 +820,7 @@ public abstract class PlaybackControlSupportGlue implements OnActionClickedListe
 
     /**
      * Must be called appropriately by a subclass when the playback state has changed.
+     * It updates the playback state displayed on the media player.
      */
     protected void onStateChanged() {
         if (DEBUG) Log.v(TAG, "onStateChanged");

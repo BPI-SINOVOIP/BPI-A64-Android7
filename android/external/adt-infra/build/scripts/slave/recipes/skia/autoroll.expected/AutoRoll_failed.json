@@ -1,0 +1,122 @@
+[
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[DEPOT_TOOLS]/gclient.py",
+      "config",
+      "--spec",
+      "cache_dir = None\nsolutions = [{'deps_file': 'DEPS', 'managed': True, 'name': 'src', 'url': 'https://chromium.googlesource.com/chromium/src.git'}]"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "gclient setup"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[DEPOT_TOOLS]/gclient.py",
+      "sync",
+      "--nohooks",
+      "--force",
+      "--verbose",
+      "--delete_unversioned_trees",
+      "--output-json",
+      "/path/to/tmp/json"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "gclient sync",
+    "~followup_annotations": [
+      "@@@STEP_LOG_LINE@json.output@{@@@",
+      "@@@STEP_LOG_LINE@json.output@  \"solutions\": {@@@",
+      "@@@STEP_LOG_LINE@json.output@    \"src/\": {@@@",
+      "@@@STEP_LOG_LINE@json.output@      \"revision\": 170242@@@",
+      "@@@STEP_LOG_LINE@json.output@    }, @@@",
+      "@@@STEP_LOG_LINE@json.output@    \"src/third_party/skia/\": {@@@",
+      "@@@STEP_LOG_LINE@json.output@      \"revision\": 143121@@@",
+      "@@@STEP_LOG_LINE@json.output@    }@@@",
+      "@@@STEP_LOG_LINE@json.output@  }@@@",
+      "@@@STEP_LOG_LINE@json.output@}@@@",
+      "@@@STEP_LOG_END@json.output@@@",
+      "@@@SET_BUILD_PROPERTY@got_revision@143121@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "git",
+      "config",
+      "--local",
+      "user.name",
+      "Skia DEPS Roller"
+    ],
+    "cwd": "[SLAVE_BUILD]/src",
+    "name": "git config user.name"
+  },
+  {
+    "cmd": [
+      "git",
+      "config",
+      "--local",
+      "user.email",
+      "skia-deps-roller@chromium.org"
+    ],
+    "cwd": "[SLAVE_BUILD]/src",
+    "name": "git config user.email"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "\nimport urllib2\nimport sys\nimport time\n\nattempts = 5\nres = None\nfor attempt in range(attempts):\n  try:\n    res = urllib2.urlopen(sys.argv[1]).read()\n    break\n  except urllib2.URLError:\n    if attempt == attempts - 1:\n      raise\n    time.sleep(2 ** attempt)\nwith open(sys.argv[2], 'w') as f:\n  f.write(res)\n",
+      "http://skia-tree-status.appspot.com/arb_is_stopped",
+      "/path/to/tmp/json"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "is_stopped",
+    "~followup_annotations": [
+      "@@@STEP_LOG_LINE@json.output@{@@@",
+      "@@@STEP_LOG_LINE@json.output@  \"is_stopped\": false@@@",
+      "@@@STEP_LOG_LINE@json.output@}@@@",
+      "@@@STEP_LOG_END@json.output@@@",
+      "@@@STEP_LOG_LINE@python.inline@@@@",
+      "@@@STEP_LOG_LINE@python.inline@import urllib2@@@",
+      "@@@STEP_LOG_LINE@python.inline@import sys@@@",
+      "@@@STEP_LOG_LINE@python.inline@import time@@@",
+      "@@@STEP_LOG_LINE@python.inline@@@@",
+      "@@@STEP_LOG_LINE@python.inline@attempts = 5@@@",
+      "@@@STEP_LOG_LINE@python.inline@res = None@@@",
+      "@@@STEP_LOG_LINE@python.inline@for attempt in range(attempts):@@@",
+      "@@@STEP_LOG_LINE@python.inline@  try:@@@",
+      "@@@STEP_LOG_LINE@python.inline@    res = urllib2.urlopen(sys.argv[1]).read()@@@",
+      "@@@STEP_LOG_LINE@python.inline@    break@@@",
+      "@@@STEP_LOG_LINE@python.inline@  except urllib2.URLError:@@@",
+      "@@@STEP_LOG_LINE@python.inline@    if attempt == attempts - 1:@@@",
+      "@@@STEP_LOG_LINE@python.inline@      raise@@@",
+      "@@@STEP_LOG_LINE@python.inline@    time.sleep(2 ** attempt)@@@",
+      "@@@STEP_LOG_LINE@python.inline@with open(sys.argv[2], 'w') as f:@@@",
+      "@@@STEP_LOG_LINE@python.inline@  f.write(res)@@@",
+      "@@@STEP_LOG_END@python.inline@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "python",
+      "[BUILD]/scripts/tools/blink_roller/auto_roll.py",
+      "skia",
+      "skia-deps-roller@chromium.org",
+      "[SLAVE_BUILD]/src"
+    ],
+    "cwd": "[SLAVE_BUILD]/src",
+    "name": "do auto_roll",
+    "stdout": "/path/to/tmp/",
+    "~followup_annotations": [
+      "step returned non-zero exit code: 1",
+      "@@@STEP_FAILURE@@@"
+    ]
+  },
+  {
+    "name": "$result",
+    "reason": "Step('do auto_roll') failed with return_code 1",
+    "status_code": 1
+  }
+]

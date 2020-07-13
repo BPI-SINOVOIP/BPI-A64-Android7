@@ -530,13 +530,13 @@ public class GuidedAction extends Action {
 
         /**
          * Explicitly sets auto restore feature on the GuidedAction.  It's by default true.
-         * @param autoSaveRestoreEnanbled True if turn on auto save/restore of GuidedAction content,
+         * @param autoSaveRestoreEnabled True if turn on auto save/restore of GuidedAction content,
          *                                false otherwise.
          * @return The same BuilderBase object.
          * @see GuidedAction#isAutoSaveRestoreEnabled()
          */
-        public B autoSaveRestoreEnabled(boolean autoSaveRestoreEnanbled) {
-            setFlags(autoSaveRestoreEnanbled ? PF_AUTORESTORE : 0, PF_AUTORESTORE);
+        public B autoSaveRestoreEnabled(boolean autoSaveRestoreEnabled) {
+            setFlags(autoSaveRestoreEnabled ? PF_AUTORESTORE : 0, PF_AUTORESTORE);
             return (B) this;
         }
 
@@ -575,28 +575,28 @@ public class GuidedAction extends Action {
 
     }
 
-    private static final int PF_CHECKED = 0x00000001;
-    private static final int PF_MULTI_lINE_DESCRIPTION = 0x00000002;
-    private static final int PF_HAS_NEXT = 0x00000004;
-    private static final int PF_INFO_ONLY = 0x00000008;
-    private static final int PF_ENABLED = 0x00000010;
-    private static final int PF_FOCUSABLE = 0x00000020;
-    private static final int PF_AUTORESTORE = 0x00000040;
-    private int mActionFlags;
+    static final int PF_CHECKED = 0x00000001;
+    static final int PF_MULTI_lINE_DESCRIPTION = 0x00000002;
+    static final int PF_HAS_NEXT = 0x00000004;
+    static final int PF_INFO_ONLY = 0x00000008;
+    static final int PF_ENABLED = 0x00000010;
+    static final int PF_FOCUSABLE = 0x00000020;
+    static final int PF_AUTORESTORE = 0x00000040;
+    int mActionFlags;
 
     private CharSequence mEditTitle;
     private CharSequence mEditDescription;
-    private int mEditable;
-    private int mInputType;
-    private int mDescriptionInputType;
-    private int mEditInputType;
-    private int mDescriptionEditInputType;
+    int mEditable;
+    int mInputType;
+    int mDescriptionInputType;
+    int mEditInputType;
+    int mDescriptionEditInputType;
 
-    private int mCheckSetId;
+    int mCheckSetId;
 
-    private List<GuidedAction> mSubActions;
+    List<GuidedAction> mSubActions;
 
-    private Intent mIntent;
+    Intent mIntent;
 
     protected GuidedAction() {
         super(0);
@@ -938,10 +938,10 @@ public class GuidedAction extends Action {
     }
 
     final static boolean isPasswordVariant(int inputType) {
-        final int variantion = inputType & InputType.TYPE_MASK_VARIATION;
-        return variantion == InputType.TYPE_TEXT_VARIATION_PASSWORD
-                || variantion == InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
-                || variantion == InputType.TYPE_TEXT_VARIATION_WEB_PASSWORD;
+        final int variation = inputType & InputType.TYPE_MASK_VARIATION;
+        return variation == InputType.TYPE_TEXT_VARIATION_PASSWORD
+                || variation == InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+                || variation == InputType.TYPE_TEXT_VARIATION_WEB_PASSWORD;
     }
 
     final boolean needAutoSaveTitle() {

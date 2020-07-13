@@ -34,7 +34,46 @@ tr.b.unittest.testSuite(function() {
     assert.isUndefined(sA.findDescendentSlice('sD'));
   });
 
-  test('iterateAllDescendents', function() {
+  test('findTopmostSlicesRelativeToThisSliceBaseCase', function() {
+    var PREDICATE = slice => slice.title.startsWith('sC');
+
+    var group = new SliceGroup(newFakeThread());
+
+    var sC1 = group.pushSlice(newSliceEx(
+        { title: 'sC1', start: 0.0, duration: 10.0 }));
+    var sC2 = group.pushSlice(newSliceEx(
+        { title: 'sC2', start: 0.0, duration: 4.0 }));
+
+    group.createSubSlices();
+
+    var foundSlices = [];
+    for (var slice of sC1.findTopmostSlicesRelativeToThisSlice(PREDICATE))
+      foundSlices.push(slice);
+
+    assert.deepEqual([sC1], foundSlices);
+  });
+
+  test('findTopmostSlicesRelativeToThisSliceRecursive', function() {
+    var PREDICATE = slice => slice.title.startsWith('sC');
+
+    var group = new SliceGroup(newFakeThread());
+
+    var sD = group.pushSlice(newSliceEx(
+        { title: 'sD', start: 0.0, duration: 10.0 }));
+    var sC1 = group.pushSlice(newSliceEx(
+        { title: 'sC1', start: 0.0, duration: 4.0 }));
+    var sC2 = group.pushSlice(newSliceEx(
+        { title: 'sC2', start: 6.0, duration: 3.0 }));
+
+    group.createSubSlices();
+
+    var foundSlices = [];
+    for (var slice of sD.findTopmostSlicesRelativeToThisSlice(PREDICATE))
+      foundSlices.push(slice);
+    assert.deepEqual([sC1, sC2], foundSlices);
+  });
+
+  test('enumerateAllDescendents', function() {
     var group = new SliceGroup(newFakeThread());
 
     var sA = group.pushSlice(newSliceEx(
@@ -67,7 +106,7 @@ tr.b.unittest.testSuite(function() {
     assert.equal(sC.mostTopLevelSlice, sA);
   });
 
-  test('iterateAllAncestors', function() {
+  test('enumerateAllAncestors', function() {
     var group = new SliceGroup(newFakeThread());
 
     var sA = group.pushSlice(newSliceEx(
@@ -175,6 +214,24 @@ tr.b.unittest.testSuite(function() {
     assert.equal(group.stableId + '.0', sA.stableId);
     assert.equal(group.stableId + '.1', sB.stableId);
     assert.equal(group.stableId + '.2', sC.stableId);
+  });
+
+  test('cantInstantiateDirectly', function() {
+    assert.throws(function() {
+      new Slice('', 'Test', 0, 0, { });
+    });
+  });
+
+  test('canInstantiateSubclasses', function() {
+    function TestSlice() {
+      Slice.call(this, '', 'Test', 0, 0, { });
+    }
+    TestSlice.prototype = {
+      __proto__: Slice.prototype
+    };
+    assert.doesNotThrow(function() {
+      new TestSlice();
+    });
   });
 });
 </script>

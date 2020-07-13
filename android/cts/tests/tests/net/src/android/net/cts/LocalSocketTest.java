@@ -22,12 +22,18 @@ import android.net.Credentials;
 import android.net.LocalServerSocket;
 import android.net.LocalSocket;
 import android.net.LocalSocketAddress;
+import android.system.Os;
+import android.system.OsConstants;
 
 import java.io.FileDescriptor;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 public class LocalSocketTest extends TestCase {
@@ -177,58 +183,114 @@ public class LocalSocketTest extends TestCase {
         socket.close();
     }
 
+    // http://b/31205169
+    public void testSetSoTimeout_readTimeout() throws Exception {
+        String address = ADDRESS_PREFIX + "_testSetSoTimeout_readTimeout";
+
+        try (LocalSocketPair socketPair = LocalSocketPair.createConnectedSocketPair(address)) {
+            final LocalSocket clientSocket = socketPair.clientSocket;
+
+            // Set the timeout in millis.
+            int timeoutMillis = 1000;
+            clientSocket.setSoTimeout(timeoutMillis);
+
+            // Avoid blocking the test run if timeout doesn't happen by using a separate thread.
+            Callable<Result> reader = () -> {
+                try {
+                    clientSocket.getInputStream().read();
+                    return Result.noException("Did not block");
+                } catch (IOException e) {
+                    return Result.exception(e);
+                }
+            };
+            // Allow the configured timeout, plus some slop.
+            int allowedTime = timeoutMillis + 2000;
+            Result result = runInSeparateThread(allowedTime, reader);
+
+            // Check the message was a timeout, it's all we have to go on.
+            String expectedMessage = Os.strerror(OsConstants.EAGAIN);
+            result.assertThrewIOException(expectedMessage);
+        }
+    }
+
+    // http://b/31205169
+    public void testSetSoTimeout_writeTimeout() throws Exception {
+        String address = ADDRESS_PREFIX + "_testSetSoTimeout_writeTimeout";
+
+        try (LocalSocketPair socketPair = LocalSocketPair.createConnectedSocketPair(address)) {
+            final LocalSocket clientSocket = socketPair.clientSocket;
+
+            // Set the timeout in millis.
+            int timeoutMillis = 1000;
+            clientSocket.setSoTimeout(timeoutMillis);
+
+            // Set a small buffer size so we know we can flood it.
+            clientSocket.setSendBufferSize(100);
+            final int bufferSize = clientSocket.getSendBufferSize();
+
+            // Avoid blocking the test run if timeout doesn't happen by using a separate thread.
+            Callable<Result> writer = () -> {
+                try {
+                    byte[] toWrite = new byte[bufferSize * 2];
+                    clientSocket.getOutputStream().write(toWrite);
+                    return Result.noException("Did not block");
+                } catch (IOException e) {
+                    return Result.exception(e);
+                }
+            };
+            // Allow the configured timeout, plus some slop.
+            int allowedTime = timeoutMillis + 2000;
+
+            Result result = runInSeparateThread(allowedTime, writer);
+
+            // Check the message was a timeout, it's all we have to go on.
+            String expectedMessage = Os.strerror(OsConstants.EAGAIN);
+            result.assertThrewIOException(expectedMessage);
+        }
+    }
+
     public void testAvailable() throws Exception {
         String address = ADDRESS_PREFIX + "_testAvailable";
-        LocalServerSocket localServerSocket = new LocalServerSocket(address);
-        LocalSocket clientSocket = new LocalSocket();
 
-        // establish connection between client and server
-        LocalSocketAddress locSockAddr = new LocalSocketAddress(address);
-        clientSocket.connect(locSockAddr);
-        assertTrue(clientSocket.isConnected());
-        LocalSocket serverSocket = localServerSocket.accept();
+        try (LocalSocketPair socketPair = LocalSocketPair.createConnectedSocketPair(address)) {
+            LocalSocket clientSocket = socketPair.clientSocket;
+            LocalSocket serverSocket = socketPair.serverSocket.accept();
 
-        OutputStream clientOutputStream = clientSocket.getOutputStream();
-        InputStream serverInputStream = serverSocket.getInputStream();
-        assertEquals(0, serverInputStream.available());
+            OutputStream clientOutputStream = clientSocket.getOutputStream();
+            InputStream serverInputStream = serverSocket.getInputStream();
+            assertEquals(0, serverInputStream.available());
 
-        byte[] buffer = new byte[50];
-        clientOutputStream.write(buffer);
-        assertEquals(50, serverInputStream.available());
+            byte[] buffer = new byte[50];
+            clientOutputStream.write(buffer);
+            assertEquals(50, serverInputStream.available());
 
-        InputStream clientInputStream = clientSocket.getInputStream();
-        OutputStream serverOutputStream = serverSocket.getOutputStream();
-        assertEquals(0, clientInputStream.available());
-        serverOutputStream.write(buffer);
-        assertEquals(50, serverInputStream.available());
+            InputStream clientInputStream = clientSocket.getInputStream();
+            OutputStream serverOutputStream = serverSocket.getOutputStream();
+            assertEquals(0, clientInputStream.available());
+            serverOutputStream.write(buffer);
+            assertEquals(50, serverInputStream.available());
 
-        clientSocket.close();
-        serverSocket.close();
-        localServerSocket.close();
+            serverSocket.close();
+        }
     }
 
     public void testFlush() throws Exception {
         String address = ADDRESS_PREFIX + "_testFlush";
-        LocalServerSocket localServerSocket = new LocalServerSocket(address);
-        LocalSocket clientSocket = new LocalSocket();
 
-        // establish connection between client and server
-        LocalSocketAddress locSockAddr = new LocalSocketAddress(address);
-        clientSocket.connect(locSockAddr);
-        assertTrue(clientSocket.isConnected());
-        LocalSocket serverSocket = localServerSocket.accept();
+        try (LocalSocketPair socketPair = LocalSocketPair.createConnectedSocketPair(address)) {
+            LocalSocket clientSocket = socketPair.clientSocket;
+            LocalSocket serverSocket = socketPair.serverSocket.accept();
 
-        OutputStream clientOutputStream = clientSocket.getOutputStream();
-        InputStream serverInputStream = serverSocket.getInputStream();
-        testFlushWorks(clientOutputStream, serverInputStream);
+            OutputStream clientOutputStream = clientSocket.getOutputStream();
+            InputStream serverInputStream = serverSocket.getInputStream();
+            testFlushWorks(clientOutputStream, serverInputStream);
 
-        OutputStream serverOutputStream = serverSocket.getOutputStream();
-        InputStream clientInputStream = clientSocket.getInputStream();
-        testFlushWorks(serverOutputStream, clientInputStream);
+            OutputStream serverOutputStream = serverSocket.getOutputStream();
+            InputStream clientInputStream = clientSocket.getInputStream();
+            testFlushWorks(serverOutputStream, clientInputStream);
 
-        clientSocket.close();
-        serverSocket.close();
-        localServerSocket.close();
+            serverSocket.close();
+        }
     }
 
     private void testFlushWorks(OutputStream outputStream, InputStream inputStream)
@@ -294,6 +356,66 @@ public class LocalSocketTest extends TestCase {
 
         public void assertBytesRead(int expected) {
             assertEquals(expected, bytesRead);
+        }
+    }
+
+    private static class Result {
+        private final String type;
+        private final Exception e;
+
+        private Result(String type, Exception e) {
+            this.type = type;
+            this.e = e;
+        }
+
+        static Result noException(String description) {
+            return new Result(description, null);
+        }
+
+        static Result exception(Exception e) {
+            return new Result(e.getClass().getName(), e);
+        }
+
+        void assertThrewIOException(String expectedMessage) {
+            assertEquals("Unexpected result type", IOException.class.getName(), type);
+            assertEquals("Unexpected exception message", expectedMessage, e.getMessage());
+        }
+    }
+
+    private static Result runInSeparateThread(int allowedTime, final Callable<Result> callable)
+            throws Exception {
+        ExecutorService service = Executors.newSingleThreadScheduledExecutor();
+        Future<Result> future = service.submit(callable);
+        Result result = future.get(allowedTime, TimeUnit.MILLISECONDS);
+        if (!future.isDone()) {
+            fail("Worker thread appears blocked");
+        }
+        return result;
+    }
+
+    private static class LocalSocketPair implements AutoCloseable {
+        static LocalSocketPair createConnectedSocketPair(String address) throws Exception {
+            LocalServerSocket localServerSocket = new LocalServerSocket(address);
+            final LocalSocket clientSocket = new LocalSocket();
+
+            // Establish connection between client and server
+            LocalSocketAddress locSockAddr = new LocalSocketAddress(address);
+            clientSocket.connect(locSockAddr);
+            assertTrue(clientSocket.isConnected());
+            return new LocalSocketPair(localServerSocket, clientSocket);
+        }
+
+        final LocalServerSocket serverSocket;
+        final LocalSocket clientSocket;
+
+        LocalSocketPair(LocalServerSocket serverSocket, LocalSocket clientSocket) {
+            this.serverSocket = serverSocket;
+            this.clientSocket = clientSocket;
+        }
+
+        public void close() throws Exception {
+            serverSocket.close();
+            clientSocket.close();
         }
     }
 }

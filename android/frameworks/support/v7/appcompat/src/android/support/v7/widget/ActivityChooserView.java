@@ -24,6 +24,7 @@ import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.database.DataSetObserver;
 import android.graphics.drawable.Drawable;
+import android.support.annotation.RestrictTo;
 import android.support.v4.view.ActionProvider;
 import android.support.v4.view.ViewCompat;
 import android.support.v7.appcompat.R;
@@ -40,6 +41,8 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.PopupWindow;
 import android.widget.TextView;
+
+import static android.support.annotation.RestrictTo.Scope.GROUP_ID;
 
 /**
  * This class is a view for choosing an activity for handling a given {@link Intent}.
@@ -64,6 +67,7 @@ import android.widget.TextView;
  *
  * @hide
  */
+@RestrictTo(GROUP_ID)
 public class ActivityChooserView extends ViewGroup implements
         ActivityChooserModel.ActivityChooserModelClient {
 
@@ -72,7 +76,7 @@ public class ActivityChooserView extends ViewGroup implements
     /**
      * An adapter for displaying the activities in an {@link android.widget.AdapterView}.
      */
-    private final ActivityChooserViewAdapter mAdapter;
+    final ActivityChooserViewAdapter mAdapter;
 
     /**
      * Implementation of various interfaces to avoid publishing them in the APIs.
@@ -92,7 +96,7 @@ public class ActivityChooserView extends ViewGroup implements
     /**
      * The expand activities action button;
      */
-    private final FrameLayout mExpandActivityOverflowButton;
+    final FrameLayout mExpandActivityOverflowButton;
 
     /**
      * The image for the expand activities action button;
@@ -102,7 +106,7 @@ public class ActivityChooserView extends ViewGroup implements
     /**
      * The default activities action button;
      */
-    private final FrameLayout mDefaultActivityButton;
+    final FrameLayout mDefaultActivityButton;
 
     /**
      * The image for the default activities action button;
@@ -122,7 +126,7 @@ public class ActivityChooserView extends ViewGroup implements
     /**
      * Observer for the model data.
      */
-    private final DataSetObserver mModelDataSetOberver = new DataSetObserver() {
+    final DataSetObserver mModelDataSetObserver = new DataSetObserver() {
 
         @Override
         public void onChanged() {
@@ -160,17 +164,17 @@ public class ActivityChooserView extends ViewGroup implements
     /**
      * Listener for the dismissal of the popup/alert.
      */
-    private PopupWindow.OnDismissListener mOnDismissListener;
+    PopupWindow.OnDismissListener mOnDismissListener;
 
     /**
      * Flag whether a default activity currently being selected.
      */
-    private boolean mIsSelectingDefaultActivity;
+    boolean mIsSelectingDefaultActivity;
 
     /**
      * The count of activities in the popup.
      */
-    private int mInitialActivityCount = ActivityChooserViewAdapter.MAX_ACTIVITY_COUNT_DEFAULT;
+    int mInitialActivityCount = ActivityChooserViewAdapter.MAX_ACTIVITY_COUNT_DEFAULT;
 
     /**
      * Flag whether this view is attached to a window.
@@ -278,6 +282,7 @@ public class ActivityChooserView extends ViewGroup implements
     /**
      * {@inheritDoc}
      */
+    @Override
     public void setActivityChooserModel(ActivityChooserModel dataModel) {
         mAdapter.setDataModel(dataModel);
         if (isShowingPopup()) {
@@ -320,6 +325,7 @@ public class ActivityChooserView extends ViewGroup implements
      * Set the provider hosting this view, if applicable.
      * @hide Internal use only
      */
+    @RestrictTo(GROUP_ID)
     public void setProvider(ActionProvider provider) {
         mProvider = provider;
     }
@@ -343,7 +349,7 @@ public class ActivityChooserView extends ViewGroup implements
      *
      * @param maxActivityCount The max number of activities to display.
      */
-    private void showPopupUnchecked(int maxActivityCount) {
+    void showPopupUnchecked(int maxActivityCount) {
         if (mAdapter.getDataModel() == null) {
             throw new IllegalStateException("No data model. Did you call #setDataModel?");
         }
@@ -412,7 +418,7 @@ public class ActivityChooserView extends ViewGroup implements
         super.onAttachedToWindow();
         ActivityChooserModel dataModel = mAdapter.getDataModel();
         if (dataModel != null) {
-            dataModel.registerObserver(mModelDataSetOberver);
+            dataModel.registerObserver(mModelDataSetObserver);
         }
         mIsAttachedToWindow = true;
     }
@@ -422,7 +428,7 @@ public class ActivityChooserView extends ViewGroup implements
         super.onDetachedFromWindow();
         ActivityChooserModel dataModel = mAdapter.getDataModel();
         if (dataModel != null) {
-            dataModel.unregisterObserver(mModelDataSetOberver);
+            dataModel.unregisterObserver(mModelDataSetObserver);
         }
         ViewTreeObserver viewTreeObserver = getViewTreeObserver();
         if (viewTreeObserver.isAlive()) {
@@ -500,7 +506,7 @@ public class ActivityChooserView extends ViewGroup implements
      *
      * @return The popup.
      */
-    private ListPopupWindow getListPopupWindow() {
+    ListPopupWindow getListPopupWindow() {
         if (mListPopupWindow == null) {
             mListPopupWindow = new ListPopupWindow(getContext());
             mListPopupWindow.setAdapter(mAdapter);
@@ -515,7 +521,7 @@ public class ActivityChooserView extends ViewGroup implements
     /**
      * Updates the buttons state.
      */
-    private void updateAppearance() {
+    void updateAppearance() {
         // Expand overflow button.
         if (mAdapter.getCount() > 0) {
             mExpandActivityOverflowButton.setEnabled(true);
@@ -553,7 +559,11 @@ public class ActivityChooserView extends ViewGroup implements
     private class Callbacks implements AdapterView.OnItemClickListener,
             View.OnClickListener, View.OnLongClickListener, PopupWindow.OnDismissListener {
 
+        Callbacks() {
+        }
+
         // AdapterView#OnItemClickListener
+        @Override
         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
             ActivityChooserViewAdapter adapter = (ActivityChooserViewAdapter) parent.getAdapter();
             final int itemViewType = adapter.getItemViewType(position);
@@ -585,6 +595,7 @@ public class ActivityChooserView extends ViewGroup implements
         }
 
         // View.OnClickListener
+        @Override
         public void onClick(View view) {
             if (view == mDefaultActivityButton) {
                 dismissPopup();
@@ -618,6 +629,7 @@ public class ActivityChooserView extends ViewGroup implements
         }
 
         // PopUpWindow.OnDismissListener#onDismiss
+        @Override
         public void onDismiss() {
             notifyOnDismissListener();
             if (mProvider != null) {
@@ -657,14 +669,17 @@ public class ActivityChooserView extends ViewGroup implements
 
         private boolean mShowFooterView;
 
+        ActivityChooserViewAdapter() {
+        }
+
         public void setDataModel(ActivityChooserModel dataModel) {
             ActivityChooserModel oldDataModel = mAdapter.getDataModel();
             if (oldDataModel != null && isShown()) {
-                oldDataModel.unregisterObserver(mModelDataSetOberver);
+                oldDataModel.unregisterObserver(mModelDataSetObserver);
             }
             mDataModel = dataModel;
             if (dataModel != null && isShown()) {
-                dataModel.registerObserver(mModelDataSetOberver);
+                dataModel.registerObserver(mModelDataSetObserver);
             }
             notifyDataSetChanged();
         }
@@ -683,6 +698,7 @@ public class ActivityChooserView extends ViewGroup implements
             return ITEM_VIEW_TYPE_COUNT;
         }
 
+        @Override
         public int getCount() {
             int count = 0;
             int activityCount = mDataModel.getActivityCount();
@@ -696,6 +712,7 @@ public class ActivityChooserView extends ViewGroup implements
             return count;
         }
 
+        @Override
         public Object getItem(int position) {
             final int itemViewType = getItemViewType(position);
             switch (itemViewType) {
@@ -711,10 +728,12 @@ public class ActivityChooserView extends ViewGroup implements
             }
         }
 
+        @Override
         public long getItemId(int position) {
             return position;
         }
 
+        @Override
         public View getView(int position, View convertView, ViewGroup parent) {
             final int itemViewType = getItemViewType(position);
             switch (itemViewType) {
@@ -826,6 +845,7 @@ public class ActivityChooserView extends ViewGroup implements
      * Allows us to set the background using TintTypedArray
      * @hide
      */
+    @RestrictTo(GROUP_ID)
     public static class InnerLayout extends LinearLayoutCompat {
 
         private static final int[] TINT_ATTRS = {

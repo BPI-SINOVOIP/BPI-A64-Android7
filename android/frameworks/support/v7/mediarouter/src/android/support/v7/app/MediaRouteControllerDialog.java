@@ -28,6 +28,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.RemoteException;
+import android.os.SystemClock;
 import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
@@ -91,24 +92,24 @@ import java.util.concurrent.TimeUnit;
  */
 public class MediaRouteControllerDialog extends AlertDialog {
     // Tags should be less than 24 characters long (see docs for android.util.Log.isLoggable())
-    private static final String TAG = "MediaRouteCtrlDialog";
-    private static final boolean DEBUG = Log.isLoggable(TAG, Log.DEBUG);
+    static final String TAG = "MediaRouteCtrlDialog";
+    static final boolean DEBUG = Log.isLoggable(TAG, Log.DEBUG);
 
     // Time to wait before updating the volume when the user lets go of the seek bar
     // to allow the route provider time to propagate the change and publish a new
     // route descriptor.
-    private static final int VOLUME_UPDATE_DELAY_MILLIS = 500;
-    private static final int CONNECTION_TIMEOUT_MILLIS = (int) TimeUnit.SECONDS.toMillis(30L);
+    static final int VOLUME_UPDATE_DELAY_MILLIS = 500;
+    static final int CONNECTION_TIMEOUT_MILLIS = (int) TimeUnit.SECONDS.toMillis(30L);
 
     private static final int BUTTON_NEUTRAL_RES_ID = android.R.id.button3;
-    private static final int BUTTON_DISCONNECT_RES_ID = android.R.id.button2;
-    private static final int BUTTON_STOP_RES_ID = android.R.id.button1;
+    static final int BUTTON_DISCONNECT_RES_ID = android.R.id.button2;
+    static final int BUTTON_STOP_RES_ID = android.R.id.button1;
 
-    private final MediaRouter mRouter;
+    final MediaRouter mRouter;
     private final MediaRouterCallback mCallback;
-    private final MediaRouter.RouteInfo mRoute;
+    final MediaRouter.RouteInfo mRoute;
 
-    private Context mContext;
+    Context mContext;
     private boolean mCreated;
     private boolean mAttachedToWindow;
 
@@ -124,7 +125,7 @@ public class MediaRouteControllerDialog extends AlertDialog {
 
     private FrameLayout mExpandableAreaLayout;
     private LinearLayout mDialogAreaLayout;
-    private FrameLayout mDefaultControlLayout;
+    FrameLayout mDefaultControlLayout;
     private FrameLayout mCustomControlLayout;
     private ImageView mArtView;
     private TextView mTitleView;
@@ -138,33 +139,40 @@ public class MediaRouteControllerDialog extends AlertDialog {
     private LinearLayout mVolumeControlLayout;
     private View mDividerView;
 
-    private OverlayListView mVolumeGroupList;
-    private VolumeGroupAdapter mVolumeGroupAdapter;
+    OverlayListView mVolumeGroupList;
+    VolumeGroupAdapter mVolumeGroupAdapter;
     private List<MediaRouter.RouteInfo> mGroupMemberRoutes;
-    private Set<MediaRouter.RouteInfo> mGroupMemberRoutesAdded;
+    Set<MediaRouter.RouteInfo> mGroupMemberRoutesAdded;
     private Set<MediaRouter.RouteInfo> mGroupMemberRoutesRemoved;
-    private Set<MediaRouter.RouteInfo> mGroupMemberRoutesAnimatingWithBitmap;
-    private SeekBar mVolumeSlider;
-    private VolumeChangeListener mVolumeChangeListener;
-    private MediaRouter.RouteInfo mRouteInVolumeSliderTouched;
+    Set<MediaRouter.RouteInfo> mGroupMemberRoutesAnimatingWithBitmap;
+    SeekBar mVolumeSlider;
+    VolumeChangeListener mVolumeChangeListener;
+    MediaRouter.RouteInfo mRouteInVolumeSliderTouched;
     private int mVolumeGroupListItemIconSize;
     private int mVolumeGroupListItemHeight;
     private int mVolumeGroupListMaxHeight;
     private final int mVolumeGroupListPaddingTop;
-    private Map<MediaRouter.RouteInfo, SeekBar> mVolumeSliderMap;
+    Map<MediaRouter.RouteInfo, SeekBar> mVolumeSliderMap;
 
-    private MediaControllerCompat mMediaController;
-    private MediaControllerCallback mControllerCallback;
-    private PlaybackStateCompat mState;
-    private MediaDescriptionCompat mDescription;
+    MediaControllerCompat mMediaController;
+    MediaControllerCallback mControllerCallback;
+    PlaybackStateCompat mState;
+    MediaDescriptionCompat mDescription;
 
-    private FetchArtTask mFetchArtTask;
-    private Bitmap mArtIconBitmap;
-    private Uri mArtIconUri;
-    private boolean mIsGroupExpanded;
-    private boolean mIsGroupListAnimating;
-    private boolean mIsGroupListAnimationPending;
-    private int mGroupListAnimationDurationMs;
+    FetchArtTask mFetchArtTask;
+    Bitmap mArtIconBitmap;
+    Uri mArtIconUri;
+    boolean mArtIconIsLoaded;
+    Bitmap mArtIconLoadedBitmap;
+    int mArtIconBackgroundColor;
+
+    boolean mHasPendingUpdate;
+    boolean mPendingUpdateAnimationNeeded;
+
+    boolean mIsGroupExpanded;
+    boolean mIsGroupListAnimating;
+    boolean mIsGroupListAnimationPending;
+    int mGroupListAnimationDurationMs;
     private int mGroupListFadeInDurationMs;
     private int mGroupListFadeOutDurationMs;
 
@@ -173,9 +181,9 @@ public class MediaRouteControllerDialog extends AlertDialog {
     private Interpolator mFastOutSlowInInterpolator;
     private Interpolator mAccelerateDecelerateInterpolator;
 
-    private final AccessibilityManager mAccessibilityManager;
+    final AccessibilityManager mAccessibilityManager;
 
-    private Runnable mGroupListFadeInAnimation = new Runnable() {
+    Runnable mGroupListFadeInAnimation = new Runnable() {
         @Override
         public void run() {
             startGroupListFadeInAnimation();
@@ -187,7 +195,8 @@ public class MediaRouteControllerDialog extends AlertDialog {
     }
 
     public MediaRouteControllerDialog(Context context, int theme) {
-        super(MediaRouterThemeHelper.createThemedContext(context, theme), theme);
+        super(MediaRouterThemeHelper.createThemedContext(context,
+                MediaRouterThemeHelper.getAlertDialogResolvedTheme(context, theme)), theme);
         mContext = getContext();
 
         mControllerCallback = new MediaControllerCallback();
@@ -253,8 +262,7 @@ public class MediaRouteControllerDialog extends AlertDialog {
         if (mVolumeControlEnabled != enable) {
             mVolumeControlEnabled = enable;
             if (mCreated) {
-                updateVolumeControlLayout();
-                updateLayoutHeight(false);
+                update(false);
             }
         }
     }
@@ -297,6 +305,7 @@ public class MediaRouteControllerDialog extends AlertDialog {
                 : mMediaController.getMetadata();
         mDescription = metadata == null ? null : metadata.getDescription();
         mState = mMediaController == null ? null : mMediaController.getPlaybackState();
+        updateArtIconIfNeeded();
         update(false);
     }
 
@@ -450,9 +459,10 @@ public class MediaRouteControllerDialog extends AlertDialog {
         mVolumeGroupListMaxHeight = res.getDimensionPixelSize(
                 R.dimen.mr_controller_volume_group_list_max_height);
 
-        // Ensure the mArtView is updated.
+        // Fetch art icons again for layout changes to resize it accordingly
         mArtIconBitmap = null;
         mArtIconUri = null;
+        updateArtIconIfNeeded();
         update(false);
     }
 
@@ -493,7 +503,15 @@ public class MediaRouteControllerDialog extends AlertDialog {
         return super.onKeyUp(keyCode, event);
     }
 
-    private void update(boolean animate) {
+    void update(boolean animate) {
+        // Defer dialog updates if a user is adjusting a volume in the list
+        if (mRouteInVolumeSliderTouched != null) {
+            mHasPendingUpdate = true;
+            mPendingUpdateAnimationNeeded |= animate;
+            return;
+        }
+        mHasPendingUpdate = false;
+        mPendingUpdateAnimationNeeded = false;
         if (!mRoute.isSelected() || mRoute.isDefaultOrBluetooth()) {
             dismiss();
             return;
@@ -504,13 +522,10 @@ public class MediaRouteControllerDialog extends AlertDialog {
 
         mRouteNameTextView.setText(mRoute.getName());
         mDisconnectButton.setVisibility(mRoute.canDisconnect() ? View.VISIBLE : View.GONE);
-
-        if (mCustomControlView == null) {
-            if (mFetchArtTask != null) {
-                mFetchArtTask.cancel(true);
-            }
-            mFetchArtTask = new FetchArtTask();
-            mFetchArtTask.execute();
+        if (mCustomControlView == null && mArtIconIsLoaded) {
+            mArtView.setImageBitmap(mArtIconLoadedBitmap);
+            mArtView.setBackgroundColor(mArtIconBackgroundColor);
+            clearLoadedBitmap();
         }
         updateVolumeControlLayout();
         updatePlaybackControlLayout();
@@ -552,7 +567,7 @@ public class MediaRouteControllerDialog extends AlertDialog {
                 && !canShowPlaybackControlLayout) ? View.GONE : View.VISIBLE);
     }
 
-    private void updateLayoutHeight(final boolean animate) {
+    void updateLayoutHeight(final boolean animate) {
         // We need to defer the update until the first layout has occurred, as we don't yet know the
         // overall visible display size in which the window this view is attached to has been
         // positioned in.
@@ -574,10 +589,10 @@ public class MediaRouteControllerDialog extends AlertDialog {
     /**
      * Updates the height of views and hide artwork or metadata if space is limited.
      */
-    private void updateLayoutHeightInternal(boolean animate) {
+    void updateLayoutHeightInternal(boolean animate) {
         // Measure the size of widgets and get the height of main components.
         int oldHeight = getLayoutHeight(mMediaMainControlLayout);
-        setLayoutHeight(mMediaMainControlLayout, ViewGroup.LayoutParams.FILL_PARENT);
+        setLayoutHeight(mMediaMainControlLayout, ViewGroup.LayoutParams.MATCH_PARENT);
         updateMediaControlVisibility(canShowPlaybackControlLayout());
         View decorView = getWindow().getDecorView();
         decorView.measure(
@@ -665,7 +680,7 @@ public class MediaRouteControllerDialog extends AlertDialog {
         rebuildVolumeGroupList(animate);
     }
 
-    private void updateVolumeGroupItemHeight(View item) {
+    void updateVolumeGroupItemHeight(View item) {
         LinearLayout container = (LinearLayout) item.findViewById(R.id.volume_item_container);
         setLayoutHeight(container, mVolumeGroupListItemHeight);
         View icon = item.findViewById(R.id.mr_volume_item_icon);
@@ -692,7 +707,7 @@ public class MediaRouteControllerDialog extends AlertDialog {
         view.startAnimation(anim);
     }
 
-    private void loadInterpolator() {
+    void loadInterpolator() {
         if (android.os.Build.VERSION.SDK_INT >= 21) {
             mInterpolator = mIsGroupExpanded ? mLinearOutSlowInInterpolator
                     : mFastOutSlowInInterpolator;
@@ -761,7 +776,7 @@ public class MediaRouteControllerDialog extends AlertDialog {
         });
     }
 
-    private void animateGroupListItemsInternal(
+    void animateGroupListItemsInternal(
             Map<MediaRouter.RouteInfo, Rect> previousRouteBoundMap,
             Map<MediaRouter.RouteInfo, BitmapDrawable> previousRouteBitmapMap) {
         if (mGroupMemberRoutesAdded == null || mGroupMemberRoutesRemoved == null) {
@@ -849,7 +864,7 @@ public class MediaRouteControllerDialog extends AlertDialog {
         }
     }
 
-    private void startGroupListFadeInAnimation() {
+    void startGroupListFadeInAnimation() {
         clearGroupListAnimation(true);
         mVolumeGroupList.requestLayout();
         ViewTreeObserver observer = mVolumeGroupList.getViewTreeObserver();
@@ -862,7 +877,7 @@ public class MediaRouteControllerDialog extends AlertDialog {
         });
     }
 
-    private void startGroupListFadeInAnimationInternal() {
+    void startGroupListFadeInAnimationInternal() {
         if (mGroupMemberRoutesAdded != null && mGroupMemberRoutesAdded.size() != 0) {
             fadeInAddedRoutes();
         } else {
@@ -870,7 +885,7 @@ public class MediaRouteControllerDialog extends AlertDialog {
         }
     }
 
-    private void finishAnimation(boolean animate) {
+    void finishAnimation(boolean animate) {
         mGroupMemberRoutesAdded = null;
         mGroupMemberRoutesRemoved = null;
         mIsGroupListAnimating = false;
@@ -1005,7 +1020,7 @@ public class MediaRouteControllerDialog extends AlertDialog {
         }
     }
 
-    private boolean isVolumeControlAvailable(MediaRouter.RouteInfo route) {
+    boolean isVolumeControlAvailable(MediaRouter.RouteInfo route) {
         return mVolumeControlEnabled && route.getVolumeHandling()
                 == MediaRouter.RouteInfo.PLAYBACK_VOLUME_VARIABLE;
     }
@@ -1014,7 +1029,7 @@ public class MediaRouteControllerDialog extends AlertDialog {
         return view.getLayoutParams().height;
     }
 
-    private static void setLayoutHeight(View view, int height) {
+    static void setLayoutHeight(View view, int height) {
         ViewGroup.LayoutParams lp = view.getLayoutParams();
         lp.height = height;
         view.setLayoutParams(lp);
@@ -1032,7 +1047,7 @@ public class MediaRouteControllerDialog extends AlertDialog {
     /**
      * Returns desired art height to fit into controller dialog.
      */
-    private int getDesiredArtHeight(int originalWidth, int originalHeight) {
+    int getDesiredArtHeight(int originalWidth, int originalHeight) {
         if (originalWidth >= originalHeight) {
             // For landscape art, fit width to dialog width.
             return (int) ((float) mDialogContentWidth * originalHeight / originalWidth + 0.5f);
@@ -1041,7 +1056,49 @@ public class MediaRouteControllerDialog extends AlertDialog {
         return (int) ((float) mDialogContentWidth * 9 / 16 + 0.5f);
     }
 
+    void updateArtIconIfNeeded() {
+        if (mCustomControlView != null || !isIconChanged()) {
+            return;
+        }
+        if (mFetchArtTask != null) {
+            mFetchArtTask.cancel(true);
+        }
+        mFetchArtTask = new FetchArtTask();
+        mFetchArtTask.execute();
+    }
+
+    /**
+     * Clear the bitmap loaded by FetchArtTask. Will be called after the loaded bitmaps are applied
+     * to artwork, or no longer valid.
+     */
+    void clearLoadedBitmap() {
+        mArtIconIsLoaded = false;
+        mArtIconLoadedBitmap = null;
+        mArtIconBackgroundColor = 0;
+    }
+
+    /**
+     * Returns whether a new art image is different from an original art image. Compares
+     * Bitmap objects first, and then compares URIs only if bitmap is unchanged with
+     * a null value.
+     */
+    private boolean isIconChanged() {
+        Bitmap newBitmap = mDescription == null ? null : mDescription.getIconBitmap();
+        Uri newUri = mDescription == null ? null : mDescription.getIconUri();
+        Bitmap oldBitmap = mFetchArtTask == null ? mArtIconBitmap : mFetchArtTask.getIconBitmap();
+        Uri oldUri = mFetchArtTask == null ? mArtIconUri : mFetchArtTask.getIconUri();
+        if (oldBitmap != newBitmap) {
+            return true;
+        } else if (oldBitmap == null && !uriEquals(oldUri, newUri)) {
+            return true;
+        }
+        return false;
+    }
+
     private final class MediaRouterCallback extends MediaRouter.Callback {
+        MediaRouterCallback() {
+        }
+
         @Override
         public void onRouteUnselected(MediaRouter router, MediaRouter.RouteInfo route) {
             update(false);
@@ -1066,6 +1123,9 @@ public class MediaRouteControllerDialog extends AlertDialog {
     }
 
     private final class MediaControllerCallback extends MediaControllerCompat.Callback {
+        MediaControllerCallback() {
+        }
+
         @Override
         public void onSessionDestroyed() {
             if (mMediaController != null) {
@@ -1083,11 +1143,15 @@ public class MediaRouteControllerDialog extends AlertDialog {
         @Override
         public void onMetadataChanged(MediaMetadataCompat metadata) {
             mDescription = metadata == null ? null : metadata.getDescription();
+            updateArtIconIfNeeded();
             update(false);
         }
     }
 
     private final class ClickListener implements View.OnClickListener {
+        ClickListener() {
+        }
+
         @Override
         public void onClick(View v) {
             int id = v.getId();
@@ -1130,9 +1194,15 @@ public class MediaRouteControllerDialog extends AlertDialog {
             public void run() {
                 if (mRouteInVolumeSliderTouched != null) {
                     mRouteInVolumeSliderTouched = null;
+                    if (mHasPendingUpdate) {
+                        update(mPendingUpdateAnimationNeeded);
+                    }
                 }
             }
         };
+
+        VolumeChangeListener() {
+        }
 
         @Override
         public void onStartTrackingTouch(SeekBar seekBar) {
@@ -1234,21 +1304,31 @@ public class MediaRouteControllerDialog extends AlertDialog {
     }
 
     private class FetchArtTask extends AsyncTask<Void, Void, Bitmap> {
-        final Bitmap mIconBitmap;
-        final Uri mIconUri;
-        int mBackgroundColor;
+        // Show animation only when fetching takes a long time.
+        private static final long SHOW_ANIM_TIME_THRESHOLD_MILLIS = 120L;
+
+        private final Bitmap mIconBitmap;
+        private final Uri mIconUri;
+        private int mBackgroundColor;
+        private long mStartTimeMillis;
 
         FetchArtTask() {
             mIconBitmap = mDescription == null ? null : mDescription.getIconBitmap();
             mIconUri = mDescription == null ? null : mDescription.getIconUri();
         }
 
+        public Bitmap getIconBitmap() {
+            return mIconBitmap;
+        }
+
+        public Uri getIconUri() {
+            return mIconUri;
+        }
+
         @Override
         protected void onPreExecute() {
-            if (!isIconChanged()) {
-                // Already handled the current art.
-                cancel(true);
-            }
+            mStartTimeMillis = SystemClock.uptimeMillis();
+            clearLoadedBitmap();
         }
 
         @Override
@@ -1311,35 +1391,18 @@ public class MediaRouteControllerDialog extends AlertDialog {
         }
 
         @Override
-        protected void onCancelled() {
-            mFetchArtTask = null;
-        }
-
-        @Override
         protected void onPostExecute(Bitmap art) {
             mFetchArtTask = null;
             if (mArtIconBitmap != mIconBitmap || mArtIconUri != mIconUri) {
                 mArtIconBitmap = mIconBitmap;
+                mArtIconLoadedBitmap = art;
                 mArtIconUri = mIconUri;
-
-                mArtView.setImageBitmap(art);
-                mArtView.setBackgroundColor(mBackgroundColor);
-                updateLayoutHeight(true);
+                mArtIconBackgroundColor = mBackgroundColor;
+                mArtIconIsLoaded = true;
+                long elapsedTimeMillis = SystemClock.uptimeMillis() - mStartTimeMillis;
+                // Loaded bitmap will be applied on the next update
+                update(elapsedTimeMillis > SHOW_ANIM_TIME_THRESHOLD_MILLIS);
             }
-        }
-
-        /**
-         * Returns whether a new art image is different from an original art image. Compares
-         * Bitmap objects first, and then compares URIs only if bitmap is unchanged with
-         * a null value.
-         */
-        private boolean isIconChanged() {
-            if (mIconBitmap != mArtIconBitmap) {
-                return true;
-            } else if (mIconBitmap == null && !uriEquals(mIconUri, mArtIconUri)) {
-                return true;
-            }
-            return false;
         }
 
         private InputStream openInputStreamByScheme(Uri uri) throws IOException {

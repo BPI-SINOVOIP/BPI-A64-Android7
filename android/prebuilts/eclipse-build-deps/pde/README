@@ -1,0 +1,3 @@
+PDE (eclipse.org/pde) provides the plugin development environment
+in Eclipse. We only need it for the "Error Log" view that comes from the
+plugin "org.eclipse.ui.views.log"

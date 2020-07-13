@@ -22,6 +22,7 @@ import android.app.DatePickerDialog;
 import android.content.Context;
 import android.test.ActivityInstrumentationTestCase2;
 import android.test.UiThreadTest;
+import android.widget.DatePicker;
 
 /**
  * Test {@link DatePickerDialog}.
@@ -48,7 +49,16 @@ public class DatePickerDialogTest extends
 
         new DatePickerDialog(mActivity, AlertDialog.THEME_TRADITIONAL, null, 1970, 1, 1);
 
-        new DatePickerDialog(mActivity, AlertDialog.THEME_HOLO_DARK, null, 1970, 1, 1);
+        // Ensure the picker is shown using the Holo-style layout.
+        DatePickerDialog holoDialog = new DatePickerDialog(mActivity, AlertDialog.THEME_HOLO_DARK,
+                null, 1970, 1, 1);
+        assertEquals(DatePicker.MODE_SPINNER, holoDialog.getDatePicker().getMode());
+
+        // Ensure the picker is shown using the Material-style layout where available.
+        DatePickerDialog holoCalendarDialog = new DatePickerDialog(mActivity,
+                R.style.Theme_Holo_With_Material_Pickers, null, 1970, 1, 1);
+        final int expectedMode = mActivity.getResources().getInteger(R.integer.date_picker_mode);
+        assertEquals(expectedMode, holoCalendarDialog.getDatePicker().getMode());
 
         new DatePickerDialog(mActivity,
                 android.R.style.Theme_Material_Dialog_Alert, null, 1970, 1, 1);

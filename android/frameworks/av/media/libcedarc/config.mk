@@ -1,7 +1,7 @@
 
 MODULE_TOP = $(TOP)/frameworks/av/media/libcedarc
 
-product = $(TARGET_BOARD_PLATFORM)
+product = $(shell echo $(TARGET_PRODUCT) | cut -d '_' -f 1)
 
 ########## configure CONF_ANDROID_VERSION ##########
 android_version = $(shell echo $(PLATFORM_VERSION) | cut -c 1)
@@ -11,6 +11,8 @@ config_file = null
 ifeq ($(product), octopus)
     ifeq ($(android_version), 5)
         config_file = config_pad_A83_lollipop.mk
+    else ifeq ($(android_version), 7)
+	config_file = config_pad_A83_Nougat.mk
     endif
 else ifeq ($(product), tulip)
     ifeq ($(android_version), 5)

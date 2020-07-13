@@ -20,12 +20,12 @@ import android.Manifest;
 import android.accounts.Account;
 import android.annotation.Nullable;
 import android.app.ActivityManager;
+import android.app.ActivityManagerInternal;
 import android.app.ActivityManagerNative;
 import android.app.AppOpsManager;
 import android.app.job.JobInfo;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
-import android.content.ContentProvider;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.IContentService;
@@ -66,7 +66,6 @@ import com.android.server.SystemService;
 
 import java.io.FileDescriptor;
 import java.io.PrintWriter;
-import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -296,24 +295,15 @@ public final class ContentService extends IContentService.Stub {
 
         final int uid = Binder.getCallingUid();
         final int pid = Binder.getCallingPid();
-        final int callingUserHandle = UserHandle.getCallingUserId();
-        // Registering an observer for any user other than the calling user requires uri grant or
-        // cross user permission
-        if (callingUserHandle != userHandle) {
-            if (checkUriPermission(uri, pid, uid, Intent.FLAG_GRANT_READ_URI_PERMISSION, userHandle)
-                    != PackageManager.PERMISSION_GRANTED) {
-                enforceCrossUserPermission(userHandle,
-                        "no permission to observe other users' provider view");
-            }
-        }
 
-        if (userHandle < 0) {
-            if (userHandle == UserHandle.USER_CURRENT) {
-                userHandle = ActivityManager.getCurrentUser();
-            } else if (userHandle != UserHandle.USER_ALL) {
-                throw new InvalidParameterException("Bad user handle for registerContentObserver: "
-                        + userHandle);
-            }
+        userHandle = handleIncomingUser(uri, pid, uid,
+                Intent.FLAG_GRANT_READ_URI_PERMISSION, userHandle);
+
+        final String msg = LocalServices.getService(ActivityManagerInternal.class)
+                .checkContentProviderAccess(uri.getAuthority(), userHandle);
+        if (msg != null) {
+            Log.w(TAG, "Ignoring content changes for " + uri + " from " + uid + ": " + msg);
+            return;
         }
 
         synchronized (mRootNode) {
@@ -363,22 +353,15 @@ public final class ContentService extends IContentService.Stub {
         final int uid = Binder.getCallingUid();
         final int pid = Binder.getCallingPid();
         final int callingUserHandle = UserHandle.getCallingUserId();
-        // Notify for any user other than the caller requires uri grant or cross user permission
-        if (callingUserHandle != userHandle) {
-            if (checkUriPermission(uri, pid, uid, Intent.FLAG_GRANT_WRITE_URI_PERMISSION,
-                    userHandle) != PackageManager.PERMISSION_GRANTED) {
-                enforceCrossUserPermission(userHandle, "no permission to notify other users");
-            }
-        }
 
-        // We passed the permission check; resolve pseudouser targets as appropriate
-        if (userHandle < 0) {
-            if (userHandle == UserHandle.USER_CURRENT) {
-                userHandle = ActivityManager.getCurrentUser();
-            } else if (userHandle != UserHandle.USER_ALL) {
-                throw new InvalidParameterException("Bad user handle for notifyChange: "
-                        + userHandle);
-            }
+        userHandle = handleIncomingUser(uri, pid, uid,
+                Intent.FLAG_GRANT_WRITE_URI_PERMISSION, userHandle);
+
+        final String msg = LocalServices.getService(ActivityManagerInternal.class)
+                .checkContentProviderAccess(uri.getAuthority(), userHandle);
+        if (msg != null) {
+            Log.w(TAG, "Ignoring notify for " + uri + " from " + uid + ": " + msg);
+            return;
         }
 
         // This makes it so that future permission checks will be in the context of this
@@ -482,8 +465,7 @@ public final class ContentService extends IContentService.Stub {
             SyncManager syncManager = getSyncManager();
             if (syncManager != null) {
                 syncManager.scheduleSync(account, userId, uId, authority, extras,
-                        0 /* no delay */, 0 /* no delay */,
-                        false /* onlyThoseWithUnkownSyncableState */);
+                        SyncStorageEngine.AuthorityInfo.UNDEFINED);
             }
         } finally {
             restoreCallingIdentity(identityToken);
@@ -547,12 +529,9 @@ public final class ContentService extends IContentService.Stub {
                 getSyncManager().updateOrAddPeriodicSync(info, runAtTime,
                         flextime, extras);
             } else {
-                long beforeRuntimeMillis = (flextime) * 1000;
-                long runtimeMillis = runAtTime * 1000;
                 syncManager.scheduleSync(
                         request.getAccount(), userId, callerUid, request.getProvider(), extras,
-                        beforeRuntimeMillis, runtimeMillis,
-                        false /* onlyThoseWithUnknownSyncableState */);
+                        SyncStorageEngine.AuthorityInfo.UNDEFINED);
             }
         } finally {
             restoreCallingIdentity(identityToken);
@@ -841,8 +820,8 @@ public final class ContentService extends IContentService.Stub {
         try {
             SyncManager syncManager = getSyncManager();
             if (syncManager != null) {
-                return syncManager.getIsSyncable(
-                        account, userId, providerName);
+                return syncManager.computeSyncable(
+                        account, userId, providerName, false);
             }
         } finally {
             restoreCallingIdentity(identityToken);
@@ -857,6 +836,8 @@ public final class ContentService extends IContentService.Stub {
         }
         mContext.enforceCallingOrSelfPermission(Manifest.permission.WRITE_SYNC_SETTINGS,
                 "no permission to write the sync settings");
+
+        syncable = normalizeSyncable(syncable);
 
         int userId = UserHandle.getCallingUserId();
         long identityToken = clearCallingIdentity();
@@ -1145,6 +1126,27 @@ public final class ContentService extends IContentService.Stub {
         }
     }
 
+    private int handleIncomingUser(Uri uri, int pid, int uid, int modeFlags, int userId) {
+        if (userId == UserHandle.USER_CURRENT) {
+            userId = ActivityManager.getCurrentUser();
+        }
+
+        if (userId == UserHandle.USER_ALL) {
+            mContext.enforceCallingOrSelfPermission(
+                    Manifest.permission.INTERACT_ACROSS_USERS_FULL, TAG);
+        } else if (userId < 0) {
+            throw new IllegalArgumentException("Invalid user: " + userId);
+        } else if (userId != UserHandle.getCallingUserId()) {
+            if (checkUriPermission(uri, pid, uid, modeFlags,
+                    userId) != PackageManager.PERMISSION_GRANTED) {
+                mContext.enforceCallingOrSelfPermission(
+                        Manifest.permission.INTERACT_ACROSS_USERS_FULL, TAG);
+            }
+        }
+
+        return userId;
+    }
+
     /**
      * Checks if the request is from the system or an app that has INTERACT_ACROSS_USERS_FULL
      * permission, if the userHandle is not for the caller.
@@ -1158,6 +1160,15 @@ public final class ContentService extends IContentService.Stub {
             mContext.enforceCallingOrSelfPermission(
                     Manifest.permission.INTERACT_ACROSS_USERS_FULL, message);
         }
+    }
+
+    private static int normalizeSyncable(int syncable) {
+        if (syncable > 0) {
+            return SyncStorageEngine.AuthorityInfo.SYNCABLE;
+        } else if (syncable == 0) {
+            return SyncStorageEngine.AuthorityInfo.NOT_SYNCABLE;
+        }
+        return SyncStorageEngine.AuthorityInfo.UNDEFINED;
     }
 
     /**

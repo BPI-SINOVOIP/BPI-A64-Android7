@@ -26,7 +26,7 @@
     <string name="company_controls_device" msgid="8230957518758871390">"Vaša organizacija će kontrolirati i štititi ovaj uređaj."</string>
     <string name="the_following_is_your_mdm" msgid="6613658218262376404">"Ovoj aplikaciji je potreban pristup profilu:"</string>
     <string name="the_following_is_your_mdm_for_device" msgid="6717973404364414816">"Sljedeća aplikacija će upravljati vašim uređajem:"</string>
-    <string name="next" msgid="1004321437324424398">"Dalje"</string>
+    <string name="next" msgid="1004321437324424398">"Naprijed"</string>
     <string name="setting_up_workspace" msgid="4517537806569988620">"Postavlja se vaš profil za posao..."</string>
     <string name="admin_has_ability_to_monitor_profile" msgid="4138671070145317359">"Vaš administrator ima mogućnost da prati postavke, korporativni pristup, aplikacije, odobrenja i podatke povezane s ovim profilom, uključujući vaše aktivnosti na mreži i informacije o lokaciji vašeg uređaja, historiju poziva i historiju pretrage kontakata, kao i da upravlja njima."</string>
     <string name="admin_has_ability_to_monitor_device" msgid="7400390654083275019">"Vaš administrator ima mogućnost da prati postavke, korporativni pristup, aplikacije, odobrenja i podatke povezane s ovim uređajem, uključujući aktivnosti na mreži i informacije o lokaciji vašeg uređaja, kao i da upravlja njima."</string>

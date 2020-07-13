@@ -1,0 +1,21 @@
+[
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "RECIPE_MODULE[cipd]/resources/bootstrap.py"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "install cipd",
+    "stdin": "{\"bin_path\": \"[SLAVE_BUILD]/cipd\", \"platform\": \"linux-amd64\"}",
+    "~followup_annotations": [
+      "step returned non-zero exit code: 1",
+      "@@@STEP_FAILURE@@@"
+    ]
+  },
+  {
+    "name": "$result",
+    "reason": "Step('install cipd') failed with return_code 1",
+    "status_code": 1
+  }
+]

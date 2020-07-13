@@ -11,11 +11,53 @@ found in the LICENSE file.
 'use strict';
 
 tr.exportTo('tr.b', function() {
-  function asArray(arrayish) {
+
+  /**
+   * Converts any object which is either (a) an iterable, or (b) an
+   * "array-ish" object (has length property and can be indexed into)
+   * into an array.
+   */
+  function asArray(x) {
     var values = [];
-    for (var i = 0; i < arrayish.length; i++)
-      values.push(arrayish[i]);
+    if (x[Symbol.iterator])
+      for (var value of x)
+        values.push(value);
+    else
+      for (var i = 0; i < x.length; i++)
+        values.push(x[i]);
     return values;
+  }
+
+  /**
+   * Returns the only element in the iterable. If the iterable is empty or has
+   * more than one element, an error is thrown.
+   */
+  function getOnlyElement(iterable) {
+    var iterator = iterable[Symbol.iterator]();
+
+    var firstIteration = iterator.next();
+    if (firstIteration.done)
+      throw new Error('getOnlyElement was passed an empty iterable.');
+
+    var secondIteration = iterator.next();
+    if (!secondIteration.done)
+      throw new Error(
+          'getOnlyElement was passed an iterable with multiple elements.');
+
+    return firstIteration.value;
+  }
+
+  /**
+   * Returns the first element in the iterable. If the iterable is empty, an
+   * error is thrown.
+   */
+  function getFirstElement(iterable) {
+    var iterator = iterable[Symbol.iterator]();
+    var result = iterator.next();
+    if (result.done)
+      throw new Error('getFirstElement was passed an empty iterable.');
+
+    return result.value;
   }
 
   function compareArrays(x, y, elementCmp) {
@@ -83,6 +125,14 @@ tr.exportTo('tr.b', function() {
     return result;
   }
 
+  function cloneDictionary(dict) {
+    var clone = {};
+    for (var k in dict) {
+      clone[k] = dict[k];
+    }
+    return clone;
+  }
+
   function dictionaryKeys(dict) {
     var keys = [];
     for (var key in dict)
@@ -112,23 +162,56 @@ tr.exportTo('tr.b', function() {
   }
 
   /**
+   * Returns true if all the elements of the iterable pass the predicate.
+   */
+  function every(iterable, predicate) {
+    for (var x of iterable)
+      if (!predicate(x))
+        return false;
+    return true;
+  }
+
+  /**
    * Returns a new dictionary with items grouped by the return value of the
    * specified function being called on each item.
-   * @param {!Array.<Object>} ary The array being iterated through
-   * @param {!Function} fn The mapping function between the array value and the
-   * map key.
+   * @param {!Array.<!*>} ary The array being iterated through
+   * @param {!function(!*):!*} callback The mapping function between the array
+   * value and the map key.
+   * @param {*=} opt_this
    */
-  function group(ary, fn) {
-    return ary.reduce(function(accumulator, curr) {
-      var key = fn(curr);
+  function group(ary, callback, opt_this, opt_arrayConstructor) {
+    var arrayConstructor = opt_arrayConstructor || Array;
+    var results = {};
+    for (var element of ary) {
+      var key = callback.call(opt_this, element);
+      if (!(key in results))
+        results[key] = new arrayConstructor();
+      results[key].push(element);
+    }
+    return results;
+  }
 
-      if (key in accumulator)
-        accumulator[key].push(curr);
-      else
-        accumulator[key] = [curr];
-
-      return accumulator;
-    }, {});
+  /**
+   * Returns a new Map with items grouped by the return value of the
+   * specified function being called on each item.
+   * @param {!Array.<!*>} ary The array being iterated through
+   * @param {!function(!*):!*} callback The mapping function between the array
+   * value and the map key.
+   * @param {*=} opt_this
+   */
+  function groupIntoMap(ary, callback, opt_this, opt_arrayConstructor) {
+    var arrayConstructor = opt_arrayConstructor || Array;
+    var results = new Map();
+    for (var element of ary) {
+      var key = callback.call(opt_this, element);
+      var items = results.get(key);
+      if (items === undefined) {
+        items = new arrayConstructor();
+        results.set(key, items);
+      }
+      items.push(element);
+    }
+    return results;
   }
 
   function iterItems(dict, fn, opt_this) {
@@ -271,10 +354,21 @@ tr.exportTo('tr.b', function() {
     return result;
   }
 
+  /** Returns the value passed in. */
   function identity(d) {
     return d;
   }
 
+  /**
+   * Returns the index of the first element in |ary| for which |opt_func|
+   * returns a truthy value.
+   *
+   * @param {!Array} ary The array being searched
+   * @param {function(*): *=} opt_func The test function which accepts an array
+   *     element and returns a value that is coerced to a boolean. Defaults to
+   *     the identity function.
+   * @param {*=} opt_this Optional 'this' context for opt_func.
+   */
   function findFirstIndexInArray(ary, opt_func, opt_this) {
     var func = opt_func || identity;
     for (var i = 0; i < ary.length; i++) {
@@ -284,6 +378,16 @@ tr.exportTo('tr.b', function() {
     return -1;
   }
 
+  /**
+   * Returns the value of the first element in |ary| for which |opt_func|
+   * returns a truthy value.
+   *
+   * @param {!Array} ary The array being searched.
+   * @param {function(*): *=} opt_func The test function which accepts an array
+   *     element and returns a value that is coerced to a boolean. Defaults to
+   *     the identity function.
+   * @param {*=} opt_this Optional 'this' context for opt_func.
+   */
   function findFirstInArray(ary, opt_func, opt_this) {
     var i = findFirstIndexInArray(ary, opt_func, opt_func);
     if (i === -1)
@@ -291,6 +395,17 @@ tr.exportTo('tr.b', function() {
     return ary[i];
   }
 
+  /**
+   * Returns the key of the first dictionary entry for which |opt_func| returns
+   * a truthy value.
+   *
+   * @param {!Object} dict The dictionary being searched.
+   * @param {function(*, *): *=} opt_func The test function which accepts a
+   *     dictionary key as its first parameter, the corresponding dictionary
+   *     value as its second parameter, and returns a value that is coerced to a
+   *     boolean. Defaults to the identity function (which returns the key).
+   * @param {*=} opt_this Optional 'this' context for opt_func.
+   */
   function findFirstKeyInDictMatching(dict, opt_func, opt_this) {
     var func = opt_func || identity;
     for (var key in dict) {
@@ -300,6 +415,7 @@ tr.exportTo('tr.b', function() {
     return undefined;
   }
 
+  /** Returns the values in an ES6 Map object. */
   function mapValues(map) {
     var values = [];
     for (var value of map.values())
@@ -307,6 +423,15 @@ tr.exportTo('tr.b', function() {
     return values;
   }
 
+  /**
+   * Calls |fn| on each entry in an ES6 Map.
+   *
+   * @param {!Map} The map whose entries are being processed.
+   * @param {function(*, *): *} The function which accepts a map key as its
+   *     first parameter and a map value as its second parameter. Any return
+   *     value is ignored.
+   * @param {*=} opt_this Optional 'this' context for fn.
+   */
   function iterMapItems(map, fn, opt_this) {
     opt_this = opt_this || this;
     for (var key of map.keys())
@@ -320,11 +445,16 @@ tr.exportTo('tr.b', function() {
     compareArrays: compareArrays,
     comparePossiblyUndefinedValues: comparePossiblyUndefinedValues,
     compareNumericWithNaNs: compareNumericWithNaNs,
+    cloneDictionary: cloneDictionary,
     dictionaryLength: dictionaryLength,
     dictionaryKeys: dictionaryKeys,
     dictionaryValues: dictionaryValues,
     dictionaryContainsValue: dictionaryContainsValue,
+    every: every,
+    getOnlyElement: getOnlyElement,
+    getFirstElement: getFirstElement,
     group: group,
+    groupIntoMap: groupIntoMap,
     iterItems: iterItems,
     mapItems: mapItems,
     filterItems: filterItems,

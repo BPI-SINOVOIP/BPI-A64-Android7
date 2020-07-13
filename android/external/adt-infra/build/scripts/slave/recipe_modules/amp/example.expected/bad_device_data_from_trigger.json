@@ -1,0 +1,79 @@
+[
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "RECIPE_MODULE[gsutil]/resources/gsutil_wrapper.py",
+      "--",
+      "[DEPOT_TOOLS]/gsutil.py",
+      "----",
+      "cp",
+      "gs://chrome-amp-keys/main_pool/api_key",
+      "[BUILD]/site_config/.amp_main_pool_key"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "gsutil download amp api key"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "RECIPE_MODULE[gsutil]/resources/gsutil_wrapper.py",
+      "--",
+      "[DEPOT_TOOLS]/gsutil.py",
+      "----",
+      "cp",
+      "gs://chrome-amp-keys/main_pool/api_secret",
+      "[BUILD]/site_config/.amp_main_pool_secret"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "gsutil download amp api secret"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[SLAVE_BUILD]/src/build/android/test_runner.py",
+      "gtest",
+      "-s",
+      "example_gtest_suite",
+      "--enable-platform-mode",
+      "-e",
+      "remote_device",
+      "--api-key-file",
+      "[BUILD]/site_config/.amp_main_pool_key",
+      "--api-secret-file",
+      "[BUILD]/site_config/.amp_main_pool_secret",
+      "--api-address",
+      "127.0.0.1",
+      "--api-port",
+      "80",
+      "--api-protocol",
+      "http",
+      "--device-type",
+      "Android",
+      "--remote-device",
+      "SampleDevice",
+      "--remote-device-os",
+      "SampleDeviceOS",
+      "--trigger",
+      "/path/to/tmp/json",
+      "--verbose"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "[trigger] example_gtest_suite",
+    "~followup_annotations": [
+      "@@@STEP_TEXT@unable to find device info@@@",
+      "@@@STEP_LOG_LINE@json.output@{}@@@",
+      "@@@STEP_LOG_END@json.output@@@",
+      "@@@STEP_LOG_LINE@trigger_data@{}@@@",
+      "@@@STEP_LOG_END@trigger_data@@@",
+      "@@@STEP_WARNINGS@@@"
+    ]
+  },
+  {
+    "name": "$result",
+    "reason": "test_run_id not found in trigger_data json",
+    "status_code": 1
+  }
+]

@@ -56,11 +56,15 @@ class AppCrashException(Error):
   def __init__(self, app=None, msg=''):
     super(AppCrashException, self).__init__(msg)
     self._msg = msg
+    self._is_valid_dump = False
     self._stack_trace = []
     self._app_stdout = []
+    self._minidump_path = ''
     if app:
       try:
-        self._stack_trace = app.GetStackTrace().splitlines()
+        self._is_valid_dump, trace_output = app.GetStackTrace()
+        self._stack_trace = trace_output.splitlines()
+        self._minidump_path = app.GetMostRecentMinidumpPath()
       except Exception as err:
         logging.error('Problem when trying to gather stack trace: %s' % err)
       try:
@@ -72,10 +76,19 @@ class AppCrashException(Error):
   def stack_trace(self):
     return self._stack_trace
 
+  @property
+  def minidump_path(self):
+    return self._minidump_path
+
+  @property
+  def is_valid_dump(self):
+    return self._is_valid_dump
+
   def __str__(self):
     divider = '*' * 80
     debug_messages = []
     debug_messages.append(super(AppCrashException, self).__str__())
+    debug_messages.append('Found Minidump: %s' % self._is_valid_dump)
     debug_messages.append('Stack Trace:')
     debug_messages.append(divider)
     debug_messages.extend(('\t%s' % l) for l in self._stack_trace)
@@ -85,7 +98,6 @@ class AppCrashException(Error):
     debug_messages.extend(('\t%s' % l) for l in self._app_stdout)
     debug_messages.append(divider)
     return '\n'.join(debug_messages)
-
 
 class DevtoolsTargetCrashException(AppCrashException):
   """Represents a crash of the current devtools target but not the overall app.

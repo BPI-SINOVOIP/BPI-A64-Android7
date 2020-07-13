@@ -53,6 +53,29 @@
 #define HOSTAPD_CHAN_VHT_110_50 0x02000000
 #define HOSTAPD_CHAN_VHT_130_30 0x04000000
 #define HOSTAPD_CHAN_VHT_150_10 0x08000000
+#ifdef ENABLE_XR_CHANGES
+/**
+* struct wpa_driver_wowlan_pkt_pattern - packet patter
+*/
+struct wpa_driver_wowlan_pkt_params {
+	u8 *mask;
+	u8 *pattern;
+	int pattern_len;
+};
+#endif
+
+#ifdef ENABLE_XR_CHANGES
+/**
+* struct wpa_driver_wowlan_params - wowlan configuration parameters
+*/
+struct wpa_driver_wowlan_params {
+	int any;
+	int disconnect;
+	int magic_pkt;
+	struct wpa_driver_wowlan_pkt_params *patterns;
+	int n_patterns;
+};
+#endif
 
 /**
  * enum reg_change_initiator - Regulatory change initiator
@@ -2940,8 +2963,11 @@ struct wpa_driver_ops {
 	 * @priv: Private driver interface data
 	 * @triggers: wowlan triggers
 	 */
+	#if defined(ENABLE_XR_CHANGES)
+	int (*set_wowlan)(void *priv, struct wpa_driver_wowlan_params *wowlan_params);
+	#else
 	int (*set_wowlan)(void *priv, const struct wowlan_triggers *triggers);
-
+	#endif
 	/**
 	 * signal_poll - Get current connection information
 	 * @priv: Private driver interface data

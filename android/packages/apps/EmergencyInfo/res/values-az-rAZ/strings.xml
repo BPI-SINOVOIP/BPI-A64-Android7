@@ -96,7 +96,8 @@
     <string name="user_emergency_info_title" msgid="7827058167207376581">"Təcili məlumat"</string>
     <string name="user_emergency_info_consent" msgid="5636028073450797246">"Daxil etdiyiniz məlumat təcili durumda ilk cavab verənlərə yardım edə bilər. Bu yalnız cihazınızda yadda saxlanılıb və hər kəs bunu telefon kilidini açmadan təcili nömrə yığımında oxuya bilər."</string>
     <string name="emergency_info_continue" msgid="5453201508537906087">"Davam edin"</string>
-    <string name="no_info_provided" msgid="6775035037534954056">"Heç bir təcili məlumat təqdim olunmayıb"</string>
+    <string name="no_info_provided" msgid="716200382010821001">"Telefon sahibi haqqında heç bir məlumat yoxdur"</string>
+    <string name="tap_pencil" msgid="2723698054265296934">"Əgər bu Sizin telefonunuzdursa, fövqəladə hal zamanı burada görünəcək məlumatı əlavə etmək üçün karandaş ikonasına tıklayın"</string>
     <string name="clear_all" msgid="8899013032870561633">"Hamısını silin"</string>
     <string name="clear" msgid="3648880442502887163">"Təmizləyin"</string>
     <string name="clear_all_message" msgid="1548432000373861295">"Bütün məlumat və kontaktlar silinsin?"</string>

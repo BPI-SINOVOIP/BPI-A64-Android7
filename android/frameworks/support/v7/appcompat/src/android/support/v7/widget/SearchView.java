@@ -16,6 +16,7 @@
 
 package android.support.v7.widget;
 
+import static android.support.annotation.RestrictTo.Scope.GROUP_ID;
 import static android.support.v7.widget.SuggestionsAdapter.getColumnString;
 
 import android.annotation.TargetApi;
@@ -41,11 +42,13 @@ import android.os.Parcelable;
 import android.os.ResultReceiver;
 import android.speech.RecognizerIntent;
 import android.support.annotation.Nullable;
+import android.support.annotation.RestrictTo;
 import android.support.v4.content.res.ConfigurationHelper;
 import android.support.v4.os.ParcelableCompat;
 import android.support.v4.os.ParcelableCompatCreatorCallbacks;
 import android.support.v4.view.AbsSavedState;
 import android.support.v4.view.KeyEventCompat;
+import android.support.v4.view.ViewCompat;
 import android.support.v4.widget.CursorAdapter;
 import android.support.v7.appcompat.R;
 import android.support.v7.view.CollapsibleActionView;
@@ -112,24 +115,22 @@ import java.util.WeakHashMap;
  */
 public class SearchView extends LinearLayoutCompat implements CollapsibleActionView {
 
-    private static final boolean DBG = false;
-    private static final String LOG_TAG = "SearchView";
-
-    private static final boolean IS_AT_LEAST_FROYO = Build.VERSION.SDK_INT >= 8;
+    static final boolean DBG = false;
+    static final String LOG_TAG = "SearchView";
 
     /**
      * Private constant for removing the microphone in the keyboard.
      */
     private static final String IME_OPTION_NO_MICROPHONE = "nm";
 
-    private final SearchAutoComplete mSearchSrcTextView;
+    final SearchAutoComplete mSearchSrcTextView;
     private final View mSearchEditFrame;
     private final View mSearchPlate;
     private final View mSubmitArea;
-    private final ImageView mSearchButton;
-    private final ImageView mGoButton;
-    private final ImageView mCloseButton;
-    private final ImageView mVoiceButton;
+    final ImageView mSearchButton;
+    final ImageView mGoButton;
+    final ImageView mCloseButton;
+    final ImageView mVoiceButton;
     private final View mDropDownAnchor;
 
     private UpdatableTouchDelegate mTouchDelegate;
@@ -156,13 +157,13 @@ public class SearchView extends LinearLayoutCompat implements CollapsibleActionV
 
     private OnQueryTextListener mOnQueryChangeListener;
     private OnCloseListener mOnCloseListener;
-    private OnFocusChangeListener mOnQueryTextFocusChangeListener;
+    OnFocusChangeListener mOnQueryTextFocusChangeListener;
     private OnSuggestionListener mOnSuggestionListener;
     private OnClickListener mOnSearchClickListener;
 
     private boolean mIconifiedByDefault;
     private boolean mIconified;
-    private CursorAdapter mSuggestionsAdapter;
+    CursorAdapter mSuggestionsAdapter;
     private boolean mSubmitButtonEnabled;
     private CharSequence mQueryHint;
     private boolean mQueryRefinement;
@@ -174,10 +175,8 @@ public class SearchView extends LinearLayoutCompat implements CollapsibleActionV
     private boolean mExpandedInActionView;
     private int mCollapsedImeOptions;
 
-    private SearchableInfo mSearchable;
+    SearchableInfo mSearchable;
     private Bundle mAppSearchData;
-
-    private final AppCompatDrawableManager mDrawableManager;
 
     static final AutoCompleteTextViewReflector HIDDEN_METHOD_INVOKER = new AutoCompleteTextViewReflector();
 
@@ -186,6 +185,7 @@ public class SearchView extends LinearLayoutCompat implements CollapsibleActionV
      * initial UI setup. The show operation is asynchronous to account for this.
      */
     private Runnable mShowImeRunnable = new Runnable() {
+        @Override
         public void run() {
             InputMethodManager imm = (InputMethodManager)
                     getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -197,12 +197,14 @@ public class SearchView extends LinearLayoutCompat implements CollapsibleActionV
     };
 
     private final Runnable mUpdateDrawableStateRunnable = new Runnable() {
+        @Override
         public void run() {
             updateFocusedState();
         }
     };
 
     private Runnable mReleaseCursorRunnable = new Runnable() {
+        @Override
         public void run() {
             if (mSuggestionsAdapter != null && mSuggestionsAdapter instanceof SuggestionsAdapter) {
                 mSuggestionsAdapter.changeCursor(null);
@@ -293,8 +295,6 @@ public class SearchView extends LinearLayoutCompat implements CollapsibleActionV
     public SearchView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
 
-        mDrawableManager = AppCompatDrawableManager.get();
-
         final TintTypedArray a = TintTypedArray.obtainStyledAttributes(context,
                 attrs, R.styleable.SearchView, defStyleAttr, 0);
 
@@ -316,8 +316,10 @@ public class SearchView extends LinearLayoutCompat implements CollapsibleActionV
         mCollapsedIcon = (ImageView) findViewById(R.id.search_mag_icon);
 
         // Set up icons and backgrounds.
-        mSearchPlate.setBackgroundDrawable(a.getDrawable(R.styleable.SearchView_queryBackground));
-        mSubmitArea.setBackgroundDrawable(a.getDrawable(R.styleable.SearchView_submitBackground));
+        ViewCompat.setBackground(mSearchPlate,
+                a.getDrawable(R.styleable.SearchView_queryBackground));
+        ViewCompat.setBackground(mSubmitArea,
+                a.getDrawable(R.styleable.SearchView_submitBackground));
         mSearchButton.setImageDrawable(a.getDrawable(R.styleable.SearchView_searchIcon));
         mGoButton.setImageDrawable(a.getDrawable(R.styleable.SearchView_goIcon));
         mCloseButton.setImageDrawable(a.getDrawable(R.styleable.SearchView_closeIcon));
@@ -345,7 +347,7 @@ public class SearchView extends LinearLayoutCompat implements CollapsibleActionV
 
         // Inform any listener of focus changes
         mSearchSrcTextView.setOnFocusChangeListener(new OnFocusChangeListener() {
-
+            @Override
             public void onFocusChange(View v, boolean hasFocus) {
                 if (mOnQueryTextFocusChangeListener != null) {
                     mOnQueryTextFocusChangeListener.onFocusChange(SearchView.this, hasFocus);
@@ -440,13 +442,11 @@ public class SearchView extends LinearLayoutCompat implements CollapsibleActionV
     public void setSearchableInfo(SearchableInfo searchable) {
         mSearchable = searchable;
         if (mSearchable != null) {
-            if (IS_AT_LEAST_FROYO) {
-                updateSearchAutoComplete();
-            }
+            updateSearchAutoComplete();
             updateQueryHint();
         }
         // Cache the voice search capability
-        mVoiceButtonEnabled = IS_AT_LEAST_FROYO && hasVoiceSearch();
+        mVoiceButtonEnabled = hasVoiceSearch();
 
         if (mVoiceButtonEnabled) {
             // Disable the microphone on the keyboard, as a mic is displayed near the text box
@@ -461,6 +461,7 @@ public class SearchView extends LinearLayoutCompat implements CollapsibleActionV
      * @param appSearchData bundle provided by the app when launching the search dialog
      * @hide
      */
+    @RestrictTo(GROUP_ID)
     public void setAppSearchData(Bundle appSearchData) {
         mAppSearchData = appSearchData;
     }
@@ -511,6 +512,7 @@ public class SearchView extends LinearLayoutCompat implements CollapsibleActionV
     }
 
     /** @hide */
+    @RestrictTo(GROUP_ID)
     @Override
     public boolean requestFocus(int direction, Rect previouslyFocusedRect) {
         // Don't accept focus if in the middle of clearing focus
@@ -530,6 +532,7 @@ public class SearchView extends LinearLayoutCompat implements CollapsibleActionV
     }
 
     /** @hide */
+    @RestrictTo(GROUP_ID)
     @Override
     public void clearFocus() {
         mClearingFocus = true;
@@ -656,7 +659,7 @@ public class SearchView extends LinearLayoutCompat implements CollapsibleActionV
         final CharSequence hint;
         if (mQueryHint != null) {
             hint = mQueryHint;
-        } else if (IS_AT_LEAST_FROYO && mSearchable != null && mSearchable.getHintId() != 0) {
+        } else if (mSearchable != null && mSearchable.getHintId() != 0) {
             hint = getContext().getText(mSearchable.getHintId());
         } else {
             hint = mDefaultQueryHint;
@@ -853,8 +856,10 @@ public class SearchView extends LinearLayoutCompat implements CollapsibleActionV
 
         switch (heightMode) {
             case MeasureSpec.AT_MOST:
-            case MeasureSpec.UNSPECIFIED:
                 height = Math.min(getPreferredHeight(), height);
+                break;
+            case MeasureSpec.UNSPECIFIED:
+                height = getPreferredHeight();
                 break;
         }
         heightMode = MeasureSpec.EXACTLY;
@@ -925,7 +930,6 @@ public class SearchView extends LinearLayoutCompat implements CollapsibleActionV
         updateSubmitArea();
     }
 
-    @TargetApi(Build.VERSION_CODES.FROYO)
     private boolean hasVoiceSearch() {
         if (mSearchable != null && mSearchable.getVoiceSearchEnabled()) {
             Intent testIntent = null;
@@ -982,7 +986,7 @@ public class SearchView extends LinearLayoutCompat implements CollapsibleActionV
         post(mUpdateDrawableStateRunnable);
     }
 
-    private void updateFocusedState() {
+    void updateFocusedState() {
         final boolean focused = mSearchSrcTextView.hasFocus();
         final int[] stateSet = focused ? FOCUSED_STATE_SET : EMPTY_STATE_SET;
         final Drawable searchPlateBg = mSearchPlate.getBackground();
@@ -1003,7 +1007,7 @@ public class SearchView extends LinearLayoutCompat implements CollapsibleActionV
         super.onDetachedFromWindow();
     }
 
-    private void setImeVisibility(final boolean visible) {
+    void setImeVisibility(final boolean visible) {
         if (visible) {
             post(mShowImeRunnable);
         } else {
@@ -1019,14 +1023,13 @@ public class SearchView extends LinearLayoutCompat implements CollapsibleActionV
 
     /**
      * Called by the SuggestionsAdapter
-     * @hide
      */
-    /* package */void onQueryRefine(CharSequence queryText) {
+    void onQueryRefine(CharSequence queryText) {
         setQuery(queryText);
     }
 
     private final OnClickListener mOnClickListener = new OnClickListener() {
-
+        @Override
         public void onClick(View v) {
             if (v == mSearchButton) {
                 onSearchClicked();
@@ -1048,6 +1051,7 @@ public class SearchView extends LinearLayoutCompat implements CollapsibleActionV
      * focus.
      */
     View.OnKeyListener mTextKeyListener = new View.OnKeyListener() {
+        @Override
         public boolean onKey(View v, int keyCode, KeyEvent event) {
             // guard against possible race conditions
             if (mSearchable == null) {
@@ -1089,7 +1093,7 @@ public class SearchView extends LinearLayoutCompat implements CollapsibleActionV
      * action keys. If not handled, try refocusing regular characters into the
      * EditText.
      */
-    private boolean onSuggestionsKey(View v, int keyCode, KeyEvent event) {
+    boolean onSuggestionsKey(View v, int keyCode, KeyEvent event) {
         // guard against possible race conditions (late arrival after dismiss)
         if (mSearchable == null) {
             return false;
@@ -1157,7 +1161,6 @@ public class SearchView extends LinearLayoutCompat implements CollapsibleActionV
     /**
      * Updates the auto-complete text view.
      */
-    @TargetApi(Build.VERSION_CODES.FROYO)
     private void updateSearchAutoComplete() {
         mSearchSrcTextView.setThreshold(mSearchable.getSuggestThreshold());
         mSearchSrcTextView.setImeOptions(mSearchable.getImeOptions());
@@ -1215,13 +1218,14 @@ public class SearchView extends LinearLayoutCompat implements CollapsibleActionV
         /**
          * Called when the input method default action key is pressed.
          */
+        @Override
         public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
             onSubmitQuery();
             return true;
         }
     };
 
-    private void onTextChanged(CharSequence newText) {
+    void onTextChanged(CharSequence newText) {
         CharSequence text = mSearchSrcTextView.getText();
         mUserQuery = text;
         boolean hasText = !TextUtils.isEmpty(text);
@@ -1235,7 +1239,7 @@ public class SearchView extends LinearLayoutCompat implements CollapsibleActionV
         mOldQueryText = newText.toString();
     }
 
-    private void onSubmitQuery() {
+    void onSubmitQuery() {
         CharSequence query = mSearchSrcTextView.getText();
         if (query != null && TextUtils.getTrimmedLength(query) > 0) {
             if (mOnQueryChangeListener == null
@@ -1253,7 +1257,7 @@ public class SearchView extends LinearLayoutCompat implements CollapsibleActionV
         mSearchSrcTextView.dismissDropDown();
     }
 
-    private void onCloseClicked() {
+    void onCloseClicked() {
         CharSequence text = mSearchSrcTextView.getText();
         if (TextUtils.isEmpty(text)) {
             if (mIconifiedByDefault) {
@@ -1273,7 +1277,7 @@ public class SearchView extends LinearLayoutCompat implements CollapsibleActionV
 
     }
 
-    private void onSearchClicked() {
+    void onSearchClicked() {
         updateViewsVisibility(false);
         mSearchSrcTextView.requestFocus();
         setImeVisibility(true);
@@ -1282,8 +1286,7 @@ public class SearchView extends LinearLayoutCompat implements CollapsibleActionV
         }
     }
 
-    @TargetApi(Build.VERSION_CODES.FROYO)
-    private void onVoiceClicked() {
+    void onVoiceClicked() {
         // guard against possible race conditions
         if (mSearchable == null) {
             return;
@@ -1408,7 +1411,7 @@ public class SearchView extends LinearLayoutCompat implements CollapsibleActionV
         requestLayout();
     }
 
-    private void adjustDropDownSizeAndPosition() {
+    void adjustDropDownSizeAndPosition() {
         if (mDropDownAnchor.getWidth() > 1) {
             Resources res = getContext().getResources();
             int anchorPadding = mSearchPlate.getPaddingLeft();
@@ -1432,7 +1435,7 @@ public class SearchView extends LinearLayoutCompat implements CollapsibleActionV
         }
     }
 
-    private boolean onItemClicked(int position, int actionKey, String actionMsg) {
+    boolean onItemClicked(int position, int actionKey, String actionMsg) {
         if (mOnSuggestionListener == null
                 || !mOnSuggestionListener.onSuggestionClick(position)) {
             launchSuggestion(position, KeyEvent.KEYCODE_UNKNOWN, null);
@@ -1443,7 +1446,7 @@ public class SearchView extends LinearLayoutCompat implements CollapsibleActionV
         return false;
     }
 
-    private boolean onItemSelected(int position) {
+    boolean onItemSelected(int position) {
         if (mOnSuggestionListener == null
                 || !mOnSuggestionListener.onSuggestionSelect(position)) {
             rewriteQueryFromSuggestion(position);
@@ -1457,6 +1460,7 @@ public class SearchView extends LinearLayoutCompat implements CollapsibleActionV
         /**
          * Implements OnItemClickListener
          */
+        @Override
         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
             if (DBG) Log.d(LOG_TAG, "onItemClick() position " + position);
             onItemClicked(position, KeyEvent.KEYCODE_UNKNOWN, null);
@@ -1468,6 +1472,7 @@ public class SearchView extends LinearLayoutCompat implements CollapsibleActionV
         /**
          * Implements OnItemSelectedListener
          */
+        @Override
         public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
             if (DBG) Log.d(LOG_TAG, "onItemSelected() position " + position);
             SearchView.this.onItemSelected(position);
@@ -1476,6 +1481,7 @@ public class SearchView extends LinearLayoutCompat implements CollapsibleActionV
         /**
          * Implements OnItemSelectedListener
          */
+        @Override
         public void onNothingSelected(AdapterView<?> parent) {
             if (DBG)
                 Log.d(LOG_TAG, "onNothingSelected()");
@@ -1557,7 +1563,7 @@ public class SearchView extends LinearLayoutCompat implements CollapsibleActionV
         mSearchSrcTextView.setSelection(TextUtils.isEmpty(query) ? 0 : query.length());
     }
 
-    private void launchQuerySearch(int actionKey, String actionMsg, String query) {
+    void launchQuerySearch(int actionKey, String actionMsg, String query) {
         String action = Intent.ACTION_SEARCH;
         Intent intent = createIntent(action, null, null, query, actionKey, actionMsg);
         getContext().startActivity(intent);
@@ -1601,16 +1607,13 @@ public class SearchView extends LinearLayoutCompat implements CollapsibleActionV
             intent.putExtra(SearchManager.ACTION_KEY, actionKey);
             intent.putExtra(SearchManager.ACTION_MSG, actionMsg);
         }
-        if (IS_AT_LEAST_FROYO) {
-            intent.setComponent(mSearchable.getSearchActivity());
-        }
+        intent.setComponent(mSearchable.getSearchActivity());
         return intent;
     }
 
     /**
      * Create and return an Intent that can launch the voice search activity for web search.
      */
-    @TargetApi(Build.VERSION_CODES.FROYO)
     private Intent createVoiceWebSearchIntent(Intent baseIntent, SearchableInfo searchable) {
         Intent voiceIntent = new Intent(baseIntent);
         ComponentName searchActivity = searchable.getSearchActivity();
@@ -1626,7 +1629,6 @@ public class SearchView extends LinearLayoutCompat implements CollapsibleActionV
      * @param baseIntent The voice app search intent to start from
      * @return A completely-configured intent ready to send to the voice search activity
      */
-    @TargetApi(Build.VERSION_CODES.FROYO)
     private Intent createVoiceAppSearchIntent(Intent baseIntent, SearchableInfo searchable) {
         ComponentName searchActivity = searchable.getSearchActivity();
 
@@ -1658,21 +1660,20 @@ public class SearchView extends LinearLayoutCompat implements CollapsibleActionV
         String language = null;
         int maxResults = 1;
 
-        if (Build.VERSION.SDK_INT >= 8) {
-            Resources resources = getResources();
-            if (searchable.getVoiceLanguageModeId() != 0) {
-                languageModel = resources.getString(searchable.getVoiceLanguageModeId());
-            }
-            if (searchable.getVoicePromptTextId() != 0) {
-                prompt = resources.getString(searchable.getVoicePromptTextId());
-            }
-            if (searchable.getVoiceLanguageId() != 0) {
-                language = resources.getString(searchable.getVoiceLanguageId());
-            }
-            if (searchable.getVoiceMaxResults() != 0) {
-                maxResults = searchable.getVoiceMaxResults();
-            }
+        Resources resources = getResources();
+        if (searchable.getVoiceLanguageModeId() != 0) {
+            languageModel = resources.getString(searchable.getVoiceLanguageModeId());
         }
+        if (searchable.getVoicePromptTextId() != 0) {
+            prompt = resources.getString(searchable.getVoicePromptTextId());
+        }
+        if (searchable.getVoiceLanguageId() != 0) {
+            language = resources.getString(searchable.getVoiceLanguageId());
+        }
+        if (searchable.getVoiceMaxResults() != 0) {
+            maxResults = searchable.getVoiceMaxResults();
+        }
+
         voiceIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, languageModel);
         voiceIntent.putExtra(RecognizerIntent.EXTRA_PROMPT, prompt);
         voiceIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, language);
@@ -1705,7 +1706,7 @@ public class SearchView extends LinearLayoutCompat implements CollapsibleActionV
             // use specific action if supplied, or default action if supplied, or fixed default
             String action = getColumnString(c, SearchManager.SUGGEST_COLUMN_INTENT_ACTION);
 
-            if (action == null && Build.VERSION.SDK_INT >= 8) {
+            if (action == null) {
                 action = mSearchable.getSuggestIntentAction();
             }
             if (action == null) {
@@ -1714,7 +1715,7 @@ public class SearchView extends LinearLayoutCompat implements CollapsibleActionV
 
             // use specific data if supplied, or default data if supplied
             String data = getColumnString(c, SearchManager.SUGGEST_COLUMN_INTENT_DATA);
-            if (IS_AT_LEAST_FROYO && data == null) {
+            if (data == null) {
                 data = mSearchable.getSuggestIntentData();
             }
             // then, if an ID was provided, append it.
@@ -1743,7 +1744,7 @@ public class SearchView extends LinearLayoutCompat implements CollapsibleActionV
         }
     }
 
-    private void forceSuggestionQuery() {
+    void forceSuggestionQuery() {
         HIDDEN_METHOD_INVOKER.doBeforeTextChanged(mSearchSrcTextView);
         HIDDEN_METHOD_INVOKER.doAfterTextChanged(mSearchSrcTextView);
     }
@@ -1757,14 +1758,16 @@ public class SearchView extends LinearLayoutCompat implements CollapsibleActionV
      * Callback to watch the text field for empty/non-empty
      */
     private TextWatcher mTextWatcher = new TextWatcher() {
-
+        @Override
         public void beforeTextChanged(CharSequence s, int start, int before, int after) { }
 
+        @Override
         public void onTextChanged(CharSequence s, int start,
                 int before, int after) {
             SearchView.this.onTextChanged(s);
         }
 
+        @Override
         public void afterTextChanged(Editable s) {
         }
     };
@@ -1868,6 +1871,7 @@ public class SearchView extends LinearLayoutCompat implements CollapsibleActionV
      * Local subclass for AutoCompleteTextView.
      * @hide
      */
+    @RestrictTo(GROUP_ID)
     public static class SearchAutoComplete extends AppCompatAutoCompleteTextView {
 
         private int mThreshold;

@@ -1,0 +1,46 @@
+[
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "RECIPE_MODULE[disk]/resources/statvfs.py",
+      "[SLAVE_BUILD]"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "usage1",
+    "stdout": "/path/to/tmp/json",
+    "~followup_annotations": [
+      "@@@STEP_LOG_LINE@json.output@{@@@",
+      "@@@STEP_LOG_LINE@json.output@  \"x\": 1@@@",
+      "@@@STEP_LOG_LINE@json.output@}@@@",
+      "@@@STEP_LOG_END@json.output@@@",
+      "@@@STEP_LOG_LINE@exception@KeyError('capacity',)@@@",
+      "@@@STEP_LOG_END@exception@@@",
+      "@@@STEP_WARNINGS@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "RECIPE_MODULE[disk]/resources/statvfs.py",
+      "[SLAVE_BUILD]"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "usage2",
+    "stdout": "/path/to/tmp/json",
+    "~followup_annotations": [
+      "@@@STEP_TEXT@51.00/100.00 GiB (51%) used@@@",
+      "@@@STEP_LOG_LINE@json.output@{@@@",
+      "@@@STEP_LOG_LINE@json.output@  \"capacity\": 107374182400, @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"used\": 54760833024@@@",
+      "@@@STEP_LOG_LINE@json.output@}@@@",
+      "@@@STEP_LOG_END@json.output@@@"
+    ]
+  },
+  {
+    "name": "$result",
+    "recipe_result": null,
+    "status_code": 0
+  }
+]

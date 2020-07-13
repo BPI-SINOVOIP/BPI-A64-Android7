@@ -27,6 +27,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.Nullable;
+import android.support.annotation.RestrictTo;
 import android.support.annotation.XmlRes;
 import android.support.v4.content.res.TypedArrayUtils;
 import android.support.v4.view.ViewCompat;
@@ -48,6 +49,8 @@ import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
+import static android.support.annotation.RestrictTo.Scope.GROUP_ID;
 
 /**
  * Shows a hierarchy of {@link Preference} objects as
@@ -100,14 +103,14 @@ import android.view.ViewGroup;
  * <p>The following sample code shows a simple preference fragment that is
  * populated from a resource.  The resource it loads is:</p>
  *
- * {@sample development/samples/ApiDemos/res/xml/preferences.xml preferences}
+ * {@sample frameworks/support/samples/SupportPreferenceDemos/res/xml/preferences.xml preferences}
  *
  * <p>The fragment implementation itself simply populates the preferences
  * when created.  Note that the preferences framework takes care of loading
  * the current values out of the app preferences and writing them when changed:</p>
  *
- * {@sample development/samples/ApiDemos/src/com/example/android/apis/preference/FragmentPreferences.java
- *      fragment}
+ * {@sample frameworks/support/samples/SupportPreferenceDemos/src/com/example/android/supportpreference/FragmentSupportPreferences.java
+ *      support_fragment}
  *
  * @see Preference
  * @see PreferenceScreen
@@ -552,10 +555,12 @@ public abstract class PreferenceFragment extends Fragment implements
     }
 
     /** @hide */
+    @RestrictTo(GROUP_ID)
     protected void onBindPreferences() {
     }
 
     /** @hide */
+    @RestrictTo(GROUP_ID)
     protected void onUnbindPreferences() {
     }
 
@@ -658,6 +663,7 @@ public abstract class PreferenceFragment extends Fragment implements
      * @return Fragment to possibly use as a callback
      * @hide
      */
+    @RestrictTo(GROUP_ID)
     public Fragment getCallbackFragment() {
         return null;
     }

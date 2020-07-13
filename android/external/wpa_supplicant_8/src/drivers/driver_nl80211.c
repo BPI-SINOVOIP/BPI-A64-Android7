@@ -2101,6 +2101,49 @@ static int nl80211_register_spurious_class3(struct i802_bss *bss)
 }
 
 
+static int nl80211_action_subscribe_ap(struct i802_bss *bss)
+{
+	int ret = 0;
+
+	/* Public Action frames */
+	if (nl80211_register_action_frame(bss, (u8 *) "\x04", 1) < 0)
+		ret = -1;
+	/* RRM Measurement Report */
+	if (nl80211_register_action_frame(bss, (u8 *) "\x05\x01", 2) < 0)
+		ret = -1;
+	/* RRM Neighbor Report Request */
+	if (nl80211_register_action_frame(bss, (u8 *) "\x05\x04", 2) < 0)
+		ret = -1;
+	/* FT Action frames */
+	if (nl80211_register_action_frame(bss, (u8 *) "\x06", 1) < 0)
+		ret = -1;
+#ifdef CONFIG_IEEE80211W
+	/* SA Query */
+	if (nl80211_register_action_frame(bss, (u8 *) "\x08", 1) < 0)
+		ret = -1;
+#endif /* CONFIG_IEEE80211W */
+	/* Protected Dual of Public Action */
+	if (nl80211_register_action_frame(bss, (u8 *) "\x09", 1) < 0)
+		ret = -1;
+	/* WNM */
+	if (nl80211_register_action_frame(bss, (u8 *) "\x0a", 1) < 0)
+		ret = -1;
+	/* WMM */
+	if (nl80211_register_action_frame(bss, (u8 *) "\x11", 1) < 0)
+		ret = -1;
+#ifdef CONFIG_FST
+	/* FST Action frames */
+	if (nl80211_register_action_frame(bss, (u8 *) "\x12", 1) < 0)
+		ret = -1;
+#endif /* CONFIG_FST */
+	/* Vendor-specific */
+	if (nl80211_register_action_frame(bss, (u8 *) "\x7f", 1) < 0)
+		ret = -1;
+
+	return ret;
+}
+
+
 static int nl80211_mgmt_subscribe_ap(struct i802_bss *bss)
 {
 	static const int stypes[] = {
@@ -2109,7 +2152,6 @@ static int nl80211_mgmt_subscribe_ap(struct i802_bss *bss)
 		WLAN_FC_STYPE_REASSOC_REQ,
 		WLAN_FC_STYPE_DISASSOC,
 		WLAN_FC_STYPE_DEAUTH,
-		WLAN_FC_STYPE_ACTION,
 		WLAN_FC_STYPE_PROBE_REQ,
 /* Beacon doesn't work as mac80211 doesn't currently allow
  * it, but it wouldn't really be the right thing anyway as
@@ -2134,6 +2176,9 @@ static int nl80211_mgmt_subscribe_ap(struct i802_bss *bss)
 		}
 	}
 
+	if (nl80211_action_subscribe_ap(bss))
+		goto out_err;
+
 	if (nl80211_register_spurious_class3(bss))
 		goto out_err;
 
@@ -2156,10 +2201,7 @@ static int nl80211_mgmt_subscribe_ap_dev_sme(struct i802_bss *bss)
 	wpa_printf(MSG_DEBUG, "nl80211: Subscribe to mgmt frames with AP "
 		   "handle %p (device SME)", bss->nl_mgmt);
 
-	if (nl80211_register_frame(bss, bss->nl_mgmt,
-				   (WLAN_FC_TYPE_MGMT << 2) |
-				   (WLAN_FC_STYPE_ACTION << 4),
-				   NULL, 0) < 0)
+	if (nl80211_action_subscribe_ap(bss))
 		goto out_err;
 
 	nl80211_mgmt_handle_register_eloop(bss);
@@ -4328,6 +4370,9 @@ static int nl80211_setup_ap(struct i802_bss *bss)
 	wpa_printf(MSG_DEBUG, "nl80211: Setup AP(%s) - device_ap_sme=%d use_monitor=%d",
 		   bss->ifname, drv->device_ap_sme, drv->use_monitor);
 
+	#ifdef ENABLE_XR_CHANGES
+		drv->use_monitor = 1;
+	#endif
 	/*
 	 * Disable Probe Request reporting unless we need it in this way for
 	 * devices that include the AP SME, in the other case (unless using
@@ -8215,7 +8260,56 @@ static int nl80211_set_qos_map(void *priv, const u8 *qos_map_set,
 	return ret;
 }
 
+#ifdef ENABLE_XR_CHANGES
+static int nl80211_set_wowlan(void *priv,
+struct wpa_driver_wowlan_params *wowlan_params)
+{
+	struct i802_bss *bss = priv;
+	struct wpa_driver_nl80211_data *drv = bss->drv;
+	struct nl_msg *msg, *triggers;
+	int ret;
+	msg = nlmsg_alloc();
+	if (!msg)
+	   return -ENOMEM;
+        nl80211_cmd(drv, msg, 0, NL80211_CMD_SET_WOWLAN);
+        NLA_PUT_U32(msg, NL80211_ATTR_IFINDEX, drv->ifindex);
+        triggers = nlmsg_alloc();
+        if (!triggers) {
+            nlmsg_free(msg);
+            return -ENOMEM;
+         }
+	if (wowlan_params->any) {
+	   NLA_PUT_FLAG(triggers, NL80211_WOWLAN_TRIG_ANY);
+	}
+	if (wowlan_params->disconnect) {
+	   NLA_PUT_FLAG(triggers, NL80211_WOWLAN_TRIG_DISCONNECT);
+	}
+	if (wowlan_params->magic_pkt) {
+	   NLA_PUT_FLAG(triggers, NL80211_WOWLAN_TRIG_MAGIC_PKT);
+	}
 
+	ret = nla_put_nested(msg, NL80211_ATTR_WOWLAN_TRIGGERS, triggers);
+	nlmsg_free(triggers);
+
+	if (ret)
+	  goto nla_put_failure;
+        if (wowlan_params->n_patterns) {
+	   wpa_printf(MSG_DEBUG, "TODO: Patterns, implement me!");
+	}
+
+	ret = send_and_recv_msgs(drv, msg, NULL, NULL);
+	msg = NULL;
+	if (ret)
+	   wpa_printf(MSG_DEBUG, "nl80211_set_wowlan failed: ret=%d ""(%s)", ret, strerror(-ret));
+
+     return ret;
+
+nla_put_failure:
+	nlmsg_free(msg);
+	return -ENOBUFS;
+
+}
+#else
 static int nl80211_set_wowlan(void *priv,
 			      const struct wowlan_triggers *triggers)
 {
@@ -8256,7 +8350,7 @@ static int nl80211_set_wowlan(void *priv,
 
 	return ret;
 }
-
+#endif
 
 #ifdef CONFIG_DRIVER_NL80211_QCA
 static int nl80211_roaming(void *priv, int allowed, const u8 *bssid)

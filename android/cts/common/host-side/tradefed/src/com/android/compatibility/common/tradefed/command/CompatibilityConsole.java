@@ -20,10 +20,12 @@ import com.android.compatibility.common.tradefed.build.CompatibilityBuildHelper;
 import com.android.compatibility.common.tradefed.build.CompatibilityBuildProvider;
 import com.android.compatibility.common.tradefed.result.IInvocationResultRepo;
 import com.android.compatibility.common.tradefed.result.InvocationResultRepo;
+import com.android.compatibility.common.tradefed.result.SubPlanCreator;
 import com.android.compatibility.common.tradefed.testtype.ModuleRepo;
 import com.android.compatibility.common.util.IInvocationResult;
 import com.android.compatibility.common.util.TestStatus;
 import com.android.tradefed.command.Console;
+import com.android.tradefed.config.ArgsOptionParser;
 import com.android.tradefed.config.ConfigurationException;
 import com.android.tradefed.config.ConfigurationFactory;
 import com.android.tradefed.config.IConfiguration;
@@ -100,6 +102,12 @@ public class CompatibilityConsole extends Console {
                 listResults();
             }
         }, LIST_PATTERN, "r(?:esults)?");
+        trie.put(new Runnable() {
+            @Override
+            public void run() {
+                listSubPlans();
+            }
+        }, LIST_PATTERN, "s(?:ubplans)?");
         trie.put(new ArgRunnable<CaptureList>() {
             @Override
             public void run(CaptureList args) {
@@ -113,6 +121,24 @@ public class CompatibilityConsole extends Console {
                 splitModules(shards);
             }
         }, "split", "m(?:odules)?", "(\\d+)");
+        trie.put(new ArgRunnable<CaptureList>() {
+            @Override
+            public void run(CaptureList args) {
+                // Skip 2 tokens to get past "add" and "subplan"
+                String[] flatArgs = new String[args.size() - 2];
+                for (int i = 2; i < args.size(); i++) {
+                    flatArgs[i - 2] = args.get(i).get(0);
+                }
+                addSubPlan(flatArgs);
+            }
+        }, "a(?:dd)?", "s(?:ubplan)?", null);
+        trie.put(new Runnable() {
+            @Override
+            public void run() {
+                printLine(String.format("Android %s %s (%s)", SuiteInfo.FULLNAME,
+                        SuiteInfo.VERSION, SuiteInfo.BUILD_NUMBER));
+            }
+        }, "version"); // override tradefed 'version' command to print test suite name and version
 
         // find existing help for 'LIST_PATTERN' commands, and append these commands help
         String listHelp = commandHelp.get(LIST_PATTERN);
@@ -170,7 +196,7 @@ public class CompatibilityConsole extends Console {
         helpBuilder.append("Options:\n");
         helpBuilder.append("  --serial/-s <device_id>: The device to run the test on.\n");
         helpBuilder.append("  --abi/-a <abi>: The ABI to run the test against.\n");
-        helpBuilder.append("  --shards <shards>: Shards a run into the given number of independant");
+        helpBuilder.append("  --shards <shards>: Shards a run into the given number of independent");
         helpBuilder.append(" chunks, to run on multiple devices in parallel.\n");
         helpBuilder.append("  --logcat-on-failure: Capture logcat when a test fails.\n");
         helpBuilder.append("  --bugreport-on-failure: Capture a bugreport when a test fails.\n");
@@ -185,6 +211,14 @@ public class CompatibilityConsole extends Console {
         helpBuilder.append("  l/list r/results: list results currently in the repository\n");
         helpBuilder.append("Dump:\n");
         helpBuilder.append("  d/dump l/logs: dump the tradefed logs for all running invocations\n");
+        helpBuilder.append("Add:\n");
+        helpBuilder.append("  a/add s/subplan: create a subplan from a previous session\n");
+        helpBuilder.append("Options:\n");
+        helpBuilder.append("  --session/-s <session_id>: The session used to create a subplan.\n");
+        helpBuilder.append("  --name/-n <subplan_name>: The name of the new subplan.\n");
+        helpBuilder.append("  --result-type/-r <status>: Which results to include in the");
+        helpBuilder.append(" subplan. One of passed, failed, not_executed. Repeatable.\n");
+
         return helpBuilder.toString();
     }
 
@@ -339,6 +373,7 @@ public class CompatibilityConsole extends Console {
                         Integer.toString(i),
                         Integer.toString(result.countResults(TestStatus.PASS)),
                         Integer.toString(result.countResults(TestStatus.FAIL)),
+                        Integer.toString(result.getNotExecuted()),
                         moduleProgress,
                         CompatibilityBuildHelper.getDirSuffix(result.getStartTime()),
                         result.getTestPlan(),
@@ -350,12 +385,48 @@ public class CompatibilityConsole extends Console {
 
 
             // add the table header to the beginning of the list
-            table.add(0, Arrays.asList("Session", "Pass", "Fail", "Modules Complete", "Result Directory",
-                    "Test Plan", "Device serial(s)", "Build ID", "Product"));
+            table.add(0, Arrays.asList("Session", "Pass", "Fail", "Not Executed",
+                    "Modules Complete", "Result Directory", "Test Plan", "Device serial(s)",
+                    "Build ID", "Product"));
             tableFormatter.displayTable(table, new PrintWriter(System.out, true));
         } else {
             printLine(String.format("No results found"));
         }
+    }
+
+    private void listSubPlans() {
+        File[] files = null;
+        try {
+            files = getBuildHelper().getSubPlansDir().listFiles();
+        } catch (FileNotFoundException e) {
+            printLine(e.getMessage());
+            e.printStackTrace();
+        }
+        if (files != null && files.length > 0) {
+            List<String> subPlans = new ArrayList<>();
+            for (File subPlanFile : files) {
+                subPlans.add(FileUtil.getBaseName(subPlanFile.getName()));
+            }
+            Collections.sort(subPlans);
+            for (String subPlan : subPlans) {
+                printLine(subPlan);
+            }
+        } else {
+            printLine("No subplans found");
+        }
+    }
+
+    private void addSubPlan(String[] flatArgs) {
+        SubPlanCreator creator = new SubPlanCreator();
+        try {
+            ArgsOptionParser optionParser = new ArgsOptionParser(creator);
+            optionParser.parse(Arrays.asList(flatArgs));
+            creator.createAndSerializeSubPlan(getBuildHelper());
+        } catch (ConfigurationException e) {
+            printLine("Error: " + e.getMessage());
+            printLine(ArgsOptionParser.getOptionHelp(false, creator));
+        }
+
     }
 
     private CompatibilityBuildHelper getBuildHelper() {

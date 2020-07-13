@@ -49,7 +49,7 @@ namespace android {
  * level 3:     1000000         1800000            soso
  * level 4:     500000          1000000            badly
  */
-static const size_t encoderBitrate[5] = {5000000, 3000000, 2000000, 1000000, 500000};
+static const size_t encoderBitrate[5] = {4000000, 2500000, 1500000, 800000, 350000};
 //static const size_t encoderBitrateSize = sizeof(encoderBitrate)/sizeof(encoderBitrate[0]);
 
 #if SW_DYNAMIC_ENDCOE_BITRATE_DEBUG

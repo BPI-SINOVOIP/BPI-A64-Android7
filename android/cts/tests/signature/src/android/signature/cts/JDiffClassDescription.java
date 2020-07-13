@@ -1213,7 +1213,9 @@ public class JDiffClassDescription {
     private static String scrubJdiffParamType(String paramType) {
         // <? extends java.lang.Object and <?> are the same, so
         // canonicalize them to one form.
-        return paramType.replace("<? extends java.lang.Object>", "<?>");
+        return paramType
+            .replace("? extends java.lang.Object", "?")
+            .replace("? super java.lang.Object", "? super ?");
     }
 
     /**

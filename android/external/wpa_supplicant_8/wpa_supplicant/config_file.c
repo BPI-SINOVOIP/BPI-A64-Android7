@@ -1173,6 +1173,14 @@ static void wpa_config_write_global(FILE *f, struct wpa_config *config)
 			config->bss_expiration_scan_count);
 	if (config->filter_ssids)
 		fprintf(f, "filter_ssids=%d\n", config->filter_ssids);
+#ifdef ENABLE_XR_CHANGES
+#ifdef CONFIG_AP
+	if (config->wmm_enabled)
+		fprintf(f, "wmm_enabled=%d\n", config->wmm_enabled);
+	if (config->uapsd_enabled)
+		fprintf(f, "uapsd_enabled=%d\n", config->uapsd_enabled);
+#endif /* CONFIG_AP */
+#endif /* ENABLE_XR_CHANGES */
 	if (config->max_num_sta != DEFAULT_MAX_NUM_STA)
 		fprintf(f, "max_num_sta=%u\n", config->max_num_sta);
 	if (config->disassoc_low_ack)

@@ -35,7 +35,7 @@
 #include "src/global-handles.h"
 #include "src/macro-assembler.h"
 #include "src/objects.h"
-#include "test/cctest/heap/utils-inl.h"
+#include "test/cctest/heap/heap-utils.h"
 
 using namespace v8::internal;
 
@@ -82,17 +82,17 @@ static void TestHashMap(Handle<HashMap> table) {
     CHECK_EQ(table->NumberOfElements(), i + 1);
     CHECK_NE(table->FindEntry(key), HashMap::kNotFound);
     CHECK_EQ(table->Lookup(key), *value);
-    CHECK(key->GetIdentityHash()->IsSmi());
+    CHECK(JSReceiver::GetIdentityHash(isolate, key)->IsSmi());
   }
 
   // Keys never added to the map which already have an identity hash
   // code should not be found.
   for (int i = 0; i < 100; i++) {
     Handle<JSReceiver> key = factory->NewJSArray(7);
-    CHECK(JSReceiver::GetOrCreateIdentityHash(key)->IsSmi());
+    CHECK(JSReceiver::GetOrCreateIdentityHash(isolate, key)->IsSmi());
     CHECK_EQ(table->FindEntry(key), HashMap::kNotFound);
     CHECK_EQ(table->Lookup(key), CcTest::heap()->the_hole_value());
-    CHECK(key->GetIdentityHash()->IsSmi());
+    CHECK(JSReceiver::GetIdentityHash(isolate, key)->IsSmi());
   }
 
   // Keys that don't have an identity hash should not be found and also
@@ -100,8 +100,8 @@ static void TestHashMap(Handle<HashMap> table) {
   for (int i = 0; i < 100; i++) {
     Handle<JSReceiver> key = factory->NewJSArray(7);
     CHECK_EQ(table->Lookup(key), CcTest::heap()->the_hole_value());
-    Object* identity_hash = key->GetIdentityHash();
-    CHECK_EQ(identity_hash, CcTest::heap()->undefined_value());
+    Object* identity_hash = JSReceiver::GetIdentityHash(isolate, key);
+    CHECK_EQ(CcTest::heap()->undefined_value(), identity_hash);
   }
 }
 
@@ -175,8 +175,8 @@ static void TestHashSetCausesGC(Handle<HashSet> table) {
 
   // Simulate a full heap so that generating an identity hash code
   // in subsequent calls will request GC.
-  SimulateFullSpace(CcTest::heap()->new_space());
-  SimulateFullSpace(CcTest::heap()->old_space());
+  heap::SimulateFullSpace(CcTest::heap()->new_space());
+  heap::SimulateFullSpace(CcTest::heap()->old_space());
 
   // Calling Contains() should not cause GC ever.
   int gc_count = isolate->heap()->gc_count();
@@ -206,11 +206,11 @@ static void TestHashMapCausesGC(Handle<HashMap> table) {
 
   // Simulate a full heap so that generating an identity hash code
   // in subsequent calls will request GC.
-  SimulateFullSpace(CcTest::heap()->new_space());
-  SimulateFullSpace(CcTest::heap()->old_space());
+  heap::SimulateFullSpace(CcTest::heap()->new_space());
+  heap::SimulateFullSpace(CcTest::heap()->old_space());
 
   // Calling Lookup() should not cause GC ever.
-  CHECK(table->Lookup(key)->IsTheHole());
+  CHECK(table->Lookup(key)->IsTheHole(isolate));
 
   // Calling Put() should request GC by returning a failure.
   int gc_count = isolate->heap()->gc_count();

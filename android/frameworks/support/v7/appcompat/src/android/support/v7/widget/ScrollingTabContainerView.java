@@ -19,6 +19,7 @@ import android.content.Context;
 import android.content.res.Configuration;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
+import android.support.annotation.RestrictTo;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.view.ViewPropertyAnimatorCompat;
@@ -45,12 +46,15 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import static android.support.annotation.RestrictTo.Scope.GROUP_ID;
+
 /**
  * This widget implements the dynamic action bar tab behavior that can change across different
  * configurations or circumstances.
  *
  * @hide
  */
+@RestrictTo(GROUP_ID)
 public class ScrollingTabContainerView extends HorizontalScrollView
         implements AdapterView.OnItemSelectedListener {
 
@@ -58,7 +62,7 @@ public class ScrollingTabContainerView extends HorizontalScrollView
     Runnable mTabSelector;
     private TabClickListener mTabClickListener;
 
-    private LinearLayoutCompat mTabLayout;
+    LinearLayoutCompat mTabLayout;
     private Spinner mTabSpinner;
     private boolean mAllowCollapse;
 
@@ -216,10 +220,9 @@ public class ScrollingTabContainerView extends HorizontalScrollView
         return spinner;
     }
 
+    @Override
     protected void onConfigurationChanged(Configuration newConfig) {
-        if (Build.VERSION.SDK_INT >= 8) {
-            super.onConfigurationChanged(newConfig);
-        }
+        super.onConfigurationChanged(newConfig);
 
         ActionBarPolicy abp = ActionBarPolicy.get(getContext());
         // Action bar can change size on configuration changes.
@@ -259,6 +262,7 @@ public class ScrollingTabContainerView extends HorizontalScrollView
             removeCallbacks(mTabSelector);
         }
         mTabSelector = new Runnable() {
+            @Override
             public void run() {
                 final int scrollPos = tabView.getLeft() - (getWidth() - tabView.getWidth()) / 2;
                 smoothScrollTo(scrollPos, 0);
@@ -285,7 +289,7 @@ public class ScrollingTabContainerView extends HorizontalScrollView
         }
     }
 
-    private TabView createTabView(ActionBar.Tab tab, boolean forAdapter) {
+    TabView createTabView(ActionBar.Tab tab, boolean forAdapter) {
         final TabView tabView = new TabView(getContext(), tab, forAdapter);
         if (forAdapter) {
             tabView.setBackgroundDrawable(null);
@@ -469,7 +473,7 @@ public class ScrollingTabContainerView extends HorizontalScrollView
 
                 if (icon != null) {
                     if (mIconView == null) {
-                        ImageView iconView = new ImageView(getContext());
+                        ImageView iconView = new AppCompatImageView(getContext());
                         LayoutParams lp = new LayoutParams(LayoutParams.WRAP_CONTENT,
                                 LayoutParams.WRAP_CONTENT);
                         lp.gravity = Gravity.CENTER_VERTICAL;
@@ -517,6 +521,7 @@ public class ScrollingTabContainerView extends HorizontalScrollView
             }
         }
 
+        @Override
         public boolean onLongClick(View v) {
             final int[] screenPos = new int[2];
             getLocationOnScreen(screenPos);
@@ -542,6 +547,9 @@ public class ScrollingTabContainerView extends HorizontalScrollView
     }
 
     private class TabAdapter extends BaseAdapter {
+        TabAdapter() {
+        }
+
         @Override
         public int getCount() {
             return mTabLayout.getChildCount();
@@ -569,6 +577,10 @@ public class ScrollingTabContainerView extends HorizontalScrollView
     }
 
     private class TabClickListener implements OnClickListener {
+        TabClickListener() {
+        }
+
+        @Override
         public void onClick(View view) {
             TabView tabView = (TabView) view;
             tabView.getTab().select();

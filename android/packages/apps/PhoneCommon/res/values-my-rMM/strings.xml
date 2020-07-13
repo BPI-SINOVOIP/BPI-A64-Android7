@@ -47,6 +47,11 @@
     <string name="callFailed_unobtainable_number" msgid="124621797631734731">"နံပါတ် မမှန်"</string>
     <string name="incall_error_missing_voicemail_number" msgid="3651090591812220874">"အသံစာ နံပါတ် မသိရ။"</string>
     <string name="callFailed_video_call_tty_enabled" msgid="186585701668604271">"TTY ဖွင့်ထားစဉ် ဗီဒီယိုခေါ်ဆို၍မရပါ။"</string>
+    <string name="callEnded_pulled" msgid="437630601519502587">"ခေါ်ဆိုမှုကို အခြားကိရိယာသို့ လွှဲပြောင်းလိုက်ပါပြီ။"</string>
     <string name="ringtone_silent" msgid="249805466934178869">"မရှိ"</string>
     <string name="ringtone_unknown" msgid="2303463713486734520">"မသိသောမြည်သံ"</string>
+    <string name="callFailed_maximum_reached" msgid="4823790040422765056">"အသုံးပြုနိုင်သောလိုင်းအားလုံးကို သုံးနေပါသည်။ ခေါ်ဆိုမှုပြုလုပ်ရန် ဤကိရိယာ (သို့) သင်၏အခြားကိရိယာများရှိ ခေါ်ဆိုမှုတစ်ခုကို ဖြတ်တောက်ပါ။"</string>
+    <string name="callFailed_data_disabled" msgid="3885826754435317856">"ဆယ်လူလာဒေတာကို ပိတ်လိုက်သောကြောင့် ခေါ်ဆိုမှု ပြီးဆုံးသွားခဲ့သည်။"</string>
+    <string name="callFailed_data_limit_reached_description" msgid="1439284832802552582">"ဆယ်လူလာဒေတာကန့်သတ်ချက် ပြည့်သွားသဖြင့် ခေါ်ဆိုမှု ပြီးဆုံးသွားပါသည်။"</string>
+    <string name="callFailed_data_limit_reached" msgid="7045770594965160282">"ဒေတာကန့်သတ်ချက် ပြည့်သွားပါပြီ။ ခေါ်ဆိုမှု ရပ်သွားပါသည်။"</string>
 </resources>

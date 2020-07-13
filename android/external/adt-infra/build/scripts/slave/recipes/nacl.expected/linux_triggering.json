@@ -1,0 +1,101 @@
+[
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[BUILD]/scripts/slave/bot_update.py",
+      "--master",
+      "client.nacl",
+      "--builder",
+      "precise_64-newlib-arm_qemu-pnacl-dbg",
+      "--slave",
+      "TestSlave",
+      "--spec",
+      "cache_dir = None\nsolutions = [{'deps_file': 'DEPS', 'managed': True, 'name': 'native_client', 'url': 'https://chromium.googlesource.com/native_client/src/native_client.git'}]",
+      "--root",
+      "native_client",
+      "--revision_mapping_file",
+      "{\"native_client\": \"got_revision\"}",
+      "--output_json",
+      "/path/to/tmp/json",
+      "--revision",
+      "native_client@abcd",
+      "--force",
+      "--output_manifest"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "bot_update",
+    "~followup_annotations": [
+      "@@@STEP_TEXT@Some step text@@@",
+      "@@@STEP_LOG_LINE@json.output@{@@@",
+      "@@@STEP_LOG_LINE@json.output@  \"did_run\": true, @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"manifest\": {@@@",
+      "@@@STEP_LOG_LINE@json.output@    \"native_client\": {@@@",
+      "@@@STEP_LOG_LINE@json.output@      \"repository\": \"https://fake.org/native_client.git\", @@@",
+      "@@@STEP_LOG_LINE@json.output@      \"revision\": \"a95eb4c044a154d692a53fdfa564ee8de7aeea5b\"@@@",
+      "@@@STEP_LOG_LINE@json.output@    }@@@",
+      "@@@STEP_LOG_LINE@json.output@  }, @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"patch_failure\": false, @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"patch_root\": \"native_client\", @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"properties\": {@@@",
+      "@@@STEP_LOG_LINE@json.output@    \"got_revision\": \"a95eb4c044a154d692a53fdfa564ee8de7aeea5b\", @@@",
+      "@@@STEP_LOG_LINE@json.output@    \"got_revision_cp\": \"refs/heads/master@{#256160}\"@@@",
+      "@@@STEP_LOG_LINE@json.output@  }, @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"root\": \"native_client\", @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"step_text\": \"Some step text\"@@@",
+      "@@@STEP_LOG_LINE@json.output@}@@@",
+      "@@@STEP_LOG_END@json.output@@@",
+      "@@@SET_BUILD_PROPERTY@got_revision@\"a95eb4c044a154d692a53fdfa564ee8de7aeea5b\"@@@",
+      "@@@SET_BUILD_PROPERTY@got_revision_cp@\"refs/heads/master@{#256160}\"@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[DEPOT_TOOLS]/gclient.py",
+      "runhooks"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "gclient runhooks"
+  },
+  {
+    "allow_subannotations": true,
+    "cmd": [
+      "python",
+      "-u",
+      "[SLAVE_BUILD]/native_client/buildbot/buildbot_selector.py"
+    ],
+    "cwd": "[SLAVE_BUILD]/native_client",
+    "env": {
+      "BUILDBOT_BUILDERNAME": "precise_64-newlib-arm_qemu-pnacl-dbg",
+      "BUILDBOT_GOT_REVISION": "a95eb4c044a154d692a53fdfa564ee8de7aeea5b",
+      "BUILDBOT_MASTERNAME": "client.nacl",
+      "BUILDBOT_REVISION": "abcd",
+      "BUILDBOT_SLAVE_TYPE": "BuilderTester",
+      "RUNTEST": "[BUILD]/scripts/slave/runtest.py"
+    },
+    "name": "annotated steps"
+  },
+  {
+    "cmd": [],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "trigger",
+    "trigger_specs": [
+      {
+        "builder_name": "oneiric_32-newlib-arm_hw-pnacl-panda-dbg",
+        "properties": {
+          "parent_slavename": "TestSlave"
+        }
+      }
+    ],
+    "~followup_annotations": [
+      "@@@STEP_TEXT@oneiric_32-newlib-arm_hw-pnacl-panda-dbg@@@"
+    ]
+  },
+  {
+    "name": "$result",
+    "recipe_result": null,
+    "status_code": 0
+  }
+]

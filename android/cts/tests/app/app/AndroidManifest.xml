@@ -329,6 +329,21 @@
 
         <activity android:name="android.app.stubs.KeyboardShortcutsActivity" />
 
+        <service
+            android:name="android.app.stubs.LiveWallpaper"
+            android:icon="@drawable/robot"
+            android:label="@string/wallpaper_title"
+            android:permission="android.permission.BIND_WALLPAPER">
+            <intent-filter>
+                <action android:name="android.service.wallpaper.WallpaperService">
+                </action>
+            </intent-filter>
+            <meta-data
+                android:name="android.service.wallpaper"
+                android:resource="@xml/wallpaper">
+            </meta-data>
+        </service>
+
     </application>
 
 </manifest>

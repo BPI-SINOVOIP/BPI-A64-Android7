@@ -22,6 +22,7 @@ import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.graphics.Rect;
 import android.graphics.Shader.TileMode;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.GradientDrawable;
@@ -34,7 +35,6 @@ import android.view.Gravity;
 
 import android.graphics.cts.R;
 
-@TargetApi(21)
 public class ThemedDrawableTest extends AndroidTestCase {
 
     @Override
@@ -150,9 +150,14 @@ public class ThemedDrawableTest extends AndroidTestCase {
         assertEquals(true, d.isAutoMirrored());
 
         BitmapDrawable bitmapDrawable  = (BitmapDrawable) d.getDrawable(0);
+        assertEquals(d, bitmapDrawable.getCallback());
         internalTestBitmapDrawable(bitmapDrawable);
 
         NinePatchDrawable ninePatchDrawable = (NinePatchDrawable) d.getDrawable(1);
+        assertEquals(d, ninePatchDrawable.getCallback());
         internalTestNinePatchDrawable(ninePatchDrawable);
+
+        Drawable themeDrawable = (Drawable) d.getDrawable(2);
+        assertEquals(d, themeDrawable.getCallback());
     }
 }

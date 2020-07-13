@@ -13,7 +13,8 @@ LOCAL_INCLUDE = -I../include \
 		-I../../stream/include \
 		-I$(top_srcdir)/ \
 		-I$(top_srcdir)/external/include/adecoder/ \
-		-I$(top_srcdir)/../libcedarc/include
+		-I$(top_srcdir)/../libcedarc/include \
+		-I$(top_srcdir)/libcore/parser/base/id3base
 
 libcdx_mp3_parser_la_CFLAGS += $(LOCAL_INCLUDE)
 

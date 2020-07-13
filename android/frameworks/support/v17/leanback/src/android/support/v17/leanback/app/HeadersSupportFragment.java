@@ -72,7 +72,7 @@ public class HeadersSupportFragment extends BaseRowSupportFragment {
     }
 
     private OnHeaderViewSelectedListener mOnHeaderViewSelectedListener;
-    private OnHeaderClickedListener mOnHeaderClickedListener;
+    OnHeaderClickedListener mOnHeaderClickedListener;
     private boolean mHeadersEnabled = true;
     private boolean mHeadersGone = false;
     private int mBackgroundColor;
@@ -139,7 +139,7 @@ public class HeadersSupportFragment extends BaseRowSupportFragment {
 
     };
 
-    private static OnLayoutChangeListener sLayoutChangeListener = new OnLayoutChangeListener() {
+    static OnLayoutChangeListener sLayoutChangeListener = new OnLayoutChangeListener() {
         @Override
         public void onLayoutChange(View v, int left, int top, int right, int bottom,
             int oldLeft, int oldTop, int oldRight, int oldBottom) {
@@ -215,8 +215,8 @@ public class HeadersSupportFragment extends BaseRowSupportFragment {
     }
 
     // Wrapper needed because of conflict between RecyclerView's use of alpha
-    // for ADD animations, and RowHeaderPresnter's use of alpha for selected level.
-    private final ItemBridgeAdapter.Wrapper mWrapper = new ItemBridgeAdapter.Wrapper() {
+    // for ADD animations, and RowHeaderPresenter's use of alpha for selected level.
+    final ItemBridgeAdapter.Wrapper mWrapper = new ItemBridgeAdapter.Wrapper() {
         @Override
         public void wrap(View wrapper, View wrapped) {
             ((FrameLayout) wrapper).addView(wrapped);
@@ -265,7 +265,7 @@ public class HeadersSupportFragment extends BaseRowSupportFragment {
         super.onTransitionStart();
         if (!mHeadersEnabled) {
             // When enabling headers fragment,  the RowHeaderView gets a focus but
-            // isShown() is still false because its parent is INVSIBILE, accessibility
+            // isShown() is still false because its parent is INVISIBLE, accessibility
             // event is not sent.
             // Workaround is: prevent focus to a child view during transition and put
             // focus on it after transition is done.

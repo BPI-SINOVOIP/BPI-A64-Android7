@@ -22,6 +22,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
 
 import android.app.ActivityManager;
+import android.content.ContentProvider;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.pm.PackageManager;
@@ -41,6 +42,7 @@ import android.net.wifi.WifiSsid;
 import android.net.wifi.p2p.IWifiP2pManager;
 import android.os.BatteryStats;
 import android.os.Binder;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
@@ -56,6 +58,8 @@ import android.os.UserManager;
 import android.provider.Settings;
 import android.security.KeyStore;
 import android.telephony.TelephonyManager;
+import android.test.mock.MockContentProvider;
+import android.test.mock.MockContentResolver;
 import android.test.suitebuilder.annotation.SmallTest;
 import android.util.Base64;
 import android.util.Log;
@@ -218,13 +222,19 @@ public class WifiStateMachineTest {
 
         Context context = mock(Context.class);
         when(context.getPackageManager()).thenReturn(pkgMgr);
-        when(context.getContentResolver()).thenReturn(mock(ContentResolver.class));
 
         MockResources resources = new com.android.server.wifi.MockResources();
         when(context.getResources()).thenReturn(resources);
 
-        ContentResolver cr = mock(ContentResolver.class);
-        when(context.getContentResolver()).thenReturn(cr);
+        MockContentResolver mockContentResolver = new MockContentResolver();
+        mockContentResolver.addProvider(Settings.AUTHORITY,
+                new MockContentProvider(context) {
+                    @Override
+                    public Bundle call(String method, String arg, Bundle extras) {
+                        return new Bundle();
+                    }
+                });
+        when(context.getContentResolver()).thenReturn(mockContentResolver);
 
         when(context.getSystemService(Context.POWER_SERVICE)).thenReturn(
                 new PowerManager(context, mock(IPowerManager.class), new Handler()));
@@ -473,6 +483,75 @@ public class WifiStateMachineTest {
         mWsm.setSupplicantRunning(true);
         mLooper.dispatchAll();
         assertEquals("InitialState", getCurrentState().getName());
+    }
+
+    /**
+     * Test to check that mode changes from WifiController will be properly handled in the
+     * InitialState by WifiStateMachine.
+     */
+    @Test
+    public void checkOperationalModeInInitialState() throws Exception {
+        when(mWifiNative.loadDriver()).thenReturn(true);
+        when(mWifiNative.startHal()).thenReturn(true);
+        when(mWifiNative.startSupplicant(anyBoolean())).thenReturn(true);
+
+        mLooper.dispatchAll();
+        assertEquals("InitialState", getCurrentState().getName());
+        assertEquals(WifiStateMachine.CONNECT_MODE, mWsm.getOperationalModeForTest());
+
+        mWsm.setOperationalMode(WifiStateMachine.SCAN_ONLY_WITH_WIFI_OFF_MODE);
+        mLooper.dispatchAll();
+        assertEquals(WifiStateMachine.SCAN_ONLY_WITH_WIFI_OFF_MODE,
+                mWsm.getOperationalModeForTest());
+
+        mWsm.setOperationalMode(WifiStateMachine.SCAN_ONLY_MODE);
+        mLooper.dispatchAll();
+        assertEquals(WifiStateMachine.SCAN_ONLY_MODE, mWsm.getOperationalModeForTest());
+
+        mWsm.setOperationalMode(WifiStateMachine.CONNECT_MODE);
+        mLooper.dispatchAll();
+        assertEquals(WifiStateMachine.CONNECT_MODE, mWsm.getOperationalModeForTest());
+    }
+
+    /**
+     * Test that mode changes for WifiStateMachine in the InitialState are realized when supplicant
+     * is started.
+     */
+    @Test
+    public void checkStartInCorrectStateAfterChangingInitialState() throws Exception {
+        when(mWifiNative.loadDriver()).thenReturn(true);
+        when(mWifiNative.startHal()).thenReturn(true);
+        when(mWifiNative.startSupplicant(anyBoolean())).thenReturn(true);
+
+        // Check initial state
+        mLooper.dispatchAll();
+        assertEquals("InitialState", getCurrentState().getName());
+        assertEquals(WifiStateMachine.CONNECT_MODE, mWsm.getOperationalModeForTest());
+
+        // Update the mode
+        mWsm.setOperationalMode(WifiStateMachine.SCAN_ONLY_MODE);
+        mLooper.dispatchAll();
+        assertEquals(WifiStateMachine.SCAN_ONLY_MODE, mWsm.getOperationalModeForTest());
+
+        // Start supplicant so we move to the next state
+        mWsm.setSupplicantRunning(true);
+        mLooper.dispatchAll();
+        assertEquals("SupplicantStartingState", getCurrentState().getName());
+        when(mWifiNative.setBand(anyInt())).thenReturn(true);
+        when(mWifiNative.setDeviceName(anyString())).thenReturn(true);
+        when(mWifiNative.setManufacturer(anyString())).thenReturn(true);
+        when(mWifiNative.setModelName(anyString())).thenReturn(true);
+        when(mWifiNative.setModelNumber(anyString())).thenReturn(true);
+        when(mWifiNative.setSerialNumber(anyString())).thenReturn(true);
+        when(mWifiNative.setConfigMethods(anyString())).thenReturn(true);
+        when(mWifiNative.setDeviceType(anyString())).thenReturn(true);
+        when(mWifiNative.setSerialNumber(anyString())).thenReturn(true);
+        when(mWifiNative.setScanningMacOui(any(byte[].class))).thenReturn(true);
+
+        mWsm.sendMessage(WifiMonitor.SUP_CONNECTION_EVENT);
+        mLooper.dispatchAll();
+
+        assertEquals("ScanModeState", getCurrentState().getName());
     }
 
     private void addNetworkAndVerifySuccess() throws Exception {

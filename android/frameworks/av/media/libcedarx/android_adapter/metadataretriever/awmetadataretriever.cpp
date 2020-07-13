@@ -59,6 +59,67 @@ static const Map kMap[] = {
     { kKeyLocation, METADATA_KEY_LOCATION, NULL },
 };
 
+// MIMETYPE define in libstagefright/Mediadefs.cpp
+const char *MEDIA_MIMETYPE_VIDEO_VP8 = "video/x-vnd.on2.vp8";
+const char *MEDIA_MIMETYPE_VIDEO_VP9 = "video/x-vnd.on2.vp9";
+const char *MEDIA_MIMETYPE_VIDEO_AVC = "video/avc";
+const char *MEDIA_MIMETYPE_VIDEO_HEVC = "video/hevc";
+const char *MEDIA_MIMETYPE_VIDEO_MPEG4 = "video/mp4v-es";
+const char *MEDIA_MIMETYPE_VIDEO_H263 = "video/3gpp";
+const char *MEDIA_MIMETYPE_VIDEO_MPEG2 = "video/mpeg2";
+const char *MEDIA_MIMETYPE_VIDEO_RAW = "video/raw";
+const char *MEDIA_MIMETYPE_VIDEO_DOLBY_VISION = "video/dolby-vision";
+const char *MEDIA_MIMETYPE_VIDEO_WMV1 = "video/wmv1";
+const char *MEDIA_MIMETYPE_VIDEO_WMV2 = "video/wmv2";
+const char *MEDIA_MIMETYPE_VIDEO_VC1 = "video/wvc1";
+//const char *MEDIA_MIMETYPE_VIDEO_VC1 = "video/x-ms-wmv";
+//const char *MEDIA_MIMETYPE_VIDEO_VP6 = "video/x-vp6";
+const char *MEDIA_MIMETYPE_VIDEO_VP6 = "video/x-vnd.on2.vp6";
+const char *MEDIA_MIMETYPE_VIDEO_S263 = "video/flv1";
+const char *MEDIA_MIMETYPE_VIDEO_MJPEG = "video/jpeg";
+const char *MEDIA_MIMETYPE_VIDEO_MPEG1 = "video/mpeg1";
+const char *MEDIA_MIMETYPE_VIDEO_MSMPEG4V1 = "video/x-ms-mpeg4v1";
+const char *MEDIA_MIMETYPE_VIDEO_MSMPEG4V2 = "video/x-ms-mpeg4v2";
+const char *MEDIA_MIMETYPE_VIDEO_DIVX = "video/divx";
+const char *MEDIA_MIMETYPE_VIDEO_XVID = "video/xvid";
+const char *MEDIA_MIMETYPE_VIDEO_RXG2 = "video/rvg2";
+const char *MEDIA_MIMETYPE_VIDEO_VPX = "video/x-vnd.on2.vp8";
+const char *MEDIA_MIMETYPE_AUDIO_AMR_NB = "audio/3gpp";
+const char *MEDIA_MIMETYPE_AUDIO_AMR_WB = "audio/amr-wb";
+const char *MEDIA_MIMETYPE_AUDIO_MPEG = "audio/mpeg";
+const char *MEDIA_MIMETYPE_AUDIO_MPEG_LAYER_I = "audio/mpeg-L1";
+const char *MEDIA_MIMETYPE_AUDIO_MPEG_LAYER_II = "audio/mpeg-L2";
+const char *MEDIA_MIMETYPE_AUDIO_MIDI = "audio/midi";
+const char *MEDIA_MIMETYPE_AUDIO_AAC = "audio/mp4a-latm";
+const char *MEDIA_MIMETYPE_AUDIO_QCELP = "audio/qcelp";
+const char *MEDIA_MIMETYPE_AUDIO_VORBIS = "audio/vorbis";
+const char *MEDIA_MIMETYPE_AUDIO_OPUS = "audio/opus";
+const char *MEDIA_MIMETYPE_AUDIO_G711_ALAW = "audio/g711-alaw";
+const char *MEDIA_MIMETYPE_AUDIO_G711_MLAW = "audio/g711-mlaw";
+const char *MEDIA_MIMETYPE_AUDIO_RAW = "audio/raw";
+const char *MEDIA_MIMETYPE_AUDIO_FLAC = "audio/flac";
+const char *MEDIA_MIMETYPE_AUDIO_AAC_ADTS = "audio/aac-adts";
+const char *MEDIA_MIMETYPE_AUDIO_MSGSM = "audio/gsm";
+const char *MEDIA_MIMETYPE_AUDIO_AC3 = "audio/ac3";
+const char *MEDIA_MIMETYPE_AUDIO_EAC3 = "audio/eac3";
+
+const char *MEDIA_MIMETYPE_CONTAINER_MPEG4 = "video/mp4";
+const char *MEDIA_MIMETYPE_CONTAINER_WAV = "audio/x-wav";
+const char *MEDIA_MIMETYPE_CONTAINER_OGG = "application/ogg";
+const char *MEDIA_MIMETYPE_CONTAINER_MATROSKA = "video/x-matroska";
+const char *MEDIA_MIMETYPE_CONTAINER_MPEG2TS = "video/mp2ts";
+const char *MEDIA_MIMETYPE_CONTAINER_AVI = "video/avi";
+const char *MEDIA_MIMETYPE_CONTAINER_MPEG2PS = "video/mp2p";
+
+const char *MEDIA_MIMETYPE_CONTAINER_WVM = "video/wvm";
+
+const char *MEDIA_MIMETYPE_TEXT_3GPP = "text/3gpp-tt";
+const char *MEDIA_MIMETYPE_TEXT_SUBRIP = "application/x-subrip";
+const char *MEDIA_MIMETYPE_TEXT_VTT = "text/vtt";
+const char *MEDIA_MIMETYPE_TEXT_CEA_608 = "text/cea-608";
+const char *MEDIA_MIMETYPE_TEXT_CEA_708 = "text/cea-708";
+const char *MEDIA_MIMETYPE_DATA_TIMED_ID3 = "application/x-id3v4";
+
 static cdx_int32 kNumMapEntries = sizeof(kMap) / sizeof(kMap[0]);
 
 #if SAVE_BITSTREAM
@@ -94,8 +155,8 @@ static int parseHeaders(CdxKeyedVectorT **header, char *uri,
 static void clearHeaders(CdxKeyedVectorT **header);
 
 static int64_t GetSysTime();
-static int transfromId3Info(String8* mStringId3, cdx_uint8* pData, cdx_int32 nSize,
-                cdx_int32 nEncodeTpye, cdx_int32 flag);
+
+static int metafindCStringByKey(CdxMediaInfoT* mediaInfo, int key, cdx_uint8** value);
 
 AwMetadataRetriever::AwMetadataRetriever()
 {
@@ -274,152 +335,46 @@ void AwMetadataRetriever::storeMetadata(void)
 #endif
     }
 
-    //* /**
-    //*  * The metadata key to retrieve the numeric string describing the
-    //*  * order of the audio data source on its original recording.
-    //*  */
-    //* public static final int METADATA_KEY_CD_TRACK_NUMBER = 0;
-#if 0
-    mPriData->mMetaData->add(METADATA_KEY_CD_TRACK_NUMBER, String8("0"));
-    //* no information to give the order of the audio
-    //* ogg file may contain this information in its vorbis comment, index by tag "TRACKNUMBER";
-    //* mp3 file may contain this information in its metadata, index by tag "TRK" or "TRCK";
-    //* mov file may contain this information in its metadata, index by FOURCC 't' 'r' 'k' 'n';
-#endif
+#if (CONF_ANDROID_MAJOR_VER >= 5)
+    CharacterEncodingDetector *detector = new CharacterEncodingDetector();
 
-    //* /**
-    //*  * The metadata key to retrieve the information about the album title
-    //*  * of the data source.
-    //*  */
-    //* public static final int METADATA_KEY_ALBUM           = 1;
-    //nStrLen = strlen((const char*)mMediaInfo.album);
-    nStrLen = mPriData->mMediaInfo.albumsz;
-    if(nStrLen > 0)
-    {
-        logv("METADATA_KEY_ALBUM:%d",nStrLen);
-        transfromId3Info(&mStrData, mPriData->mMediaInfo.album, mPriData->mMediaInfo.albumsz,
-                mPriData->mMediaInfo.albumCharEncode, kKeyAlbum);
-        mPriData->mMetaData->add(METADATA_KEY_ALBUM,mStrData);
-    }
-    //* no information to give the album title.
-    //* ogg file may contain this information in its vorbis comment, index by tag "ALBUM";
-    //* mp3 file may contain this information in its metadata, index by tag "TALB" or "TAL";
-    //* mov file may contain this information in its metadata, index by FOURCC 0xa9 'a' 'l' 'b';
-
-    //* /**
-    //*  * The metadata key to retrieve the information about the artist of
-    //*  * the data source.
-    //*  */
-    //* public static final int METADATA_KEY_ARTIST          = 2;
-#if 0
-    mPriData->mMetaData->add(METADATA_KEY_ARTIST, String8("unknown artist"));
-    //* no information to give the artist.
-    //* ogg file may contain this information in its vorbis comment, index by tag "ARTIST";
-    //* mp3 file may contain this information in its metadata, index by tag "TPE1" or "TP1";
-    //* mov file may contain this information in its metadata, index by FOURCC 0xa9 'a' 'r' 't';
-#endif
-
-    //* warning: we put author as artist here
-    //nStrLen = strlen((const char*)mMediaInfo.author);
-    nStrLen = mPriData->mMediaInfo.authorsz;
-    if(nStrLen != 0)
-    {
-        logv("METADATA_KEY_ARTIST:%d",nStrLen);
-        transfromId3Info(&mStrData, mPriData->mMediaInfo.author, mPriData->mMediaInfo.authorsz,
-                mPriData->mMediaInfo.authorCharEncode, kKeyArtist);
-        mPriData->mMetaData->add(METADATA_KEY_ARTIST, mStrData);
+    for (int i = 0; i < kNumMapEntries; ++i) {
+        cdx_uint8 *value;
+        if (metafindCStringByKey(&mPriData->mMediaInfo, kMap[i].from, &value)) {
+            if (kMap[i].name) {
+                // add to charset detector
+                detector->addTag(kMap[i].name, (const char*)value);
+            } else {
+                // directly add to output list
+                mPriData->mMetaData->add(kMap[i].to, String8((const char*)value));
+            }
+        }
     }
 
-    //* /**
-    //*  * The metadata key to retrieve the information about the author of
-    //*  * the data source.
-    //*  */
-    //* public static final int METADATA_KEY_AUTHOR          = 3;
-    //nStrLen = strlen((const char*)mMediaInfo.author);
-    nStrLen = mPriData->mMediaInfo.authorsz;
-    if(nStrLen > 0)
-    {
-        logv("METADATA_KEY_AUTHOR:%d",nStrLen);
-        transfromId3Info(&mStrData, mPriData->mMediaInfo.author, mPriData->mMediaInfo.authorsz,
-                mPriData->mMediaInfo.authorCharEncode, kKeyAuthor);
-        mPriData->mMetaData->add(METADATA_KEY_AUTHOR, mStrData);
+    detector->detectAndConvert();
+    int size = detector->size();
+    logd("detect conventor size : %d", size);
+    if (size) {
+        for (int i = 0; i < size; i++) {
+            const char *name;
+            const char *value;
+            detector->getTag(i, &name, &value);
+            for (int j = 0; j < kNumMapEntries; ++j) {
+                if (kMap[j].name && !strcmp(kMap[j].name, name)) {
+                    mPriData->mMetaData->add(kMap[j].to, String8(value));
+                }
+            }
+        }
     }
-    //* no information to give the author.
-    //* ogg file may contain this information in its vorbis comment, index by tag "AUTHOR";
-    //* mp3 file may contain this information in its metadata, index by tag "TXT" or "TEXT";
-
-    //* /**
-    //*  * The metadata key to retrieve the information about the composer of
-    //*  * the data source.
-    //*  */
-    //* public static final int METADATA_KEY_COMPOSER        = 4;
-#if 0
-    mPriData->mMetaData->add(METADATA_KEY_COMPOSER, String8("unknown composer"));
-    //* no information to give the composer.
-    //* ogg file may contain this information in its vorbis comment, index by tag "COMPOSER";
-    //* mp3 file may contain this information in its metadata, index by tag "TCOM" or "TCM";
-#endif
-
-    //* /**
-    //*  * The metadata key to retrieve the date when the data source was created
-    //*  * or modified.
-    //*  */
-    //* public static final int METADATA_KEY_DATE            = 5;
-#if 0
-    mPriData->mMetaData->add(METADATA_KEY_DATE, String8("unknown date"));
-    //* no information to give the date.
-    //* ogg file may contain this information in its vorbis comment, index by tag "DATE";
-    //* mov file may find this information by getting its mvhd header's creation time.
-#endif
-
-    //* /**
-    //*  * The metadata key to retrieve the content type or genre of the data
-    //*  * source.
-    //*  */
-    //* public static final int METADATA_KEY_GENRE           = 6;
-    nStrLen = strlen((const char*)mPriData->mMediaInfo.genre);
-    if(nStrLen > 0)
-        mPriData->mMetaData->add(METADATA_KEY_GENRE,
-                String8((const char*)mPriData->mMediaInfo.genre));
-    //* no information to give the genre.
-    //* ogg file may contain this information in its vorbis comment, index by tag "GENRE";
-    //* mp3 file may contain this information in its metadata, index by tag "TCON" or "TCO";
-    //* mov file may contain this information in its metadata, index by FOURCC 'gnre' or
-    //* "0xa9 'g' 'e' 'n'";
-    //* for mov, iTunes genre codes are the standard id3 codes, except they start at 1 instead of 0
-    //* (e.g. Pop is 14, not 13), if you use standard id3 numbering, you should subtract 1.
-
-    //* /**
-    //*  * The metadata key to retrieve the data source title.
-    //*  */
-    //* public static final int METADATA_KEY_TITLE           = 7;
-
-    //* mPriData->mMetaData->add(METADATA_KEY_TITLE, String8("unknown title"));
-
-    //* no information to give the title.
-    //* ogg file may contain this information in its vorbis comment, index by tag "TITLE";
-    //* mp3 file may contain this information in its metadata, index by tag "TIT2" or "TT2";
-    //* mov file may contain this information in its metadata, index by FOURCC "0xa9 'n' 'a' 'm'";
-
-    //nStrLen = strlen((const char*)mMediaInfo.title);
-    nStrLen = mPriData->mMediaInfo.titlesz;
-    if(nStrLen != 0)
-    {
-        logv("METADATA_KEY_TITLE:%d",nStrLen);
-        transfromId3Info(&mStrData, mPriData->mMediaInfo.title, mPriData->mMediaInfo.titlesz,
-                mPriData->mMediaInfo.titleCharEncode, kKeyTitle);
-        mPriData->mMetaData->add(METADATA_KEY_TITLE, mStrData);
+    delete detector;
+#else
+    for (int i = 0; i < kNumMapEntries; ++i) {
+        cdx_uint8 *value;
+        if (metafindCStringByKey(&mPriData->mMediaInfo, kMap[i].from, &value)) {
+            mPriData->mMetaData->add(kMap[i].to, String8((const char *)value));
+        }
     }
-
-    //* /**
-    //*  * The metadata key to retrieve the year when the data source was created
-    //*  * or modified.
-    //*  */
-    //* public static final int METADATA_KEY_YEAR            = 8;
-    nStrLen = strlen((const char*)mPriData->mMediaInfo.year);
-    if(nStrLen > 0)
-        mPriData->mMetaData->add(METADATA_KEY_YEAR,
-                String8((const char*)mPriData->mMediaInfo.year));
+#endif
     //* no information to give the title.
     //* mp3 file may contain this information in its metadata, index by tag "TYE" or "TYER";
     //* mov file may contain this information in its metadata, index by FOURCC "0xa9 'd' 'a' 'y'";
@@ -650,24 +605,24 @@ void AwMetadataRetriever::storeMetadata(void)
                     {
                         case AUDIO_CODEC_FORMAT_MP1:
                             mPriData->mMetaData->add(METADATA_KEY_MIMETYPE,
-                                    String8("audio/cedara"));
+                                    String8(MEDIA_MIMETYPE_AUDIO_MPEG_LAYER_I));
                             break;
                         case AUDIO_CODEC_FORMAT_MP2:
                             mPriData->mMetaData->add(METADATA_KEY_MIMETYPE,
-                                    String8("audio/cedara"));
+                                    String8(MEDIA_MIMETYPE_AUDIO_MPEG_LAYER_II));
                             break;
                         case AUDIO_CODEC_FORMAT_MP3:
                         case AUDIO_CODEC_FORMAT_MP3_PRO:
                             mPriData->mMetaData->add(METADATA_KEY_MIMETYPE,
-                                    String8("audio/mpeg"));
+                                    String8(MEDIA_MIMETYPE_AUDIO_MPEG));
                             break;
                         case AUDIO_CODEC_FORMAT_MPEG_AAC_LC:
                             mPriData->mMetaData->add(METADATA_KEY_MIMETYPE,
-                                    String8("audio/cedara"));
+                                    String8(MEDIA_MIMETYPE_AUDIO_AAC_ADTS));
                             break;
                         case AUDIO_CODEC_FORMAT_AC3:
                             mPriData->mMetaData->add(METADATA_KEY_MIMETYPE,
-                                    String8("audio/cedara"));
+                                    String8(MEDIA_MIMETYPE_AUDIO_AC3));
                             break;
                         case AUDIO_CODEC_FORMAT_DTS:
                             mPriData->mMetaData->add(METADATA_KEY_MIMETYPE,
@@ -678,11 +633,11 @@ void AwMetadataRetriever::storeMetadata(void)
                         case AUDIO_CODEC_FORMAT_ADPCM:
                         case AUDIO_CODEC_FORMAT_PPCM:
                             mPriData->mMetaData->add(METADATA_KEY_MIMETYPE,
-                                    String8("audio/cedara"));
+                                    String8(MEDIA_MIMETYPE_AUDIO_RAW));
                             break;
                         case AUDIO_CODEC_FORMAT_PCM:
                             mPriData->mMetaData->add(METADATA_KEY_MIMETYPE,
-                                    String8("audio/cedara"));
+                                    String8(MEDIA_MIMETYPE_AUDIO_RAW));
                             break;
                         case AUDIO_CODEC_FORMAT_WMA_STANDARD:
                         case AUDIO_CODEC_FORMAT_WMA_LOSS:
@@ -692,7 +647,7 @@ void AwMetadataRetriever::storeMetadata(void)
                             break;
                         case AUDIO_CODEC_FORMAT_FLAC:
                             mPriData->mMetaData->add(METADATA_KEY_MIMETYPE,
-                                    String8("audio/flac"));
+                                    String8(MEDIA_MIMETYPE_AUDIO_FLAC));
                             break;
                         case AUDIO_CODEC_FORMAT_APE:
                             mPriData->mMetaData->add(METADATA_KEY_MIMETYPE,
@@ -700,11 +655,11 @@ void AwMetadataRetriever::storeMetadata(void)
                             break;
                         case AUDIO_CODEC_FORMAT_OGG:
                             mPriData->mMetaData->add(METADATA_KEY_MIMETYPE,
-                                    String8("audio/ogg"));
+                                    String8(MEDIA_MIMETYPE_AUDIO_VORBIS));
                             break;
                         case AUDIO_CODEC_FORMAT_RAAC:
                             mPriData->mMetaData->add(METADATA_KEY_MIMETYPE,
-                                    String8("audio/aac-adts"));
+                                    String8(MEDIA_MIMETYPE_AUDIO_AAC_ADTS));
                             break;
                         case AUDIO_CODEC_FORMAT_COOK:
                             mPriData->mMetaData->add(METADATA_KEY_MIMETYPE,
@@ -720,7 +675,7 @@ void AwMetadataRetriever::storeMetadata(void)
                             break;
                         case AUDIO_CODEC_FORMAT_AMR:
                             mPriData->mMetaData->add(METADATA_KEY_MIMETYPE,
-                                    String8("audio/amr"));
+                                String8(MEDIA_MIMETYPE_AUDIO_AMR_WB));
                             break;
                         case AUDIO_CODEC_FORMAT_RA:
                             mPriData->mMetaData->add(METADATA_KEY_MIMETYPE,
@@ -1290,230 +1245,77 @@ static int64_t GetSysTime()
     return time;
 }
 
-static int transfromId3Info(String8* mStringId3, cdx_uint8* pData, cdx_int32 nSize,
-        cdx_int32 nEncodeTpye,cdx_int32 flag)
+static int metafindCStringByKey(CdxMediaInfoT* mediaInfo, int key, cdx_uint8** value)
 {
-    if(pData == NULL || nSize == 0)
+    int strsz = 0;
+    switch(key)
     {
-        logd("*** transfromId3Info failed, pData = %p, size = %d",pData,nSize);
-        return -1;
+        case kKeyAlbum:
+            logd("get kKeyAlbum");
+            *value = mediaInfo->album;
+            strsz  = mediaInfo->albumsz;
+            break;
+        case kKeyArtist:
+            logd("get kKeyArtist");
+            *value = mediaInfo->artist;
+            strsz  = mediaInfo->artistsz;
+            break;
+        case kKeyAlbumArtist:
+            logd("get kKeyAlbumArtist");
+            *value = mediaInfo->albumArtist;
+            strsz  = mediaInfo->albumArtistsz;
+            break;
+        case kKeyAuthor:
+            logd("get kKeyAuthor");
+            *value = mediaInfo->author;
+            strsz  = mediaInfo->authorsz;
+            break;
+        case kKeyComposer:
+            logd("get kKeyComposer");
+            *value = mediaInfo->composer;
+            strsz  = mediaInfo->composersz;
+            break;
+        case kKeyDate:
+            logd("get kKeyDate");
+            *value = mediaInfo->date;
+            strsz  = mediaInfo->datesz;
+            break;
+        case kKeyGenre:
+            logd("get kKeyGenre");
+            *value = mediaInfo->genre;
+            strsz  = mediaInfo->genresz;
+            break;
+        case kKeyTitle:
+            logd("get kKeyTitle");
+            *value = mediaInfo->title;
+            strsz  = mediaInfo->titlesz;
+            break;
+        case kKeyYear:
+            logd("get kKeyYear");
+            *value = mediaInfo->year;
+            strsz  = mediaInfo->yearsz;
+            break;
+        case kKeyWriter:
+            logd("get kKeyWriter");
+            *value = mediaInfo->writer;
+            strsz  = mediaInfo->writersz;
+            break;
+        case kKeyCompilation:
+            logd("get kKeyCompilation");
+            *value = mediaInfo->compilation;
+            strsz  = mediaInfo->compilationsz;
+            break;
+        case kKeyCDTrackNumber:
+            logd("get kKeyCDTrackNumber");
+            *value = mediaInfo->cdTrackNumber;
+            strsz  = mediaInfo->cdTrackNumbersz;
+            break;
+        default:
+            logd("get null");
+            *value = NULL;
+            strsz  = 0;
+            break;
     }
-
-#if (CONF_ANDROID_MAJOR_VER >= 5)
-    cdx_int32   encoding     = nEncodeTpye;
-    size_t      nDataLen     = nSize;
-    const char* name         = NULL;
-    const char* pDataConvert = NULL;
-
-    mStringId3->setTo("");
-
-    if (encoding == 0x00)
-    {
-        // supposedly ISO 8859-1
-        mStringId3->setTo((const char*)(pData), nDataLen);
-    }
-    else if (encoding == 0x03)
-    {
-        // supposedly UTF-8
-        mStringId3->setTo((const char *)(pData), nDataLen);
-    }
-    else if (encoding == 0x02)
-    {
-        // supposedly UTF-16 BE, no byte order mark.
-        // API wants number of characters, not number of bytes...
-        int len = nDataLen / 2;
-        const char16_t *framedata = (const char16_t *) (pData);
-        mStringId3->setTo(framedata, len);
-    }
-    else if (encoding == 0x01)
-    {
-        // UCS-2
-        // API wants number of characters, not number of bytes...
-        int len = nDataLen / 2;
-        const char16_t *framedata = (const char16_t *) (pData);
-
-        // check if the resulting data consists entirely of 8-bit values
-        bool eightBit = true;
-        for (int i = 0; i < len; i++)
-        {
-            if (framedata[i] > 0xff)
-            {
-                eightBit = false;
-                break;
-            }
-        }
-
-        if (eightBit)
-        {
-            // collapse to 8 bit, then let the media scanner client figure out the real encoding
-            char *frame8 = new char[len];
-            for (int i = 0; i < len; i++)
-            {
-                frame8[i] = framedata[i];
-            }
-            mStringId3->setTo(frame8, len);
-            delete [] frame8;
-        }
-        else
-        {
-            mStringId3->setTo(framedata, len);
-        }
-    }
-    cdx_int32 idx = 0;
-    logv("** pDataConvert before = %s",mStringId3->string());
-#if 1
-    CharacterEncodingDetector *pEcodingdetector = new CharacterEncodingDetector();
-    for(idx = 0; idx < kNumMapEntries; idx++)
-    {
-        if(flag == kMap[idx].from)
-        {
-            if(kMap[idx].name != NULL)
-            {
-                pEcodingdetector->addTag(kMap[idx].name, (const char*)mStringId3->string());
-            }
-        }
-    }
-    pEcodingdetector->detectAndConvert();
-    int nDetectorSize = pEcodingdetector->size();
-    if (nDetectorSize) {
-        for (int i = 0; i < nDetectorSize; i++) {
-            const char *pName;
-            const char *pValue;
-            pEcodingdetector->getTag(i, &pName, &pValue);
-            for (cdx_int32 j = 0; j < kNumMapEntries; ++j) {
-                if (kMap[j].name && !strcmp(kMap[j].name, pName)) {
-                    //mPriData->mMetaData->add(kMap[j].to, String8(value));
-                    mStringId3->setTo("");
-                    mStringId3->setTo(pValue,strlen(pValue));
-                }
-            }
-        }
-    }
-    delete pEcodingdetector;
-
-#endif
-    logd("** pDataConvert finish = %s",mStringId3->string());
-#else
-    cdx_int32 encoding = nEncodeTpye;
-    size_t nDataLen = nSize;
-    UErrorCode status = U_ZERO_ERROR;
-    String8 srcString;
-
-    srcString.setTo("");
-
-    if(encoding == 0x00) //why gbk come here ?
-    {
-        // supposedly ISO 8859-1
-        srcString.setTo((const char*)(pData), nDataLen);
-    }
-    else if(encoding == 0x03)
-    {
-            // supposedly UTF-8
-        srcString.setTo((const char *)(pData), nDataLen);
-    }
-    else if(encoding == 0x02)
-    {
-        // supposedly UTF-16 BE, no byte order mark.
-        // API wants number of characters, not number of bytes...
-        int len = nDataLen / 2;
-        const uint16_t *framedata = (const uint16_t *) (pData);
-
-        srcString.setTo(framedata, len);
-    }
-    else if(encoding == 0x01)
-    {
-        // UCS-2
-        // API wants number of characters, not number of bytes...
-        int len = nDataLen / 2;
-        const uint16_t *framedata = (const uint16_t *) (pData);
-
-        // check if the resulting data consists entirely of 8-bit values
-        bool eightBit = true;
-        for(int i = 0; i < len; i++)
-        {
-            if(framedata[i] > 0xff)
-            {
-                eightBit = false;
-                break;
-            }
-        }
-
-        if(eightBit)
-        {
-            // collapse to 8 bit, then let the media scanner client figure out the real encoding
-            char *frame8 = new char[len];
-            for(int i = 0; i < len; i++)
-            {
-                frame8[i] = framedata[i];
-            }
-            srcString.setTo(frame8, len);
-            delete [] frame8;
-        }
-        else
-        {
-            srcString.setTo(framedata, len);
-        }
-    }
-
-    logd("convert before = %s, nDataLen %d",srcString.string(), nDataLen);
-
-    //*first we need to untangle the utf8 and convert it back to the original bytes
-    // since we are reducing the length of the string, we can do this in place
-
-    //*now convert from native encoding to UTF-8
-    if(0x00 == nEncodeTpye)
-    {
-        const char* gbkSrc = (char*)srcString.string();
-        int gbkLen = nDataLen;
-        int utf8Len = gbkLen * 3 + 1; //TODO
-        char* utf8Dst = (char*)malloc(utf8Len);
-        memset(utf8Dst, 0, utf8Len);
-
-        char value[256];
-        const char *srcEncoding;
-        property_get("persist.sys.language", value, "");
-        if (strncmp(value, "ko", 256) == 0)
-        {
-            srcEncoding = "EUC-KR";
-        }
-        else /* default set to GBK */
-        {
-            srcEncoding = "GBK";
-        }
-
-        logd("ucnv_convert, nEncodeTpye 0x%02x, using %s", nEncodeTpye, srcEncoding);
-
-        ucnv_convert("UTF-8",
-            srcEncoding,
-            utf8Dst,
-            utf8Len,
-            gbkSrc,
-            gbkLen,
-            &status);
-
-        if(U_FAILURE(status))
-        {
-            logw("ucnv_convertEx failed: %d\n", status);
-        }
-
-        logd("convert %s to utf-8 src = %s, dst = %s\n", srcEncoding, gbkSrc, utf8Dst);
-
-        mStringId3->setTo("");
-        mStringId3->setTo((const char*)utf8Dst);
-    }
-    else if(0x01 == nEncodeTpye)
-    {
-        logd("no conversion, nEncodeTpye 0x%02x", nEncodeTpye);
-        mStringId3->setTo("");
-        mStringId3->setTo((const char*)srcString.string());
-    }
-    else
-    {
-        logd("no implement, nEncodeTpye 0x%02x", nEncodeTpye);
-        mStringId3->setTo("");
-        mStringId3->setTo((const char*)srcString.string());
-    }
-#endif
-
-    return 0;
+    return strsz;
 }
+

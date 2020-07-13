@@ -41,7 +41,6 @@ import com.googlecode.android_scripting.rpc.RpcParameter;
 /**
  * Exposes phone settings functionality.
  *
- * @author Frank Spychalski (frank.spychalski@gmail.com)
  */
 public class SettingsFacade extends RpcReceiver {
 

@@ -29,6 +29,26 @@ static const char* MENU_ITEMS[] = {
     NULL
 };
 
+/*static const Device::BuiltinAction MENU_ACTIONS[] = {
+    Device::REBOOT,
+    Device::REBOOT_BOOTLOADER,
+    Device::APPLY_ADB_SIDELOAD,
+    Device::APPLY_SDCARD,
+    Device::WIPE_DATA,
+#ifndef AB_OTA_UPDATER
+    Device::WIPE_CACHE,
+#endif  // !AB_OTA_UPDATER
+    Device::MOUNT_SYSTEM,
+    Device::VIEW_RECOVERY_LOGS,
+    Device::RUN_GRAPHICS_TEST,
+    Device::SHUTDOWN,
+};
+
+static_assert(sizeof(MENU_ITEMS) / sizeof(MENU_ITEMS[0]) ==
+              sizeof(MENU_ACTIONS) / sizeof(MENU_ACTIONS[0]) + 1,
+              "MENU_ITEMS and MENU_ACTIONS should have the same length, "
+              "except for the extra NULL entry in MENU_ITEMS.");*/
+
 const char* const* Device::GetMenuItems() {
   return MENU_ITEMS;
 }
@@ -46,6 +66,7 @@ Device::BuiltinAction Device::InvokeMenuItem(int menu_position) {
     case 8: return SHUTDOWN;
     default: return NO_ACTION;
   }
+  //return menu_position < 0 ? NO_ACTION : MENU_ACTIONS[menu_position];
 }
 
 int Device::HandleMenuKey(int key, int visible) {

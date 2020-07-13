@@ -21,16 +21,10 @@ LOCAL_C_INCLUDES:= \
     $(TOP)/frameworks/av/media/libcedarc/sdecoder/include \
     $(TOP)/external/libxml2/include 
 
-ifeq ($(CONF_ANDROID_VERSION), 5.0)
-LOCAL_C_INCLUDES += $(TOP)/external/icu/icu4c/source/common
-else ifeq ($(CONF_ANDROID_VERSION), 5.1)
-LOCAL_C_INCLUDES += $(TOP)/external/icu/icu4c/source/common
-else ifeq ($(CONF_ANDROID_VERSION), 6.0)
-LOCAL_C_INCLUDES += $(TOP)/external/icu/icu4c/source/common
-else ifeq ($(CONF_ANDROID_VERSION), 7.0)
-LOCAL_C_INCLUDES += $(TOP)/external/icu/icu4c/source/common
-else
+ifeq ($(CONF_ANDROID_VERSION), 4.4)
 LOCAL_C_INCLUDES += $(TOP)/external/icu4c/common
+else
+LOCAL_C_INCLUDES += $(TOP)/external/icu/icu4c/source/common
 endif
 
 LOCAL_STATIC_LIBRARIES = libxml2

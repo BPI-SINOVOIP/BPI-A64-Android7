@@ -16,6 +16,7 @@
 
 package android.webkit.cts;
 
+import android.cts.util.NullWebViewUtils;
 import android.cts.util.PollingCheck;
 import android.test.ActivityInstrumentationTestCase2;
 
@@ -136,6 +137,10 @@ public class ServiceWorkerClientTest extends ActivityInstrumentationTestCase2<We
 
     // Test correct invocation of shouldInterceptRequest for Service Workers.
     public void testServiceWorkerClientInterceptCallback() throws Exception {
+        if (!NullWebViewUtils.isWebViewAvailable()) {
+            return;
+        }
+
         final InterceptServiceWorkerClient mInterceptServiceWorkerClient =
                 new InterceptServiceWorkerClient();
         ServiceWorkerController swController = ServiceWorkerController.getInstance();

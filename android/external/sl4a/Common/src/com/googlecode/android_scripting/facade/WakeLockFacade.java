@@ -30,8 +30,6 @@ import java.util.Map.Entry;
 /**
  * A facade exposing some of the functionality of the PowerManager, in particular wake locks.
  *
- * @author Felix Arends (felixarends@gmail.com)
- * @author Damon Kohler (damonkohler@gmail.com)
  */
 public class WakeLockFacade extends RpcReceiver {
 

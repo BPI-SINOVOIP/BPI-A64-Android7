@@ -47,6 +47,11 @@
     <string name="callFailed_unobtainable_number" msgid="124621797631734731">"অবৈধ নম্বর"</string>
     <string name="incall_error_missing_voicemail_number" msgid="3651090591812220874">"ভয়েসমেল নম্বর অজানা৷"</string>
     <string name="callFailed_video_call_tty_enabled" msgid="186585701668604271">"TTY সক্ষম করা থাকলে ভিডিও কলগুলি করা যাবে না।"</string>
+    <string name="callEnded_pulled" msgid="437630601519502587">"অন্য ডিভাইসে কল স্থানান্তর করা হয়েছে৷"</string>
     <string name="ringtone_silent" msgid="249805466934178869">"একবারও না"</string>
     <string name="ringtone_unknown" msgid="2303463713486734520">"অজানা রিংটোন"</string>
+    <string name="callFailed_maximum_reached" msgid="4823790040422765056">"উপলব্ধ সমস্ত লাইন ব্যবহৃত হচ্ছে৷ একটি কল করতে, এই ডিভাইস বা আপনার অন্য কোনো ডিভাইসে যে কোনো একটি কল কেটে দিন৷"</string>
+    <string name="callFailed_data_disabled" msgid="3885826754435317856">"সেলুলার ডাটা অক্ষম হওয়ার কারণে কলটি সমাপ্ত হয়েছে৷"</string>
+    <string name="callFailed_data_limit_reached_description" msgid="1439284832802552582">"সেলুলার ডেটা সীমা ছাড়িয়ে যাওয়ার কারণে কলটি সমাপ্ত হয়েছে৷"</string>
+    <string name="callFailed_data_limit_reached" msgid="7045770594965160282">"ডেটা সীমাতে পৌঁছেছেন৷ কল সমাপ্ত হয়েছে"</string>
 </resources>

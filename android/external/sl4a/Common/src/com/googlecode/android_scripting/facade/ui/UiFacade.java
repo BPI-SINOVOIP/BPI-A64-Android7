@@ -112,7 +112,6 @@ import org.json.JSONException;
  * There is only ever one instance of a dialog. Any dialogCreate call will cause the existing dialog
  * to be destroyed.
  *
- * @author MeanEYE.rcf (meaneye.rcf@gmail.com)
  */
 public class UiFacade extends RpcReceiver {
   // This value should not be used for menu groups outside this class.

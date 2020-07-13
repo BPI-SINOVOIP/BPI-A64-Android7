@@ -983,6 +983,12 @@ void set_interfaces(const char *interfaces)
     }
     strncpy(s, interfaces, sizeof(s));
     while((interface = strsep(&next, SEPARATOR))) {
+        if (!if_nametoindex(interface)) {
+            my_syslog(LOG_ERR,
+                    _("interface given in %s: '%s' has no ifindex; ignoring"),
+                    __FUNCTION__, interface);
+            continue;
+        }
         if_tmp = safe_malloc(sizeof(struct iname));
         memset(if_tmp, 0, sizeof(struct iname));
         if ((if_tmp->name = strdup(interface)) == NULL) {
@@ -992,15 +998,21 @@ void set_interfaces(const char *interfaces)
         daemon->if_names = if_tmp;
     }
 
+    /*
+     * Enumerate IP addresses (via RTM_GETADDR), adding IP entries to
+     * daemon->interfaces for interface names listed in daemon->if_names.
+     * The sockets are created by the create_bound_listener call below.
+     */
     if (!enumerate_interfaces()) {
         die(_("enumerate interfaces error in set_interfaces: %s"), NULL, EC_BADNET);
     }
 
     for (if_tmp = daemon->if_names; if_tmp; if_tmp = if_tmp->next) {
         if (if_tmp->name && !if_tmp->used) {
-            die(_("unknown interface given %s in set_interfaces: %s"), if_tmp->name, EC_BADNET);
+            my_syslog(LOG_ERR, _("unknown interface given %s in set_interfaces()"), if_tmp->name);
         }
     }
+
     /* success! - setup to free the old */
     /* check for any that have been removed */
     for (old_iface = prev_interfaces; old_iface; old_iface=old_iface->next) {

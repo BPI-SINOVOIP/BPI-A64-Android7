@@ -37,8 +37,6 @@ import java.lang.reflect.Field;
  * to batteryStartMonitoring, and then wait for a "battery" event. Sleeping for a second will
  * usually work just as well.
  *
- * @author Alexey Reznichenko (alexey.reznichenko@gmail.com)
- * @author Robbie Matthews (rjmatthews62@gmail.com)
  */
 public class BatteryManagerFacade extends RpcReceiver {
 

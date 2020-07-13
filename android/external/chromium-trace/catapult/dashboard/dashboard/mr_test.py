@@ -9,6 +9,7 @@ import webtest
 
 from mapreduce import operation as op
 
+from dashboard import delete_test_data
 from dashboard import mr
 from dashboard import testing_common
 from dashboard import utils
@@ -33,7 +34,8 @@ class MrTest(testing_common.TestCase):
 
   def setUp(self):
     super(MrTest, self).setUp()
-    app = webapp2.WSGIApplication([])
+    app = webapp2.WSGIApplication([
+        ('/delete_test_data', delete_test_data.DeleteTestDataHandler)])
     self.testapp = webtest.TestApp(app)
     self.SetCurrentUser('foo@bar.com', is_admin=True)
     self.PatchDatastoreHooksRequest()
@@ -79,6 +81,29 @@ class MrTest(testing_common.TestCase):
 
     return trace_a, trace_b, suite
 
+  def _AddMockDataForDeletedTests(self):
+    """Adds some sample data, some of which only has old timestamps."""
+    testing_common.AddTests(['ChromiumPerf'], ['mac'], _TESTS)
+
+    trace_a = utils.TestKey('ChromiumPerf/mac/suite/graph_a/trace_a').get()
+    trace_b = utils.TestKey('ChromiumPerf/mac/suite/graph_b/trace_b').get()
+    suite = utils.TestKey('ChromiumPerf/mac/suite').get()
+    trace_a_test_container_key = utils.GetTestContainerKey(trace_a)
+    trace_b_test_container_key = utils.GetTestContainerKey(trace_b)
+
+    now = datetime.datetime.now()
+    deleted_time = datetime.datetime.now() - datetime.timedelta(days=200)
+
+    for i in range(0, 5):
+      graph_data.Row(
+          id=i, value=(i * 100), parent=trace_a_test_container_key,
+          timestamp=deleted_time).put()
+      graph_data.Row(
+          id=i, value=i * 100, parent=trace_b_test_container_key,
+          timestamp=(now if i == 4 else deleted_time)).put()
+
+    return trace_a, trace_b, suite
+
   def testDeprecateTestsMapper_UpdatesTest(self):
     trace_a, trace_b, suite = self._AddMockDataForDeprecatedTests()
 
@@ -94,7 +119,7 @@ class MrTest(testing_common.TestCase):
   def testDeprecateTestsMapper_AllSubtestsDeprecated_UpdatesSuite(self):
     (trace_a, trace_b, suite) = self._AddMockDataForDeprecatedTests()
     last_b = graph_data.Row.query(
-        graph_data.Row.parent_test == trace_b.key,
+        graph_data.Row.parent_test == utils.OldStyleTestKey(trace_b.key),
         graph_data.Row.revision == 4).get()
     last_b.timestamp = datetime.datetime.now() - datetime.timedelta(days=20)
     last_b.put()
@@ -109,7 +134,7 @@ class MrTest(testing_common.TestCase):
     self.assertTrue(suite.deprecated)
 
   def _AddTestRowSheriff(self, row_age_days, stoppage_alert_delay):
-    """Adds a Test, Row and Sheriff and returns their keys."""
+    """Adds a TestMetadata, Row and Sheriff and returns their keys."""
     sheriff_key = sheriff.Sheriff(
         id='X', email='x@google.com',
         patterns=['ChromiumPerf/*/*/*/trace_a'],
@@ -152,6 +177,23 @@ class MrTest(testing_common.TestCase):
     for operation in mr.DeprecateTestsMapper(test_key.get()):
       self._ExecOperation(operation)
     self.assertIsNone(stoppage_alert.StoppageAlert.query().get())
+
+  def testDeprecateTestsMapper_DeletesTest(self):
+    trace_a, trace_b, suite = self._AddMockDataForDeletedTests()
+    trace_a_key = trace_a.key
+    trace_b_key = trace_b.key
+    suite_key = suite.key
+
+    for operation in mr.DeprecateTestsMapper(trace_a):
+      self._ExecOperation(operation)
+    for operation in mr.DeprecateTestsMapper(trace_b):
+      self._ExecOperation(operation)
+    self.ExecuteTaskQueueTasks(
+        '/delete_test_data', mr._DELETE_TASK_QUEUE_NAME)
+
+    self.assertIsNone(trace_a_key.get())
+    self.assertIsNotNone(trace_b_key.get())
+    self.assertIsNotNone(suite_key.get())
 
 
 if __name__ == '__main__':

@@ -2686,7 +2686,11 @@ static int CallbackProcess(void* pSelf, int eMessageId, void* param)
                     p->pAvTimer->Stop(p->pAvTimer);
 
                 if(p->callback != NULL)
+                {
                     p->callback(p->pUserData, PLAYBACK_NOTIFY_EOS, NULL);
+                    p->bVideoRenderEosReceived = 0;
+                    p->bAudioRenderEosReceived = 0;
+                }
             }
             pthread_mutex_unlock(&p->eosMutex);
             return 0;
@@ -2705,7 +2709,11 @@ static int CallbackProcess(void* pSelf, int eMessageId, void* param)
                     p->pAvTimer->Stop(p->pAvTimer);
 
                 if(p->callback != NULL)
+                {
                     p->callback(p->pUserData, PLAYBACK_NOTIFY_EOS, NULL);
+                    p->bVideoRenderEosReceived = 0;
+                    p->bAudioRenderEosReceived = 0;
+                }
             }
             pthread_mutex_unlock(&p->eosMutex);
             return 0;
@@ -3682,7 +3690,11 @@ static int CallbackProcess(void* pSelf, int eMessageId, void* param)
                     p->bAudioCrash == 1)
             {
                 if(p->callback != NULL)
+                {
                     p->callback(p->pUserData, PLAYBACK_NOTIFY_EOS, NULL);
+                    p->bVideoRenderEosReceived = 0;
+                    p->bAudioRenderEosReceived = 0;
+                }
             }
             pthread_mutex_unlock(&p->eosMutex);
             break;
@@ -3708,7 +3720,11 @@ static int CallbackProcess(void* pSelf, int eMessageId, void* param)
                     p->bVideoCrash == 1)
             {
                 if(p->callback != NULL)
+                {
                     p->callback(p->pUserData, PLAYBACK_NOTIFY_EOS, NULL);
+                    p->bVideoRenderEosReceived = 0;
+                    p->bAudioRenderEosReceived = 0;
+                }
             }
             pthread_mutex_unlock(&p->eosMutex);
             break;

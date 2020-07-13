@@ -51,8 +51,6 @@ import com.googlecode.android_scripting.trigger.TriggerRepository.TriggerReposit
  * When no triggers are installed the service shuts down silently as to not consume resources
  * unnecessarily.
  *
- * @author Felix Arends (felix.arends@gmail.com)
- * @author Damon Kohler (damonkohler@gmail.com)
  */
 public class TriggerService extends ForegroundService {
   private static final int NOTIFICATION_ID = NotificationIdFactory.create();

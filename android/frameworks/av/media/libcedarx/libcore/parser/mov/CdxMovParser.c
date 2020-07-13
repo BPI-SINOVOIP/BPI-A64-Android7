@@ -409,7 +409,7 @@ static cdx_int32 __CdxMovParserClose(CdxParserT *parser)
     {
         PlayReadyCloseDrm();
     }
-
+    EraseId3(&c->id3v2);
     CdxMovClose(tmpMovPsr);
     CdxMovExit(tmpMovPsr);
     tmpMovPsr = NULL;
@@ -461,6 +461,25 @@ static cdx_int32 __CdxMovParserPrefetch(CdxParserT *parser, CdxPacketT * pkt)
     tmpMovPsr->mStatus = CDX_MOV_PREFETCHING;
     memset(pkt, 0x00, sizeof(CdxPacketT));
 
+    if(c->chunk_info.no_completed_read && c->chunk_info.type == 2)
+    {
+        CDX_LOGW("try read : %d, try to : %d", c->chunk_info.cycle_num, c->chunk_info.cycle_to);
+        pkt->length   = tmpMovPsr->packet.length;
+        pkt->type     = tmpMovPsr->packet.type;
+        pkt->pts      = tmpMovPsr->packet.pts;
+        pkt->duration = tmpMovPsr->packet.duration;
+        pkt->flags    = tmpMovPsr->packet.flags;
+        tmpMovPsr->mStatus = CDX_MOV_PREFETCHED;
+        c->chunk_info.cycle_num++;
+        if(c->chunk_info.cycle_num >= c->chunk_info.cycle_to)
+        {
+             c->chunk_info.no_completed_read = 0;
+             c->chunk_info.cycle_num = 0;
+        }
+        c->chunk_info.offset += pkt->length;
+        return 0;
+    }
+
     result = CdxMovRead(tmpMovPsr);
     if(result == 1)
     {
@@ -479,6 +498,17 @@ static cdx_int32 __CdxMovParserPrefetch(CdxParserT *parser, CdxPacketT * pkt)
     st = c->streams[c->prefetch_stream_index];
 
     pkt->length = c->chunk_info.length;
+
+    if(c->chunk_info.no_completed_read && c->chunk_info.type == 2)
+    {
+        pkt->length = c->chunk_info.audio_segsz;
+        c->chunk_info.cycle_num++;
+        if(c->chunk_info.cycle_num >= c->chunk_info.cycle_to)
+        {
+             c->chunk_info.no_completed_read = 0;
+             c->chunk_info.cycle_num = 0;
+        }
+    }
 
     if(1 == st->stsd_type)
     {
@@ -751,12 +781,19 @@ static cdx_int32 __CdxMovParserGetMediaInfo(CdxParserT *parser, CdxMediaInfoT * 
     pMediaInfo->programIndex = 0;
 
     //* copy the location info
-    memcpy(pMediaInfo->location,c->location,32*sizeof(cdx_uint8));
-    memcpy(pMediaInfo->title,   c->title,   32*sizeof(cdx_uint8));
-    memcpy(pMediaInfo->album,   c->title,   32*sizeof(cdx_uint8));
-    memcpy(pMediaInfo->albumArtist,   c->title,   32*sizeof(cdx_uint8));
-    memcpy(pMediaInfo->writer,   c->title,   32*sizeof(cdx_uint8));
-    memcpy(pMediaInfo->genre,   c->title,   32*sizeof(cdx_uint8));
+    CDX_LOGD("Get mediainfo");
+    if(c->id3v2 && c->id3v2->mIsValid)
+    {
+        CDX_LOGD("Mov id3v2 has vaild parsed...");
+        pMediaInfo->id3v2HadParsed = 1;
+        Id3BaseGetMetaData(pMediaInfo, c->id3v2);
+        /*
+              *  It seems that 'date' metadata is not included in id3,  based on stagefright.
+              *  To pass the cts test, those infomations not extracted from id3 parser,
+              *  should be send to mediainfo departly.
+              */
+        SetMetaData(pMediaInfo, DATE, (const char*)c->date);
+    }
 
     VideoStreamInfo* video;
     AudioStreamInfo* audio;
@@ -1033,6 +1070,14 @@ static int __CdxMovParserControl(CdxParserT *parser, int cmd, void *param)
 static cdx_int32 __CdxMovParserSeekTo(CdxParserT *parser, cdx_int64  timeUs )
 {
     struct CdxMovParser* tmpMovPsr = (struct CdxMovParser*)parser;
+    MOVContext                    *c;
+
+    c = (MOVContext*)tmpMovPsr->privData;
+
+    c->chunk_info.no_completed_read = 0;
+    c->chunk_info.cycle_num = 0;
+    c->chunk_info.cycle_to  = 0;
+    c->chunk_info.audio_segsz = 0;
 
     if(tmpMovPsr->exitFlag)
     {

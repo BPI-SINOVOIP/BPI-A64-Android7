@@ -1,0 +1,179 @@
+[
+  {
+    "cmd": [
+      "find",
+      ".",
+      "-delete"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "env": {
+      "ANDROID_SDK_ROOT": "/Users/chying/Android/android-sdk-linux",
+      "PATH": "%(PATH)s:/Users/chying/Android/android-sdk-linux/tools:/Users/chying/Android/android-sdk-linux/platform-tools"
+    },
+    "name": "Clean slave build directory"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[BUILD]/../emu_test/utils/download_unzip_image.py",
+      "--file",
+      "/images/emu_gspoller_linux/sdk-repo-windows-tools-2344972.zip",
+      "--ip",
+      "172.27.213.40",
+      "--user",
+      "user"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "env": {
+      "ANDROID_SDK_ROOT": "/Users/chying/Android/android-sdk-linux",
+      "PATH": "%(PATH)s:/Users/chying/Android/android-sdk-linux/tools:/Users/chying/Android/android-sdk-linux/platform-tools"
+    },
+    "name": "Download and Unzip Images"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[BUILD]/../emu_test/dotest.py",
+      "-l",
+      "INFO",
+      "-exec",
+      "[SLAVE_BUILD]/tools/emulator",
+      "-s",
+      "logs-3077/boot_test_public_sysimage",
+      "-p",
+      "test_boot.*",
+      "-c",
+      "[BUILD]/../emu_test/config/boot_cfg.csv",
+      "-n",
+      "Ubuntu 15.04 Quadro K600",
+      "-f",
+      "{\"tot_image\": \"no\"}"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "env": {
+      "ANDROID_SDK_ROOT": "/Users/chying/Android/android-sdk-linux",
+      "PATH": "%(PATH)s:/Users/chying/Android/android-sdk-linux/tools:/Users/chying/Android/android-sdk-linux/platform-tools"
+    },
+    "name": "Boot Test - Public System Image",
+    "stderr": "/path/to/tmp/err",
+    "~followup_annotations": [
+      "step returned non-zero exit code: 1",
+      "@@@STEP_LOG_END@TIMEOUT: TIMEOUT: foobar@@@",
+      "@@@STEP_FAILURE@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[BUILD]/../emu_test/dotest.py",
+      "-l",
+      "INFO",
+      "-exec",
+      "[SLAVE_BUILD]/tools/emulator",
+      "-s",
+      "logs-3077/boot_test_LMP_sysimage",
+      "-p",
+      "test_boot.*",
+      "-c",
+      "[BUILD]/../emu_test/config/boot_cfg.csv",
+      "-n",
+      "Ubuntu 15.04 Quadro K600",
+      "-f",
+      "{\"tot_image\": \"yes\", \"api\": \"22\"}"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "env": {
+      "ANDROID_SDK_ROOT": "/Users/chying/Android/android-sdk-linux",
+      "PATH": "%(PATH)s:/Users/chying/Android/android-sdk-linux/tools:/Users/chying/Android/android-sdk-linux/platform-tools"
+    },
+    "name": "Boot Test - LMP System Image",
+    "stderr": "/path/to/tmp/err"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[BUILD]/../emu_test/dotest.py",
+      "-l",
+      "INFO",
+      "-exec",
+      "[SLAVE_BUILD]/tools/emulator",
+      "-s",
+      "logs-3077/boot_test_MNC_sysimage",
+      "-p",
+      "test_boot.*",
+      "-c",
+      "[BUILD]/../emu_test/config/boot_cfg.csv",
+      "-n",
+      "Ubuntu 15.04 Quadro K600",
+      "-f",
+      "{\"tot_image\": \"yes\", \"api\": \"23\"}"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "env": {
+      "ANDROID_SDK_ROOT": "/Users/chying/Android/android-sdk-linux",
+      "PATH": "%(PATH)s:/Users/chying/Android/android-sdk-linux/tools:/Users/chying/Android/android-sdk-linux/platform-tools"
+    },
+    "name": "Boot Test - MNC System Image",
+    "stderr": "/path/to/tmp/err"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[BUILD]/../emu_test/dotest.py",
+      "-l",
+      "INFO",
+      "-exec",
+      "[SLAVE_BUILD]/tools/emulator",
+      "-s",
+      "logs-3077/CTS_test",
+      "-p",
+      "test_cts.*",
+      "-c",
+      "[BUILD]/../emu_test/config/cts_cfg.csv",
+      "-n",
+      "Ubuntu 15.04 Quadro K600",
+      "-f",
+      "{\"tot_image\": \"no\"}"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "env": {
+      "ANDROID_SDK_ROOT": "/Users/chying/Android/android-sdk-linux",
+      "PATH": "%(PATH)s:/Users/chying/Android/android-sdk-linux/tools:/Users/chying/Android/android-sdk-linux/platform-tools"
+    },
+    "name": "Run Emulator CTS Test",
+    "stderr": "/path/to/tmp/err"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[BUILD]/../emu_test/utils/zip_upload_logs.py",
+      "--dir",
+      "logs-3077",
+      "--name",
+      "build-3077.zip",
+      "--ip",
+      "172.27.213.40",
+      "--user",
+      "user",
+      "--dst",
+      "/home/slave_logs/Ubuntu 15.04 Quadro K600/"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "env": {
+      "ANDROID_SDK_ROOT": "/Users/chying/Android/android-sdk-linux",
+      "PATH": "%(PATH)s:/Users/chying/Android/android-sdk-linux/tools:/Users/chying/Android/android-sdk-linux/platform-tools"
+    },
+    "name": "Zip and Upload Logs"
+  },
+  {
+    "name": "$result",
+    "reason": "1 out of 5 aggregated steps failed. Failures: Step('Boot Test - Public System Image') failed with return_code 1",
+    "status_code": 1
+  }
+]

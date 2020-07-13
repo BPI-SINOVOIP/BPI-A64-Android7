@@ -86,7 +86,7 @@ in the test
 
 ### Configuration Files
 To run tests, required information must be provided via a json-formatted
-text file. The required information includes a list of “testbed” configs.
+text file. The required information includes a list of ***testbed*** configs.
 Each specifies the hardware, services, the path to the logs directory, and
 a list of paths where the python test case files are located. Below are the
 contents of a sample configuration file:
@@ -104,6 +104,11 @@ contents of a sample configuration file:
     "custom_param1": {"favorite_food": "Icecream!"}
 }
 ```
+The ***testpaths*** and ***logpath*** keys may alternately be supplied via the
+execution environment though the ACTS_TESTPATHS and ACTS_LOGPATH keys
+respectively. To specify multiple test paths, the key should follow
+standard a ':'-delimited format. Explicit keys in a configuration file will
+override any defaults provided by the environment.
 
 ### Test Class
 Test classes are instantiated with a dictionary of “controllers”. The

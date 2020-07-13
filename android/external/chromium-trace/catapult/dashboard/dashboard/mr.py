@@ -23,20 +23,28 @@ import logging
 from mapreduce import control as mr_control
 from mapreduce import operation as op
 
+from google.appengine.api import taskqueue
 from google.appengine.ext import ndb
 
 from dashboard import datastore_hooks
 from dashboard import layered_cache
+from dashboard import list_tests
 from dashboard import request_handler
+from dashboard import utils
 from dashboard.models import graph_data
 from dashboard.models import stoppage_alert
 
 # Length of time required to pass for a test to be considered deprecated.
-_OLDEST_REVISION_DELTA = datetime.timedelta(days=14)
+_DEPRECATION_REVISION_DELTA = datetime.timedelta(days=14)
+
+# Length of time required to pass for a test to be deleted entirely.
+_REMOVAL_REVISON_DELTA = datetime.timedelta(days=183)
 
 # The time between runs of the deprecate test job.
 # This should be kept in sync with the time interval in cron.yaml.
 _DEPRECATE_JOB_INTERVAL = datetime.timedelta(days=2)
+
+_DELETE_TASK_QUEUE_NAME = 'delete-tests-queue'
 
 
 def SaveAllMapper(entity):
@@ -63,17 +71,16 @@ class MRDeprecateTestsHandler(request_handler.RequestHandler):
     handler = ('dashboard.mr.DeprecateTestsMapper')
     reader = 'mapreduce.input_readers.DatastoreInputReader'
     mapper_parameters = {
-        'entity_kind': ('dashboard.models.graph_data.Test'),
-        'filters': [('has_rows', '=', True),
-                    ('deprecated', '=', False)],
+        'entity_kind': ('dashboard.models.graph_data.TestMetadata'),
+        'filters': [],
     }
     mr_control.start_map(name, handler, reader, mapper_parameters)
 
 
 def DeprecateTestsMapper(entity):
-  """Marks a Test entity as deprecated if the last row is too old.
+  """Marks a TestMetadata entity as deprecated if the last row is too old.
 
-  What is considered "too old" is defined by _OLDEST_REVISION_DELTA. Also,
+  What is considered "too old" is defined by _DEPRECATION_REVISION_DELTA. Also,
   if all of the subtests in a test have been marked as deprecated, then that
   parent test will be marked as deprecated.
 
@@ -81,31 +88,46 @@ def DeprecateTestsMapper(entity):
   happens in add_point.py.
 
   Args:
-    entity: The Test entity to check.
+    entity: The TestMetadata entity to check.
 
   Yields:
     Zero or more datastore mutation operations.
   """
-  # Make sure that we have a non-deprecated Test with Rows.
-  if entity.key.kind() != 'Test' or not entity.has_rows or entity.deprecated:
-    # TODO(qyearsley): Add test coverage. See catapult:#1346.
-    logging.error(
-        'Got bad entity in mapreduce! Kind: %s, has_rows: %s, deprecated: %s',
-        entity.key.kind(), entity.has_rows, entity.deprecated)
-    return
-
   # Fetch the last row.
   datastore_hooks.SetPrivilegedRequest()
-  query = graph_data.Row.query(graph_data.Row.parent_test == entity.key)
+  query = graph_data.Row.query(
+      graph_data.Row.parent_test == utils.OldStyleTestKey(entity.key))
   query = query.order(-graph_data.Row.timestamp)
   last_row = query.get()
-  if not last_row:
-    # TODO(qyearsley): Add test coverage. See catapult:#1346.
-    logging.error('No rows for %s (but has_rows=True)', entity.key)
+
+  # Check if the test should be deleted entirely.
+  now = datetime.datetime.now()
+  logging.info('checking %s', entity.test_path)
+  if not last_row or last_row.timestamp < now - _REMOVAL_REVISON_DELTA:
+    descendants = list_tests.GetTestDescendants(entity.key, keys_only=True)
+    if entity.key in descendants:
+      descendants.remove(entity.key)
+    if not descendants:
+      logging.info('removing')
+      if last_row:
+        logging.info('last row timestamp: %s', last_row.timestamp)
+      else:
+        logging.info('no last row, no descendants')
+      taskqueue.add(
+          url='/delete_test_data',
+          params={
+              'test_path': utils.TestPath(entity.key),  # For manual inspection.
+              'test_key': entity.key.urlsafe(),
+              'notify': 'false',
+          },
+          queue_name=_DELETE_TASK_QUEUE_NAME)
+      return
+
+
+  if entity.deprecated or not last_row:
     return
 
-  now = datetime.datetime.now()
-  if last_row.timestamp < now - _OLDEST_REVISION_DELTA:
+  if last_row.timestamp < now - _DEPRECATION_REVISION_DELTA:
     for operation in _MarkDeprecated(entity):
       yield operation
 
@@ -123,7 +145,7 @@ def _CreateStoppageAlerts(test, last_row):
   pass before an alert is created.
 
   Args:
-    test: A Test entity.
+    test: A TestMetadata entity.
     last_row: The Row entity that was last added.
 
   Yields:
@@ -149,7 +171,7 @@ def _CreateStoppageAlerts(test, last_row):
 
 
 def _MarkDeprecated(test):
-  """Marks a Test as deprecated and yields Put operations."""
+  """Marks a TestMetadata as deprecated and yields Put operations."""
   test.deprecated = True
   yield op.db.Put(test)
 
@@ -161,7 +183,9 @@ def _MarkDeprecated(test):
 
   # Check whether the test suite now contains only deprecated tests, and
   # if so, deprecate it too.
-  suite = ndb.Key(flat=test.key.flat()[:6]).get()
+  suite = ndb.Key(
+      'TestMetadata', '%s/%s/%s' % (
+          test.master_name, test.bot_name, test.suite_name)).get()
   if suite and not suite.deprecated and _AllSubtestsDeprecated(suite):
     suite.deprecated = True
     yield op.db.Put(suite)
@@ -169,8 +193,6 @@ def _MarkDeprecated(test):
 
 def _AllSubtestsDeprecated(test):
   """Checks whether all descendant tests are marked as deprecated."""
-  query = graph_data.Test.query(ancestor=test.key)
-  query = query.filter(
-      graph_data.Test.has_rows == True)
-  descendant_tests = query.fetch()
+  descendant_tests = list_tests.GetTestDescendants(
+      test.key, has_rows=True, keys_only=False)
   return all(t.deprecated for t in descendant_tests)

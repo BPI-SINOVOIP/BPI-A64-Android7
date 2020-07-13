@@ -125,11 +125,16 @@ public abstract class EmergencyTabActivity extends Activity {
         return mFragments.size();
     }
 
+    /** Return the adapter. */
+    protected ViewPagerAdapter getTabsAdapter() {
+        return mTabsAdapter;
+    }
+
     /** Returns the fragments to show in the tabs. */
     protected abstract ArrayList<Pair<String, Fragment>> setUpFragments();
 
     /** The adapter used to handle the two fragments. */
-    private class ViewPagerAdapter extends FragmentStatePagerAdapter {
+    protected class ViewPagerAdapter extends FragmentStatePagerAdapter {
         public ViewPagerAdapter(FragmentManager fm) {
             super(fm);
         }

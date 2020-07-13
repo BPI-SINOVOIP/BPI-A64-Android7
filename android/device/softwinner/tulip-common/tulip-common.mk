@@ -92,7 +92,7 @@ PRODUCT_PROPERTY_OVERRIDES += \
 PRODUCT_TAGS += dalvik.gc.type-precise
 
 PRODUCT_PROPERTY_OVERRIDES += \
-    ro.product.firmware=v3.0rc3
+    ro.product.firmware=v3.1rc2
 
 # if DISPLAY_BUILD_NUMBER := true then
 # BUILD_DISPLAY_ID := $(BUILD_ID).$(BUILD_NUMBER)

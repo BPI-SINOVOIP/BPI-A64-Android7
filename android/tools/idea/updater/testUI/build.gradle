@@ -1,0 +1,344 @@
+/*
+ * Copyright (C) 2013 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+import java.nio.charset.Charset
+
+apply plugin: "application"
+
+project.mainClassName = "com.intellij.updater.Runner"
+
+defaultTasks "testSuite"
+
+repositories {
+  mavenCentral()
+}
+
+dependencies {
+  compile files("../../lib/log4j.jar")
+  testCompile group: "junit", name: "junit", version: "3.+"
+}
+
+sourceSets {
+  main {
+    java      { srcDir "../src" }
+    resources { srcDir "../src" }
+  }
+  test {
+    java      { srcDir "../tests" }
+    resources { srcDir "../tests" }
+  }
+}
+
+
+test {
+  testLogging {
+    showStandardStreams = true
+    showStackTraces = true
+    exceptionFormat = "full"
+  }
+}
+
+//---
+
+// Task : Tests updater create + install in the default normal case.
+// Scope: large test.
+// Running this will display the install patcher UI.
+task testUI1(dependsOn: jar) << {
+  println "## Running UI test 1"
+  println "## Jar file: " + jar.archivePath.getAbsolutePath()
+
+  // Create a temp dir inside the gradle build/tmp dir
+  //noinspection GroovyAssignabilityCheck
+  def buildTmpDir = new File(project.buildDir, "tmp");
+  def tmpDir = _createTempDir(buildTmpDir)
+  def logDir = _createTempDir(buildTmpDir)
+
+  try {
+    // create a "from version 1" and "to version 2" directories
+    def dataDir1 = _createTestData(tmpDir, "1")
+    assert  _mkFile(dataDir1, "plugins", "v1", "myplugin.jar").exists()
+    assert !_mkFile(dataDir1, "plugins", "v2", "myplugin.jar").exists()
+    assert _getFileContent(_mkFile(dataDir1, "build.txt")).equals("AI-123.45678-1")
+
+    def dataDir2 = _createTestData(tmpDir, "2")
+    assert !_mkFile(dataDir2, "plugins", "v1", "myplugin.jar").exists()
+    assert  _mkFile(dataDir2, "plugins", "v2", "myplugin.jar").exists()
+    assert _getFileContent(_mkFile(dataDir2, "build.txt")).equals("AI-123.45678-2")
+
+    def patch    = _createFileContent(tmpDir, "patch.jar", "patch jar placeholder");
+    patch.delete()
+    assert !patch.exists()
+
+    def logFullFile  = _mkFile(logDir, "idea_updater.log")
+    def logErrorFile = _mkFile(logDir, "idea_updater_error.log")
+    assert !logFullFile .exists()
+    assert !logErrorFile.exists()
+
+    // call updater jar to create a diff, resulting in a patch jar.
+    println "## Invoking updater <create>"
+    javaexec {
+      classpath jar.archivePath
+      classpath "../../lib/log4j.jar"
+      main = "com.intellij.updater.Runner"
+      args "create"
+      args "AI-123.45678-1"
+      args "AI-123.45678-2"
+      args dataDir1.getAbsolutePath()
+      args dataDir2.getAbsolutePath()
+      args patch.getAbsolutePath()
+      args logDir.getAbsolutePath()
+    }
+    assert patch.exists()
+
+    assert logFullFile .exists()
+    assert logErrorFile.exists()    // should exist and be empty
+    assert _getFileContent(logErrorFile).equals(null)
+
+
+    // that patch jar is self-executable. use it to update dir1 into dir2 in-place.
+    println "## Invoking updater <install>"
+    javaexec {
+      classpath patch
+      classpath "../../lib/log4j.jar"
+      main = "com.intellij.updater.Runner"
+      args "install"
+      args "--exit0"
+      args dataDir1.getAbsolutePath()
+      args logDir.getAbsolutePath()
+    }
+    // build.txt should have changed to v2
+    assert _getFileContent(_mkFile(dataDir1, "build.txt")).equals("AI-123.45678-2")
+    // plugin v1 should have been replaced by pluging v2 in the dataDir1 directory.
+    assert !_mkFile(dataDir1, "plugins", "v1", "myplugin.jar").exists()
+    assert  _mkFile(dataDir1, "plugins", "v2", "myplugin.jar").exists()
+
+    assert logFullFile .exists()
+    assert logErrorFile.exists()    // should exist and be empty
+    assert _getFileContent(logErrorFile).equals(null)
+
+  } finally {
+    // Cleanup on exit
+    tmpDir.deleteDir()
+    logDir.deleteDir()
+  }
+}
+
+// Task : Tests updater create + install with 2 open files.
+// Scope: large *interactive* test.
+// On Windows, the opened files are locked and can't be deleted/overwritten.
+// On Linux/Mac, they should be writable & deletable.
+//
+// Running this will display the install patcher UI, which will fail at
+// first on Windows. After 5 seconds the open files will be closed.
+// Hitting "retry" in the UI after this point should perform the whole
+// install operation again.
+task testUI2(dependsOn: jar) << {
+  println "## Running UI test 2"
+  println "## Jar file: " + jar.archivePath.getAbsolutePath()
+
+  // Create a temp dir inside the gradle build/tmp dir
+  //noinspection GroovyAssignabilityCheck
+  def buildTmpDir = new File(project.buildDir, "tmp");
+  def tmpDir = _createTempDir(buildTmpDir)
+  def logDir = _createTempDir(buildTmpDir)
+  def closeableFiles = []
+
+  try {
+    // create a "from version 1" and "to version 2" directories
+    def dataDir1 = _createTestData(tmpDir, "1")
+    assert  _mkFile(dataDir1, "plugins", "v1", "myplugin.jar").exists()
+    assert !_mkFile(dataDir1, "plugins", "v2", "myplugin.jar").exists()
+    assert _getFileContent(_mkFile(dataDir1, "build.txt")).equals("AI-123.45678-1")
+
+    def dataDir2 = _createTestData(tmpDir, "2")
+    assert !_mkFile(dataDir2, "plugins", "v1", "myplugin.jar").exists()
+    assert  _mkFile(dataDir2, "plugins", "v2", "myplugin.jar").exists()
+    assert _getFileContent(_mkFile(dataDir2, "build.txt")).equals("AI-123.45678-2")
+
+    def patch    = _createFileContent(tmpDir, "patch.jar", "patch jar placeholder");
+    patch.delete()
+    assert !patch.exists()
+
+    def logFullFile  = _mkFile(logDir, "idea_updater.log")
+    def logErrorFile = _mkFile(logDir, "idea_updater_error.log")
+    assert !logFullFile .exists()
+    assert !logErrorFile.exists()
+
+    // keep a couple files open, preventing them from being deleted or replaced on Windows
+    closeableFiles << _openFile(_mkFile(dataDir1, "build.txt"))
+    closeableFiles << _openFile(_mkFile(dataDir1, "plugins", "v1", "myplugin.jar"))
+
+    // call updater jar to create a diff, resulting in a patch jar.
+    println "## Invoking updater <create>"
+    javaexec {
+      classpath jar.archivePath
+      classpath "../../lib/log4j.jar"
+      main = "com.intellij.updater.Runner"
+      args "create"
+      args "AI-123.45678-1"
+      args "AI-123.45678-2"
+      args dataDir1.getAbsolutePath()
+      args dataDir2.getAbsolutePath()
+      args patch.getAbsolutePath()
+      args logDir.getAbsolutePath()
+    }
+    assert patch.exists()
+
+    assert logFullFile .exists()
+    assert logErrorFile.exists()    // should exist and be empty
+    assert _getFileContent(logErrorFile).equals(null)
+
+    Thread.start {
+      sleep(5 * 1000) // 5 seconds
+      synchronized(closeableFiles) {
+        println "##"
+        println "## Closing pending open files --> now click 'Retry' in Updater UI."
+        println "##"
+        closeableFiles.each { it.close() }
+        closeableFiles.clear()
+      }
+    }
+
+    // that patch jar is self-executable. use it to update dir1 into dir2 in-place.
+    println "## Invoking updater <install>"
+    println "##"
+    println "## Note: on Windows some files will be locked for 5 seconds and the installer"
+    println "##       window should display a 'Retry' button. This code will wait 5 seconds"
+    println "##       then unlock the files, at which point you would click that 'Retry'"
+    println "##       button and the install should continue correctly."
+    println "##"
+
+    javaexec {
+      classpath patch
+      classpath "../../lib/log4j.jar"
+      main = "com.intellij.updater.Runner"
+      args "install"
+      args "--exit0"
+      args dataDir1.getAbsolutePath()
+      args logDir.getAbsolutePath()
+    }
+    // build.txt should have changed to v2
+    assert _getFileContent(_mkFile(dataDir1, "build.txt")).equals("AI-123.45678-2")
+    // plugin v1 should have been replaced by pluging v2 in the dataDir1 directory.
+    assert !_mkFile(dataDir1, "plugins", "v1", "myplugin.jar").exists()
+    assert  _mkFile(dataDir1, "plugins", "v2", "myplugin.jar").exists()
+
+    assert logFullFile .exists()
+    // the log error file should exist and should not be empty on Windows.
+    assert logErrorFile.exists()
+    if (System.getProperty("os.name").startsWith("Windows")) {
+      assert _getFileContent(logErrorFile) != null
+    } else {
+      assert _getFileContent(logErrorFile).equals(null)
+    }
+
+  } finally {
+    // Cleanup on exit
+    synchronized(closeableFiles) {
+      closeableFiles.each { it.close() }
+      closeableFiles.clear()
+    }
+    tmpDir.deleteDir()
+    logDir.deleteDir()
+  }
+}
+
+// Task: Test suite to run both tests above.
+task testSuite(dependsOn: [testUI1, testUI2]) << {
+}
+
+// ---- Helper methods
+
+// Convention: all local helper methods start with an underscore to clearly
+// differentiate them from groovy/gradle methods.
+
+
+// Creates a temp dir with a random name in the build/tmp directory.
+File _createTempDir(File parent) {
+  def d = File.createTempFile("test", "", parent)
+  d.delete()
+  d.mkdirs()
+  return d
+}
+
+// Creates a new directory with the specific name in the specified parent directory.
+File _createDir(File parent, String name) {
+  def d = new File(parent, name)
+  d.mkdirs()
+  return d
+}
+
+// Creates a new file with the specified name, in the specified parent directory with the given UTF-8 content.
+File _createFileContent(File parentDir, String fileName, String fileContent) throws IOException {
+  File f = new File(parentDir, fileName)
+  OutputStreamWriter fw = new OutputStreamWriter(new FileOutputStream(f), Charset.forName("UTF-8"))
+  try {
+    fw.write(fileContent)
+  } finally {
+    fw.close()
+  }
+  return f
+}
+
+// Opens a file for writing (thus locking it on Windows) but does not close it.
+// Caller should call Closeable.close() on the returned Closeable object.
+Closeable _openFile(File file) throws IOException {
+  if (!file.exists()) throw new IOException("File not found, expected file: " + file.getName())
+  // We need to actually write to the file but not change its content so just read it
+  // then write the same thing back to it, without closing it.
+  String content = _getFileContent(file)
+  FileWriter fw = new FileWriter(file, false /*append*/)
+  fw.append(content)
+  fw.flush()
+  println("## Open file " + file.getName());
+  return fw   // file is not closed
+}
+
+// Returns the first line of the file.
+// Returns null if the file exists and is empty.
+// Throws IOException if file does not exist.
+String _getFileContent(File file) throws IOException {
+  if (!file.exists()) throw new IOException("File not found, expected file: " + file.getName())
+  BufferedReader br = new BufferedReader(new FileReader(file))
+  try {
+    return br.readLine()
+  } finally {
+    br.close()
+  }
+}
+
+// Creates a new File() object with the concatenated name segments.
+File _mkFile(File base, String...segments) {
+  for(String segment : segments) {
+    base = new File(base, segment)
+  }
+  return base
+}
+
+// Creates a mock test data for an idea-based IDE.
+File _createTestData(File tmpDir, String value) {
+  File root     = _createDir(tmpDir,  "idea-ide-" + value)
+  File bin      = _createDir(root,    "bin")
+  File lib      = _createDir(root,    "lib")
+  File plugins  = _createDir(root,    "plugins")
+  File myplugin = _createDir(plugins, "v" + value)
+
+  _createFileContent(root,     "build.txt",    "AI-123.45678-"  + value);
+  _createFileContent(bin,      "idea.exe",     "binary file "   + value);
+  _createFileContent(lib,      "idea.jar",     "some jar file " + value);
+  _createFileContent(myplugin, "myplugin.jar", "some jar file " + value);
+
+  return root
+}

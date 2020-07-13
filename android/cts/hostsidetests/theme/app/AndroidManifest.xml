@@ -31,7 +31,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".GenerateImagesActivity"
+        <activity android:name=".GenerateImagesActivity" android:screenOrientation="portrait"
                   android:exported="true" />
     </application>
 

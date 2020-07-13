@@ -3,13 +3,14 @@
   <groupId>com.android.support.test.espresso</groupId>
   <artifactId>espresso-intents</artifactId>
   <versioning>
-    <release>2.2.2</release>
+    <release>2.3-alpha</release>
     <versions>
       <version>2.1</version>
       <version>2.2</version>
       <version>2.2.1</version>
       <version>2.2.2</version>
+      <version>2.3-alpha</version>
     </versions>
-    <lastUpdated>20160222205413</lastUpdated>
+    <lastUpdated>20160802222015</lastUpdated>
   </versioning>
 </metadata>

@@ -37,6 +37,7 @@ struct CdxParserListS
 };
 
 struct CdxParserListS parserList;
+static int parserInit = 0;
 
 extern CdxParserCreatorT asfParserCtor;
 static struct ParserUriKeyInfoS asfKeyInfo =
@@ -299,10 +300,10 @@ static struct ParserUriKeyInfoS g729KeyInfo =
     {NULL}   /*attribute*/
 };
 
-extern CdxParserCreatorT id3ParserCtor;
-static struct ParserUriKeyInfoS id3KeyInfo =
+extern CdxParserCreatorT id3v2ParserCtor;
+static struct ParserUriKeyInfoS id3v2KeyInfo =
 {
-    "id3",
+    "id3v2",
     {NULL},  /*scheme*/
     {NULL}, /*suffix*/
     {NULL}   /*attribute*/
@@ -347,6 +348,9 @@ static struct ParserUriKeyInfoS envKeyInfo =
     {NULL}   /*attribute*/
 };
 
+#endif
+
+#if ENABLE_RAW_STREAM_PARSER
 extern CdxParserCreatorT rawStreamParserCtor;
 static struct ParserUriKeyInfoS rawStreamKeyInfo =
 {
@@ -355,7 +359,9 @@ static struct ParserUriKeyInfoS rawStreamKeyInfo =
     {".bin", ".h265", ".265", ".hevc", ".h264", ".avc"}, /*suffix*/
     {NULL}   /*attribute*/
 };
+#endif
 
+#if ENABLE_SPECIAL_PARSER
 extern CdxParserCreatorT specialStreamParserCtor;
 static struct ParserUriKeyInfoS specialStreamKeyInfo =
 {
@@ -376,6 +382,12 @@ int AwParserRegister(CdxParserCreatorT *creator, CdxParserTypeT type,
     parserNode->type = type;
     parserNode->keyInfo = keyInfo;
 
+    if(parserInit == 0)
+    {
+        CdxListInit(&parserList.list);
+        parserList.size = 0;
+        parserInit = 1;
+    }
     CdxListAddTail(&parserNode->node, &parserList.list);
     parserList.size++;
     return 0;
@@ -385,8 +397,6 @@ static void AwParserInit(void) __attribute__((constructor));
 void AwParserInit(void)
 {
     CDX_LOGI("aw parser init...");
-    CdxListInit(&parserList.list);
-    parserList.size = 0;
 
     /* Make HLS be the first one since:
      * 1. HLS is widely used
@@ -454,15 +464,13 @@ void AwParserInit(void)
     AwParserRegister(&aiffParserCtor, CDX_PARSER_AIFF, &aiffKeyInfo);
 #endif
 
-    AwParserRegister(&id3ParserCtor, CDX_PARSER_ID3, &id3KeyInfo);
-#ifdef __ANDROID__
+    AwParserRegister(&id3v2ParserCtor, CDX_PARSER_ID3V2, &id3v2KeyInfo);
 #if ENABLE_RAW_STREAM_PARSER
     AwParserRegister(&rawStreamParserCtor, CDX_PARSER_AWRAWSTREAM, &rawStreamKeyInfo);
 #endif
 #if ENABLE_SPECIAL_PARSER
     AwParserRegister(&specialStreamParserCtor, CDX_PARSER_AWSPECIALSTREAM, &specialStreamKeyInfo);
 #endif //ENABLE_SPECIAL_PARSER
-#endif
     CDX_LOGD("aw parser size:%d",parserList.size);
     return ;
 }

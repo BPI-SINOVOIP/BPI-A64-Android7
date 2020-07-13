@@ -188,9 +188,27 @@ static void axp_usb(struct work_struct *work)
 			else
 				axp_charger->chg_usb_ac_current_set(axp_charger,
 					CHARGE_USB_20, 500);
-		} else if (CHARGE_USB_30 == axp_usbcurflag)
+		} else if (CHARGE_USB_30 == axp_usbcurflag){
 			axp_charger->chg_usb_ac_current_set(axp_charger,
 					CHARGE_USB_30, 900);
+		 } else {
+			DBG_PSY_MSG(DEBUG_CHG, "guan: set usbcur %d mA\n", \
+				                    axp_config->pmu_ac_cur);
+			if (axp_config->pmu_ac_cur) {
+				axp_charger->chg_usb_ac_current_set(axp_charger, \
+					        CHARGE_USB_20, axp_config->pmu_ac_cur);
+				axp_charger->chg_usb_ac_current_set(axp_charger,
+							CHARGE_AC, axp_config->pmu_ac_cur);
+			} else {
+				DBG_PSY_MSG(DEBUG_CHG, "%s: %d,set usbcur 2500 mA\n", \
+					                            __func__, __LINE__);
+				axp_charger->chg_usb_ac_current_set(axp_charger,
+					CHARGE_USB_20, 2500);
+				axp_charger->chg_usb_ac_current_set(axp_charger,
+					CHARGE_AC, 2500);
+
+            }
+        }
 
 		if (!vbus_curr_limit_debug) {
 			DBG_PSY_MSG(DEBUG_CHG,

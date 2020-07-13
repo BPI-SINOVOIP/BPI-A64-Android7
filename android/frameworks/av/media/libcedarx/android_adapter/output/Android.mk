@@ -19,11 +19,13 @@ LOCAL_SRC_FILES := \
 
 ############# the interface of skia changed in AndroidN,
 ############# we do not support native render for subtitle
-ifneq ($(CONF_ANDROID_VERSION), 7.0)
-ifneq ($(CONF_ANDROID_VERSION), 6.0)
+android_version = $(shell echo $(PLATFORM_VERSION) | cut -c 1)
+ifeq ($(android_version), 4)
+LOCAL_SRC_FILES += subtitleNativeDisplay/subtitleNativeDisplay.cpp
+else ifeq ($(android_version), 5)
 LOCAL_SRC_FILES += subtitleNativeDisplay/subtitleNativeDisplay.cpp
 endif
-endif
+
 
 LOCAL_C_INCLUDES  := \
         $(TOP)/frameworks/av/                               \

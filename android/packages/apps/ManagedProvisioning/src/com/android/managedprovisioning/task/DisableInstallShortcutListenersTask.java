@@ -60,7 +60,9 @@ public class DisableInstallShortcutListenersTask {
      * Disable all components that can handle the specified broadcast intent.
      */
     private void disableReceivers(Intent intent) {
-        List<ResolveInfo> receivers = mPm.queryBroadcastReceiversAsUser(intent, 0, mUserId);
+        List<ResolveInfo> receivers = mPm.queryBroadcastReceiversAsUser(intent,
+                PackageManager.MATCH_DIRECT_BOOT_UNAWARE | PackageManager.MATCH_DIRECT_BOOT_AWARE,
+                mUserId);
         for (ResolveInfo ri : receivers) {
             // One of ri.activityInfo, ri.serviceInfo, ri.providerInfo is not null. Let's find which
             // one.

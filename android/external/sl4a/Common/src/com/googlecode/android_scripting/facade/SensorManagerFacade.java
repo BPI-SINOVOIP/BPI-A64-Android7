@@ -89,11 +89,6 @@ import java.util.List;
  * s6 = [-0.26701245009899138, -0.47323511242866517, -0.031366908922791481] ---(azimuth, pitch, roll
  * in radians)<br>
  *
- * @author Damon Kohler (damonkohler@gmail.com)
- * @author Felix Arends (felix.arends@gmail.com)
- * @author Alexey Reznichenko (alexey.reznichenko@gmail.com)
- * @author Robbie Mathews (rjmatthews62@gmail.com)
- * @author John Karwatzki (jokar49@gmail.com)
  */
 public class SensorManagerFacade extends RpcReceiver {
   private final EventFacade mEventFacade;

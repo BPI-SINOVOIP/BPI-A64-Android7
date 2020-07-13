@@ -83,8 +83,6 @@ import com.googlecode.android_scripting.rpc.RpcParameter;
  *<br>
  *<br>The webcam and preview modes use the same resources, so you can't use them both at the same time. Stop one mode before starting the other.
  *
- * @author Damon Kohler (damonkohler@gmail.com) (probably)
- * @author Robbie Matthews (rjmatthews62@gmail.com)
  *
  */
 public class WebCamFacade extends RpcReceiver {

@@ -1,0 +1,7 @@
+[
+  {
+    "name": "$result",
+    "reason": "Invalid commit position (foo).",
+    "status_code": 1
+  }
+]

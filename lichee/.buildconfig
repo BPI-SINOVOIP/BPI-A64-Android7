@@ -1,0 +1,4 @@
+export LICHEE_CHIP=sun50iw1p1
+export LICHEE_PLATFORM=android
+export LICHEE_KERN_VER=linux-3.10
+export LICHEE_ARCH=arm64

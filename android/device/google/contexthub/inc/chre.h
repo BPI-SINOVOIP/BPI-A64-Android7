@@ -73,9 +73,15 @@
  * callback, the CHRE is not allowed to call nanoappHandleEvent(), or invoke
  * another memory freeing callback.
  *
- * For a nanoapp author, this means no thought needs to be given to
- * synchronization issues with global objects, as they will, by definition,
- * only be accessed by a single thread at once.
+ * There is one exception to this rule: If an invocation of chreSendEvent()
+ * or chreSendMessageToHost() fails (returns 'false'), it is allowed to
+ * immediately invoke the memory freeing callback passed into that function.
+ * This is a rare case, and one where otherwise a CHRE implementation is
+ * likely to leak memory.
+ *
+ * For a nanoapp author, this means no thought (outside of our one exception)
+ * needs to be given to synchronization issues with global objects, as they
+ * will, by definition, only be accessed by a single thread at once.
  *
  *
  * [1] Note to CHRE implementors: A future version of the CHRE platform may
@@ -111,6 +117,22 @@
  * send an event (chreSendEvent()) to itself indicating which batch should be
  * done next.  This will allow the nanoapp to perform the entire calculation
  * over time, without monopolizing system resources.
+ */
+
+/**
+ * Floating point support.
+ *
+ * The C type 'float' is used in this API, and thus a CHRE implementation
+ * is required to support 'float's.
+ *
+ * Support of the C types 'double' and 'long double' is optional for a
+ * CHRE implementation.  Note that if a CHRE decides to support them, unlike
+ * 'float' support, there is no requirement that this support is particularly
+ * efficient.  So nanoapp authors should be aware this may be inefficient.
+ *
+ * If a CHRE implementation choses not to support 'double' or
+ * 'long double', then the build toolchain setup provided needs to set
+ * the preprocessor define CHRE_NO_DOUBLE_SUPPORT.
  */
 
 /**

@@ -15,6 +15,11 @@
 #include <zlib.h>
 #include <errno.h>
 #include <stdint.h>
+#ifdef LOG_TAG
+#undef LOG_TAG
+#endif
+
+#define LOG_TAG "Mov Id3 Test"
 
 #define KEY_FRAME_PTS_CHECK     (0)
 #define MIN(a,b) (((a) < (b)) ? (a) : (b))
@@ -266,6 +271,8 @@ static CDX_U32 ReadStsc(MOVContext *c, MOVStreamContext *st, cdx_uint32 idx)
     }
 #endif
     offset = st->stsc_offset + idx;
+    if(offset > c->moov_size)
+        return INT_MAX;
     Cache_Data = MoovGetBe32(buffer+offset);
 
     return    Cache_Data;
@@ -290,6 +297,8 @@ static CDX_U32 ReadStsz(MOVContext *c, MOVStreamContext *st, cdx_uint32 idx)
         return st->sample_size;
 
     offset = st->stsz_offset + idx;
+    if(offset > c->moov_size)
+        return INT_MAX;
     Cache_Data = MoovGetBe32(buffer+offset);
 
     return    Cache_Data;
@@ -314,6 +323,8 @@ CDX_U32 ReadStss(MOVContext *c, MOVStreamContext *st, cdx_uint32 idx)
     if(st->rap_seek_count == 0)
     {
         offset = st->stss_offset + idx;
+        if(offset > c->moov_size)
+            return INT_MAX;
         Cache_Data = MoovGetBe32(buffer+offset);
     }
     else
@@ -345,6 +356,8 @@ static CDX_U32 ReadStts(MOVContext *c, MOVStreamContext *st, cdx_uint32 idx)
     #endif
 
     offset = st->stts_offset + idx;
+    if(offset > c->moov_size)
+        return INT_MAX;
     Cache_Data = MoovGetBe32(buffer+offset);
 
     return    Cache_Data;
@@ -368,12 +381,16 @@ static CDX_U64 ReadStco(MOVContext *c, MOVStreamContext *st, cdx_uint32 idx)
     {
         idx <<= 2;
         offset = st->stco_offset + idx;
+        if(offset > c->moov_size)
+            return INT_MAX;
         Cache_Data = MoovGetBe32(buffer+offset);
     }
     else
     {
         idx <<= 3;
         offset = st->stco_offset + idx;
+        if(offset > c->moov_size)
+            return INT_MAX;
         Cache_Data = MoovGetBe64(buffer+offset);
     }
 
@@ -389,6 +406,24 @@ static void MakeFourCCString(CDX_U32 x, char *s) {
     s[4] = '\0';
 }
 #endif
+
+static cdx_bool MovConvertTimeToDate(cdx_int64 time_1904, cdx_uint8 *dst) {
+    // delta between mpeg4 time and unix epoch time
+    static const cdx_int64 delta = (((66 * 365 + 17) * 24) * 3600);
+    time_t time_1970 = time_1904 - delta;
+    char tmp[32] = {0};
+    struct tm* tm = gmtime(&time_1970);
+
+    if (time_1904 < INT64_MIN + delta) {
+        return CDX_FALSE;
+    }
+    if (tm != NULL &&
+            strftime(tmp, sizeof(tmp), "%Y%m%dT%H%M%S.000Z", tm) > 0) {
+        memcpy(dst, tmp, strlen(tmp));
+        return CDX_TRUE;
+    }
+    return CDX_FALSE;
+}
 
 static MOVStreamContext *AvNewStream(MOVContext *c, CDX_S32 id)
 {
@@ -2323,6 +2358,12 @@ CDX_S16 MovReadSample(struct CdxMovParser *p)
 
     MOVStreamContext *st = NULL;
 
+    if (c->isReadEnd == 1)
+    {
+        CDX_LOGW("return read finish\n");
+        return READ_FINISH;
+    }
+
     int i;
     for(i=0; i<c->nb_streams; i++)
     {
@@ -2458,6 +2499,12 @@ CDX_S16 MovReadSample(struct CdxMovParser *p)
                     curr_sample_size = st->mov_idx_curr.stsc_samples * st->sample_size;
                 }
                 st->mov_idx_curr.chunk_sample_size += curr_sample_size;
+                if(st->mov_idx_curr.stsc_samples > 1 && st->eCodecFormat == AUDIO_CODEC_FORMAT_MPEG_AAC_LC)
+                {
+                    chunk_info->cycle_to = st->mov_idx_curr.stsc_samples;;
+                    chunk_info->audio_segsz = curr_sample_size / st->mov_idx_curr.stsc_samples;
+                    chunk_info->no_completed_read = 1;
+                }
             }
             else if ( st->samples_per_frame > 0 && //akira.mov will goes here
                       (st->mov_idx_curr.stsc_samples * st->bytes_per_frame %
@@ -2635,8 +2682,8 @@ CDX_S16 MovReadSample(struct CdxMovParser *p)
 
     if(i==c->nb_streams)
     {
-        CDX_LOGW("retrun read finish\n");
-        return READ_FINISH;
+        CDX_LOGW("read finish\n");
+        c->isReadEnd = 1;
     }
 
     return READ_FREE;
@@ -4704,6 +4751,15 @@ static int MovParseMeta(MOVContext *c, MOV_atom_t a)
             a.offset = offset;
             err = MovParseUdta(c, a);
             offset = offset + a.size - 8;
+        }else if(a.type == MKTAG( 'I', 'D', '3', '2' ))
+        {
+            a.size -= 8;
+            offset += 6;/* 'I''D''3''2' + 6 has the true id3v2 infomation*/
+            a.size -= 6;
+            a.offset = offset;
+            CDX_LOGD("Mov id3 offset : %d, id3 size : %d", a.offset, a.size);
+            c->id3v2 = GenerateId3(c->fp, c->moov_buffer + a.offset , a.size, ktrue);
+            offset = a.offset + a.size;
         }
         else
         {
@@ -4923,6 +4979,7 @@ static int MovParseMvhd(MOVContext *c, MOV_atom_t a)
     unsigned int offset = a.offset;
     unsigned char* buffer = c->moov_buffer;
     unsigned int total_size = a.offset + a.size - 8;   //size of 'trak' atom
+    cdx_uint64   date = 0;
     int err = 0;
 
     while( (offset < total_size) && !err )
@@ -4933,6 +4990,7 @@ static int MovParseMvhd(MOVContext *c, MOV_atom_t a)
 
         if (version == 1)
         {
+            date = MoovGetBe64(buffer+offset);
             //MoovGetBe64(buffer + offset);
             offset += 8;
             //MoovGetBe64(buffer + offset);
@@ -4940,6 +4998,7 @@ static int MovParseMvhd(MOVContext *c, MOV_atom_t a)
         }
         else if(version == 0)
         {
+            date = MoovGetBe32(buffer+offset);
             //MoovGetBe32(buffer+offset); /* creation time */
             offset += 4;
             //MoovGetBe32(buffer+offset); /* modification time */
@@ -4966,12 +5025,13 @@ static int MovParseMvhd(MOVContext *c, MOV_atom_t a)
             c->duration = (CDX_S32)duration;
             offset += 4;
         }
-        if(c->duration != 0)
+        if(c->duration != 0 && c->time_scale)
         {
             c->mvhd_total_time = duration*1000 / c->time_scale;
         }
         //LOGD("duration = %llx, timescale = %x", duration, c->time_scale);
         //LOGD("mvhd duration = %d", c->mvhd_total_time);
+        MovConvertTimeToDate(date, c->date);
         offset = offset +6+10+36+28;
     }
     return err;
@@ -5154,6 +5214,13 @@ int MovParserMoov(MOVContext *c)
             err = MovParseUdta(c, a);
             offset = offset + a.size - 8;
         }
+        else if(a.type == MKTAG( 'm', 'e', 't', 'a' ))
+        {
+            CDX_LOGD("===meta===");
+            a.offset = offset ;
+            err = MovParseMeta(c, a);
+            offset = offset + a.size - 8;
+        }
         else
         {
             offset = offset + a.size - 8;
@@ -5196,15 +5263,16 @@ static int MovTop(MOVContext *s, CdxStreamT* pb)
         {
             CDX_U32 major_brand;
             int   minor_ver;
-            ret = CdxStreamRead(pb, buf, a.size-8);
-                major_brand = MoovGetLe32(buf);
-            minor_ver = MoovGetBe32(buf+4);
 
-            if(a.size < 16 || a.size > 1024)
+            //size is out of boundary.
+            if(a.size < 16 || a.size >= 1032)
             {
                 CDX_LOGE("error, the ftyp atom is invalid");
                 return -1;
             }
+            ret = CdxStreamRead(pb, buf, a.size-8);
+                major_brand = MoovGetLe32(buf);
+            minor_ver = MoovGetBe32(buf+4);
 
             char* compatible = (char*)buf+8;
             buf[a.size-8] = '\0';
@@ -5666,6 +5734,8 @@ int CdxMovSeek(struct CdxMovParser *p, cdx_int64  timeUs)
         return -1;
     }
 
+    c->isReadEnd = 0;
+
     int i;
     for(i=0; i<c->has_subtitle; i++)
     {
@@ -5882,6 +5952,7 @@ struct CdxMovParser* CdxMovInit(CDX_S32 *ret)
     s->ptr_fpsr = p;
     s->Vsamples = aw_list_new();
     s->Asamples = aw_list_new();
+    s->isReadEnd = 0;
 
     p->vc = (VirCacheContext *)malloc(sizeof(VirCacheContext));
     if (p->vc == NULL)

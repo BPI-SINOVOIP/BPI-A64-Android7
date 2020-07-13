@@ -33,7 +33,6 @@ import java.lang.reflect.Method;
 /**
  * Utility functions for handling files.
  *
- * @author Damon Kohler (damonkohler@gmail.com)
  */
 public class FileUtils {
 

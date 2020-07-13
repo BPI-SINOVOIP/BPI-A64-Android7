@@ -29,7 +29,6 @@ import java.lang.annotation.Target;
  * The parameter marked as optional has no explicit default value. {@code null} is used as default
  * value.
  *
- * @author igor.v.karp@gmail.com (Igor Karp)
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.PARAMETER)

@@ -4324,6 +4324,12 @@ static const struct global_parse_data global_fields[] = {
 	{ STR(ext_password_backend), CFG_CHANGED_EXT_PW_BACKEND },
 	{ INT(p2p_go_max_inactivity), 0 },
 	{ INT_RANGE(auto_interworking, 0, 1), 0 },
+	#ifdef ENABLE_XR_CHANGES
+	#ifdef CONFIG_AP
+	{ INT_RANGE(wmm_enabled, 0, 1), 0},
+	{ INT_RANGE(uapsd_enabled, 0, 1), 0},
+	#endif /* CONFIG_AP */
+	#endif /* ENABLE_XR_CHANGES */
 	{ INT(okc), 0 },
 	{ INT(pmf), 0 },
 	{ FUNC(sae_groups), 0 },

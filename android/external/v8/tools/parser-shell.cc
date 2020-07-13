@@ -102,7 +102,7 @@ std::pair<v8::base::TimeDelta, v8::base::TimeDelta> RunBaselineParser(
   i::ScriptData* cached_data_impl = NULL;
   // First round of parsing (produce data to cache).
   {
-    Zone zone;
+    Zone zone(reinterpret_cast<i::Isolate*>(isolate)->allocator());
     ParseInfo info(&zone, script);
     info.set_global();
     info.set_cached_data(&cached_data_impl);
@@ -120,7 +120,7 @@ std::pair<v8::base::TimeDelta, v8::base::TimeDelta> RunBaselineParser(
   }
   // Second round of parsing (consume cached data).
   {
-    Zone zone;
+    Zone zone(reinterpret_cast<i::Isolate*>(isolate)->allocator());
     ParseInfo info(&zone, script);
     info.set_global();
     info.set_cached_data(&cached_data_impl);
@@ -142,7 +142,7 @@ std::pair<v8::base::TimeDelta, v8::base::TimeDelta> RunBaselineParser(
 
 int main(int argc, char* argv[]) {
   v8::V8::SetFlagsFromCommandLine(&argc, argv, true);
-  v8::V8::InitializeICU();
+  v8::V8::InitializeICUDefaultLocation(argv[0]);
   v8::Platform* platform = v8::platform::CreateDefaultPlatform();
   v8::V8::InitializePlatform(platform);
   v8::V8::Initialize();

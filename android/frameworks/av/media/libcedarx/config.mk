@@ -23,6 +23,10 @@ else ifeq ($(CONF_ANDROID_VERSION), 7.0)
 	LOCAL_CFLAGS += -DCONF_ANDROID_MAJOR_VER=7
 	LOCAL_CFLAGS += -DCONF_ANDROID_SUB_VER=0
 	LOCAL_32_BIT_ONLY := true
+else ifeq ($(CONF_ANDROID_VERSION), 7.1)
+        LOCAL_CFLAGS += -DCONF_ANDROID_MAJOR_VER=7
+        LOCAL_CFLAGS += -DCONF_ANDROID_SUB_VER=1
+        LOCAL_32_BIT_ONLY := true
 else
     $(warning "not support android version: "$(CONF_ANDROID_VERSION))
 endif
@@ -30,7 +34,7 @@ endif
 ########## configure CONFIG_TARGET_PRODUCT ##########
 LIB_CEDARM_PATH := $(TOP)/frameworks/av/media/libcedarx
 
-CONF_AC_PRODUCT = $(TARGET_BOARD_PLATFORM)
+CONF_AC_PRODUCT = $(shell echo $(TARGET_PRODUCT) | cut -d '_' -f 1)
 include $(LIB_CEDARM_PATH)/config/$(CONF_AC_PRODUCT)_config.mk
 
 ###################################end define####################################

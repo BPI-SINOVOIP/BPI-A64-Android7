@@ -27,7 +27,6 @@ import java.io.File;
 /**
  * A trigger implementation that launches a given script when the event occurs.
  *
- * @author Felix Arends (felix.arends@gmail.com)
  */
 public class ScriptTrigger implements Trigger {
   private static final long serialVersionUID = 1804599219214041409L;

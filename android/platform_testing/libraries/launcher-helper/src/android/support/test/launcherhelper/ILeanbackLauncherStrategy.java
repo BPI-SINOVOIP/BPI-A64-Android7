@@ -64,6 +64,18 @@ public interface ILeanbackLauncherStrategy extends ILauncherStrategy {
     public BySelector getSettingsRowSelector();
 
     /**
+     * Returns a {@link BySelector} describing the app widget (eg, clock widget)
+     * @return
+     */
+    public BySelector getAppWidgetSelector();
+
+    /**
+     * Returns a {@link BySelector} describing the Now Playing card
+     * @return
+     */
+    public BySelector getNowPlayingCardSelector();
+
+    /**
      * Returns a {@link UiObject2} describing the focused search row
      * @return
      */
@@ -92,4 +104,16 @@ public interface ILeanbackLauncherStrategy extends ILauncherStrategy {
      * @return
      */
     public UiObject2 selectSettingsRow();
+
+    /**
+     * Returns whether there is a match for the given app widget selector.
+     * @return
+     */
+    public boolean hasAppWidgetSelector();
+
+    /**
+     * Returns whether there is a Now Playing card on leanback launcher
+     * @return
+     */
+    public boolean hasNowPlayingCard();
 }

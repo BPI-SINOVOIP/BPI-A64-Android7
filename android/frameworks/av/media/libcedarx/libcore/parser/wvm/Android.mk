@@ -4,8 +4,8 @@ include $(CLEAR_VARS)
 CEDARX_ROOT=$(LOCAL_PATH)/../../../
 include $(CEDARX_ROOT)/config.mk
 
-CONF_ANDROID_VERSION = $(shell echo $(PLATFORM_VERSION) | cut -c 1-3)
-ifneq ($(CONF_ANDROID_VERSION), 7.0)
+android_version = $(shell echo $(PLATFORM_VERSION) | cut -c 1)
+ifneq ($(android_version), 7)
 
 LOCAL_SRC_FILES:= \
 	Extractor.cpp \

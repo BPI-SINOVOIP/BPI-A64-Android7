@@ -21,8 +21,6 @@ import android.os.Environment;
 /**
  * A collection of constants required for installation/removal of an interpreter.
  *
- * @author Damon Kohler (damonkohler@gmail.com)
- * @author Alexey Reznichenko (alexey.reznichenko@gmail.com)
  */
 public interface InterpreterConstants {
 

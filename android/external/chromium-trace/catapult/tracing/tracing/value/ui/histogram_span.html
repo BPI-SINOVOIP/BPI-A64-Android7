@@ -6,167 +6,169 @@ found in the LICENSE file.
 -->
 
 <link rel="import" href="/tracing/base/statistics.html">
-<link rel="import" href="/tracing/ui/base/bar_chart.html">
+<link rel="import" href="/tracing/ui/base/column_chart.html">
+<link rel="import" href="/tracing/value/ui/diagnostic_map_table.html">
+<link rel="import" href="/tracing/value/ui/diagnostic_span.html">
+<link rel="import" href="/tracing/value/ui/numeric_stats_span.html">
 <link rel="import" href="/tracing/value/ui/scalar_span.html">
 
-<polymer-element name="tr-v-ui-histogram-span">
+<dom-module id='tr-v-ui-histogram-span'>
   <template>
     <style>
-      :host {
-        display: flex;
-        flex-direction: column;
-      }
-
-      #stats {
+      #container {
         display: flex;
         flex-direction: row;
-        flex: 0 0 auto;
-        font-weight: bold;
-      }
-
-      #nnans {
-        color: red;
-      }
-      #table {
-        flex: 1 1 auto;
       }
     </style>
-    <div id="stats">
-      <span id="nsamples"></span>&nbsp;samples,&nbsp;
-      <span id="hadnans"><span id="nnans"></span> non-numeric samples,&nbsp;
-      </span>
-      average=<tr-v-ui-scalar-span id="average"></tr-v-ui-scalar-span>
+
+    <div id="container">
+      <div id="chart"></div>
+      <tr-v-ui-numeric-stats-span id="stats"></tr-v-ui-numeric-stats-span>
     </div>
-    <div id="container"></div>
+
+    <tr-v-ui-diagnostic-map-table id="diagnostic_map_table"></tr-v-ui-diagnostic-map-table>
   </template>
-  <script>
-  'use strict';
+</dom-module>
+<script>
+'use strict';
 
-  Polymer({
-    created: function() {
-      this.histogram_ = undefined;
-      this.chart_ = new tr.ui.b.BarChart();
-      this.chart_.width = 400;
-      this.chart_.height = 200;
-      this.mouseDownBin_ = undefined;
-      this.brushedBins_ = [];
-      this.chart_.addEventListener('item-mousedown',
-          this.onMouseDown_.bind(this));
-      this.chart_.addEventListener('item-mousemove',
-          this.onMouseMove_.bind(this));
-      this.chart_.addEventListener('item-mouseup',
-          this.onMouseUp_.bind(this));
-    },
+Polymer({
+  is: 'tr-v-ui-histogram-span',
 
-    ready: function() {
-      this.$.container.appendChild(this.chart_);
-    },
+  created: function() {
+    this.histogram_ = undefined;
+    this.chart_ = new tr.ui.b.ColumnChart();
+    this.chart_.width = 400;
+    this.chart_.height = 200;
+    this.chart_.margin.right = 2;
+    this.mouseDownBin_ = undefined;
+    this.brushedBins_ = [];
+    this.chart_.addEventListener('item-mousedown',
+        this.onMouseDown_.bind(this));
+    this.chart_.addEventListener('item-mousemove',
+        this.onMouseMove_.bind(this));
+    this.chart_.addEventListener('item-mouseup',
+        this.onMouseUp_.bind(this));
+    this.chart_.hideLegend = true;
+    this.chart_.margin.right = 0;
+  },
 
-    get brushedBins() {
-      return this.brushedBins_;
-    },
+  ready: function() {
+    Polymer.dom(this.$.chart).appendChild(this.chart_);
+  },
 
-    updateBrushedRange_: function(currentX) {
-      this.brushedBins_ = [this.histogram_.getBinForValue(currentX)];
-      var r = new tr.b.Range();
-      r.addValue(this.mouseDownX_);
-      r.addValue(currentX);
+  get brushedBins() {
+    return this.brushedBins_;
+  },
 
-      // Collect bins:
-      var centralMin = Number.MAX_VALUE;
-      var centralMax = -Number.MAX_VALUE;
-      this.histogram_.centralBins.forEach(function(bin) {
-        centralMin = Math.min(centralMin, bin.range.min);
-        centralMax = Math.max(centralMax, bin.range.max);
-        if ((bin.range.max > r.min) &&
-            (bin.range.min < r.max) &&
-            (this.brushedBins_.indexOf(bin) < 0))
-          this.brushedBins_.push(bin);
-      }, this);
-      if ((this.histogram_.underflowBin.max > r.min) &&
-          (this.brushedBins_.indexOf(this.histogram_.underflowBin) < 0)) {
-        this.brushedBins_.push(this.histogram_.underflowBin);
-      }
-      if ((this.histogram_.overflowBin.min < r.max) &&
-          (this.brushedBins_.indexOf(this.histogram_.overflowBin) < 0)) {
-        this.brushedBins_.push(this.histogram_.overflowBin);
-      }
-      this.brushedBins_.sort(function(a, b) {
-        return a.range.min - b.range.min;
-      });
+  updateBrushedRange_: function(currentX) {
+    this.brushedBins_ = [this.histogram_.getBinForValue(currentX)];
+    var r = new tr.b.Range();
+    r.addValue(this.mouseDownX_);
+    r.addValue(currentX);
 
-      // Prevent Infinity:
-      var minBin = this.histogram_.getBinForValue(r.min);
-      var maxBin = this.histogram_.getBinForValue(r.max);
-      var binWidth = this.histogram_.centralBins[0].range.range;
-      r.min = minBin ? Math.max(centralMin - binWidth, minBin.range.min) :
-        centralMin - binWidth;
-      r.max = maxBin ? Math.min(centralMax + binWidth, maxBin.range.max) :
-        centralMax + binWidth;
+    // Collect bins:
+    var centralMin = Number.MAX_VALUE;
+    var centralMax = -Number.MAX_VALUE;
+    this.histogram_.centralBins.forEach(function(bin) {
+      centralMin = Math.min(centralMin, bin.range.min);
+      centralMax = Math.max(centralMax, bin.range.max);
+      if ((bin.range.max > r.min) &&
+          (bin.range.min < r.max) &&
+          (this.brushedBins_.indexOf(bin) < 0))
+        this.brushedBins_.push(bin);
+    }, this);
+    if ((this.histogram_.underflowBin.range.max > r.min) &&
+        (this.brushedBins_.indexOf(this.histogram_.underflowBin) < 0)) {
+      this.brushedBins_.push(this.histogram_.underflowBin);
+    }
+    if ((this.histogram_.overflowBin.range.min < r.max) &&
+        (this.brushedBins_.indexOf(this.histogram_.overflowBin) < 0)) {
+      this.brushedBins_.push(this.histogram_.overflowBin);
+    }
+    this.brushedBins_.sort(function(a, b) {
+      return a.range.min - b.range.min;
+    });
 
-      this.chart_.brushedRange = r;
+    // Prevent Infinity:
+    var minBin = this.histogram_.getBinForValue(r.min);
+    var maxBin = this.histogram_.getBinForValue(r.max);
+    var binWidth = this.histogram_.centralBins[0].range.range;
+    r.min = minBin ? Math.max(centralMin - binWidth, minBin.range.min) :
+      centralMin - binWidth;
+    r.max = maxBin ? Math.min(centralMax + binWidth, maxBin.range.max) :
+      centralMax + binWidth;
 
-      this.dispatchEvent(new tr.b.Event('brushed-bins-changed'));
-    },
+    this.chart_.brushedRange = r;
+  },
 
-    onMouseDown_: function(chartEvent) {
-      chartEvent.stopPropagation();
-      if (!this.histogram_)
-        return;
-      this.mouseDownX_ = chartEvent.x;
-      this.updateBrushedRange_(chartEvent.x);
-    },
+  onMouseDown_: function(chartEvent) {
+    chartEvent.stopPropagation();
+    if (!this.histogram_)
+      return;
+    this.mouseDownX_ = chartEvent.x;
+    this.updateBrushedRange_(chartEvent.x);
+  },
 
-    onMouseMove_: function(chartEvent) {
-      chartEvent.stopPropagation();
-      if (!this.histogram_)
-        return;
-      this.updateBrushedRange_(chartEvent.x);
-    },
+  onMouseMove_: function(chartEvent) {
+    chartEvent.stopPropagation();
+    if (!this.histogram_)
+      return;
+    this.updateBrushedRange_(chartEvent.x);
+  },
 
-    onMouseUp_: function(chartEvent) {
-      chartEvent.stopPropagation();
-      if (!this.histogram_)
-        return;
-      this.updateBrushedRange_(chartEvent.x);
-      this.mouseDownX_ = undefined;
-    },
+  onMouseUp_: function(chartEvent) {
+    chartEvent.stopPropagation();
+    if (!this.histogram_)
+      return;
+    this.updateBrushedRange_(chartEvent.x);
+    this.updateDiagnostics_(this.brushedBins);
+    this.mouseDownX_ = undefined;
+  },
 
-    get histogram() {
-      return this.histogram_;
-    },
+  updateDiagnostics_: function(bins) {
+    var maps = [];
+    for (var bin of bins)
+      for (var map of bin.diagnosticMaps)
+        maps.push(map);
 
-    set histogram(histogram) {
-      this.histogram_ = histogram;
-      this.updateContents_();
-    },
+    if (maps.length === 0) {
+      this.$.diagnostic_map_table.style.display = 'none';
+      return;
+    }
 
-    set isYLogScale(logScale) {
-      this.chart_.isYLogScale = logScale;
-    },
+    this.$.diagnostic_map_table.diagnosticMaps = maps;
+    this.$.diagnostic_map_table.style.display = 'block';
+  },
 
-    updateContents_: function() {
-      this.$.container.style.display = this.histogram_ ? '' : 'none';
-      if (!this.histogram_) {
-        this.$.nsamples.textContent = 0;
-        this.$.average.setValueAndUnit(undefined, undefined);
-        return;
-      }
+  get histogram() {
+    return this.histogram_;
+  },
 
-      this.$.nsamples.textContent = this.histogram_.numValues;
-      this.$.average.setValueAndUnit(this.histogram_.average,
-                                     this.histogram_.unit);
-      if (this.histogram_.numNans > 0) {
-        this.$.hadnans.style.display = '';
-        this.$.nnans.textContent = this.histogram_.numNans;
-      } else {
-        this.$.hadnans.style.display = 'none';
-      }
+  set histogram(histogram) {
+    this.histogram_ = histogram;
+    this.updateContents_();
+  },
 
-      var maximumBinValue = tr.b.Statistics.max(this.histogram_.allBins,
-                                                function(bin) {
-                                                  return bin.count;
-                                                });
+  set isYLogScale(logScale) {
+    this.chart_.isYLogScale = logScale;
+  },
+
+  updateContents_: function() {
+    this.$.chart.style.display = this.histogram_ ? '' : 'none';
+    this.$.diagnostic_map_table.style.display = 'none';
+    this.$.stats.numeric = this.histogram_;
+    this.brushedBins_ = [];
+    if (!this.histogram_)
+      return;
+
+    if (this.histogram_.numValues <= 1) {
+      this.$.container.style.display = 'none';
+      // Don't return! Still do the updateDiagnostics_(occupiedBins) below!
+    } else {
+      this.$.container.style.display = '';
+      var maximumBinValue = tr.b.Statistics.max(
+          this.histogram_.allBins, (bin) => bin.count);
       var chartData = [];
       var binWidth = this.histogram_.centralBins[0].range.range;
       this.histogram_.allBins.forEach(function(bin) {
@@ -176,17 +178,20 @@ found in the LICENSE file.
             return;
           x = bin.range.max - binWidth;
         }
-        chartData.push({x: x,
-                        y: bin.count});
+        chartData.push({x: x, y: bin.count});
       });
-      chartData.sort(function(x, y) {
-        return x.x - y.x;
-      });
-      this.$.container.style.display = chartData.length ? '' : 'none';
+      chartData.sort((x, y) => x.x - y.x);
       this.chart_.data = chartData;
-      this.brushedBins_ = [];
       this.chart_.brushedRange = new tr.b.Range();
     }
-  });
-  </script>
-</polymer-element>
+
+    var occupiedBins = [];
+    for (var bin of this.histogram.allBins) {
+      if (bin.count > 0)
+        occupiedBins.push(bin);
+    }
+    if (occupiedBins.length === 1)
+      this.updateDiagnostics_(occupiedBins);
+  }
+});
+</script>

@@ -47,6 +47,11 @@
     <string name="callFailed_unobtainable_number" msgid="124621797631734731">"Ongeldig getal"</string>
     <string name="incall_error_missing_voicemail_number" msgid="3651090591812220874">"Voicemailnummer onbekend."</string>
     <string name="callFailed_video_call_tty_enabled" msgid="186585701668604271">"Kan geen videogesprekken voeren wanneer TTY is ingeschakeld."</string>
+    <string name="callEnded_pulled" msgid="437630601519502587">"Oproep doorgeschakeld naar een ander apparaat."</string>
     <string name="ringtone_silent" msgid="249805466934178869">"Geen"</string>
     <string name="ringtone_unknown" msgid="2303463713486734520">"Onbekende beltoon"</string>
+    <string name="callFailed_maximum_reached" msgid="4823790040422765056">"Alle beschikbare lijnen zijn in gebruik. Als je wilt bellen, verbreek je de verbinding in een van de gesprekken op dit apparaat of op een van je andere apparaten."</string>
+    <string name="callFailed_data_disabled" msgid="3885826754435317856">"De oproep is beëindigd omdat mobiele data zijn uitgeschakeld."</string>
+    <string name="callFailed_data_limit_reached_description" msgid="1439284832802552582">"De oproep is beëindigd omdat de limiet voor mobiele data is bereikt."</string>
+    <string name="callFailed_data_limit_reached" msgid="7045770594965160282">"Datalimiet bereikt. Oproep beëindigd."</string>
 </resources>

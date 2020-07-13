@@ -272,6 +272,7 @@ public class MtpHostTestActivity extends PassFailButtons.Activity implements Han
         assertNotNull(mMtpDevice.getDeviceInfo().getEventsSupported());
         assertTrue(mMtpDevice.getDeviceInfo().isEventSupported(MtpEvent.EVENT_OBJECT_ADDED));
 
+        mMtpDevice.getObjectHandles(0xFFFFFFFF, 0x0, 0x0);
         while (true) {
             MtpEvent event;
             try {

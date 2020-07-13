@@ -96,7 +96,8 @@
     <string name="user_emergency_info_title" msgid="7827058167207376581">"Informacje alarmowe"</string>
     <string name="user_emergency_info_consent" msgid="5636028073450797246">"Informacje, które tu podasz, mogą pomóc w sytuacji awaryjnej. Są przechowywane tylko na Twoim urządzeniu i każdy może je odczytać w funkcji połączeń alarmowych bez odblokowywania telefonu."</string>
     <string name="emergency_info_continue" msgid="5453201508537906087">"Dalej"</string>
-    <string name="no_info_provided" msgid="6775035037534954056">"Brak informacji alarmowych"</string>
+    <string name="no_info_provided" msgid="716200382010821001">"Brak informacji o właścicielu telefonu"</string>
+    <string name="tap_pencil" msgid="2723698054265296934">"Jeśli to Twój telefon, kliknij ikonę ołówka, by dodać informacje, które będą tutaj wyświetlane w sytuacji awaryjnej"</string>
     <string name="clear_all" msgid="8899013032870561633">"Wyczyść wszystko"</string>
     <string name="clear" msgid="3648880442502887163">"Usuń"</string>
     <string name="clear_all_message" msgid="1548432000373861295">"Usunąć wszystkie informacje i kontakty?"</string>

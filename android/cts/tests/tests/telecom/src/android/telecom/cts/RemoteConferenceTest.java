@@ -343,6 +343,35 @@ public class RemoteConferenceTest extends BaseRemoteTelecomTest {
         mRemoteConferenceObject.unregisterCallback(callback);
     }
 
+    public void testRemoteConferenceCallbacks_ConnectionProperties() {
+        if (!mShouldTestTelecom) {
+            return;
+        }
+        Handler handler = setupRemoteConferenceCallbacksTest();
+
+        final InvokeCounter callbackInvoker =
+                new InvokeCounter("testRemoteConferenceCallbacks_ConnectionProperties");
+        RemoteConference.Callback callback;
+
+        callback = new RemoteConference.Callback() {
+            @Override
+            public void onConnectionPropertiesChanged(
+                    RemoteConference conference,
+                    int connectionProperties) {
+                super.onConnectionPropertiesChanged(conference, connectionProperties);
+                callbackInvoker.invoke(conference, connectionProperties);
+            }
+        };
+        mRemoteConferenceObject.registerCallback(callback, handler);
+        int properties = mRemoteConference.getConnectionCapabilities()
+                | Connection.PROPERTY_IS_EXTERNAL_CALL;
+        mRemoteConference.setConnectionProperties(properties);
+        callbackInvoker.waitForCount(1, WAIT_FOR_STATE_CHANGE_TIMEOUT_MS);
+        assertEquals(mRemoteConferenceObject, callbackInvoker.getArgs(0)[0]);
+        assertEquals(properties, callbackInvoker.getArgs(0)[1]);
+        mRemoteConferenceObject.unregisterCallback(callback);
+    }
+
     public void testRemoteConferenceCallbacks_ConferenceableConnections() {
         if (!mShouldTestTelecom) {
             return;
@@ -426,7 +455,8 @@ public class RemoteConferenceTest extends BaseRemoteTelecomTest {
         mRemoteConference.setExtras(extras);
         callbackInvoker.waitForCount(1, WAIT_FOR_STATE_CHANGE_TIMEOUT_MS);
         assertEquals(mRemoteConferenceObject, callbackInvoker.getArgs(0)[0]);
-        assertTrue(areBundlesEqual(extras, (Bundle) callbackInvoker.getArgs(0)[1]));
+        assertTrue(((Bundle) callbackInvoker.getArgs(0)[1]).containsKey(
+                TelecomManager.EXTRA_CALL_DISCONNECT_MESSAGE));
         mRemoteConferenceObject.unregisterCallback(callback);
     }
 
@@ -440,8 +470,9 @@ public class RemoteConferenceTest extends BaseRemoteTelecomTest {
             remoteConnections.add(((MockConnection)c).getRemoteConnection());
         }
         assertEquals(remoteConnections, remoteConferenceObject.getConnections());
-        assertEquals(remoteConference.getDisconnectCause(), remoteConferenceObject.getDisconnectCause());
-        assertEquals(remoteConference.getExtras(), remoteConferenceObject.getExtras());
+        assertEquals(remoteConference.getDisconnectCause(),
+                remoteConferenceObject.getDisconnectCause());
+        assertTrue(areBundlesEqual(remoteConferenceObject.getExtras(), conference.getExtras()));
     }
 
     private void addRemoteConnectionOutgoingCalls() {
@@ -543,7 +574,7 @@ public class RemoteConferenceTest extends BaseRemoteTelecomTest {
             setupConnectionServices(managerConnectionService, remoteConnectionService,
                     FLAG_REGISTER | FLAG_ENABLE);
         } catch(Exception e) {
-            fail("Error in setting up the connection services");
+            fail("Error in setting up the connection services: " + e.toString());
         }
 
         placeAndVerifyCall();

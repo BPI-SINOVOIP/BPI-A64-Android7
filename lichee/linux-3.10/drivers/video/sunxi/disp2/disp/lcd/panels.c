@@ -15,6 +15,7 @@ __lcd_panel_t* panel_array[] = {
 	&gg1p4062utsw_panel,
 	&LHR050H41_MIPI_RGB_panel,
 	&S070WV20_MIPI_RGB_panel,
+	&LW101MFN4_MIPI_RGB_panel,
 	/* add new panel below */
 
 	NULL,

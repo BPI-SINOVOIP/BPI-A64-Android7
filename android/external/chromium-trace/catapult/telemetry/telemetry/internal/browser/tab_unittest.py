@@ -10,7 +10,6 @@ from telemetry.core import exceptions
 from telemetry.core import util
 from telemetry import decorators
 from telemetry.internal.image_processing import video
-from telemetry.page import action_runner
 from telemetry.testing import tab_test_case
 from telemetry.timeline import model
 from telemetry.timeline import tracing_config
@@ -119,11 +118,10 @@ class TabTest(tab_test_case.TabTestCase):
   # Test failing on android: http://crbug.com/437057
   # and mac: http://crbug.com/468675
   @decorators.Disabled('android', 'chromeos', 'mac')
-  @decorators.Disabled('win')  # crbug.com/570955
   def testHighlight(self):
     self.assertEquals(self._tab.url, 'about:blank')
     config = tracing_config.TracingConfig()
-    config.SetNoOverheadFilter()
+    config.chrome_trace_config.SetLowOverheadFilter()
     config.enable_chrome_trace = True
     self._browser.platform.tracing_controller.StartTracing(config)
     self._tab.Highlight(rgba_color.WEB_PAGE_TEST_ORANGE)
@@ -141,7 +139,6 @@ class TabTest(tab_test_case.TabTestCase):
 
   @decorators.Enabled('has tabs')
   @decorators.Disabled('mac', 'linux')  # crbug.com/499207.
-  @decorators.Disabled('win')  # crbug.com/570955.
   def testGetRendererThreadFromTabId(self):
     self.assertEquals(self._tab.url, 'about:blank')
     # Create 3 tabs. The third tab is closed before we call
@@ -155,7 +152,7 @@ class TabTest(tab_test_case.TabTestCase):
     third_tab.WaitForDocumentReadyStateToBeInteractiveOrBetter()
     third_tab.Close()
     config = tracing_config.TracingConfig()
-    config.SetNoOverheadFilter()
+    config.chrome_trace_config.SetLowOverheadFilter()
     config.enable_chrome_trace = True
     self._browser.platform.tracing_controller.StartTracing(config)
     first_tab.ExecuteJavaScript('console.time("first-tab-marker");')
@@ -206,6 +203,7 @@ class GpuTabTest(tab_test_case.TabTestCase):
 
   # Test flaky on mac: crbug.com/358664, chromeos: crbug.com/483212.
   @decorators.Disabled('android', 'mac', 'chromeos')
+  @decorators.Disabled('win')  # catapult/issues/2282
   def testScreenshot(self):
     if not self._tab.screenshot_supported:
       logging.warning('Browser does not support screenshots, skipping test.')
@@ -235,11 +233,11 @@ class MediaRouterDialogTabTest(tab_test_case.TabTestCase):
   # There is no media router dialog on android/chromeos, it is a desktop-only
   # feature.
   @decorators.Disabled('android', 'chromeos')
+  @decorators.Disabled('win')  # catapult/issues/2282
   def testMediaRouterDialog(self):
     self._tab.Navigate(self.UrlOfUnittestFile('cast.html'))
     self._tab.WaitForDocumentReadyStateToBeComplete()
-    runner = action_runner.ActionRunner(self._tab)
-    runner.TapElement(selector='#start_session_button')
+    self._tab.action_runner.TapElement(selector='#start_session_button')
     # Wait for media router dialog
     start_time = time.time()
     while (time.time() - start_time < 5 and

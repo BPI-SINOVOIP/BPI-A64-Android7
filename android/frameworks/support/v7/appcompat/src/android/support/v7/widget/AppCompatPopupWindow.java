@@ -22,6 +22,7 @@ import android.os.Build;
 import android.support.annotation.AttrRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.RestrictTo;
 import android.support.annotation.StyleRes;
 import android.support.v4.widget.PopupWindowCompat;
 import android.support.v7.appcompat.R;
@@ -33,6 +34,8 @@ import android.widget.PopupWindow;
 
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
+
+import static android.support.annotation.RestrictTo.Scope.GROUP_ID;
 
 class AppCompatPopupWindow extends PopupWindow {
 
@@ -67,12 +70,10 @@ class AppCompatPopupWindow extends PopupWindow {
         if (defStyleRes != 0 && sdk < 11) {
             // If we have a defStyleRes, but we're on < API 11, we need to manually set attributes
             // from the style
-            if (sdk >= 9) {
-                // android:popupAnimationStyle was added in API 9
-                if (a.hasValue(R.styleable.PopupWindow_android_popupAnimationStyle)) {
-                    setAnimationStyle(a.getResourceId(
-                            R.styleable.PopupWindow_android_popupAnimationStyle, -1));
-                }
+            // android:popupAnimationStyle was added in API 9
+            if (a.hasValue(R.styleable.PopupWindow_android_popupAnimationStyle)) {
+                setAnimationStyle(a.getResourceId(
+                        R.styleable.PopupWindow_android_popupAnimationStyle, -1));
             }
         }
 
@@ -150,6 +151,7 @@ class AppCompatPopupWindow extends PopupWindow {
     /**
      * @hide
      */
+    @RestrictTo(GROUP_ID)
     public void setSupportOverlapAnchor(boolean overlapAnchor) {
         if (COMPAT_OVERLAP_ANCHOR) {
             mOverlapAnchor = overlapAnchor;
@@ -161,6 +163,7 @@ class AppCompatPopupWindow extends PopupWindow {
     /**
      * @hide
      */
+    @RestrictTo(GROUP_ID)
     public boolean getSupportOverlapAnchor() {
         if (COMPAT_OVERLAP_ANCHOR) {
             return mOverlapAnchor;

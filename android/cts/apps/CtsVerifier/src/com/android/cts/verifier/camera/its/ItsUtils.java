@@ -153,10 +153,13 @@ public class ItsUtils {
         }
 
         Size maxSize = sizes[0];
+        int maxArea = maxSize.getWidth() * maxSize.getHeight();
         for (int i = 1; i < sizes.length; i++) {
-            if (sizes[i].getWidth() * sizes[i].getHeight() >
-                    maxSize.getWidth() * maxSize.getHeight()) {
+            int area = sizes[i].getWidth() * sizes[i].getHeight();
+            if (area > maxArea ||
+                    (area == maxArea && sizes[i].getWidth() > maxSize.getWidth())) {
                 maxSize = sizes[i];
+                maxArea = area;
             }
         }
 

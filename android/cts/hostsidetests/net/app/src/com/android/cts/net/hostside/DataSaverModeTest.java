@@ -98,16 +98,24 @@ public class DataSaverModeTest extends AbstractRestrictBackgroundNetworkTestCase
         assertsForegroundAlwaysHasNetworkAccess();
         assertDataSaverStatusOnBackground(RESTRICT_BACKGROUND_STATUS_ENABLED);
 
-        // Make sure foreground app doesn't lose access upon enabling it.
+        // Make sure foreground app doesn't lose access upon enabling Data Saver.
         setRestrictBackground(false);
         launchActivity();
         assertForegroundNetworkAccess();
         setRestrictBackground(true);
         assertForegroundNetworkAccess();
+
+        // Although it should not have access while the screen is off.
+        turnScreenOff();
+        assertBackgroundNetworkAccess(false);
+        turnScreenOn();
+        assertForegroundNetworkAccess();
+
+        // Goes back to background state.
         finishActivity();
         assertBackgroundNetworkAccess(false);
 
-        // Same for foreground service.
+        // Make sure foreground service doesn't lose access upon enabling Data Saver.
         setRestrictBackground(false);
         startForegroundService();
         assertForegroundNetworkAccess();

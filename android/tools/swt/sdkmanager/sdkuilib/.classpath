@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src/main/java"/>
+	<classpathentry kind="src" path="src/test/java"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/sdklib"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/3"/>
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/layoutlib-api"/>
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/common"/>
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/swtmenubar"/>
+	<classpathentry kind="var" path="ANDROID_SRC/prebuilts/tools/linux-x86/swt/swt.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/testutils"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

@@ -24,10 +24,8 @@ from acts.test_utils.bt.BleEnum import BluetoothAdapterState
 from acts.test_utils.bt.bt_test_utils import bluetooth_off
 from acts.test_utils.bt.bt_test_utils import bluetooth_on
 from acts.test_utils.bt.bt_test_utils import cleanup_scanners_and_advertisers
-from acts.test_utils.bt.bt_test_utils import log_energy_info
 from acts.test_utils.bt.bt_test_utils import generate_ble_advertise_objects
 from acts.test_utils.bt.bt_test_utils import generate_ble_scan_objects
-from acts.test_utils.bt.bt_test_utils import get_advanced_droid_list
 from acts.test_utils.bt.bt_test_utils import scan_result
 
 
@@ -42,15 +40,10 @@ class BleBackgroundScanTest(BluetoothBaseTest):
 
     def __init__(self, controllers):
         BluetoothBaseTest.__init__(self, controllers)
-        self.droid_list = get_advanced_droid_list(self.android_devices)
         self.scn_ad = self.android_devices[0]
         self.adv_ad = self.android_devices[1]
-        if self.droid_list[1]['max_advertisements'] == 0:
-            self.tests = ()
-            return
 
     def setup_test(self):
-        self.log.debug(log_energy_info(self.android_devices, "Start"))
         if (self.scn_ad.droid.bluetoothGetLeState() ==
                 BluetoothAdapterState.STATE_OFF.value):
             self.scn_ad.droid.bluetoothEnableBLE()
@@ -60,7 +53,6 @@ class BleBackgroundScanTest(BluetoothBaseTest):
         return True
 
     def teardown_test(self):
-        self.log.debug(log_energy_info(self.android_devices, "End"))
         cleanup_scanners_and_advertisers(
             self.scn_ad, self.active_adv_callback_list, self.adv_ad,
             self.active_adv_callback_list)

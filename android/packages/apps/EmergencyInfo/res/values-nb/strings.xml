@@ -96,7 +96,8 @@
     <string name="user_emergency_info_title" msgid="7827058167207376581">"Informasjon for nødstilfeller"</string>
     <string name="user_emergency_info_consent" msgid="5636028073450797246">"Informasjonen du skriver inn her, kan hjelpe dem som ankommer ulykkesstedet først ved eventuelle ulykker. Opplysningene er bare lagret på enheten din, og hvem som helst kan lese dem via alternativet for nødanrop uten å låse opp enheten."</string>
     <string name="emergency_info_continue" msgid="5453201508537906087">"Fortsett"</string>
-    <string name="no_info_provided" msgid="6775035037534954056">"Informasjon for nødstilfeller er ikke oppgitt"</string>
+    <string name="no_info_provided" msgid="716200382010821001">"Ingen informasjon om telefonens eier"</string>
+    <string name="tap_pencil" msgid="2723698054265296934">"Hvis dette er din telefon, kan du trykke på blyantikonet for å legge til informasjon som skal vises her i nødstilfeller"</string>
     <string name="clear_all" msgid="8899013032870561633">"Fjern alt"</string>
     <string name="clear" msgid="3648880442502887163">"Fjern"</string>
     <string name="clear_all_message" msgid="1548432000373861295">"Vil du fjerne alle opplysningene og kontaktene?"</string>

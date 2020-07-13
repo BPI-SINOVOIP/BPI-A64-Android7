@@ -3,7 +3,7 @@ $(call inherit-product, build/target/product/full_base.mk)
 $(call inherit-product, device/softwinner/tulip-common/tulip-common.mk)
 $(call inherit-product-if-exists, device/softwinner/tulip-p3/modules/modules.mk)
 
-BOARD_WIDEVINE_OEMCRYPTO_LEVEL := 3
+
 PRODUCT_PROPERTY_OVERRIDES += \
     drm.service.enabled=true
 DEVICE_PACKAGE_OVERLAYS := device/softwinner/tulip-p3/overlay \
@@ -12,29 +12,13 @@ DEVICE_PACKAGE_OVERLAYS := device/softwinner/tulip-p3/overlay \
 PRODUCT_PACKAGES += Launcher3
 
 PRODUCT_PACKAGES += \
+    WallpaperPicker \
     ESFileExplorer \
     VideoPlayer \
-	Saturn \
+    Saturn \
     Bluetooth \
     Update
 	
-#widevine
-PRODUCT_PACKAGES += \
-    com.google.widevine.software.drm.xml \
-    com.google.widevine.software.drm \
-    libdrmwvmplugin \
-    libwvm \
-    libWVStreamControlAPI_L$(BOARD_WIDEVINE_OEMCRYPTO_LEVEL) \
-    libwvdrm_L$(BOARD_WIDEVINE_OEMCRYPTO_LEVEL) \
-    libdrmdecrypt \
-    libwvdrmengine
-
-ifeq ($(BOARD_WIDEVINE_OEMCRYPTO_LEVEL), 1)
-PRODUCT_PACKAGES += \
-    liboemcrypto \
-    libtee_client
-endif
-
 #   PartnerChromeCustomizationsProvider
 
 PRODUCT_COPY_FILES += \
@@ -86,15 +70,15 @@ PRODUCT_PROPERTY_OVERRIDES += \
 	ro.frp.pst=/dev/block/by-name/frp
 
 # limit dex2oat threads to improve thermals
-#PRODUCT_PROPERTY_OVERRIDES += \
-#    dalvik.vm.boot-dex2oat-threads=4 \
-#    dalvik.vm.dex2oat-threads=3 \
-#    dalvik.vm.image-dex2oat-threads=4
+PRODUCT_PROPERTY_OVERRIDES += \
+    dalvik.vm.boot-dex2oat-threads=4 \
+    dalvik.vm.dex2oat-threads=3 \
+    dalvik.vm.image-dex2oat-threads=4
 
-#PRODUCT_PROPERTY_OVERRIDES += \
-#	dalvik.vm.dex2oat-flags=--no-watch-dog \
-#	dalvik.vm.jit.codecachesize=0 \
-#	ro.am.reschedule_service=true
+PRODUCT_PROPERTY_OVERRIDES += \
+	dalvik.vm.dex2oat-flags=--no-watch-dog \
+	dalvik.vm.jit.codecachesize=0 \
+	ro.am.reschedule_service=true
 
 PRODUCT_PROPERTY_OVERRIDES += \
     persist.sys.usb.config=mtp,adb \

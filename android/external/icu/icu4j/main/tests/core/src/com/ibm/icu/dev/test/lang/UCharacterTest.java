@@ -49,6 +49,33 @@ public final class UCharacterTest extends TestFmwk
      */
     private final VersionInfo VERSION_ = VersionInfo.getInstance(8);
 
+    // Android patch (http://b30652865/) start.
+    // For N we cherry-picked the Unicode 9 bidi data into ICU, keeping the rest of the data
+    // at Unicode 8 to fix issues with the new Unicode 9 Emojis in RTL languages.
+    // This would cause some direction-related tests in this class to fail. This set contains all
+    // affected codepoints, so we can skip them where appropriate.
+    private static final UnicodeSet UNICODE9_BIDI_SET = new UnicodeSet(
+            0x8d4, 0x8e2,
+            0x1885, 0x1886, // previously defined codepoints for which BIDI flag changed.
+            0x1dfb, 0x1dfb,
+            0x23fb, 0x2e44,
+            0xa8c5, 0xa8c5,
+            0x1123e, 0x1123e,
+            0x11438, 0x1143f,
+            0x11442, 0x11446,
+            0x11660, 0x1166c,
+            0x11c30, 0x11c3d,
+            0x11c92, 0x11cb6,
+            0x1e000, 0x1e02a,
+            0x1e944, 0x1e94a,
+            0x1f57a, 0x1f57a,
+            0x1f5a4, 0x1f5a4,
+            0x1f6d1, 0x1f6d2,
+            0x1f6f4, 0x1f6f6,
+            0x1f919, 0x1f95e,
+            0x1f985, 0x1f991).freeze();
+    // Android patch (http://b30652865/) end.
+
     // constructor ===================================================
 
     /**
@@ -751,7 +778,9 @@ public final class UCharacterTest extends TestFmwk
                     d = d + "   ";
 
                 int dir = DIR.indexOf(d) >> 2;
-                if (UCharacter.getDirection(ch) != dir)
+                // Android patch (http://b30652865/) start.
+                if (UCharacter.getDirection(ch) != dir && !UNICODE9_BIDI_SET.contains(ch))
+                // Android patch (http://b30652865/) end.
                 {
                     errln("FAIL \\u" + hex(ch) +
                         " expected direction " + dir + " but got " + UCharacter.getDirection(ch));
@@ -759,7 +788,9 @@ public final class UCharacterTest extends TestFmwk
                 }
 
                 byte bdir = (byte)dir;
-                if (UCharacter.getDirectionality(ch) != bdir)
+                // Android patch (http://b30652865/) start.
+                if (UCharacter.getDirectionality(ch) != bdir && !UNICODE9_BIDI_SET.contains(ch))
+                // Android patch (http://b30652865/) end.
                 {
                     errln("FAIL \\u" + hex(ch) +
                         " expected directionality " + bdir + " but got " +
@@ -1641,10 +1672,14 @@ public final class UCharacterTest extends TestFmwk
                                 || UCharacter.getIntPropertyValue(c,
                                                           UProperty.BIDI_CLASS)
                                    != shouldBeDir) {
-                                errln("error: getDirection(unassigned/PUA "
-                                      + Integer.toHexString(c)
-                                      + ") should be "
-                                      + shouldBeDir);
+                                // Android patch (http://b30652865/) start.
+                                if (!UNICODE9_BIDI_SET.contains(c)) {
+                                    errln("error: getDirection(unassigned/PUA "
+                                            + Integer.toHexString(c)
+                                            + ") should be "
+                                            + shouldBeDir);
+                                }
+                                // Android patch (http://b30652865/) end.
                             }
                             ++ c;
                         }

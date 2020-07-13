@@ -32,7 +32,6 @@ import com.googlecode.android_scripting.rpc.RpcError;
 /**
  * A JSON RPC server that forwards RPC calls to a specified receiver object.
  *
- * @author Damon Kohler (damonkohler@gmail.com)
  */
 public class JsonRpcServer extends SimpleServer {
 

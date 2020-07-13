@@ -50,7 +50,7 @@ _BUG_REPORT_COMMENT = (
 
 _BUG_REPORT_LINK_URL = (
     'https://code.google.com/p/chromium/issues/entry?summary=%s&comment=%s&'
-    'labels=Type-Bug-Regression,Pri-2,Performance-Sheriff,%s')
+    'labels=Type-Bug-Regression,Pri-2,%s')
 
 _ALL_ALERTS_LINK = (
     '<a href="https://chromeperf.appspot.com/alerts?sheriff=%s">'
@@ -259,7 +259,7 @@ def GetGroupReportPageLink(alert):
     link_template = 'https://chromeperf.appspot.com/group_report?keys=%s'
     return link_template % alert.key.urlsafe()
   # If we can't make the above link, fall back to the /report page.
-  test_path = utils.TestPath(alert.test)
+  test_path = utils.TestPath(alert.GetTestMetadataKey())
   return GetReportPageLink(test_path, rev=alert.end_revision)
 
 
@@ -268,7 +268,7 @@ def GetAlertInfo(alert, test):
 
   Args:
     alert: An Anomaly entity.
-    test: The Test entity for the given alert.
+    test: The TestMetadata entity for the given alert.
 
   Returns:
     A dictionary of string keys to values. Keys are 'email_subject',
@@ -299,7 +299,8 @@ def GetAlertInfo(alert, test):
   bug_comment = _BUG_REPORT_COMMENT % interpolation_parameters
   bug_summary = ('%(percent_changed)s %(change_type)s in %(test_name)s '
                  'on %(bot)s at %(start)d:%(end)d') % interpolation_parameters
-  labels = bug_label_patterns.GetBugLabelsForTest(test)
+  labels = (alert.sheriff.get().labels +
+            bug_label_patterns.GetBugLabelsForTest(test))
   bug_url = _BUG_REPORT_LINK_URL % (
       urllib.quote(bug_summary), urllib.quote(bug_comment), ','.join(labels))
 
@@ -320,12 +321,12 @@ def GetBisectFYITryJobEmailReport(job, message):
   """Gets the contents of the email to send once a bisect FYI job completes."""
   results_data = job.results_data
   subject_dict = {
-      'bot': results_data['bisect_bot'],
+      'bot': job.bot,
       'test_name': job.job_name,
   }
   report_dict = {
       'message': message,
-      'bot': results_data['bisect_bot'],
+      'bot': job.bot,
       'job_url': results_data['buildbot_log_url'],
       'test_name': job.job_name,
       'config': job.config if job.config else 'Undefined',

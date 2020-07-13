@@ -18,7 +18,8 @@ LOCAL_C_INCLUDES:= \
     $(TOP)/frameworks/av/media/libcedarc/include \
     $(TOP)/frameworks/av/media/libcedarc/vdecoder/include \
     $(TOP)/frameworks/av/media/libcedarc/sdecoder/include \
-    $(TOP)/external/zlib 
+    $(TOP)/external/zlib \
+    $(CEDARX_ROOT)/libcore/parser/base/id3base
 
 ifeq ($(CONF_PRODUCT_STB), yes)
 ifeq ($(CONFIG_CHIP), $(OPTION_CHIP_1689))

@@ -303,13 +303,13 @@ public class MediaUtils {
         CodecCapabilities cap = null;
         try {
             cap = codec.getCodecInfo().getCapabilitiesForType(mime);
+            return cap.isFormatSupported(format);
         } catch (IllegalArgumentException e) {
             Log.w(TAG, "not supported mime: " + mime);
-            codec.release();
             return false;
+        } finally {
+            codec.release();
         }
-
-        return cap.isFormatSupported(format);
     }
 
     public static boolean hasCodecForTrack(MediaExtractor ex, int track) {

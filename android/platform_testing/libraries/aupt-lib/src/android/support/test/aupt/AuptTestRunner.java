@@ -50,6 +50,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 /**
  * Test runner to use when running AUPT tests.
@@ -67,6 +68,7 @@ public class AuptTestRunner extends InstrumentationTestRunner {
     private Bundle mParams;
 
     private long mIterations;
+    private Random mRandom;
     private boolean mShuffle;
     private boolean mGenerateAnr;
     private long mTestCaseTimeout = TimeUnit.MINUTES.toMillis(10);
@@ -99,6 +101,9 @@ public class AuptTestRunner extends InstrumentationTestRunner {
 
         mIterations = parseLongParam("iterations", 1);
         mShuffle = parseBooleanParam("shuffle", false);
+        long seed = parseLongParam("seed", (new Random()).nextLong());
+        Log.d(LOG_TAG, String.format("Using seed value: %s", seed));
+        mRandom = new Random(seed);
         // set to 'generateANR to 'true' when more info required for debugging on test timeout'
         mGenerateAnr = parseBooleanParam("generateANR", false);
         if (parseBooleanParam("quitOnError", false)) {
@@ -117,16 +122,14 @@ public class AuptTestRunner extends InstrumentationTestRunner {
             mProcessTracker = new ProcessStatusTracker(null);
         }
 
-        // Option: -e trackJank boolean
-        mTrackJank = parseBooleanParam("trackJank", false);
-        if (mTrackJank) {
+        // Option: -e jankInterval integer
+        long interval = parseLongParam("jankInterval", -1L);
+        if (interval > 0) {
+            mTrackJank = true;
             mGraphicsStatsMonitor = new GraphicsStatsMonitor();
-
-            // Option: -e jankInterval long
-            long interval = parseLongParam("jankInterval",
-                    GraphicsStatsMonitor.DEFAULT_INTERVAL_RATE);
             mGraphicsStatsMonitor.setIntervalRate(interval);
         }
+
         mRunner.addTestListener(new PidChecker());
         mResultsDirectory = new File(Environment.getExternalStorageDirectory(),
                 parseStringParam("outputLocation", "aupt_results"));
@@ -309,10 +312,11 @@ public class AuptTestRunner extends InstrumentationTestRunner {
 
             for (int i = 0; i < mIterations; i++) {
                 if (mShuffle) {
-                    Collections.shuffle(testCases);
+                    Collections.shuffle(testCases, mRandom);
                 }
                 completeList.addAll(testCases);
             }
+
             mTestCases = completeList;
             return mTestCases;
         }

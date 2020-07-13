@@ -99,6 +99,10 @@ extern "C" {
  * be used again.
  */
 #define WPA_EVENT_FREQ_CONFLICT "CTRL-EVENT-FREQ-CONFLICT "
+#ifdef ENABLE_XR_CHANGES
+/** Driver state change */
+#define WPA_EVENT_DRIVER_STATE "CTRL-EVENT-DRIVER-STATE "
+#endif
 /** Frequency ranges that the driver recommends to avoid */
 #define WPA_EVENT_AVOID_FREQ "CTRL-EVENT-AVOID-FREQ "
 /** WPS overlap detected in PBC mode */

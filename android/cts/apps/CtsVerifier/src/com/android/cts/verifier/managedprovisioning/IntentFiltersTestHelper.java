@@ -32,6 +32,7 @@ import android.nfc.cardemulation.CardEmulation;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.UserHandle;
+import android.os.UserManager;
 import android.provider.AlarmClock;
 import android.provider.CalendarContract.Events;
 import android.provider.MediaStore;
@@ -82,7 +83,6 @@ public class IntentFiltersTestHelper {
                 new Intent(Settings.ACTION_BATTERY_SAVER_SETTINGS),
                 new Intent("android.settings.LICENSE"),
                 new Intent("android.settings.NOTIFICATION_SETTINGS"),
-                new Intent("android.settings.USER_SETTINGS"),
                 new Intent("android.settings.ZEN_MODE_SETTINGS"),
                 new Intent("com.android.settings.ACCESSIBILITY_COLOR_SPACE_SETTINGS"),
                 new Intent("com.android.settings.TTS_SETTINGS"),
@@ -140,7 +140,15 @@ public class IntentFiltersTestHelper {
     IntentFiltersTestHelper(Context context) {
         mContext = context;
 
+        addIntentsThatDependOnDeviceConfigs();
         addIntentsThatDependOnDeviceFeatures();
+    }
+
+    private void addIntentsThatDependOnDeviceConfigs() {
+        if (UserManager.supportsMultipleUsers()) {
+            forwardedIntentsFromManaged.add(
+                    new Intent("android.settings.USER_SETTINGS"));
+        }
     }
 
     private void addIntentsThatDependOnDeviceFeatures() {

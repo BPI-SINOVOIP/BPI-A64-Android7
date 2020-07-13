@@ -24,6 +24,8 @@
 #include <smc.h>
 #include <sunxi_board.h>
 
+extern u32 sunxi_get_soc_bin(void);
+
 //if all value are zero , compile will not allocate space to this global variable.
 //use them before uboot Relocation will cause error.
 struct dts_cfg dts_cfg =
@@ -82,7 +84,9 @@ int arisc_dvfs_cfg_vf_table(void)
 		ARISC_LOG("%s: support only one vf_table\n", __func__);
 		sprintf(vf_table_main_key, "%s", "/dvfs_table");
 	} else {
-		//vf_table_type = sunxi_get_soc_bin();
+		vf_table_type = sunxi_get_soc_bin();
+		if (vf_table_type != 1 && vf_table_type != 2)
+			vf_table_type = 1;
 		sprintf(vf_table_main_key, "%s%d", "/vf_table", vf_table_type);
 	}
 	ARISC_INF("%s: vf table type [%d=%s]\n", __func__, vf_table_type, vf_table_main_key);
@@ -125,11 +129,19 @@ static int sunxi_arisc_parse_cfg(void)
 		ARISC_ERR("get [allwinner,arisc_space] device node error\n");
 		return -EINVAL;
 	}
+
+	if (IS_ERR_VALUE(fdt_getprop_u32(working_fdt, nodeoffset, "space3", value))) {
+		ARISC_ERR("get arisc_space space3 error\n");
+		return -EINVAL;
+	}
+	dts_cfg.space.para_dst = (phys_addr_t)value[0];
+	dts_cfg.space.para_offset = (phys_addr_t)value[1];
+	dts_cfg.space.para_size = (size_t)value[2];
+
 	if (IS_ERR_VALUE(fdt_getprop_u32(working_fdt, nodeoffset, "space4", value))) {
 		ARISC_ERR("get arisc_space space4 error\n");
 		return -EINVAL;
 	}
-
 	dts_cfg.space.msgpool_dst = (phys_addr_t)value[0];
 	dts_cfg.space.msgpool_offset = (phys_addr_t)value[1];
 	dts_cfg.space.msgpool_size = (size_t)value[2];
@@ -174,6 +186,25 @@ static int sunxi_arisc_parse_cfg(void)
 
 	ARISC_INF("hwspinlock base:0x%p, size:0x%zx, status:%u\n",
 		(void *)dts_cfg.hwspinlock.base, dts_cfg.hwspinlock.size, dts_cfg.hwspinlock.status);
+
+	nodeoffset = fdt_path_offset(working_fdt, "/cpuscfg");
+	if (IS_ERR_VALUE(nodeoffset)) {
+		ARISC_ERR("get [allwinner,cpuscfg] device node error\n");
+		return -EINVAL;
+	}
+
+	if (IS_ERR_VALUE(fdt_getprop_u32(working_fdt, nodeoffset, "reg", value))) {
+		ARISC_ERR("get cpuscfg reg error\n");
+		return -EINVAL;
+	}
+
+	dts_cfg.cpuscfg.base = (phys_addr_t)value[1];
+	dts_cfg.cpuscfg.size = (size_t)value[3];
+
+	if(arisc_dvfs_cfg_vf_table()) {
+		ARISC_ERR("parse dvfs v-f table failed\n");
+		return -EINVAL;
+	}
 
 	return 0;
 }

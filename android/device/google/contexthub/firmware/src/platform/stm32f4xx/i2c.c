@@ -498,7 +498,7 @@ static inline void stmI2cMasterTxRxDone(struct StmI2cDev *pdev, int err)
 
     state->tx.offset = 0;
     state->rx.offset = 0;
-    stmI2cInvokeTxCallback(state, txOffst, rxOffst, 0);
+    stmI2cInvokeTxCallback(state, txOffst, rxOffst, err);
 
     do {
         id = atomicAdd32bits(&pdev->next, 1);
@@ -648,16 +648,21 @@ static void stmI2cMasterNakRxed(struct StmI2cDev *pdev)
     struct I2cStmState *state = &pdev->state;
     struct StmI2c *regs = pdev->cfg->regs;
     uint8_t masterState = atomicReadByte(&state->masterState);
+    int err = 0;
 
     if (masterState == STM_I2C_MASTER_TX_ADDR ||
-            masterState == STM_I2C_MASTER_TX_DATA ||
-            masterState == STM_I2C_MASTER_RX_ADDR ||
+            masterState == STM_I2C_MASTER_RX_ADDR) {
+        err = -ENXIO;
+    } else if (masterState == STM_I2C_MASTER_TX_DATA ||
             masterState == STM_I2C_MASTER_RX_DATA) {
         stmI2cMasterDmaCancel(pdev);
+        err = -EIO;
+    }
 
+    if (err) {
         regs->SR1 &= ~I2C_SR1_AF;
         stmI2cStopEnable(pdev);
-        stmI2cMasterTxRxDone(pdev, 0);
+        stmI2cMasterTxRxDone(pdev, err);
     }
 }
 

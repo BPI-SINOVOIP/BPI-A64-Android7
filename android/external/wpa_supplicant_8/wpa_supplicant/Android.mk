@@ -37,6 +37,11 @@ ifdef CONFIG_NO_ROAMING
 L_CFLAGS += -DCONFIG_NO_ROAMING
 endif
 
+ifeq ($(BOARD_WLAN_DEVICE), xradio)
+L_CFLAGS += -DENABLE_XR_CHANGES
+ENABLE_XR_CHANGES := y
+endif
+
 # Use Android specific directory for control interface sockets
 L_CFLAGS += -DCONFIG_CTRL_IFACE_CLIENT_DIR=\"/data/misc/wifi/sockets\"
 L_CFLAGS += -DCONFIG_CTRL_IFACE_DIR=\"/data/misc/wifi/sockets\"
@@ -96,6 +101,9 @@ OBJS_c += src/utils/wpa_debug.c
 OBJS_c += src/utils/common.c
 OBJS_d =
 OBJS_priv =
+ifdef ENABLE_XR_CHANGES
+OBJS += ../../../hardware/xradio/wpa_supplicant_8_lib/driver_cmd_nl80211.c
+endif
 
 ifndef CONFIG_OS
 ifdef CONFIG_NATIVE_WINDOWS

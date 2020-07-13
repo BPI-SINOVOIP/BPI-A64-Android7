@@ -18,13 +18,14 @@
 """
 
 import time
-from acts.utils import load_config
+from acts.controllers.sl4a_types import Sl4aNetworkInfo
 from acts.test_utils.tel.TelephonyBaseTest import TelephonyBaseTest
 from acts.test_utils.tel.tel_data_utils import wifi_tethering_setup_teardown
 from acts.test_utils.tel.tel_defines import AOSP_PREFIX
 from acts.test_utils.tel.tel_defines import CAPABILITY_VOLTE
 from acts.test_utils.tel.tel_defines import CAPABILITY_WFC
 from acts.test_utils.tel.tel_defines import CAPABILITY_OMADM
+from acts.test_utils.tel.tel_defines import DATA_STATE_CONNECTED
 from acts.test_utils.tel.tel_defines import MAX_WAIT_TIME_PROVISIONING
 from acts.test_utils.tel.tel_defines import MAX_WAIT_TIME_TETHERING_ENTITLEMENT_CHECK
 from acts.test_utils.tel.tel_defines import TETHERING_MODE_WIFI
@@ -45,6 +46,7 @@ from acts.test_utils.tel.tel_test_utils import get_operator_name
 from acts.test_utils.tel.tel_test_utils import multithread_func
 from acts.test_utils.tel.tel_test_utils import sms_send_receive_verify
 from acts.test_utils.tel.tel_test_utils import toggle_airplane_mode
+from acts.test_utils.tel.tel_test_utils import wait_for_cell_data_connection
 from acts.test_utils.tel.tel_test_utils import verify_http_connection
 from acts.test_utils.tel.tel_voice_utils import is_phone_in_call_3g
 from acts.test_utils.tel.tel_voice_utils import is_phone_in_call_csfb
@@ -68,13 +70,10 @@ from acts.utils import rand_ascii_str
 class TelLiveRebootStressTest(TelephonyBaseTest):
     def __init__(self, controllers):
         TelephonyBaseTest.__init__(self, controllers)
-        self.tests = (
-            "test_reboot_stress",
-            "test_reboot_stress_without_clear_provisioning"
-            )
+        self.tests = ("test_reboot_stress",
+                      "test_reboot_stress_without_clear_provisioning")
 
-        self.simconf = load_config(self.user_params["sim_conf_file"])
-        self.stress_test_number = int(self.user_params["stress_test_number"])
+        self.stress_test_number = self.get_stress_test_number()
         self.wifi_network_ssid = self.user_params["wifi_network_ssid"]
 
         try:
@@ -83,7 +82,8 @@ class TelLiveRebootStressTest(TelephonyBaseTest):
             self.wifi_network_pass = None
 
         self.dut = self.android_devices[0]
-        self.ad_reference = self.android_devices[1]
+        self.ad_reference = self.android_devices[1] if len(
+            self.android_devices) > 1 else None
         self.dut_model = get_model_name(self.dut)
         self.dut_operator = get_operator_name(self.log, self.dut)
 
@@ -92,8 +92,8 @@ class TelLiveRebootStressTest(TelephonyBaseTest):
                 CAPABILITY_OMADM in operator_capabilities[self.dut_operator]):
             self.log.info("Check Provisioning bit")
             if not ad.droid.imsIsVolteProvisionedOnDevice():
-                self.log.error("{}: VoLTE Not Provisioned on the Platform".format(
-                    ad.serial))
+                self.log.error("{}: VoLTE Not Provisioned on the Platform".
+                               format(ad.serial))
                 return False
         return True
 
@@ -135,8 +135,9 @@ class TelLiveRebootStressTest(TelephonyBaseTest):
         if (CAPABILITY_WFC in device_capabilities[self.dut_model] and
                 CAPABILITY_WFC in operator_capabilities[self.dut_operator]):
             self.log.info("Check WFC")
-            if not phone_setup_iwlan(self.log, ad, True, WFC_MODE_WIFI_PREFERRED,
-                self.wifi_network_ssid, self.wifi_network_pass):
+            if not phone_setup_iwlan(
+                    self.log, ad, True, WFC_MODE_WIFI_PREFERRED,
+                    self.wifi_network_ssid, self.wifi_network_pass):
                 self.log.error("Failed to setup WFC.")
                 return False
             if not call_setup_teardown(self.log, ad, ad_reference, ad,
@@ -170,13 +171,39 @@ class TelLiveRebootStressTest(TelephonyBaseTest):
     def _check_tethering(self, ad, ad_reference):
         self.log.info("Check tethering")
         if not ad.droid.carrierConfigIsTetheringModeAllowed(
-            TETHERING_MODE_WIFI, MAX_WAIT_TIME_TETHERING_ENTITLEMENT_CHECK):
+                TETHERING_MODE_WIFI,
+                MAX_WAIT_TIME_TETHERING_ENTITLEMENT_CHECK):
             self.log.error("Tethering Entitlement check failed.")
             return False
-        if not wifi_tethering_setup_teardown(self.log, ad, [ad_reference],
-            check_interval = 5, check_iteration = 1):
+        if not wifi_tethering_setup_teardown(
+                self.log, ad, [ad_reference], check_interval=5,
+                check_iteration=1):
             self.log.error("Tethering Failed.")
             return False
+        return True
+
+    def _check_data_roaming_status(self, ad):
+        if not ad.droid.telephonyIsDataEnabled():
+            self.log.info("Enabling Cellular Data")
+            telephonyToggleDataConnection(True)
+        else:
+            self.log.info("Cell Data is Enabled")
+        self.log.info("Waiting for cellular data to be connected")
+        if not wait_for_cell_data_connection(self.log, ad, state=True):
+            self.log.error("Failed to enable cell data")
+            return False
+        self.log.info("Cellular data connected, checking NetworkInfos")
+        roaming_state = ad.droid.telephonyCheckNetworkRoaming()
+        for network_info in ad.droid.connectivityNetworkGetAllInfo():
+            sl4a_network_info = Sl4aNetworkInfo.from_dict(network_info)
+            if sl4a_network_info.isRoaming:
+                self.log.warning("We don't expect to be roaming")
+            if sl4a_network_info.isRoaming != roaming_state:
+                self.log.error(
+                    "Mismatched Roaming Status Information Telephony: {}, NetworkInfo {}".
+                    format(roaming_state, sl4a_network_info.isRoaming))
+                self.log.error(network_info)
+                return False
         return True
 
     """ Tests Begin """
@@ -214,8 +241,8 @@ class TelLiveRebootStressTest(TelephonyBaseTest):
         phone_setup_voice_general(self.log, self.ad_reference)
 
         for i in range(1, self.stress_test_number + 1):
-            self.log.info("Reboot Stress Test Iteration: <{}> / <{}>".
-                format(i, self.stress_test_number))
+            self.log.info("Reboot Stress Test Iteration: <{}> / <{}>".format(
+                i, self.stress_test_number))
 
             self.log.info("{} reboot!".format(self.dut.serial))
             self.dut.reboot()
@@ -225,7 +252,7 @@ class TelLiveRebootStressTest(TelephonyBaseTest):
 
             elapsed_time = 0
             provisioned = False
-            while(elapsed_time < MAX_WAIT_TIME_PROVISIONING):
+            while (elapsed_time < MAX_WAIT_TIME_PROVISIONING):
                 if self._check_provisioning(self.dut):
                     provisioned = True
                     break
@@ -260,8 +287,8 @@ class TelLiveRebootStressTest(TelephonyBaseTest):
 
             # TODO: Check if crash happens.
 
-            self.log.info("Iteration: <{}> / <{}> Pass".
-                format(i, self.stress_test_number))
+            self.log.info("Iteration: <{}> / <{}> Pass".format(
+                i, self.stress_test_number))
 
         return True
 
@@ -296,8 +323,8 @@ class TelLiveRebootStressTest(TelephonyBaseTest):
         phone_setup_voice_general(self.log, self.ad_reference)
 
         for i in range(1, self.stress_test_number + 1):
-            self.log.info("Reboot Stress Test Iteration: <{}> / <{}>".
-                format(i, self.stress_test_number))
+            self.log.info("Reboot Stress Test Iteration: <{}> / <{}>".format(
+                i, self.stress_test_number))
 
             self.log.info("{} reboot!".format(self.dut.serial))
             self.dut.reboot()
@@ -331,9 +358,46 @@ class TelLiveRebootStressTest(TelephonyBaseTest):
 
             # TODO: Check if crash happens.
 
-            self.log.info("Iteration: <{}> / <{}> Pass".
-                format(i, self.stress_test_number))
+            self.log.info("Iteration: <{}> / <{}> Pass".format(
+                i, self.stress_test_number))
 
         return True
+
+    @TelephonyBaseTest.tel_test_wrap
+    def test_data_roaming_stress(self):
+        """Reboot Reliability Test
+
+        Steps:
+            1. Reboot DUT.
+            8. Check the data connection
+            9. Check crashes.
+            10. Repeat Step 1~9 for N times. (before reboot, clear Provisioning
+                bit if provisioning is supported)
+
+        Expected Results:
+            No crash happens in stress test.
+
+        Returns:
+            True is pass, False if fail.
+        """
+        for i in range(1, self.stress_test_number + 1):
+            self.log.info("Reboot Stress Test Iteration: <{}> / <{}>".format(
+                i, self.stress_test_number))
+
+            self.log.info("{} reboot!".format(self.dut.serial))
+            self.dut.reboot()
+            self.log.info("{} wait {}s for radio up.".format(
+                self.dut.serial, WAIT_TIME_AFTER_REBOOT))
+            time.sleep(WAIT_TIME_AFTER_REBOOT)
+
+            if not self._check_data_roaming_status(self.dut):
+                self.log.error("Something wrong with the data connection!")
+                return False
+
+            self.log.info("Iteration: <{}> / <{}> Pass".format(
+                i, self.stress_test_number))
+
+        return True
+
 
 """ Tests End """

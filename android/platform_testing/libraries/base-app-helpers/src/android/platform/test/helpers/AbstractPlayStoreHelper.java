@@ -25,18 +25,32 @@ public abstract class AbstractPlayStoreHelper extends AbstractStandardAppHelper 
     }
 
     /**
-     * Setup expectations: The search bar is visible.
+     * Setup expectations: The app is open.
      *
-     * Selects the search bar, enters a query, and displays the results. Blocks until the results
-     * are selectable.
+     * Looks for the search bar or button by scrolling up or pressing back. It then enters a query,
+     * and displays the results. This method blocks until the results are selectable.
      */
     public abstract void doSearch(String query);
 
     /**
      * Setup expectations: There are visible search results.
      *
-     * Opens the necessary categories and enters the first search result. Blocks until the process
-     * is complete.
+     * Selects the first search result card and blocks until the app's install page is open.
      */
     public abstract void selectFirstResult();
+
+    /**
+     * Setup expectations: An app's install page is open, but the app is not installed.
+     *
+     * Press the install button and dismiss any confirmation dialogs. This method will block until
+     * the app starts downloading, though installation cannot be guaranteed.
+     */
+    public abstract void installApp();
+
+    /**
+     * Setup expectations: An app's install page is open.
+     *
+     * @return true, if the app is already installed, or false if not.
+     */
+    public abstract boolean isAppInstalled();
 }

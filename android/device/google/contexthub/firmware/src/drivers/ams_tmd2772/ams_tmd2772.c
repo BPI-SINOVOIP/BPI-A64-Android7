@@ -26,6 +26,9 @@
 #include <hostIntf.h>
 #include <nanohubPacket.h>
 #include <eventnums.h>
+#include <util.h>
+
+#define AMS_TMD2772_APP_VERSION 3
 
 #define DRIVER_NAME                            "AMS: "
 
@@ -89,8 +92,8 @@
 #define AMS_TMD2772_REPORT_NEAR_VALUE          0.0f // centimeters
 #define AMS_TMD2772_REPORT_FAR_VALUE           5.0f // centimeters
 
-#define AMS_TMD2772_THRESHOLD_ASSERT_NEAR      213  // in PS units
-#define AMS_TMD2772_THRESHOLD_DEASSERT_NEAR    96   // in PS units
+#define AMS_TMD2772_THRESHOLD_ASSERT_NEAR      300   // in PS units
+#define AMS_TMD2772_THRESHOLD_DEASSERT_NEAR    150   // in PS units
 
 #define AMS_TMD2772_ALS_MAX_CHANNEL_COUNT      37888 // in raw data
 #define AMS_TMD2772_ALS_MAX_REPORT_VALUE       10000 // in lux
@@ -99,6 +102,9 @@
 
 /* Used when SENSOR_RATE_ONCHANGE is requested */
 #define AMS_TMD2772_DEFAULT_RATE               SENSOR_HZ(5)
+
+#define AMS_TMD2772_MAX_PENDING_I2C_REQUESTS   4
+#define AMS_TMD2772_MAX_I2C_TRANSFER_SIZE      16
 
 /* Private driver events */
 enum SensorEvents
@@ -137,10 +143,14 @@ enum ProxState
     PROX_STATE_FAR,
 };
 
-struct SensorData
+struct I2cTransfer
 {
+    size_t tx;
+    size_t rx;
+    int err;
+
     union {
-        uint8_t bytes[16];
+        uint8_t bytes[AMS_TMD2772_MAX_I2C_TRANSFER_SIZE];
         struct {
             uint8_t status;
             uint16_t als[2];
@@ -151,6 +161,13 @@ struct SensorData
         } calibration;
     } txrxBuf;
 
+    uint8_t state;
+    bool inUse;
+};
+
+
+struct SensorData
+{
     uint32_t tid;
 
     uint32_t alsHandle;
@@ -158,6 +175,8 @@ struct SensorData
     uint32_t alsTimerHandle;
     uint32_t proxTimerHandle;
     uint32_t calibrationSampleTotal;
+
+    struct I2cTransfer transfers[AMS_TMD2772_MAX_PENDING_I2C_REQUESTS];
 
     union EmbeddedDataPoint lastAlsSample;
 
@@ -197,10 +216,49 @@ static const uint64_t rateTimerVals[] = //should match "supported rates in lengt
 
 static void i2cCallback(void *cookie, size_t tx, size_t rx, int err)
 {
-    if (err == 0)
-        osEnqueuePrivateEvt(EVT_SENSOR_I2C, cookie, NULL, mData.tid);
-    else
-        osLog(LOG_INFO, DRIVER_NAME "i2c error (%d)\n", err);
+    struct I2cTransfer *xfer = cookie;
+
+    xfer->tx = tx;
+    xfer->rx = rx;
+    xfer->err = err;
+
+    osEnqueuePrivateEvt(EVT_SENSOR_I2C, cookie, NULL, mData.tid);
+    if (err != 0)
+        osLog(LOG_INFO, DRIVER_NAME "i2c error (tx: %d, rx: %d, err: %d)\n", tx, rx, err);
+}
+
+// Allocate a buffer and mark it as in use with the given state, or return NULL
+// if no buffers available. Must *not* be called from interrupt context.
+static struct I2cTransfer *allocXfer(uint8_t state)
+{
+    size_t i;
+
+    for (i = 0; i < ARRAY_SIZE(mData.transfers); i++) {
+        if (!mData.transfers[i].inUse) {
+            mData.transfers[i].inUse = true;
+            mData.transfers[i].state = state;
+            return &mData.transfers[i];
+        }
+    }
+
+    osLog(LOG_ERROR, DRIVER_NAME "Ran out of i2c buffers!");
+    return NULL;
+}
+
+// Helper function to write a one byte register. Returns true if we got a
+// successful return value from i2cMasterTx().
+static bool writeRegister(uint8_t reg, uint8_t value, uint8_t state)
+{
+    struct I2cTransfer *xfer = allocXfer(state);
+    int ret = -1;
+
+    if (xfer != NULL) {
+        xfer->txrxBuf.bytes[0] = reg;
+        xfer->txrxBuf.bytes[1] = value;
+        ret = i2cMasterTx(I2C_BUS_ID, I2C_ADDR, xfer->txrxBuf.bytes, 2, i2cCallback, xfer);
+    }
+
+    return (ret == 0);
 }
 
 static void alsTimerCallback(uint32_t timerId, void *cookie)
@@ -244,16 +302,20 @@ static inline float getLuxFromAlsData(uint16_t als0, uint16_t als1)
     }
 }
 
-static void setMode(bool alsOn, bool proxOn, void *cookie)
+static void setMode(bool alsOn, bool proxOn, uint8_t state)
 {
-    mData.txrxBuf.bytes[0] = AMS_TMD2772_REG_ENABLE;
-    mData.txrxBuf.bytes[1] = POWER_ON_BIT | WAIT_ENABLE_BIT |
-                            (alsOn ? ALS_ENABLE_BIT : 0) | (proxOn ? PROX_ENABLE_BIT : 0);
-    mData.txrxBuf.bytes[2] = AMS_TMD2772_ATIME_SETTING;
-    mData.txrxBuf.bytes[3] = AMS_TMD2772_PTIME_SETTING;
-    mData.txrxBuf.bytes[4] = alsOn ? AMS_TMD2772_WTIME_SETTING_ALS_ON : AMS_TMD2772_WTIME_SETTING_ALS_OFF;
-    i2cMasterTx(I2C_BUS_ID, I2C_ADDR, mData.txrxBuf.bytes, 5,
-                &i2cCallback, cookie);
+    struct I2cTransfer *xfer;
+
+    xfer = allocXfer(state);
+    if (xfer != NULL) {
+        xfer->txrxBuf.bytes[0] = AMS_TMD2772_REG_ENABLE;
+        xfer->txrxBuf.bytes[1] = POWER_ON_BIT | WAIT_ENABLE_BIT |
+                                 (alsOn ? ALS_ENABLE_BIT : 0) | (proxOn ? PROX_ENABLE_BIT : 0);
+        xfer->txrxBuf.bytes[2] = AMS_TMD2772_ATIME_SETTING;
+        xfer->txrxBuf.bytes[3] = AMS_TMD2772_PTIME_SETTING;
+        xfer->txrxBuf.bytes[4] = alsOn ? AMS_TMD2772_WTIME_SETTING_ALS_ON : AMS_TMD2772_WTIME_SETTING_ALS_OFF;
+        i2cMasterTx(I2C_BUS_ID, I2C_ADDR, xfer->txrxBuf.bytes, 5, i2cCallback, xfer);
+    }
 }
 
 static bool sensorPowerAls(bool on, void *cookie)
@@ -268,7 +330,7 @@ static bool sensorPowerAls(bool on, void *cookie)
 
     mData.lastAlsSample.idata = AMS_TMD2772_ALS_INVALID;
     mData.alsOn = on;
-    setMode(on, mData.proxOn, (void *)(on ? SENSOR_STATE_ENABLING_ALS : SENSOR_STATE_DISABLING_ALS));
+    setMode(on, mData.proxOn, (on ? SENSOR_STATE_ENABLING_ALS : SENSOR_STATE_DISABLING_ALS));
 
     return true;
 }
@@ -323,7 +385,7 @@ static bool sensorPowerProx(bool on, void *cookie)
 
     mData.proxState = PROX_STATE_INIT;
     mData.proxOn = on;
-    setMode(mData.alsOn, on, (void *)(on ? SENSOR_STATE_ENABLING_PROX : SENSOR_STATE_DISABLING_PROX));
+    setMode(mData.alsOn, on, (on ? SENSOR_STATE_ENABLING_PROX : SENSOR_STATE_DISABLING_PROX));
 
     return true;
 }
@@ -414,48 +476,47 @@ static const struct SensorOps sensorOpsProx =
  * Sensor i2c state machine
  */
 
-static void handle_calibration_event(int state) {
-    switch (state) {
+static void handle_calibration_event(struct I2cTransfer *xfer) {
+    struct I2cTransfer *nextXfer;
+
+    switch (xfer->state) {
     case SENSOR_STATE_CALIBRATE_RESET:
         mData.calibrationSampleCount = 0;
         mData.calibrationSampleTotal = 0;
         /* Intentional fall-through */
 
     case SENSOR_STATE_CALIBRATE_START:
-        mData.txrxBuf.bytes[0] = AMS_TMD2772_REG_ENABLE;
-        mData.txrxBuf.bytes[1] = POWER_ON_BIT | PROX_ENABLE_BIT;
-        i2cMasterTx(I2C_BUS_ID, I2C_ADDR, mData.txrxBuf.bytes, 2,
-                    &i2cCallback, (void *)SENSOR_STATE_CALIBRATE_ENABLING);
+        writeRegister(AMS_TMD2772_REG_ENABLE, POWER_ON_BIT | PROX_ENABLE_BIT, SENSOR_STATE_CALIBRATE_ENABLING);
         break;
 
     case SENSOR_STATE_CALIBRATE_ENABLING:
-        mData.txrxBuf.bytes[0] = AMS_TMD2772_REG_STATUS;
-        i2cMasterTxRx(I2C_BUS_ID, I2C_ADDR, mData.txrxBuf.bytes, 1,
-                      mData.txrxBuf.bytes, 1, &i2cCallback,
-                      (void *)SENSOR_STATE_CALIBRATE_POLLING_STATUS);
+        nextXfer = allocXfer(SENSOR_STATE_CALIBRATE_POLLING_STATUS);
+        if (nextXfer != NULL) {
+            nextXfer->txrxBuf.bytes[0] = AMS_TMD2772_REG_STATUS;
+            i2cMasterTxRx(I2C_BUS_ID, I2C_ADDR, nextXfer->txrxBuf.bytes, 1, nextXfer->txrxBuf.bytes, 1, i2cCallback, nextXfer);
+        }
         break;
 
     case SENSOR_STATE_CALIBRATE_POLLING_STATUS:
-        if (mData.txrxBuf.bytes[0] & PROX_INT_BIT) {
+        if (xfer->txrxBuf.bytes[0] & PROX_INT_BIT) {
             /* Done */
-            mData.txrxBuf.bytes[0] = AMS_TMD2772_REG_PDATAL;
-            i2cMasterTxRx(I2C_BUS_ID, I2C_ADDR, mData.txrxBuf.bytes, 1,
-                          mData.txrxBuf.bytes, 2, &i2cCallback,
-                          (void *)SENSOR_STATE_CALIBRATE_AWAITING_SAMPLE);
+            nextXfer = allocXfer(SENSOR_STATE_CALIBRATE_AWAITING_SAMPLE);
+            if (nextXfer != NULL) {
+                nextXfer->txrxBuf.bytes[0] = AMS_TMD2772_REG_PDATAL;
+                i2cMasterTxRx(I2C_BUS_ID, I2C_ADDR, nextXfer->txrxBuf.bytes, 1, nextXfer->txrxBuf.bytes, 2, i2cCallback, nextXfer);
+            }
         } else {
             /* Poll again; go back to previous state */
-            handle_calibration_event(SENSOR_STATE_CALIBRATE_ENABLING);
+            xfer->state = SENSOR_STATE_CALIBRATE_ENABLING;
+            handle_calibration_event(xfer);
         }
         break;
 
     case SENSOR_STATE_CALIBRATE_AWAITING_SAMPLE:
         mData.calibrationSampleCount++;
-        mData.calibrationSampleTotal += mData.txrxBuf.calibration.prox;
+        mData.calibrationSampleTotal += xfer->txrxBuf.calibration.prox;
 
-        mData.txrxBuf.bytes[0] = AMS_TMD2772_REG_ENABLE;
-        mData.txrxBuf.bytes[1] = 0x00;
-        i2cMasterTx(I2C_BUS_ID, I2C_ADDR, mData.txrxBuf.bytes, 2,
-                    &i2cCallback, (void *)SENSOR_STATE_CALIBRATE_DISABLING);
+        writeRegister(AMS_TMD2772_REG_ENABLE, 0x00, SENSOR_STATE_CALIBRATE_DISABLING);
         break;
 
     case SENSOR_STATE_CALIBRATE_DISABLING:
@@ -464,13 +525,11 @@ static void handle_calibration_event(int state) {
             uint16_t average = mData.calibrationSampleTotal / mData.calibrationSampleCount;
             uint16_t crosstalk = (average > 0x7f) ? 0x7f : average;
 
-            mData.txrxBuf.bytes[0] = AMS_TMD2772_REG_POFFSET;
-            mData.txrxBuf.bytes[1] = crosstalk;
-            i2cMasterTx(I2C_BUS_ID, I2C_ADDR, mData.txrxBuf.bytes, 2,
-                        &i2cCallback, (void *)SENSOR_STATE_IDLE);
+            writeRegister(AMS_TMD2772_REG_POFFSET, crosstalk, SENSOR_STATE_IDLE);
         } else {
             /* Get another sample; go back to earlier state */
-            handle_calibration_event(SENSOR_STATE_CALIBRATE_START);
+            xfer->state = SENSOR_STATE_CALIBRATE_START;
+            handle_calibration_event(xfer);
         }
         break;
 
@@ -479,48 +538,53 @@ static void handle_calibration_event(int state) {
     }
 }
 
-static void handle_i2c_event(int state)
+static void handle_i2c_event(struct I2cTransfer *xfer)
 {
     union EmbeddedDataPoint sample;
     bool sendData;
+    struct I2cTransfer *nextXfer;
 
-    switch (state) {
+    switch (xfer->state) {
     case SENSOR_STATE_VERIFY_ID:
         /* Check the sensor ID */
-        if (mData.txrxBuf.bytes[0] != AMS_TMD2772_ID) {
+        if (xfer->err != 0 || xfer->txrxBuf.bytes[0] != AMS_TMD2772_ID) {
             osLog(LOG_INFO, DRIVER_NAME "not detected\n");
             sensorUnregister(mData.alsHandle);
             sensorUnregister(mData.proxHandle);
             break;
         }
 
-        /* Start address */
-        mData.txrxBuf.bytes[0] = AMS_TMD2772_REG_ENABLE;
-        /* ENABLE */
-        mData.txrxBuf.bytes[1] = 0x00;
-        /* ATIME */
-        mData.txrxBuf.bytes[2] = AMS_TMD2772_ATIME_SETTING;
-        /* PTIME */
-        mData.txrxBuf.bytes[3] = AMS_TMD2772_PTIME_SETTING;
-        /* WTIME */
-        mData.txrxBuf.bytes[4] = 0xFF;
-        i2cMasterTx(I2C_BUS_ID, I2C_ADDR, mData.txrxBuf.bytes, 5,
-                    &i2cCallback, (void *)SENSOR_STATE_INIT);
+        nextXfer = allocXfer(SENSOR_STATE_INIT);
+        if (nextXfer != NULL) {
+            /* Start address */
+            nextXfer->txrxBuf.bytes[0] = AMS_TMD2772_REG_ENABLE;
+            /* ENABLE */
+            nextXfer->txrxBuf.bytes[1] = 0x00;
+            /* ATIME */
+            nextXfer->txrxBuf.bytes[2] = AMS_TMD2772_ATIME_SETTING;
+            /* PTIME */
+            nextXfer->txrxBuf.bytes[3] = AMS_TMD2772_PTIME_SETTING;
+            /* WTIME */
+            nextXfer->txrxBuf.bytes[4] = 0xFF;
+            i2cMasterTx(I2C_BUS_ID, I2C_ADDR, nextXfer->txrxBuf.bytes, 5, i2cCallback, nextXfer);
+        }
         break;
 
     case SENSOR_STATE_INIT:
-        /* Start address */
-        mData.txrxBuf.bytes[0] = AMS_TMD2772_REG_PERS;
-        /* PERS */
-        mData.txrxBuf.bytes[1] = 0x00;
-        /* CONFIG */
-        mData.txrxBuf.bytes[2] = 0x00;
-        /* PPULSE */
-        mData.txrxBuf.bytes[3] = AMS_TMD2772_PPULSE_SETTING;
-        /* CONTROL */
-        mData.txrxBuf.bytes[4] = 0x20;
-        i2cMasterTx(I2C_BUS_ID, I2C_ADDR, mData.txrxBuf.bytes, 5,
-                    &i2cCallback, (void *)SENSOR_STATE_IDLE);
+        nextXfer = allocXfer(SENSOR_STATE_IDLE);
+        if (nextXfer != NULL) {
+            /* Start address */
+            nextXfer->txrxBuf.bytes[0] = AMS_TMD2772_REG_PERS;
+            /* PERS */
+            nextXfer->txrxBuf.bytes[1] = 0x00;
+            /* CONFIG */
+            nextXfer->txrxBuf.bytes[2] = 0x00;
+            /* PPULSE */
+            nextXfer->txrxBuf.bytes[3] = AMS_TMD2772_PPULSE_SETTING;
+            /* CONTROL */
+            nextXfer->txrxBuf.bytes[4] = 0x20;
+            i2cMasterTx(I2C_BUS_ID, I2C_ADDR, nextXfer->txrxBuf.bytes, 5, i2cCallback, nextXfer);
+        }
         break;
 
     case SENSOR_STATE_IDLE:
@@ -545,17 +609,17 @@ static void handle_i2c_event(int state)
         break;
 
     case SENSOR_STATE_SAMPLING:
-        /* TEST: log collected data
+#if 0
         osLog(LOG_INFO, DRIVER_NAME "sample ready: status=%02x prox=%u als0=%u als1=%u\n",
-              mData.txrxBuf.sample.status, mData.txrxBuf.sample.prox,
-              mData.txrxBuf.sample.als[0], mData.txrxBuf.sample.als[1]);
-        */
+              xfer->txrxBuf.sample.status, xfer->txrxBuf.sample.prox,
+              xfer->txrxBuf.sample.als[0], xfer->txrxBuf.sample.als[1]);
+#endif
 
         if (mData.alsOn && mData.alsReading &&
-            (mData.txrxBuf.sample.status & ALS_VALID_BIT)) {
+            (xfer->txrxBuf.sample.status & ALS_VALID_BIT)) {
             /* Create event */
-            sample.fdata = getLuxFromAlsData(mData.txrxBuf.sample.als[0],
-                                             mData.txrxBuf.sample.als[1]);
+            sample.fdata = getLuxFromAlsData(xfer->txrxBuf.sample.als[0],
+                                             xfer->txrxBuf.sample.als[1]);
             if (mData.lastAlsSample.idata != sample.idata) {
                 osEnqueueEvt(sensorGetMyEventType(SENS_TYPE_ALS), sample.vptr, NULL);
                 mData.lastAlsSample.fdata = sample.fdata;
@@ -563,11 +627,11 @@ static void handle_i2c_event(int state)
         }
 
         if (mData.proxOn && mData.proxReading &&
-            (mData.txrxBuf.sample.status & PROX_VALID_BIT)) {
+            (xfer->txrxBuf.sample.status & PROX_VALID_BIT)) {
             /* Create event */
             sendData = true;
             if (mData.proxState == PROX_STATE_INIT) {
-                if (mData.txrxBuf.sample.prox > AMS_TMD2772_THRESHOLD_ASSERT_NEAR) {
+                if (xfer->txrxBuf.sample.prox > AMS_TMD2772_THRESHOLD_ASSERT_NEAR) {
                     sample.fdata = AMS_TMD2772_REPORT_NEAR_VALUE;
                     mData.proxState = PROX_STATE_NEAR;
                 } else {
@@ -576,11 +640,11 @@ static void handle_i2c_event(int state)
                 }
             } else {
                 if (mData.proxState == PROX_STATE_NEAR &&
-                    mData.txrxBuf.sample.prox < AMS_TMD2772_THRESHOLD_DEASSERT_NEAR) {
+                    xfer->txrxBuf.sample.prox < AMS_TMD2772_THRESHOLD_DEASSERT_NEAR) {
                     sample.fdata = AMS_TMD2772_REPORT_FAR_VALUE;
                     mData.proxState = PROX_STATE_FAR;
                 } else if (mData.proxState == PROX_STATE_FAR &&
-                    mData.txrxBuf.sample.prox > AMS_TMD2772_THRESHOLD_ASSERT_NEAR) {
+                    xfer->txrxBuf.sample.prox > AMS_TMD2772_THRESHOLD_ASSERT_NEAR) {
                     sample.fdata = AMS_TMD2772_REPORT_NEAR_VALUE;
                     mData.proxState = PROX_STATE_NEAR;
                 } else {
@@ -597,9 +661,11 @@ static void handle_i2c_event(int state)
         break;
 
     default:
-        handle_calibration_event(state);
+        handle_calibration_event(xfer);
         break;
     }
+
+    xfer->inUse = false;
 }
 
 /*
@@ -608,8 +674,6 @@ static void handle_i2c_event(int state)
 
 static bool init_app(uint32_t myTid)
 {
-    osLog(LOG_INFO, DRIVER_NAME "task starting\n");
-
     /* Set up driver private data */
     mData.tid = myTid;
     mData.alsOn = false;
@@ -638,31 +702,34 @@ static void end_app(void)
 
 static void handle_event(uint32_t evtType, const void* evtData)
 {
+    struct I2cTransfer *xfer;
+
     switch (evtType) {
     case EVT_APP_START:
         osEventUnsubscribe(mData.tid, EVT_APP_START);
         i2cMasterRequest(I2C_BUS_ID, I2C_SPEED);
 
         /* TODO: reset chip first */
-
-        mData.txrxBuf.bytes[0] = AMS_TMD2772_REG_ID;
-        i2cMasterTxRx(I2C_BUS_ID, I2C_ADDR, mData.txrxBuf.bytes, 1,
-                        mData.txrxBuf.bytes, 1, &i2cCallback,
-                        (void *)SENSOR_STATE_VERIFY_ID);
+        xfer = allocXfer(SENSOR_STATE_VERIFY_ID);
+        if (xfer != NULL) {
+            xfer->txrxBuf.bytes[0] = AMS_TMD2772_REG_ID;
+            i2cMasterTxRx(I2C_BUS_ID, I2C_ADDR, xfer->txrxBuf.bytes, 1, xfer->txrxBuf.bytes, 1, i2cCallback, xfer);
+        }
         break;
 
     case EVT_SENSOR_I2C:
-        handle_i2c_event((int)evtData);
+        handle_i2c_event((struct I2cTransfer *)evtData);
         break;
 
     case EVT_SENSOR_ALS_TIMER:
     case EVT_SENSOR_PROX_TIMER:
         /* Start sampling for a value */
         if (!mData.alsReading && !mData.proxReading) {
-            mData.txrxBuf.bytes[0] = AMS_TMD2772_REG_STATUS;
-            i2cMasterTxRx(I2C_BUS_ID, I2C_ADDR, mData.txrxBuf.bytes, 1,
-                                mData.txrxBuf.bytes, 7, &i2cCallback,
-                                (void *)SENSOR_STATE_SAMPLING);
+            xfer = allocXfer(SENSOR_STATE_SAMPLING);
+            if (xfer != NULL) {
+                xfer->txrxBuf.bytes[0] = AMS_TMD2772_REG_STATUS;
+                i2cMasterTxRx(I2C_BUS_ID, I2C_ADDR, xfer->txrxBuf.bytes, 1, xfer->txrxBuf.bytes, 7, i2cCallback, xfer);
+            }
         }
 
         if (evtType == EVT_SENSOR_ALS_TIMER)
@@ -673,4 +740,4 @@ static void handle_event(uint32_t evtType, const void* evtData)
     }
 }
 
-INTERNAL_APP_INIT(APP_ID_MAKE(APP_ID_VENDOR_GOOGLE, 9), 0, init_app, end_app, handle_event);
+INTERNAL_APP_INIT(APP_ID_MAKE(APP_ID_VENDOR_GOOGLE, 9), AMS_TMD2772_APP_VERSION, init_app, end_app, handle_event);

@@ -215,7 +215,7 @@ public class PlaybackControlsRow extends Row {
             if (numSpeeds < 1) {
                 throw new IllegalArgumentException("numSpeeds must be > 0");
             }
-            Drawable[] drawables = new Drawable[numSpeeds];
+            Drawable[] drawables = new Drawable[numSpeeds + 1];
             drawables[0] = getStyledDrawable(context,
                     R.styleable.lbPlaybackControlsActionIcons_fast_forward);
             setDrawables(drawables);
@@ -226,7 +226,7 @@ public class PlaybackControlsRow extends Row {
             String[] labels2 = new String[getActionCount()];
             labels2[0] = labels[0];
 
-            for (int i = 1; i < numSpeeds; i++) {
+            for (int i = 1; i <= numSpeeds; i++) {
                 int multiplier = i + 1;
                 labels[i] = context.getResources().getString(
                         R.string.lb_control_display_fast_forward_multiplier, multiplier);
@@ -262,7 +262,7 @@ public class PlaybackControlsRow extends Row {
             if (numSpeeds < 1) {
                 throw new IllegalArgumentException("numSpeeds must be > 0");
             }
-            Drawable[] drawables = new Drawable[numSpeeds];
+            Drawable[] drawables = new Drawable[numSpeeds + 1];
             drawables[0] = getStyledDrawable(context,
                     R.styleable.lbPlaybackControlsActionIcons_rewind);
             setDrawables(drawables);
@@ -273,7 +273,7 @@ public class PlaybackControlsRow extends Row {
             String[] labels2 = new String[getActionCount()];
             labels2[0] = labels[0];
 
-            for (int i = 1; i < numSpeeds; i++) {
+            for (int i = 1; i <= numSpeeds; i++) {
                 int multiplier = i + 1;
                 labels[i] = labels[i] = context.getResources().getString(
                         R.string.lb_control_display_rewind_multiplier, multiplier);
@@ -587,7 +587,7 @@ public class PlaybackControlsRow extends Row {
         }
     }
 
-    private static Bitmap createBitmap(Bitmap bitmap, int color) {
+    static Bitmap createBitmap(Bitmap bitmap, int color) {
         Bitmap dst = bitmap.copy(bitmap.getConfig(), true);
         Canvas canvas = new Canvas(dst);
         Paint paint = new Paint();
@@ -596,7 +596,7 @@ public class PlaybackControlsRow extends Row {
         return dst;
     }
 
-    private static int getIconHighlightColor(Context context) {
+    static int getIconHighlightColor(Context context) {
         TypedValue outValue = new TypedValue();
         if (context.getTheme().resolveAttribute(R.attr.playbackControlsIconHighlightColor,
                 outValue, true)) {
@@ -605,7 +605,7 @@ public class PlaybackControlsRow extends Row {
         return context.getResources().getColor(R.color.lb_playback_icon_highlight_no_theme);
     }
 
-    private static Drawable getStyledDrawable(Context context, int index) {
+    static Drawable getStyledDrawable(Context context, int index) {
         TypedValue outValue = new TypedValue();
         if (!context.getTheme().resolveAttribute(
                 R.attr.playbackControlsActionIcons, outValue, false)) {

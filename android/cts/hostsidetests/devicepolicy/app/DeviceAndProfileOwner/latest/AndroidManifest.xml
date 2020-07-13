@@ -39,8 +39,6 @@
             </intent-filter>
         </receiver>
         <activity
-            android:name="com.android.cts.deviceandprofileowner.ScreenCaptureDisabledActivity" />
-        <activity
             android:name="com.android.cts.deviceandprofileowner.ExampleIntentReceivingActivity1">
             <intent-filter>
                 <action android:name="com.android.cts.deviceandprofileowner.EXAMPLE_ACTION" />

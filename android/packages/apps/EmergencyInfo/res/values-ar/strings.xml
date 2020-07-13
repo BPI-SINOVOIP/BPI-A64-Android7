@@ -96,7 +96,8 @@
     <string name="user_emergency_info_title" msgid="7827058167207376581">"معلومات الطوارئ"</string>
     <string name="user_emergency_info_consent" msgid="5636028073450797246">"يمكن أن تساعد المعلومات التي تدخلها هنا أول المستجيبين في حالات الطوارئ. ويتم تخزين هذه المعلومات على جهازك فقط، ويمكن لأي شخص أن يقرأها من برنامج الاتصال بالطوارئ بدون إلغاء قفل هاتفك."</string>
     <string name="emergency_info_continue" msgid="5453201508537906087">"متابعة"</string>
-    <string name="no_info_provided" msgid="6775035037534954056">"لم يتم تقديم معلومات طوارئ"</string>
+    <string name="no_info_provided" msgid="716200382010821001">"لا تتوفر معلومات حول مالك الهاتف"</string>
+    <string name="tap_pencil" msgid="2723698054265296934">"إذا كان هذا هاتفك، فانقر على رمز القلم لإضافة معلومات يتم عرضها هنا في حالة الطوارئ."</string>
     <string name="clear_all" msgid="8899013032870561633">"مسح الكل"</string>
     <string name="clear" msgid="3648880442502887163">"مسح"</string>
     <string name="clear_all_message" msgid="1548432000373861295">"هل تريد مسح جميع المعلومات وجهات الاتصال؟"</string>

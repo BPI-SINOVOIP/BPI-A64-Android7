@@ -1,0 +1,31 @@
+[
+  {
+    "cmd": [
+      "/bin/echo",
+      "refs/heads/master"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "test branch parse"
+  },
+  {
+    "cmd": [
+      "/bin/echo",
+      "12345"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "test revision parse"
+  },
+  {
+    "cmd": [
+      "/bin/echo",
+      "refs/heads/master@{#12345}"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "test construction"
+  },
+  {
+    "name": "$result",
+    "recipe_result": null,
+    "status_code": 0
+  }
+]

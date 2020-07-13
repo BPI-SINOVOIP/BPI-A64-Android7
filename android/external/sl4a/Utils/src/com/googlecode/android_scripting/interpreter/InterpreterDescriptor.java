@@ -25,7 +25,6 @@ import java.util.Map;
 /**
  * Provides interpreter-specific info for execution/installation/removal purposes.
  *
- * @author Alexey Reznichenko (alexey.reznichenko@gmail.com)
  */
 public interface InterpreterDescriptor {
 

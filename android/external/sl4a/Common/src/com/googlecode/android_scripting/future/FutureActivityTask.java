@@ -29,7 +29,6 @@ import java.util.concurrent.TimeUnit;
 /**
  * Encapsulates an {@link Activity} and a {@link FutureObject}.
  *
- * @author Damon Kohler (damonkohler@gmail.com)
  */
 public abstract class FutureActivityTask<T> {
 

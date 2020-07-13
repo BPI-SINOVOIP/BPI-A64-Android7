@@ -84,14 +84,14 @@ public final class Palette {
         void onGenerated(Palette palette);
     }
 
-    private static final int DEFAULT_RESIZE_BITMAP_AREA = 160 * 160;
-    private static final int DEFAULT_CALCULATE_NUMBER_COLORS = 16;
+    static final int DEFAULT_RESIZE_BITMAP_AREA = 160 * 160;
+    static final int DEFAULT_CALCULATE_NUMBER_COLORS = 16;
 
-    private static final float MIN_CONTRAST_TITLE_TEXT = 3.0f;
-    private static final float MIN_CONTRAST_BODY_TEXT = 4.5f;
+    static final float MIN_CONTRAST_TITLE_TEXT = 3.0f;
+    static final float MIN_CONTRAST_BODY_TEXT = 4.5f;
 
-    private static final String LOG_TAG = "Palette";
-    private static final boolean LOG_TIMINGS = false;
+    static final String LOG_TAG = "Palette";
+    static final boolean LOG_TIMINGS = false;
 
     /**
      * Start generating a {@link Palette} with the returned {@link Builder} instance.
@@ -149,16 +149,16 @@ public final class Palette {
     private final Map<Target, Swatch> mSelectedSwatches;
     private final SparseBooleanArray mUsedColors;
 
-    private final int mMaxPopulation;
+    private final Swatch mDominantSwatch;
 
-    private Palette(List<Swatch> swatches, List<Target> targets) {
+    Palette(List<Swatch> swatches, List<Target> targets) {
         mSwatches = swatches;
         mTargets = targets;
 
         mUsedColors = new SparseBooleanArray();
         mSelectedSwatches = new ArrayMap<>();
 
-        mMaxPopulation = findMaxPopulation();
+        mDominantSwatch = findDominantSwatch();
     }
 
     /**
@@ -323,7 +323,29 @@ public final class Palette {
         return swatch != null ? swatch.getRgb() : defaultColor;
     }
 
-    private void generate() {
+    /**
+     * Returns the dominant swatch from the palette.
+     *
+     * <p>The dominant swatch is defined as the swatch with the greatest population (frequency)
+     * within the palette.</p>
+     */
+    @Nullable
+    public Swatch getDominantSwatch() {
+        return mDominantSwatch;
+    }
+
+    /**
+     * Returns the color of the dominant swatch from the palette, as an RGB packed int.
+     *
+     * @param defaultColor value to return if the swatch isn't available
+     * @see #getDominantSwatch()
+     */
+    @ColorInt
+    public int getDominantColor(@ColorInt int defaultColor) {
+        return mDominantSwatch != null ? mDominantSwatch.getRgb() : defaultColor;
+    }
+
+    void generate() {
         // We need to make sure that the scored targets are generated first. This is so that
         // inherited targets have something to inherit from
         for (int i = 0, count = mTargets.size(); i < count; i++) {
@@ -376,6 +398,8 @@ public final class Palette {
         float luminanceScore = 0;
         float populationScore = 0;
 
+        final int maxPopulation = mDominantSwatch != null ? mDominantSwatch.getPopulation() : 1;
+
         if (target.getSaturationWeight() > 0) {
             saturationScore = target.getSaturationWeight()
                     * (1f - Math.abs(hsl[1] - target.getTargetSaturation()));
@@ -386,18 +410,23 @@ public final class Palette {
         }
         if (target.getPopulationWeight() > 0) {
             populationScore = target.getPopulationWeight()
-                    * (swatch.getPopulation() / (float) mMaxPopulation);
+                    * (swatch.getPopulation() / (float) maxPopulation);
         }
 
         return saturationScore + luminanceScore + populationScore;
     }
 
-    private int findMaxPopulation() {
-        int max = 0;
+    private Swatch findDominantSwatch() {
+        int maxPop = Integer.MIN_VALUE;
+        Swatch maxSwatch = null;
         for (int i = 0, count = mSwatches.size(); i < count; i++) {
-            max = Math.max(mSwatches.get(i).getPopulation(), max);
+            Swatch swatch = mSwatches.get(i);
+            if (swatch.getPopulation() > maxPop) {
+                maxSwatch = swatch;
+                maxPop = swatch.getPopulation();
+            }
         }
-        return max;
+        return maxSwatch;
     }
 
     private static float[] copyHslValues(Swatch color) {
@@ -656,7 +685,7 @@ public final class Palette {
          * the greater time it will take to generate the palette. The smaller the image is, the
          * more detail is lost in the resulting image and thus less precision for color selection.
          *
-         * @param area the number of pixels that the intemediary scaled down Bitmap should cover,
+         * @param area the number of pixels that the intermediary scaled down Bitmap should cover,
          *             or any value <= 0 to disable resizing.
          */
         @NonNull
@@ -922,7 +951,7 @@ public final class Palette {
     /**
      * The default filter.
      */
-    private static final Filter DEFAULT_FILTER = new Filter() {
+    static final Filter DEFAULT_FILTER = new Filter() {
         private static final float BLACK_MAX_LIGHTNESS = 0.05f;
         private static final float WHITE_MIN_LIGHTNESS = 0.95f;
 

@@ -5,6 +5,7 @@
 import copy
 import datetime
 import json
+import time
 import unittest
 
 import mock
@@ -13,6 +14,7 @@ import webtest
 
 from dashboard import bisect_fyi
 from dashboard import bisect_fyi_test
+from dashboard import buildbucket_service
 from dashboard import layered_cache
 from dashboard import rietveld_service
 from dashboard import stored_object
@@ -68,6 +70,18 @@ _SAMPLE_BISECT_RESULTS_JSON = {
             'result': 'bad'
         }
     ]
+}
+
+_SAMPLE_BISECT_FAILED_JSON = {
+    'try_job_id': 12345,
+    'bug_id': 1234,
+    'status': 'failed',
+    'buildbot_log_url': 'http://master/builder/builds/138',
+    'failure_reason': 'BUILD_FAILURE',
+    'extra_result_code': [
+        'B4T_MISSING_METRIC',
+        'B4T_TEST_FAILURE',
+    ],
 }
 
 _REVISION_RESPONSE = """
@@ -143,9 +157,31 @@ def _MockFetch(url=None):
   return testing_common.FakeResponseObject(response_code, response)
 
 
+def _MockBuildBucketResponse(result, updated_ts, status='COMPLETED'):
+  return {
+      "build": {
+          "status": status,
+          "created_ts": "1468500053889710",
+          "url": "http://build.chromium.org/p/tryserver.chromium.perf/builders/winx64_10_perf_bisect/builds/594",  # pylint: disable=line-too-long
+          "bucket": "master.tryserver.chromium.perf",
+          "result_details_json": "{\"properties\": {\"got_nacl_revision\": \"0949e1bef9d6b25ee44eb69a54e0cc6f8a677375\", \"got_swarming_client_revision\": \"df6e95e7669883c8fe9ef956c69a544154701a49\", \"got_revision\": \"c061dd11ada8a97335b2ef9b13757cdb780f84e8\", \"recipe\": \"bisection/desktop_bisect\", \"got_webrtc_revision_cp\": \"refs/heads/master@{#13407}\", \"build_revision\": \"a16e208eee39697b78877c2482b8c4c8d67ac866\", \"buildnumber\": 594, \"slavename\": \"build230-m4\", \"got_revision_cp\": \"refs/heads/master@{#404161}\", \"blamelist\": [], \"branch\": \"\", \"revision\": \"\", \"workdir\": \"C://build/slave/winx64_10_perf_bisect\", \"repository\": \"\", \"buildername\": \"winx64_10_perf_bisect\", \"got_webrtc_revision\": \"05929e21d437bc5f80309455f168a9e4bb2bc94b\", \"mastername\": \"tryserver.chromium.perf\", \"build_scm\": \"git\", \"got_angle_revision\": \"5695fc990fae1897f31bd418f9278e931776abdf\", \"got_v8_revision\": \"b70ce97a8692ddc60102e481a502de32cd4b305e\", \"got_v8_revision_cp\": \"refs/heads/5.4.53@{#1}\", \"requester\": \"425761728072-pa1bs18esuhp2cp2qfa1u9vb6p1v6kfu@developer.gserviceaccount.com\", \"buildbotURL\": \"http://build.chromium.org/p/tryserver.chromium.perf/\", \"bisect_config\": {\"good_revision\": \"404161\", \"builder_host\": null, \"recipe_tester_name\": \"winx64_10_perf_bisect\", \"metric\": \"load_tools-memory:chrome:all_processes:reported_by_chrome:dom_storage:effective_size_avg/load_tools_dropbox\", \"max_time_minutes\": \"20\", \"builder_port\": null, \"bug_id\": 627867, \"command\": \"src/tools/perf/run_benchmark -v --browser=release_x64 --output-format=chartjson --upload-results --also-run-disabled-tests system_health.memory_desktop\", \"repeat_count\": \"20\", \"try_job_id\": 5774140045262848, \"test_type\": \"perf\", \"gs_bucket\": \"chrome-perf\", \"bad_revision\": \"404190\"}, \"project\": \"\", \"requestedAt\": 1468500060, \"got_buildtools_revision\": \"aa47d9773d8f4d6254a587a1240b3dc023d54f06\"}}",  # pylint: disable=line-too-long
+          "status_changed_ts": "1468501519275050",
+          "failure_reason": "INFRA_FAILURE",
+          "result": result,
+          "utcnow_ts": "1469127526866210",
+          "id": "2222",
+          "completed_ts": "1468501519275080",
+          "updated_ts": str(updated_ts)
+          },
+      "kind": "buildbucket#resourcesItem",
+      "etag": "H2Wqa6BpE2P1s-eqgn97T3TaxBw/X08XU5XK_4l3O610jUcjy3KlfwU"
+  }
+
+
 # In this class, we patch apiclient.discovery.build so as to not make network
 # requests, which are normally made when the IssueTrackerService is initialized.
 @mock.patch('apiclient.discovery.build', mock.MagicMock())
+@mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
 @mock.patch.object(utils, 'TickMonitoringCustomMetric', mock.MagicMock())
 class UpdateBugWithResultsTest(testing_common.TestCase):
 
@@ -183,6 +219,9 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
   @mock.patch.object(
       update_bug_with_results.issue_tracker_service, 'IssueTrackerService',
       mock.MagicMock())
+  @mock.patch.object(
+      update_bug_with_results, '_IsBuildBucketJobCompleted',
+      mock.MagicMock(return_value=True))
   def testGet(self):
     # Put succeeded, failed, staled, and not yet finished jobs in the
     # datastore.
@@ -214,6 +253,12 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
   @mock.patch.object(
       update_bug_with_results.issue_tracker_service, 'IssueTrackerService',
       mock.MagicMock())
+  @mock.patch.object(
+      buildbucket_service, 'GetJobStatus',
+      mock.MagicMock(
+          return_value=_MockBuildBucketResponse(
+              result='SUCCESS',
+              updated_ts=int(round(time.time() * 1000000)))))
   def testCreateTryJob_WithoutExistingBug(self):
     # Put succeeded job in the datastore.
     try_job.TryJob(
@@ -228,7 +273,7 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
     self.assertEqual(12345, pending_jobs[0].bug_id)
     self.assertEqual('completed', pending_jobs[0].status)
 
-  @mock.patch.object(utils, 'ServiceAccountCredentials', mock.MagicMock())
+  @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
@@ -236,6 +281,9 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
       update_bug_with_results.issue_tracker_service.IssueTrackerService,
       'AddBugComment', mock.MagicMock(return_value=False))
   @mock.patch('logging.error')
+  @mock.patch.object(
+      update_bug_with_results, '_IsBuildBucketJobCompleted',
+      mock.MagicMock(return_value=True))
   def testGet_FailsToUpdateBug_LogsErrorAndMovesOn(self, mock_logging_error):
     # Put a successful job and a failed job with partial results.
     # Note that AddBugComment is mocked to always returns false, which
@@ -261,6 +309,9 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
   @mock.patch.object(
       update_bug_with_results.issue_tracker_service.IssueTrackerService,
       'AddBugComment')
+  @mock.patch.object(
+      update_bug_with_results, '_IsBuildBucketJobCompleted',
+      mock.MagicMock(return_value=True))
   def testGet_BisectCulpritHasAuthor_AssignsAuthor(self, mock_update_bug):
     # When a bisect has a culprit for a perf regression,
     # author and reviewer of the CL should be cc'ed on issue update.
@@ -279,6 +330,9 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
   @mock.patch.object(
       update_bug_with_results.issue_tracker_service.IssueTrackerService,
       'AddBugComment')
+  @mock.patch.object(
+      update_bug_with_results, '_IsBuildBucketJobCompleted',
+      mock.MagicMock(return_value=True))
   def testGet_FailedRevisionResponse(self, mock_add_bug):
     # When a Rietveld CL link fails to respond, only update CL owner in CC
     # list.
@@ -303,6 +357,9 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
   @mock.patch.object(
       update_bug_with_results.issue_tracker_service.IssueTrackerService,
       'AddBugComment', mock.MagicMock())
+  @mock.patch.object(
+      update_bug_with_results, '_IsBuildBucketJobCompleted',
+      mock.MagicMock(return_value=True))
   def testGet_PositiveResult_StoresCommitHash(self):
     self._AddTryJob(12345, 'started', 'win_perf',
                     results_data=_SAMPLE_BISECT_RESULTS_JSON)
@@ -317,6 +374,9 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
   @mock.patch.object(
       update_bug_with_results.issue_tracker_service.IssueTrackerService,
       'AddBugComment', mock.MagicMock())
+  @mock.patch.object(
+      update_bug_with_results, '_IsBuildBucketJobCompleted',
+      mock.MagicMock(return_value=True))
   def testGet_NegativeResult_DoesNotStoreCommitHash(self):
     sample_bisect_results = copy.deepcopy(_SAMPLE_BISECT_RESULTS_JSON)
     sample_bisect_results['culprit_data'] = None
@@ -367,6 +427,9 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
   @mock.patch.object(
       update_bug_with_results.issue_tracker_service.IssueTrackerService,
       'AddBugComment')
+  @mock.patch.object(
+      update_bug_with_results, '_IsBuildBucketJobCompleted',
+      mock.MagicMock(return_value=True))
   def testGet_InternalOnlyTryJob_AddsInternalOnlyBugLabel(
       self, mock_update_bug):
     self._AddTryJob(12345, 'started', 'win_perf',
@@ -378,6 +441,30 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
         mock.ANY, mock.ANY,
         cc_list=mock.ANY,
         merge_issue=None, labels=['Restrict-View-Google'], owner=mock.ANY)
+
+  @mock.patch(
+      'google.appengine.api.urlfetch.fetch',
+      mock.MagicMock(side_effect=_MockFetch))
+  @mock.patch.object(
+      update_bug_with_results.issue_tracker_service.IssueTrackerService,
+      'AddBugComment')
+  @mock.patch.object(
+      update_bug_with_results, '_IsBuildBucketJobCompleted',
+      mock.MagicMock(return_value=True))
+  def testGet_FailedTryJob_UpdatesBug(
+      self, mock_update_bug):
+    self._AddTryJob(12345, 'started', 'win_perf',
+                    results_data=_SAMPLE_BISECT_FAILED_JSON,
+                    internal_only=True)
+
+    self.testapp.get('/update_bug_with_results')
+    mock_update_bug.assert_called_once_with(
+        mock.ANY,
+        'Bisect failed: http://master/builder/builds/138\n'
+        'Failure reason: the build has failed.\n'
+        'Additional errors:\n'
+        'The metric was not found in the test output.\n'
+        'The test failed to produce parseable results.\n')
 
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
@@ -403,6 +490,7 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
     messages = self.mail_stub.get_sent_messages()
     self.assertEqual(0, len(messages))
 
+  @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
   @mock.patch(
       'google.appengine.api.urlfetch.fetch',
       mock.MagicMock(side_effect=_MockFetch))
@@ -412,7 +500,89 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
   @mock.patch.object(
       update_bug_with_results.issue_tracker_service, 'IssueTrackerService',
       mock.MagicMock())
+  @mock.patch.object(
+      update_bug_with_results, '_ValidateBuildbucketResponse',
+      mock.MagicMock(return_value=True))
+  @mock.patch.object(
+      buildbucket_service, 'GetJobStatus',
+      mock.MagicMock(
+          return_value=_MockBuildBucketResponse(
+              result='FAILURE',
+              updated_ts=int(round(time.time() * 1000000)))))
   def testFYI_Failed_Job_SendEmail(self):
+    stored_object.Set(
+        bisect_fyi._BISECT_FYI_CONFIGS_KEY,
+        bisect_fyi_test.TEST_FYI_CONFIGS)
+    test_config = bisect_fyi_test.TEST_FYI_CONFIGS['positive_culprit']
+    bisect_config = test_config.get('bisect_config')
+    sample_bisect_results = copy.deepcopy(_SAMPLE_BISECT_RESULTS_JSON)
+    sample_bisect_results['status'] = 'failed'
+    self._AddTryJob(12345, 'started', 'win_perf',
+                    results_data=sample_bisect_results,
+                    internal_only=True,
+                    buildbucket_job_id='12345',
+                    config=utils.BisectConfigPythonString(bisect_config),
+                    job_type='bisect-fyi',
+                    job_name='positive_culprit',
+                    email='chris@email.com')
+
+    self.testapp.get('/update_bug_with_results')
+    messages = self.mail_stub.get_sent_messages()
+    self.assertEqual(1, len(messages))
+
+  @mock.patch.object(utils, 'ServiceAccountHttp', mock.MagicMock())
+  @mock.patch(
+      'google.appengine.api.urlfetch.fetch',
+      mock.MagicMock(side_effect=_MockFetch))
+  @mock.patch.object(
+      update_bug_with_results.bisect_fyi, 'IsBugUpdated',
+      mock.MagicMock(return_value=True))
+  @mock.patch.object(
+      update_bug_with_results.issue_tracker_service, 'IssueTrackerService',
+      mock.MagicMock())
+  @mock.patch.object(
+      update_bug_with_results, '_ValidateBuildbucketResponse',
+      mock.MagicMock(side_effect=update_bug_with_results.BisectJobFailure))
+  @mock.patch.object(
+      buildbucket_service, 'GetJobStatus',
+      mock.MagicMock(
+          return_value=_MockBuildBucketResponse(
+              result='FAILURE',
+              updated_ts=int(round(time.time() * 1000000)))))
+  def testFYI_Failed_Job_SendEmail_On_Exception(self):
+    stored_object.Set(
+        bisect_fyi._BISECT_FYI_CONFIGS_KEY,
+        bisect_fyi_test.TEST_FYI_CONFIGS)
+    test_config = bisect_fyi_test.TEST_FYI_CONFIGS['positive_culprit']
+    bisect_config = test_config.get('bisect_config')
+    sample_bisect_results = copy.deepcopy(_SAMPLE_BISECT_RESULTS_JSON)
+    sample_bisect_results['status'] = 'failed'
+    self._AddTryJob(12345, 'started', 'win_perf',
+                    results_data=sample_bisect_results,
+                    internal_only=True,
+                    buildbucket_job_id='12345',
+                    config=utils.BisectConfigPythonString(bisect_config),
+                    job_type='bisect-fyi',
+                    job_name='positive_culprit',
+                    email='chris@email.com')
+
+    self.testapp.get('/update_bug_with_results')
+    messages = self.mail_stub.get_sent_messages()
+    self.assertEqual(1, len(messages))
+
+  @mock.patch(
+      'google.appengine.api.urlfetch.fetch',
+      mock.MagicMock(side_effect=_MockFetch))
+  @mock.patch.object(
+      update_bug_with_results.bisect_fyi, 'IsBugUpdated',
+      mock.MagicMock(return_value=True))
+  @mock.patch.object(
+      update_bug_with_results.issue_tracker_service, 'IssueTrackerService',
+      mock.MagicMock())
+  @mock.patch.object(
+      update_bug_with_results, '_ValidateBuildbucketResponse',
+      mock.MagicMock(return_value=False))
+  def testFYI_Failed_Job_NoSendEmail(self):
     stored_object.Set(
         bisect_fyi._BISECT_FYI_CONFIGS_KEY,
         bisect_fyi_test.TEST_FYI_CONFIGS)
@@ -430,7 +600,7 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
 
     self.testapp.get('/update_bug_with_results')
     messages = self.mail_stub.get_sent_messages()
-    self.assertEqual(1, len(messages))
+    self.assertEqual(0, len(messages))
 
   @mock.patch.object(
       update_bug_with_results.quick_logger.QuickLogger,
@@ -458,6 +628,9 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
   @mock.patch.object(
       update_bug_with_results.issue_tracker_service.IssueTrackerService,
       'AddBugComment')
+  @mock.patch.object(
+      update_bug_with_results, '_IsBuildBucketJobCompleted',
+      mock.MagicMock(return_value=True))
   def testGet_PostResult_WithoutBugEntity(
       self, mock_update_bug):
     job = try_job.TryJob(bug_id=12345, status='started', bot='win_perf',
@@ -468,6 +641,144 @@ class UpdateBugWithResultsTest(testing_common.TestCase):
         12345, mock.ANY, cc_list=mock.ANY, merge_issue=mock.ANY,
         labels=mock.ANY, owner=mock.ANY)
 
+  def testValidateBuildbucketResponse_Scheduled(self):
+    job = try_job.TryJob(bug_id=12345, status='started', bot='win_perf')
+    job.put()
+    buildbucket_response_scheduled = r"""{
+     "build": {
+       "status": "SCHEDULED",
+       "id": "9043191319901995952"
+     }
+    }"""
+    self.assertFalse(update_bug_with_results._ValidateBuildbucketResponse(
+        json.loads(buildbucket_response_scheduled)))
+
+  def testValidateBuildbucketResponse_Started(self):
+    job = try_job.TryJob(bug_id=12345, status='started', bot='win_perf')
+    job.put()
+    buildbucket_response_started = r"""{
+     "build": {
+       "status": "STARTED",
+       "id": "9043191319901995952"
+     }
+    }"""
+    self.assertFalse(update_bug_with_results._ValidateBuildbucketResponse(
+        json.loads(buildbucket_response_started)))
+
+  def testValidateBuildbucketResponse_Success(self):
+    buildbucket_response_success = r"""{
+     "build": {
+       "status": "COMPLETED",
+       "url": "http://build.chromium.org/linux_perf_bisector/builds/47",
+       "id": "9043278384371361584",
+       "result": "SUCCESS"
+     }
+    }"""
+    job = try_job.TryJob(bug_id=12345, status='started', bot='win_perf')
+    job.put()
+    self.assertTrue(update_bug_with_results._ValidateBuildbucketResponse(
+        json.loads(buildbucket_response_success)))
+
+  def testValidateBuildbucketResponse_Failed(self):
+    buildbucket_response_failed = r"""{
+     "build": {
+       "status": "COMPLETED",
+       "url": "http://build.chromium.org/linux_perf_bisector/builds/41",
+       "failure_reason": "BUILD_FAILURE",
+       "result": "FAILURE",
+       "failure_reason": "BUILD_FAILURE",
+       "id": "9043547105089652704"
+     }
+    }"""
+    job = try_job.TryJob(bug_id=12345, status='started', bot='win_perf')
+    job.put()
+    with self.assertRaisesRegexp(
+        update_bug_with_results.BisectJobFailure,
+        update_bug_with_results._BUILD_FAILURE_REASON['BUILD_FAILURE']):
+      update_bug_with_results._ValidateBuildbucketResponse(
+          json.loads(buildbucket_response_failed))
+
+  def testValidateBuildbucketResponse_Canceled(self):
+    buildbucket_response_canceled = r"""{
+     "build": {
+       "status": "COMPLETED",
+       "id": "9043278384371361584",
+       "result": "CANCELED",
+       "cancelation_reason": "CANCELED_EXPLICITLY"
+     }
+    }"""
+    job = try_job.TryJob(bug_id=12345, status='started', bot='win_perf')
+    job.put()
+    with self.assertRaisesRegexp(
+        update_bug_with_results.BisectJobFailure,
+        update_bug_with_results._BUILD_FAILURE_REASON['CANCELED_EXPLICITLY']):
+      update_bug_with_results._ValidateBuildbucketResponse(
+          json.loads(buildbucket_response_canceled))
+
+  def testValidateBuildbucketResponse_Timeout(self):
+    buildbucket_response_canceled = r"""{
+     "build": {
+       "status": "COMPLETED",
+       "cancelation_reason": "TIMEOUT",
+       "id": "9043278384371361584",
+       "result": "CANCELED"
+     }
+    }"""
+    job = try_job.TryJob(bug_id=12345, status='started', bot='win_perf')
+    job.put()
+    with self.assertRaisesRegexp(
+        update_bug_with_results.BisectJobFailure,
+        update_bug_with_results._BUILD_FAILURE_REASON['TIMEOUT']):
+      update_bug_with_results._ValidateBuildbucketResponse(
+          json.loads(buildbucket_response_canceled))
+
+  def testValidateBuildbucketResponse_InvalidConfig(self):
+    buildbucket_response_failed = r"""{
+     "build": {
+       "status": "COMPLETED",
+       "url": "http://build.chromium.org/linux_perf_bisector/builds/41",
+       "failure_reason": "INVALID_BUILD_DEFINITION",
+       "id": "9043278384371361584",
+       "result": "FAILURE"
+     }
+    }"""
+    job = try_job.TryJob(bug_id=12345, status='started', bot='win_perf')
+    job.put()
+    with self.assertRaisesRegexp(
+        update_bug_with_results.BisectJobFailure,
+        update_bug_with_results._BUILD_FAILURE_REASON[
+            'INVALID_BUILD_DEFINITION']):
+      update_bug_with_results._ValidateBuildbucketResponse(
+          json.loads(buildbucket_response_failed))
+
+  @mock.patch.object(
+      buildbucket_service, 'GetJobStatus',
+      mock.MagicMock(
+          return_value=_MockBuildBucketResponse(
+              result='FAILURE',
+              updated_ts=int(round(time.time() * 1000000)))))
+  def testCheckFailureBuildBucket_IsFailed(self):
+    self._AddTryJob(
+        bug_id=1111, status='started', bot='win_perf',
+        buildbucket_job_id='12345')
+    self.testapp.get('/update_bug_with_results')
+    pending_jobs = try_job.TryJob.query().fetch()
+    self.assertTrue(pending_jobs[0].status == 'failed')
+
+  @mock.patch.object(
+      buildbucket_service, 'GetJobStatus',
+      mock.MagicMock(
+          return_value=_MockBuildBucketResponse(
+              result='STARTED',
+              updated_ts=int(round(time.time() * 1000000)),
+              status='STARTED')))
+  def testCheckFailureBuildBucket_IsStarted(self):
+    self._AddTryJob(
+        bug_id=1111, status='started', bot='win_perf',
+        buildbucket_job_id='12345')
+    self.testapp.get('/update_bug_with_results')
+    pending_jobs = try_job.TryJob.query().fetch()
+    self.assertTrue(pending_jobs[0].status == 'started')
 
 if __name__ == '__main__':
   unittest.main()

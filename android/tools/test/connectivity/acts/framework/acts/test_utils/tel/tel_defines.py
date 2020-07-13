@@ -190,7 +190,10 @@ CELL_STRONG_RSSI_VALUE = -70
 WIFI_WEAK_RSSI_VALUE = -80
 
 # Emergency call number
-EMERGENCY_CALL_NUMBER = "911"
+DEFAULT_EMERGENCY_CALL_NUMBER = "911"
+
+EMERGENCY_CALL_NUMBERS = ["08", "000", "110", "112", "118", "119", "911",
+                          "999", "*911", "#911"]
 
 AOSP_PREFIX = "aosp_"
 
@@ -205,6 +208,12 @@ NETWORK_CONNECTION_TYPE_HIPRI = 'hipri'
 NETWORK_CONNECTION_TYPE_UNKNOWN = 'unknown'
 
 TETHERING_MODE_WIFI = 'wifi'
+
+# Tether interface types defined in ConnectivityManager
+TETHERING_INVALID = -1
+TETHERING_WIFI = 0
+TETHERING_USB = 1
+TETHERING_BLUETOOTH = 2
 
 NETWORK_SERVICE_VOICE = 'voice'
 NETWORK_SERVICE_DATA = 'data'
@@ -380,6 +389,7 @@ RAT_HSPAP = "HSPAP"
 RAT_GSM = "GSM"
 RAT_TD_SCDMA = "TD_SCDMA"
 RAT_GLOBAL = "GLOBAL"
+RAT_LTE_CA = "LTE_CA"  # LTE Carrier Aggregation
 RAT_UNKNOWN = "UNKNOWN"
 
 # Constant for Phone Type

@@ -1,0 +1,69 @@
+[
+  {
+    "cmd": [],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "dinosaur"
+  },
+  {
+    "cmd": [],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "dinosaur.bird",
+    "~followup_annotations": [
+      "@@@STEP_NEST_LEVEL@1@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "sleep",
+      "10"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "dinosaur.bird.sparrow",
+    "~followup_annotations": [
+      "@@@STEP_NEST_LEVEL@2@@@"
+    ]
+  },
+  {
+    "cmd": [],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "dinosaur.song",
+    "~followup_annotations": [
+      "@@@STEP_NEST_LEVEL@1@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "echo",
+      "deadofnight"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "dinosaur.song.blackbird",
+    "~followup_annotations": [
+      "@@@STEP_NEST_LEVEL@2@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "sleep",
+      "10"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "dinosaur.roar",
+    "~followup_annotations": [
+      "@@@STEP_NEST_LEVEL@1@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "sleep",
+      "10"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "not_a_dinosaur"
+  },
+  {
+    "name": "$result",
+    "recipe_result": null,
+    "status_code": 0
+  }
+]

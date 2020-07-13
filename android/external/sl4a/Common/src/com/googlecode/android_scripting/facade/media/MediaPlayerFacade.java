@@ -67,7 +67,6 @@ import java.util.Map.Entry;
  * will continue playing after the script has finished unless an explicit {@link #mediaPlayClose
  * mediaPlayClose} event is called.
  *
- * @author Robbie Matthews (rjmatthews62@gmail.com)
  */
 
 public class MediaPlayerFacade extends RpcReceiver implements MediaPlayer.OnCompletionListener {

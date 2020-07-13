@@ -46,10 +46,9 @@ class BleSetScanFilterError(Exception):
 
 
 class BleScanApiTest(BluetoothBaseTest):
-
     def __init__(self, controllers):
         BluetoothBaseTest.__init__(self, controllers)
-        self.droid = self.android_devices[0].droid
+        self.ad_dut = self.android_devices[0]
 
     def _format_defaults(self, input):
         """
@@ -68,7 +67,7 @@ class BleScanApiTest(BluetoothBaseTest):
         if 'ScanFilterDeviceAddress' not in input.keys():
             input['ScanFilterDeviceAddress'] = None
         if 'ScanFilterManufacturerData' not in input.keys():
-            input['ScanFilterManufacturerData'] = ""
+            input['ScanFilterManufacturerData'] = None
         return input
 
     def validate_scan_settings_helper(self, input, droid):
@@ -82,8 +81,8 @@ class BleScanApiTest(BluetoothBaseTest):
         if 'ScanSettings' in input.keys():
             try:
                 droid.bleSetScanSettingsCallbackType(input['ScanSettings'][0])
-                droid.bleSetScanSettingsReportDelayMillis(input[
-                    'ScanSettings'][1])
+                droid.bleSetScanSettingsReportDelayMillis(input['ScanSettings']
+                                                          [1])
                 droid.bleSetScanSettingsScanMode(input['ScanSettings'][2])
                 droid.bleSetScanSettingsResultType(input['ScanSettings'][3])
             except SL4AAPIError as error:
@@ -235,7 +234,7 @@ class BleScanApiTest(BluetoothBaseTest):
         Priority: 1
         """
         input = {}
-        return self.validate_scan_settings_helper(input, self.droid)
+        return self.validate_scan_settings_helper(input, self.ad_dut.droid)
 
     @BluetoothBaseTest.bt_test_wrap
     def test_stop_ble_scan_default_settings(self):
@@ -260,14 +259,15 @@ class BleScanApiTest(BluetoothBaseTest):
         Priority: 0
         """
         input = {}
-        test_result = self.validate_scan_settings_helper(input, self.droid)
+        test_result = self.validate_scan_settings_helper(input,
+                                                         self.ad_dut.droid)
         if not test_result:
             self.log.error("Could not setup ble scanner.")
             return test_result
-        self.droid.bleStartBleScan(self.filter_list, self.scan_settings_index,
-                                   self.scan_callback)
+        self.ad_dut.droid.bleStartBleScan(
+            self.filter_list, self.scan_settings_index, self.scan_callback)
         try:
-            self.droid.bleStopBleScan(self.scan_callback)
+            self.ad_dut.droid.bleStopBleScan(self.scan_callback)
         except BleScanResultsError as error:
             self.log.error(str(error))
             test_result = False
@@ -298,7 +298,7 @@ class BleScanApiTest(BluetoothBaseTest):
             ScanSettingsCallbackType.CALLBACK_TYPE_ALL_MATCHES.value, 0,
             ScanSettingsScanMode.SCAN_MODE_LOW_POWER.value,
             ScanSettingsScanResultType.SCAN_RESULT_TYPE_FULL.value)
-        return self.validate_scan_settings_helper(input, self.droid)
+        return self.validate_scan_settings_helper(input, self.ad_dut.droid)
 
     @BluetoothBaseTest.bt_test_wrap
     def test_scan_settings_set_callback_type_first_match(self):
@@ -325,7 +325,8 @@ class BleScanApiTest(BluetoothBaseTest):
             ScanSettingsCallbackType.CALLBACK_TYPE_FIRST_MATCH.value, 0,
             ScanSettingsScanMode.SCAN_MODE_LOW_POWER.value,
             ScanSettingsScanResultType.SCAN_RESULT_TYPE_FULL.value)
-        test_result = self.validate_scan_settings_helper(input, self.droid)
+        test_result = self.validate_scan_settings_helper(input,
+                                                         self.ad_dut.droid)
         return test_result
 
     @BluetoothBaseTest.bt_test_wrap
@@ -353,7 +354,8 @@ class BleScanApiTest(BluetoothBaseTest):
             ScanSettingsCallbackType.CALLBACK_TYPE_MATCH_LOST.value, 0,
             ScanSettingsScanMode.SCAN_MODE_LOW_POWER.value,
             ScanSettingsScanResultType.SCAN_RESULT_TYPE_FULL.value)
-        test_result = self.validate_scan_settings_helper(input, self.droid)
+        test_result = self.validate_scan_settings_helper(input,
+                                                         self.ad_dut.droid)
         return test_result
 
     @BluetoothBaseTest.bt_test_wrap
@@ -379,7 +381,8 @@ class BleScanApiTest(BluetoothBaseTest):
         input["ScanSettings"] = (
             -1, 0, ScanSettingsScanMode.SCAN_MODE_LOW_POWER.value,
             ScanSettingsScanResultType.SCAN_RESULT_TYPE_FULL.value)
-        test_result = self.validate_scan_settings_helper(input, self.droid)
+        test_result = self.validate_scan_settings_helper(input,
+                                                         self.ad_dut.droid)
         return not test_result
 
     @BluetoothBaseTest.bt_test_wrap
@@ -407,7 +410,8 @@ class BleScanApiTest(BluetoothBaseTest):
             ScanSettingsCallbackType.CALLBACK_TYPE_ALL_MATCHES.value, 0,
             ScanSettingsScanMode.SCAN_MODE_LOW_POWER.value,
             ScanSettingsScanResultType.SCAN_RESULT_TYPE_FULL.value)
-        test_result = self.validate_scan_settings_helper(input, self.droid)
+        test_result = self.validate_scan_settings_helper(input,
+                                                         self.ad_dut.droid)
         return test_result
 
     @BluetoothBaseTest.bt_test_wrap
@@ -435,7 +439,7 @@ class BleScanApiTest(BluetoothBaseTest):
             ScanSettingsCallbackType.CALLBACK_TYPE_ALL_MATCHES.value, 0,
             ScanSettingsScanMode.SCAN_MODE_BALANCED.value,
             ScanSettingsScanResultType.SCAN_RESULT_TYPE_FULL.value)
-        return self.validate_scan_settings_helper(input, self.droid)
+        return self.validate_scan_settings_helper(input, self.ad_dut.droid)
 
     @BluetoothBaseTest.bt_test_wrap
     def test_scan_settings_set_scan_mode_low_latency(self):
@@ -462,7 +466,7 @@ class BleScanApiTest(BluetoothBaseTest):
             ScanSettingsCallbackType.CALLBACK_TYPE_ALL_MATCHES.value, 0,
             ScanSettingsScanMode.SCAN_MODE_LOW_LATENCY.value,
             ScanSettingsScanResultType.SCAN_RESULT_TYPE_FULL.value)
-        return self.validate_scan_settings_helper(input, self.droid)
+        return self.validate_scan_settings_helper(input, self.ad_dut.droid)
 
     @BluetoothBaseTest.bt_test_wrap
     def test_scan_settings_set_invalid_scan_mode(self):
@@ -485,7 +489,7 @@ class BleScanApiTest(BluetoothBaseTest):
         input["ScanSettings"] = (
             ScanSettingsCallbackType.CALLBACK_TYPE_ALL_MATCHES.value, 0, -2,
             ScanSettingsScanResultType.SCAN_RESULT_TYPE_FULL.value)
-        return not self.validate_scan_settings_helper(input, self.droid)
+        return not self.validate_scan_settings_helper(input, self.ad_dut.droid)
 
     @BluetoothBaseTest.bt_test_wrap
     def test_scan_settings_set_report_delay_millis_min(self):
@@ -513,7 +517,7 @@ class BleScanApiTest(BluetoothBaseTest):
             ScanSettingsReportDelaySeconds.MIN.value,
             ScanSettingsScanMode.SCAN_MODE_LOW_POWER.value,
             ScanSettingsScanResultType.SCAN_RESULT_TYPE_FULL.value)
-        return self.validate_scan_settings_helper(input, self.droid)
+        return self.validate_scan_settings_helper(input, self.ad_dut.droid)
 
     @BluetoothBaseTest.bt_test_wrap
     def test_scan_settings_set_report_delay_millis_min_plus_one(self):
@@ -541,7 +545,7 @@ class BleScanApiTest(BluetoothBaseTest):
             ScanSettingsReportDelaySeconds.MIN.value + 1,
             ScanSettingsScanMode.SCAN_MODE_LOW_POWER.value,
             ScanSettingsScanResultType.SCAN_RESULT_TYPE_FULL.value)
-        return self.validate_scan_settings_helper(input, self.droid)
+        return self.validate_scan_settings_helper(input, self.ad_dut.droid)
 
     @BluetoothBaseTest.bt_test_wrap
     def test_scan_settings_set_report_delay_millis_max(self):
@@ -569,7 +573,7 @@ class BleScanApiTest(BluetoothBaseTest):
             ScanSettingsReportDelaySeconds.MAX.value,
             ScanSettingsScanMode.SCAN_MODE_LOW_POWER.value,
             ScanSettingsScanResultType.SCAN_RESULT_TYPE_FULL.value)
-        return self.validate_scan_settings_helper(input, self.droid)
+        return self.validate_scan_settings_helper(input, self.ad_dut.droid)
 
     @BluetoothBaseTest.bt_test_wrap
     def test_scan_settings_set_report_delay_millis_max_minus_one(self):
@@ -597,7 +601,7 @@ class BleScanApiTest(BluetoothBaseTest):
             ScanSettingsReportDelaySeconds.MAX.value - 1,
             ScanSettingsScanMode.SCAN_MODE_LOW_POWER.value,
             ScanSettingsScanResultType.SCAN_RESULT_TYPE_FULL.value)
-        return self.validate_scan_settings_helper(input, self.droid)
+        return self.validate_scan_settings_helper(input, self.ad_dut.droid)
 
     @BluetoothBaseTest.bt_test_wrap
     def test_scan_settings_set_invalid_report_delay_millis_min_minus_one(self):
@@ -619,7 +623,7 @@ class BleScanApiTest(BluetoothBaseTest):
         TAGS: LE, Scanning
         Priority: 2
         """
-        droid = self.droid
+        droid = self.ad_dut.droid
         input = {}
         input["ScanSettings"] = (
             ScanSettingsCallbackType.CALLBACK_TYPE_ALL_MATCHES.value,
@@ -653,7 +657,7 @@ class BleScanApiTest(BluetoothBaseTest):
             ScanSettingsCallbackType.CALLBACK_TYPE_ALL_MATCHES.value, 0,
             ScanSettingsScanMode.SCAN_MODE_LOW_POWER.value,
             ScanSettingsScanResultType.SCAN_RESULT_TYPE_FULL.value)
-        return self.validate_scan_settings_helper(input, self.droid)
+        return self.validate_scan_settings_helper(input, self.ad_dut.droid)
 
     @BluetoothBaseTest.bt_test_wrap
     def test_scan_settings_set_scan_result_type_abbreviated(self):
@@ -680,7 +684,7 @@ class BleScanApiTest(BluetoothBaseTest):
             ScanSettingsCallbackType.CALLBACK_TYPE_ALL_MATCHES.value, 0,
             ScanSettingsScanMode.SCAN_MODE_LOW_POWER.value,
             ScanSettingsScanResultType.SCAN_RESULT_TYPE_ABBREVIATED.value)
-        return self.validate_scan_settings_helper(input, self.droid)
+        return self.validate_scan_settings_helper(input, self.ad_dut.droid)
 
     @BluetoothBaseTest.bt_test_wrap
     def test_scan_settings_set_invalid_scan_result_type(self):
@@ -706,7 +710,7 @@ class BleScanApiTest(BluetoothBaseTest):
         input["ScanSettings"] = (
             ScanSettingsCallbackType.CALLBACK_TYPE_ALL_MATCHES.value, 0,
             ScanSettingsScanMode.SCAN_MODE_LOW_POWER.value, -1)
-        return not self.validate_scan_settings_helper(input, self.droid)
+        return not self.validate_scan_settings_helper(input, self.ad_dut.droid)
 
     @BluetoothBaseTest.bt_test_wrap
     def test_scan_filter_set_device_name(self):
@@ -730,7 +734,7 @@ class BleScanApiTest(BluetoothBaseTest):
         """
         input = {}
         input['ScanFilterDeviceName'] = "sl4atest"
-        return self.validate_scan_settings_helper(input, self.droid)
+        return self.validate_scan_settings_helper(input, self.ad_dut.droid)
 
     @BluetoothBaseTest.bt_test_wrap
     def test_scan_filter_set_device_name_blank(self):
@@ -752,7 +756,7 @@ class BleScanApiTest(BluetoothBaseTest):
         TAGS: LE, Scanning
         Priority: 1
         """
-        droid = self.droid
+        droid = self.ad_dut.droid
         input = {}
         input['ScanFilterDeviceName'] = ""
         return self.validate_scan_settings_helper(input, droid)
@@ -779,7 +783,7 @@ class BleScanApiTest(BluetoothBaseTest):
         """
         input = {}
         input['ScanFilterDeviceName'] = "!@#$%^&*()\":<>/"
-        return self.validate_scan_settings_helper(input, self.droid)
+        return self.validate_scan_settings_helper(input, self.ad_dut.droid)
 
     @BluetoothBaseTest.bt_test_wrap
     def test_scan_filter_set_device_address(self):
@@ -803,7 +807,7 @@ class BleScanApiTest(BluetoothBaseTest):
         """
         input = {}
         input['ScanFilterDeviceAddress'] = "01:02:03:AB:CD:EF"
-        return self.validate_scan_settings_helper(input, self.droid)
+        return self.validate_scan_settings_helper(input, self.ad_dut.droid)
 
     @BluetoothBaseTest.bt_test_wrap
     def test_scan_filter_set_invalid_device_address_lower_case(self):
@@ -826,7 +830,7 @@ class BleScanApiTest(BluetoothBaseTest):
         """
         input = {}
         input['ScanFilterDeviceAddress'] = "01:02:03:ab:cd:ef"
-        return not self.validate_scan_settings_helper(input, self.droid)
+        return not self.validate_scan_settings_helper(input, self.ad_dut.droid)
 
     @BluetoothBaseTest.bt_test_wrap
     def test_scan_filter_set_invalid_device_address_blank(self):
@@ -849,7 +853,8 @@ class BleScanApiTest(BluetoothBaseTest):
         """
         input = {}
         input['ScanFilterDeviceAddress'] = ""
-        test_result = self.validate_scan_settings_helper(input, self.droid)
+        test_result = self.validate_scan_settings_helper(input,
+                                                         self.ad_dut.droid)
         return not test_result
 
     @BluetoothBaseTest.bt_test_wrap
@@ -873,7 +878,7 @@ class BleScanApiTest(BluetoothBaseTest):
         """
         input = {}
         input['ScanFilterDeviceAddress'] = "10.10.10.10.10"
-        return not self.validate_scan_settings_helper(input, self.droid)
+        return not self.validate_scan_settings_helper(input, self.ad_dut.droid)
 
     @BluetoothBaseTest.bt_test_wrap
     def test_scan_filter_set_invalid_device_address_bad_address(self):
@@ -896,7 +901,7 @@ class BleScanApiTest(BluetoothBaseTest):
         """
         input = {}
         input['ScanFilterDeviceAddress'] = "ZZ:ZZ:ZZ:ZZ:ZZ:ZZ"
-        return not self.validate_scan_settings_helper(input, self.droid)
+        return not self.validate_scan_settings_helper(input, self.ad_dut.droid)
 
     @BluetoothBaseTest.bt_test_wrap
     def test_scan_filter_set_manufacturer_id_data(self):
@@ -919,11 +924,11 @@ class BleScanApiTest(BluetoothBaseTest):
         Priority: 1
         """
         expected_manufacturer_id = 0
-        expected_manufacturer_data = "1,2,1,3,4,5,6"
+        expected_manufacturer_data = [1, 2, 1, 3, 4, 5, 6]
         input = {}
         input['ScanFilterManufacturerDataId'] = expected_manufacturer_id
         input['ScanFilterManufacturerData'] = expected_manufacturer_data
-        return self.validate_scan_settings_helper(input, self.droid)
+        return self.validate_scan_settings_helper(input, self.ad_dut.droid)
 
     @BluetoothBaseTest.bt_test_wrap
     def test_scan_filter_set_manufacturer_id_data_mask(self):
@@ -946,14 +951,14 @@ class BleScanApiTest(BluetoothBaseTest):
         Priority: 1
         """
         expected_manufacturer_id = 1
-        expected_manufacturer_data = "1"
-        expected_manufacturer_data_mask = "1,2,1,3,4,5,6"
+        expected_manufacturer_data = [1]
+        expected_manufacturer_data_mask = [1, 2, 1, 3, 4, 5, 6]
         input = {}
         input['ScanFilterManufacturerDataId'] = expected_manufacturer_id
         input['ScanFilterManufacturerData'] = expected_manufacturer_data
         input[
             'ScanFilterManufacturerDataMask'] = expected_manufacturer_data_mask
-        return self.validate_scan_settings_helper(input, self.droid)
+        return self.validate_scan_settings_helper(input, self.ad_dut.droid)
 
     @BluetoothBaseTest.bt_test_wrap
     def test_scan_filter_set_manufacturer_max_id(self):
@@ -976,11 +981,11 @@ class BleScanApiTest(BluetoothBaseTest):
         Priority: 2
         """
         expected_manufacturer_id = 2147483647
-        expected_manufacturer_data = "1,2,1,3,4,5,6"
+        expected_manufacturer_data = [1, 2, 1, 3, 4, 5, 6]
         input = {}
         input['ScanFilterManufacturerDataId'] = expected_manufacturer_id
         input['ScanFilterManufacturerData'] = expected_manufacturer_data
-        return self.validate_scan_settings_helper(input, self.droid)
+        return self.validate_scan_settings_helper(input, self.ad_dut.droid)
 
     @BluetoothBaseTest.bt_test_wrap
     def test_scan_filter_set_manufacturer_data_empty(self):
@@ -1003,11 +1008,11 @@ class BleScanApiTest(BluetoothBaseTest):
         Priority: 2
         """
         expected_manufacturer_id = 1
-        expected_manufacturer_data = ""
+        expected_manufacturer_data = []
         input = {}
         input['ScanFilterManufacturerDataId'] = expected_manufacturer_id
         input['ScanFilterManufacturerData'] = expected_manufacturer_data
-        return self.validate_scan_settings_helper(input, self.droid)
+        return self.validate_scan_settings_helper(input, self.ad_dut.droid)
 
     @BluetoothBaseTest.bt_test_wrap
     def test_scan_filter_set_manufacturer_data_mask_empty(self):
@@ -1030,14 +1035,14 @@ class BleScanApiTest(BluetoothBaseTest):
         Priority: 1
         """
         expected_manufacturer_id = 1
-        expected_manufacturer_data = "1,2,1,3,4,5,6"
-        expected_manufacturer_data_mask = ""
+        expected_manufacturer_data = [1, 2, 1, 3, 4, 5, 6]
+        expected_manufacturer_data_mask = []
         input = {}
         input['ScanFilterManufacturerDataId'] = expected_manufacturer_id
         input['ScanFilterManufacturerData'] = expected_manufacturer_data
         input[
             'ScanFilterManufacturerDataMask'] = expected_manufacturer_data_mask
-        return self.validate_scan_settings_helper(input, self.droid)
+        return self.validate_scan_settings_helper(input, self.ad_dut.droid)
 
     @BluetoothBaseTest.bt_test_wrap
     def test_scan_filter_set_invalid_manufacturer_min_id_minus_one(self):
@@ -1060,11 +1065,11 @@ class BleScanApiTest(BluetoothBaseTest):
         Priority: 2
         """
         expected_manufacturer_id = -1
-        expected_manufacturer_data = "1,2,1,3,4,5,6"
+        expected_manufacturer_data = [1, 2, 1, 3, 4, 5, 6]
         input = {}
         input['ScanFilterManufacturerDataId'] = expected_manufacturer_id
         input['ScanFilterManufacturerData'] = expected_manufacturer_data
-        return not self.validate_scan_settings_helper(input, self.droid)
+        return not self.validate_scan_settings_helper(input, self.ad_dut.droid)
 
     @BluetoothBaseTest.bt_test_wrap
     def test_scan_filter_set_service_uuid(self):
@@ -1091,7 +1096,7 @@ class BleScanApiTest(BluetoothBaseTest):
         input = {}
         input['ScanFilterServiceUuid'] = expected_service_uuid
         input['ScanFilterServiceMask'] = expected_service_mask
-        return self.validate_scan_settings_helper(input, self.droid)
+        return self.validate_scan_settings_helper(input, self.ad_dut.droid)
 
     @BluetoothBaseTest.bt_test_wrap
     def test_scan_filter_service_uuid_p_service(self):
@@ -1120,7 +1125,7 @@ class BleScanApiTest(BluetoothBaseTest):
         input = {}
         input['ScanFilterServiceUuid'] = expected_service_uuid
         input['ScanFilterServiceMask'] = expected_service_mask
-        return self.validate_scan_settings_helper(input, self.droid)
+        return self.validate_scan_settings_helper(input, self.ad_dut.droid)
 
     @BluetoothBaseTest.bt_test_wrap
     def test_classic_ble_scan_with_service_uuids_p(self):
@@ -1145,7 +1150,7 @@ class BleScanApiTest(BluetoothBaseTest):
         Priority: 1
         """
 
-        droid = self.droid
+        droid = self.ad_dut.droid
         service_uuid_list = [Uuids.P_Service.value]
         scan_callback = droid.bleGenLeScanCallback()
         return self.verify_classic_ble_scan_with_service_uuids(
@@ -1173,7 +1178,7 @@ class BleScanApiTest(BluetoothBaseTest):
         TAGS: LE, Scanning
         Priority: 1
         """
-        droid = self.droid
+        droid = self.ad_dut.droid
         service_uuid_list = [Uuids.HR_SERVICE.value]
         scan_callback = droid.bleGenLeScanCallback()
         return self.verify_classic_ble_scan_with_service_uuids(
@@ -1201,7 +1206,7 @@ class BleScanApiTest(BluetoothBaseTest):
         TAGS: LE, Scanning
         Priority: 1
         """
-        droid = self.droid
+        droid = self.ad_dut.droid
         service_uuid_list = []
         scan_callback = droid.bleGenLeScanCallback()
         return self.verify_classic_ble_scan_with_service_uuids(
@@ -1229,7 +1234,7 @@ class BleScanApiTest(BluetoothBaseTest):
         TAGS: LE, Scanning
         Priority: 1
         """
-        droid = self.droid
+        droid = self.ad_dut.droid
         service_uuid_list = [Uuids.HR_SERVICE.value, Uuids.P_Service.value]
         scan_callback = droid.bleGenLeScanCallback()
         return self.verify_classic_ble_scan_with_service_uuids(

@@ -10,7 +10,6 @@ import webtest
 from google.appengine.ext import ndb
 
 from dashboard import group_report
-from dashboard import test_owner
 from dashboard import testing_common
 from dashboard import utils
 from dashboard.models import anomaly
@@ -40,7 +39,7 @@ class GroupReportTest(testing_common.TestCase):
     return urlsafe_keys
 
   def _AddTests(self):
-    """Adds sample Test entities and returns their keys."""
+    """Adds sample TestMetadata entities and returns their keys."""
     testing_common.AddTests(['ChromiumGPU'], ['linux-release'], {
         'scrolling-benchmark': {
             'first_paint': {},
@@ -53,8 +52,8 @@ class GroupReportTest(testing_common.TestCase):
         utils.TestKey(
             'ChromiumGPU/linux-release/scrolling-benchmark/mean_frame_time'),
     ]
-    # By default, all Test entities have an improvement_direction of UNKNOWN,
-    # meaning that neither direction is considered an improvement.
+    # By default, all TestMetadata entities have an improvement_direction of
+    # UNKNOWN, meaning that neither direction is considered an improvement.
     # Here we set the improvement direction so that some anomalies are
     # considered improvements.
     for test_key in keys:
@@ -145,19 +144,6 @@ class GroupReportTest(testing_common.TestCase):
     response = self.testapp.post('/group_report?bug_id=123')
     alert_list = self.GetJsonValue(response, 'alert_list')
     self.assertEqual(1, len(alert_list))
-
-  def testPost_WithBugIdForBugThatHasOwner_ShowsOwnerInfo(self):
-    sheriff_key = self._AddSheriff()
-    test_keys = self._AddTests()
-    bug_data.Bug(id=123).put()
-    test_key = test_keys[0]
-    test_path_parts = utils.TestPath(test_key).split('/')
-    test_suite_path = '%s/%s' % (test_path_parts[0], test_path_parts[2])
-    test_owner.AddOwnerFromDict({test_suite_path: ['foo@bar.com']})
-    self._AddAnomalyEntities([(150, 250)], test_key, sheriff_key, bug_id=123)
-    response = self.testapp.post('/group_report?bug_id=123')
-    owner_info = self.GetJsonValue(response, 'owner_info')
-    self.assertEqual('foo@bar.com', owner_info[0]['email'])
 
   def testPost_WithInvalidBugIdParameter_ShowsError(self):
     response = self.testapp.post('/group_report?bug_id=foo')

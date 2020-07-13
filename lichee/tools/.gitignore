@@ -1,0 +1,16 @@
+*.depend
+*.o
+*.orig
+*.rej
+*~
+*.d
+*.a
+buildroot/target/dragonboard/sysroot/
+buildroot/target/dragonboard/output/bin/
+buildroot/target/dragonboard/rootfs.ext4
+buildroot/target/dragonboard/rootfs/
+buildroot/target/dragonboard/adb/adbd
+pack/common/keys/
+/pack/*.img
+/pack/*.img.zip
+build/toolchain/gcc-linaro-aarch64.tar.xz

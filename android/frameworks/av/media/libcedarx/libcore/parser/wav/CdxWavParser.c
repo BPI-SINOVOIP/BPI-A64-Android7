@@ -22,6 +22,11 @@
 #define AW_DCA_MARKER_RAW_BE 0x7FFE8001
 #define AW_DCA_MARKER_RAW_LE 0xFE7F0180
 
+#define AV_RB32(x)  ((((const unsigned char*)(x))[0] << 24) | \
+    (((const unsigned char*)(x))[1] << 16) | \
+    (((const unsigned char*)(x))[2] <<  8) | \
+                      ((const unsigned char*)(x))[3])
+
 static int WavInit(CdxParserT* parameter)
 {
     cdx_int32             ret            = 0;
@@ -513,7 +518,7 @@ static cdx_int32 __WavParserRead(CdxParserT *parser, CdxPacketT *pkt)
     }
     else if(read_length == 0)
     {
-       CDX_LOGE("CdxStream EOS");
+       CDX_LOGD("CdxStream EOS");
        impl->mErrno = PSR_EOS;
        return CDX_FAILURE;
     }
@@ -523,7 +528,7 @@ static cdx_int32 __WavParserRead(CdxParserT *parser, CdxPacketT *pkt)
     impl->nFrames++;
     if(read_length == 0)
     {
-        CDX_LOGE("audio parse no data");
+        CDX_LOGW("audio parse no data");
         return CDX_FAILURE;
     }
 
@@ -663,6 +668,187 @@ static cdx_uint32 aw_bytestream_get_be16(cdx_uint8** pptr)
     return value;
 }
 
+#define MAXREADBYTES 1024
+#define MAXBYTESCHECKED  (128 * 1024)
+
+static const uint32_t MpegMask = 0xfffe0c00;
+extern cdx_bool GetMPEGAudioFrameSize(
+        uint32_t header, size_t *frameSize,
+        int *outSamplingRate, int *outChannels,
+        int *outBitrate, int *outNumSamples) ;
+static cdx_int32 Mp3Probe(CdxStreamProbeDataT *p){
+    //const sp<DataSource> &source, uint32_t match_header,
+    //off64_t *inout_pos, off64_t *post_id3_pos, uint32_t *out_header) {
+    cdx_int64  inout_pos,post_id3_pos;
+    cdx_uint32 out_header,match_header;
+    cdx_uint8 *source = (cdx_uint8 *)p->buf;
+
+    post_id3_pos = 0;
+    inout_pos = 0;
+    match_header = 0;
+    cdx_int64 pos1 = 0;
+
+    if (inout_pos == 0) {
+        // Skip an optional ID3 header if syncing at the very beginning
+        // of the datasource.
+        for (;;) {
+            cdx_uint8 id3header[10];
+            pos1 += sizeof(id3header);
+            if(pos1 > p->len)
+            {
+                return 0;
+            }
+            memcpy(id3header,source + inout_pos,sizeof(id3header));
+            //if (source->readAt(*inout_pos, id3header, sizeof(id3header))
+              //      < (ssize_t)sizeof(id3header)) {
+                // If we can't even read these 10 bytes, we might as well bail
+                // out, even if there _were_ 10 bytes of valid mp3 audio data...
+                //return false;
+            //}
+            if (memcmp("ID3", id3header, 3)) {
+                break;
+            }
+            // Skip the ID3v2 header.
+            cdx_int32 len =
+                ((id3header[6] & 0x7f) << 21)
+                | ((id3header[7] & 0x7f) << 14)
+                | ((id3header[8] & 0x7f) << 7)
+                | (id3header[9] & 0x7f);
+
+            len += 10;
+            inout_pos += len;
+            CDX_LOGD("Wav parser : skipped ID3 tag, new starting offset is %lld (0x%016llx)",
+                 inout_pos, inout_pos);
+            if(inout_pos != 0)
+            {
+                CDX_LOGD("Wav parser : this is ID3 first : %lld",inout_pos);
+                return 0;
+            }
+        }
+        post_id3_pos = inout_pos;
+    }
+    cdx_int64 pos = inout_pos;
+    cdx_int32  valid = 0;
+
+    //const cdx_int32 kMaxReadBytes = 1024;
+    //const cdx_int32 kMaxBytesChecked = 128 * 1024;
+    cdx_uint8 buf[MAXREADBYTES];
+    cdx_int32 bytesToRead = MAXREADBYTES;
+    cdx_int32 totalBytesRead = 0;
+    cdx_int32 remainingBytes = 0;
+    cdx_int32 reachEOS = 0;
+    cdx_uint8 *tmp = buf;
+
+    do {
+        if (pos >= inout_pos + MAXBYTESCHECKED) {
+            // Don't scan forever.
+            CDX_LOGW("giving up at offset %lld", pos);
+            break;
+        }
+
+        if (remainingBytes < 4) {
+            if (reachEOS) {
+                break;
+            } else {
+                memcpy(buf, tmp, remainingBytes);
+                bytesToRead = MAXREADBYTES - remainingBytes;
+                /*
+                 * The next read position should start from the end of
+                 * the last buffer, and thus should include the remaining
+                 * bytes in the buffer.
+                 */
+                if(pos + remainingBytes + bytesToRead > p->len)
+                {
+                    reachEOS = 1;
+                    bytesToRead = p->len - pos - remainingBytes;
+                }
+                memcpy(buf + remainingBytes,source + pos + remainingBytes,bytesToRead);
+                totalBytesRead = bytesToRead;
+                //totalBytesRead = source->readAt(pos + remainingBytes,
+                                               // buf + remainingBytes,
+                                               // bytesToRead);
+                //if (totalBytesRead <= 0) {
+                 //   break;
+                //}
+                totalBytesRead += remainingBytes;
+                remainingBytes = totalBytesRead;
+                tmp = buf;
+                continue;
+            }
+        }
+        cdx_uint32 header = AV_RB32(tmp);
+        if (match_header != 0 && (header & MpegMask) != (match_header & MpegMask)) {
+            ++pos;
+            ++tmp;
+            --remainingBytes;
+            continue;
+        }
+
+        size_t frame_size;
+        cdx_int32  sample_rate,num_channels, bitrate, NumSamples;
+        if (!GetMPEGAudioFrameSize(
+                    header, &frame_size,
+                    &sample_rate, &num_channels, &bitrate, &NumSamples)) {
+            ++pos;
+            ++tmp;
+            --remainingBytes;
+            continue;
+        }
+        CDX_LOGV("found possible 1st frame at %lld (header = 0x%08x)", pos, header);
+        // We found what looks like a valid frame,
+        // now find its successors.
+
+        cdx_int64 test_pos = pos + frame_size;
+        valid = 1;
+        cdx_int32 j = 0;
+        for (j = 0; j < 3; ++j) {
+            cdx_uint8 tmp[4];
+            if(test_pos + 4 > p->len)
+            {
+                valid = 0;
+                break;
+            }
+            memcpy(tmp, source + test_pos, 4);
+            //if (source->readAt(test_pos, tmp, 4) < 4) {
+               // valid = false;
+               // break;
+            //}
+
+            cdx_uint32 test_header = AV_RB32(tmp);
+            CDX_LOGV("subsequent header is %08x", test_header);
+            if ((test_header & MpegMask) != (header & MpegMask)) {
+                valid = 0;
+                break;
+            }
+
+            size_t test_frame_size;
+            if (!GetMPEGAudioFrameSize(
+                        test_header, &test_frame_size,
+                        &sample_rate, &num_channels, &bitrate, &NumSamples)) {
+                valid = 0;
+                break;
+            }
+
+            CDX_LOGV("found subsequent frame #%d at %lld", j + 2, test_pos);
+            test_pos += test_frame_size;
+        }
+
+        if (valid) {
+            inout_pos = pos;
+            out_header = header;
+
+        } else {
+            CDX_LOGW("Wav parser : no dice, no valid sequence of frames found.");
+        }
+
+        ++pos;
+        ++tmp;
+        --remainingBytes;
+    } while (!valid);
+
+    return valid;
+}
+
 static cdx_int32 DcaProbe(CdxStreamProbeDataT *p)
 {
     cdx_char *d,*dp;
@@ -692,11 +878,11 @@ static cdx_int32 DcaProbe(CdxStreamProbeDataT *p)
     max = markers[1] > markers[0];
     max = markers[2] > markers[max] ? 2 : max;
     if (markers[max] > 3 && p->len / markers[max] < 32*1024 &&  markers[max] * 4 > sum * 3){
-        CDX_LOGE("DTS PARSER");
+        CDX_LOGD("DTS PARSER");
         return CDX_TRUE;
     }else if(sum)
     {
-        CDX_LOGE("DTS PARSER");
+        CDX_LOGD("DTS PARSER");
         return CDX_TRUE;
     }
 
@@ -708,6 +894,12 @@ static cdx_int32 WavProbe(CdxStreamProbeDataT *p)
     cdx_char *d;
 
     d = p->buf;
+
+    if(Mp3Probe(p))
+    {
+        CDX_LOGD("Wav wrapped mp3, return out!!");
+        return CDX_FALSE;
+    }
     if(d[8] == 'W' && d[9] == 'A' && d[10] == 'V' && d[11] == 'E' )
     {
         if((d[0] == 'R' && d[1] == 'I' && d[2] == 'F' && d[3] == 'F' )
@@ -729,7 +921,7 @@ static cdx_uint32 __WavParserProbe(CdxStreamProbeDataT *probeData)
     CDX_CHECK(probeData);
     if(probeData->len < 32)
     {
-        CDX_LOGE("Probe data is not enough.");
+        CDX_LOGW("Probe data is not enough.");
         return 0;
     }
 

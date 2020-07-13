@@ -56,8 +56,9 @@ public class DeviceOwnerPasswordTest extends BaseDeviceAdminTest {
         dpm.setPasswordMinimumLength(mAdminComponent, 10);
         caseDescription = "minimum password length = 10";
         assertEquals(10, dpm.getPasswordMinimumLength(mAdminComponent));
-        assertFalse(dpm.isActivePasswordSufficient());
+        assertTrue(dpm.isActivePasswordSufficient()); // length not checked for this quality
 
+        // TODO(ascull): fix resetPassword() logic so these succeed
         assertPasswordFails("1234", caseDescription);
         assertPasswordFails("abcd", caseDescription);
         assertPasswordFails("abcd1234", caseDescription);

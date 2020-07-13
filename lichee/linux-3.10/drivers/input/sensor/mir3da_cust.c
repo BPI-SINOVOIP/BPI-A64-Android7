@@ -450,13 +450,11 @@ static ssize_t mir3da_enable_store(struct device *dev,
 
 	
     if(bEnable){
-    	input_set_power_enable(&(config_info.input_type),1);
-			mdelay(1);	
-		  input_set_power_enable(&(config_info.input_type),0);
-			mdelay(1);
-		  input_set_power_enable(&(config_info.input_type),1);
-			mdelay(5);	
-			bLoad = FILE_CHECKING;
+	 input_set_power_enable(&(config_info.input_type),1);
+	 mdelay(5);	
+	 bLoad = FILE_CHECKING;
+    }else{
+         input_set_power_enable(&(config_info.input_type),0);
     }
     
     if(bEnable)			

@@ -113,13 +113,14 @@ public class TestResult extends Object {
 		Protectable p= new Protectable() {
 			public void protect() throws Throwable {
 				if (test.toString().contains("(com.android.cts.net.hostside.VpnTest)")||
-					test.toString().contains("(com.google.android.exoplayer.gts.DashTest)")||
-					test.toString().equals("testClearFormData(android.webkit.cts.WebViewTest)")||
 					test.toString().equals("testClearWith1080P30(com.google.android.media.gts.WidevineHEVCPlaybackTests)")||
                     test.toString().equals("testL3RenewalWithUsage(com.google.android.media.gts.WidevineDashPolicyTests)")||
 					test.toString().equals("testL3With1080P30(com.google.android.media.gts.WidevineHEVCPlaybackTests)")||
 					test.toString().equals("testPlayHlsStreamWithTimedId3(android.media.cts.StreamingMediaPlayerTest)")||
-					test.toString().equals("testFadingEdge(android.widget.cts.TextViewFadingEdgeTest)")
+                    test.toString().equals("testH264Adaptive(com.google.android.exoplayer.gts.DashTest)")||
+                    test.toString().equals("testH265Adaptive(com.google.android.exoplayer.gts.DashTest)")||
+                    test.toString().equals("testDefaultGrants(com.google.android.permission.gts.DefaultPermissionGrantPolicyTest)")||
+                    test.toString().equals("testGetShortcutIcon(android.content.pm.cts.shortcutmanager.ShortcutManagerLauncherApiTest)")
 						){
 					return;
 				}

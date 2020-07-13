@@ -190,7 +190,7 @@ public class WifiConfigManager {
      */
     private static final int[] NETWORK_SELECTION_DISABLE_THRESHOLD = {
             -1, //  threshold for NETWORK_SELECTION_ENABLE
-            1,  //  threshold for DISABLED_BAD_LINK
+            1,  //  threshold for DISABLED_BAD_LINK (deprecated)
             5,  //  threshold for DISABLED_ASSOCIATION_REJECTION
             5,  //  threshold for DISABLED_AUTHENTICATION_FAILURE
             5,  //  threshold for DISABLED_DHCP_FAILURE
@@ -206,7 +206,7 @@ public class WifiConfigManager {
      */
     private static final int[] NETWORK_SELECTION_DISABLE_TIMEOUT = {
             Integer.MAX_VALUE,  // threshold for NETWORK_SELECTION_ENABLE
-            15,                 // threshold for DISABLED_BAD_LINK
+            15,                 // threshold for DISABLED_BAD_LINK (deprecated)
             5,                  // threshold for DISABLED_ASSOCIATION_REJECTION
             5,                  // threshold for DISABLED_AUTHENTICATION_FAILURE
             5,                  // threshold for DISABLED_DHCP_FAILURE
@@ -241,11 +241,6 @@ public class WifiConfigManager {
     public AtomicInteger mThresholdMinimumRssi24 = new AtomicInteger();
     public AtomicInteger mCurrentNetworkBoost = new AtomicInteger();
     public AtomicInteger mBandAward5Ghz = new AtomicInteger();
-
-    /**
-     * If Connectivity Service has triggered an unwanted network disconnect
-     */
-    public long mLastUnwantedNetworkDisconnectTimestamp = 0;
 
     /**
      * Framework keeps a list of ephemeral SSIDs that where deleted by user,
@@ -398,7 +393,7 @@ public class WifiConfigManager {
         mIpconfigStore = new IpConfigStore(mWriter);
         mWifiNetworkHistory = new WifiNetworkHistory(context, mLocalLog, mWriter);
         mWifiConfigStore =
-                new WifiConfigStore(wifiNative, mKeyStore, mLocalLog, mShowNetworks, true);
+                new WifiConfigStore(context, wifiNative, mKeyStore, mLocalLog, mShowNetworks, true);
     }
 
     public void trimANQPCache(boolean all) {
@@ -713,19 +708,13 @@ public class WifiConfigManager {
         }
 
         if (config.isPasspoint()) {
-            /* need to slap on the SSID of selected bssid to work */
-            if (getScanDetailCache(config).size() != 0) {
-                ScanDetail result = getScanDetailCache(config).getFirst();
-                if (result == null) {
-                    loge("Could not find scan result for " + config.BSSID);
-                } else {
-                    logd("Setting SSID for " + config.networkId + " to" + result.getSSID());
-                    setSSIDNative(config, result.getSSID());
-                }
-
-            } else {
-                loge("Could not find bssid for " + config);
-            }
+            // Set the SSID for the underlying WPA supplicant network entry corresponding to this
+            // Passpoint profile to the SSID of the BSS selected by QNS. |config.SSID| is set by
+            // selectQualifiedNetwork.selectQualifiedNetwork(), when the qualified network selected
+            // is a Passpoint network.
+            logd("Setting SSID for WPA supplicant network " + config.networkId + " to "
+                    + config.SSID);
+            setSSIDNative(config, config.SSID);
         }
 
         mWifiConfigStore.enableHS20(config.isPasspoint());
@@ -1664,6 +1653,7 @@ public class WifiConfigManager {
         // 2) mConfiguredNetworks caches a Passpoint network's FQDN the moment the network is added.
         //    Thus, we had to load the FQDNs first.
         mConfiguredNetworks.clear();
+        mScanDetailCaches.clear();
         for (Map.Entry<String, WifiConfiguration> entry : configs.entrySet()) {
             final String configKey = entry.getKey();
             final WifiConfiguration config = entry.getValue();
@@ -2467,20 +2457,8 @@ public class WifiConfigManager {
     }
 
     private Map<HomeSP, PasspointMatch> matchPasspointNetworks(ScanDetail scanDetail) {
+        // Nothing to do if no Hotspot 2.0 provider is configured.
         if (!mMOManager.isConfigured()) {
-            if (mEnableOsuQueries) {
-                NetworkDetail networkDetail = scanDetail.getNetworkDetail();
-                List<Constants.ANQPElementType> querySet =
-                        ANQPFactory.buildQueryList(networkDetail, false, true);
-
-                if (networkDetail.queriable(querySet)) {
-                    querySet = mAnqpCache.initiate(networkDetail, querySet);
-                    if (querySet != null) {
-                        mSupplicantBridge.startANQP(scanDetail, querySet);
-                    }
-                    updateAnqpCache(scanDetail, networkDetail.getANQPElements());
-                }
-            }
             return null;
         }
         NetworkDetail networkDetail = scanDetail.getNetworkDetail();
@@ -2981,11 +2959,7 @@ public class WifiConfigManager {
                 pw.println(s);
             }
         }
-        if (mLocalLog != null) {
-            pw.println("WifiConfigManager - Log Begin ----");
-            mLocalLog.dump(fd, pw, args);
-            pw.println("WifiConfigManager - Log End ----");
-        }
+
         if (mMOManager.isConfigured()) {
             pw.println("Begin dump of ANQP Cache");
             mAnqpCache.dump(pw);
@@ -3119,15 +3093,6 @@ public class WifiConfigManager {
     }
 
     /**
-     * Checks if the network is a sim config.
-     * @param config Config corresponding to the network.
-     * @return true if it is a sim config, false otherwise.
-     */
-    public boolean isSimConfig(WifiConfiguration config) {
-        return mWifiConfigStore.isSimConfig(config);
-    }
-
-    /**
      * Resets all sim networks from the network list.
      */
     public void resetSimNetworks() {
@@ -3239,29 +3204,6 @@ public class WifiConfigManager {
         } catch (RemoteException e) {
             return false;
         }
-    }
-
-    /** called when CS ask WiFistateMachine to disconnect the current network
-     * because the score is bad.
-     */
-    void handleBadNetworkDisconnectReport(int netId, WifiInfo info) {
-        /* TODO verify the bad network is current */
-        WifiConfiguration config = mConfiguredNetworks.getForCurrentUser(netId);
-        if (config != null) {
-            if ((info.is24GHz() && info.getRssi()
-                    <= WifiQualifiedNetworkSelector.QUALIFIED_RSSI_24G_BAND)
-                    || (info.is5GHz() && info.getRssi()
-                    <= WifiQualifiedNetworkSelector.QUALIFIED_RSSI_5G_BAND)) {
-                // We do not block due to bad RSSI since network selection should not select bad
-                // RSSI candidate
-            } else {
-                // We got disabled but RSSI is good, so disable hard
-                updateNetworkSelectionStatus(config,
-                        WifiConfiguration.NetworkSelectionStatus.DISABLED_BAD_LINK);
-            }
-        }
-        // Record last time Connectivity Service switched us away from WiFi and onto Cell
-        mLastUnwantedNetworkDisconnectTimestamp = mClock.currentTimeMillis();
     }
 
     int getMaxDhcpRetries() {

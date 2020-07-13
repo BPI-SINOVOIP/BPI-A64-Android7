@@ -27,10 +27,11 @@ import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.Nullable;
-import android.support.v4.content.ContextCompat;
+import android.support.annotation.RestrictTo;
 import android.support.v4.view.TintableBackgroundView;
 import android.support.v4.view.ViewCompat;
 import android.support.v7.appcompat.R;
+import android.support.v7.content.res.AppCompatResources;
 import android.support.v7.view.ContextThemeWrapper;
 import android.support.v7.view.menu.ShowableListMenu;
 import android.util.AttributeSet;
@@ -46,6 +47,8 @@ import android.widget.ListView;
 import android.widget.PopupWindow;
 import android.widget.Spinner;
 import android.widget.SpinnerAdapter;
+
+import static android.support.annotation.RestrictTo.Scope.GROUP_ID;
 
 
 /**
@@ -64,7 +67,7 @@ import android.widget.SpinnerAdapter;
  */
 public class AppCompatSpinner extends Spinner implements TintableBackgroundView {
 
-    private static final boolean IS_AT_LEAST_M = Build.VERSION.SDK_INT >= 23;
+    static final boolean IS_AT_LEAST_M = Build.VERSION.SDK_INT >= 23;
     private static final boolean IS_AT_LEAST_JB = Build.VERSION.SDK_INT >= 16;
 
     private static final int[] ATTRS_ANDROID_SPINNERMODE = {android.R.attr.spinnerMode};
@@ -76,8 +79,6 @@ public class AppCompatSpinner extends Spinner implements TintableBackgroundView 
     private static final int MODE_DIALOG = 0;
     private static final int MODE_DROPDOWN = 1;
     private static final int MODE_THEME = -1;
-
-    private AppCompatDrawableManager mDrawableManager;
 
     private AppCompatBackgroundHelper mBackgroundTintHelper;
 
@@ -92,11 +93,11 @@ public class AppCompatSpinner extends Spinner implements TintableBackgroundView 
 
     private boolean mPopupSet;
 
-    private DropdownPopup mPopup;
+    DropdownPopup mPopup;
 
-    private int mDropDownWidth;
+    int mDropDownWidth;
 
-    private final Rect mTempRect = new Rect();
+    final Rect mTempRect = new Rect();
 
     /**
      * Construct a new spinner with the given context's theme.
@@ -199,8 +200,7 @@ public class AppCompatSpinner extends Spinner implements TintableBackgroundView 
         TintTypedArray a = TintTypedArray.obtainStyledAttributes(context, attrs,
                 R.styleable.Spinner, defStyleAttr, 0);
 
-        mDrawableManager = AppCompatDrawableManager.get();
-        mBackgroundTintHelper = new AppCompatBackgroundHelper(this, mDrawableManager);
+        mBackgroundTintHelper = new AppCompatBackgroundHelper(this);
 
         if (popupTheme != null) {
             mPopupContext = new ContextThemeWrapper(context, popupTheme);
@@ -311,7 +311,7 @@ public class AppCompatSpinner extends Spinner implements TintableBackgroundView 
     }
 
     public void setPopupBackgroundResource(@DrawableRes int resId) {
-        setPopupBackgroundDrawable(ContextCompat.getDrawable(getPopupContext(), resId));
+        setPopupBackgroundDrawable(AppCompatResources.getDrawable(getPopupContext(), resId));
     }
 
     public Drawable getPopupBackground() {
@@ -478,6 +478,7 @@ public class AppCompatSpinner extends Spinner implements TintableBackgroundView 
      *
      * @hide
      */
+    @RestrictTo(GROUP_ID)
     @Override
     public void setSupportBackgroundTintList(@Nullable ColorStateList tint) {
         if (mBackgroundTintHelper != null) {
@@ -491,6 +492,7 @@ public class AppCompatSpinner extends Spinner implements TintableBackgroundView 
      *
      * @hide
      */
+    @RestrictTo(GROUP_ID)
     @Override
     @Nullable
     public ColorStateList getSupportBackgroundTintList() {
@@ -505,6 +507,7 @@ public class AppCompatSpinner extends Spinner implements TintableBackgroundView 
      *
      * @hide
      */
+    @RestrictTo(GROUP_ID)
     @Override
     public void setSupportBackgroundTintMode(@Nullable PorterDuff.Mode tintMode) {
         if (mBackgroundTintHelper != null) {
@@ -518,6 +521,7 @@ public class AppCompatSpinner extends Spinner implements TintableBackgroundView 
      *
      * @hide
      */
+    @RestrictTo(GROUP_ID)
     @Override
     @Nullable
     public PorterDuff.Mode getSupportBackgroundTintMode() {
@@ -533,7 +537,7 @@ public class AppCompatSpinner extends Spinner implements TintableBackgroundView 
         }
     }
 
-    private int compatMeasureContentWidth(SpinnerAdapter adapter, Drawable background) {
+    int compatMeasureContentWidth(SpinnerAdapter adapter, Drawable background) {
         if (adapter == null) {
             return 0;
         }
@@ -696,7 +700,7 @@ public class AppCompatSpinner extends Spinner implements TintableBackgroundView 
 
     private class DropdownPopup extends ListPopupWindow {
         private CharSequence mHintText;
-        private ListAdapter mAdapter;
+        ListAdapter mAdapter;
         private final Rect mVisibleRect = new Rect();
 
         public DropdownPopup(Context context, AttributeSet attrs, int defStyleAttr) {
@@ -824,7 +828,7 @@ public class AppCompatSpinner extends Spinner implements TintableBackgroundView 
         /**
          * Simplified version of the the hidden View.isVisibleToUser()
          */
-        private boolean isVisibleToUser(View view) {
+        boolean isVisibleToUser(View view) {
             return ViewCompat.isAttachedToWindow(view) && view.getGlobalVisibleRect(mVisibleRect);
         }
     }

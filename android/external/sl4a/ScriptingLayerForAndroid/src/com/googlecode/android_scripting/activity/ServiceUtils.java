@@ -29,7 +29,6 @@ import java.lang.reflect.Method;
 /**
  * A utility class supplying helper methods for {@link Service} objects.
  *
- * @author Felix Arends (felix.arends@gmail.com)
  */
 public class ServiceUtils {
   private ServiceUtils() {

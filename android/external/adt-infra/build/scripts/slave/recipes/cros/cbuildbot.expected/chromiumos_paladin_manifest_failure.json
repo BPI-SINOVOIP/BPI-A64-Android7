@@ -1,0 +1,98 @@
+[
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[BUILD]/scripts/slave/bot_update.py",
+      "--master",
+      "chromiumos",
+      "--builder",
+      "Test",
+      "--slave",
+      "test",
+      "--spec",
+      "cache_dir = None\nsolutions = [{'deps_file': 'DEPS', 'managed': True, 'name': 'chromite', 'url': 'https://chromium.googlesource.com/chromiumos/chromite.git'}]",
+      "--root",
+      "chromite",
+      "--revision_mapping_file",
+      "{}",
+      "--output_json",
+      "/path/to/tmp/json",
+      "--revision",
+      "chromite@master:",
+      "--force",
+      "--output_manifest"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "bot_update",
+    "~followup_annotations": [
+      "@@@STEP_TEXT@Some step text@@@",
+      "@@@STEP_LOG_LINE@json.output@{@@@",
+      "@@@STEP_LOG_LINE@json.output@  \"did_run\": true, @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"manifest\": {}, @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"patch_failure\": false, @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"patch_root\": \"chromite\", @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"properties\": {}, @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"root\": \"chromite\", @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"step_text\": \"Some step text\"@@@",
+      "@@@STEP_LOG_LINE@json.output@}@@@",
+      "@@@STEP_LOG_END@json.output@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "RECIPE_MODULE[gitiles]/resources/gerrit_client.py",
+      "--json-file",
+      "/path/to/tmp/json",
+      "--url",
+      "https://chromium.googlesource.com/chromiumos/manifest-versions/+/a94a8fe5ccb19ba61c4c0873d391e987982fbbd3?format=json",
+      "--attempts",
+      "10"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "Fetch manifest config",
+    "~followup_annotations": [
+      "@@@STEP_LOG_LINE@json.output@{@@@",
+      "@@@STEP_LOG_LINE@json.output@  \"author\": {@@@",
+      "@@@STEP_LOG_LINE@json.output@    \"email\": \"testauthor@fake.chromium.org\", @@@",
+      "@@@STEP_LOG_LINE@json.output@    \"name\": \"Test Author\", @@@",
+      "@@@STEP_LOG_LINE@json.output@    \"time\": \"Mon Jan 01 00:00:00 2015\"@@@",
+      "@@@STEP_LOG_LINE@json.output@  }, @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"commit\": \"a94a8fe5ccb19ba61c4c0873d391e987982fbbd3\", @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"committer\": {@@@",
+      "@@@STEP_LOG_LINE@json.output@    \"email\": \"testauthor@fake.chromium.org\", @@@",
+      "@@@STEP_LOG_LINE@json.output@    \"name\": \"Test Author\", @@@",
+      "@@@STEP_LOG_LINE@json.output@    \"time\": \"Mon Jan 01 00:00:00 2015\"@@@",
+      "@@@STEP_LOG_LINE@json.output@  }, @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"message\": null, @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"parents\": [@@@",
+      "@@@STEP_LOG_LINE@json.output@    \"36786b4475350efa4e9e48de5ef516cc15e91a47\"@@@",
+      "@@@STEP_LOG_LINE@json.output@  ], @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"tree\": \"d610084188c1248718d7541809f26d53384e9ade\", @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"tree_diff\": []@@@",
+      "@@@STEP_LOG_LINE@json.output@}@@@",
+      "@@@STEP_LOG_END@json.output@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "import sys; sys.exit(1)"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "Fetch manifest config failure",
+    "~followup_annotations": [
+      "step returned non-zero exit code: 1",
+      "@@@STEP_TEXT@Failed to fetch manifest config.@@@",
+      "@@@STEP_FAILURE@@@"
+    ]
+  },
+  {
+    "name": "$result",
+    "reason": "Step('Fetch manifest config failure') failed with return_code 1",
+    "status_code": 1
+  }
+]

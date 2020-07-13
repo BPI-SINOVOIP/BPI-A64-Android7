@@ -154,7 +154,9 @@ public final class TelecomSystem {
             BluetoothPhoneServiceImplFactory
                     bluetoothPhoneServiceImplFactory,
             Timeouts.Adapter timeoutsAdapter,
-            AsyncRingtonePlayer asyncRingtonePlayer) {
+            AsyncRingtonePlayer asyncRingtonePlayer,
+            PhoneNumberUtilsAdapter phoneNumberUtilsAdapter,
+            InterruptionFilterProxy interruptionFilterProxy) {
         mContext = context.getApplicationContext();
         Log.setContext(mContext);
         Log.initMd5Sum();
@@ -175,7 +177,8 @@ public final class TelecomSystem {
         SystemStateProvider systemStateProvider = new SystemStateProvider(mContext);
 
         mMissedCallNotifier = missedCallNotifierImplFactory
-                .makeMissedCallNotifierImpl(mContext, mPhoneAccountRegistrar);
+                .makeMissedCallNotifierImpl(mContext, mPhoneAccountRegistrar,
+                        phoneNumberUtilsAdapter);
 
         DefaultDialerManagerAdapter defaultDialerAdapter =
                 new TelecomServiceImpl.DefaultDialerManagerAdapterImpl();
@@ -196,7 +199,9 @@ public final class TelecomSystem {
                 systemStateProvider,
                 defaultDialerAdapter,
                 timeoutsAdapter,
-                asyncRingtonePlayer);
+                asyncRingtonePlayer,
+                phoneNumberUtilsAdapter,
+                interruptionFilterProxy);
 
         mRespondViaSmsManager = new RespondViaSmsManager(mCallsManager, mLock);
         mCallsManager.setRespondViaSmsManager(mRespondViaSmsManager);

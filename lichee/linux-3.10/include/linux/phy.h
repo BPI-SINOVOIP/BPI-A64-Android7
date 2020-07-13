@@ -408,17 +408,8 @@ struct phy_driver {
 	 */
 	int (*config_aneg)(struct phy_device *phydev);
 
-	/* Determines the auto negotiation result */
-	int (*aneg_done)(struct phy_device *phydev);
-
 	/* Determines the negotiated speed and duplex */
 	int (*read_status)(struct phy_device *phydev);
-
-	/* 
-	 * Update the value in phydev->link to reflect the 
-	 * current link value
-	 */
-	int (*update_link)(struct phy_device *phydev);
 
 	/* Clears any pending interrupts */
 	int (*ack_interrupt)(struct phy_device *phydev);
@@ -431,12 +422,6 @@ struct phy_driver {
 	 * For multi-PHY devices with shared PHY interrupt pin
 	 */
 	int (*did_interrupt)(struct phy_device *phydev);
-
-	/*
-	 * Called before an ethernet device is detached
-	 * from the PHY.
-	 */
-	void (*detach)(struct phy_device *phydev);
 
 	/* Clears up any memory if needed */
 	void (*remove)(struct phy_device *phydev);
@@ -590,23 +575,4 @@ int __init mdio_bus_init(void);
 void mdio_bus_exit(void);
 
 extern struct bus_type mdio_bus_type;
-
-
-struct mdio_board_info {
-       const char      *bus_id;
-       int             phy_addr;
-
-       const void      *platform_data;
-};
-
-#ifdef CONFIG_MDIO_BOARDINFO
-int mdiobus_register_board_info(const struct mdio_board_info *info, unsigned n);
-#else
-static inline int
-mdiobus_register_board_info(const struct mdio_board_info *info, unsigned n)
-{
-       return 0;
-}
-#endif
-
 #endif /* __PHY_H */

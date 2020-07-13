@@ -1,0 +1,33 @@
+agable@chromium.org
+iannucci@chromium.org
+per-file boringssl.py=davidben@chromium.org
+per-file boringssl_docs.py=davidben@chromium.org
+per-file cronet.py=mef@chromium.org
+per-file cronet.py=xunjieli@chromium.org
+per-file mojo.py=jamesr@chromium.org
+per-file mojo.py=sky@chromium.org
+per-file polymer.py=dfreedm@chromium.org
+per-file polymer.py=mmcnulty@chromium.org
+per-file polymer.py=ykyyip@chromium.org
+per-file gpu.py=kbr@chromium.org
+per-file v8.py=machenbach@chromium.org
+per-file blink_downstream.py=machenbach@chromium.org
+per-file chromium_pgo.py=sebmarchand@chromium.org
+per-file bisect.py=robertocn@chromium.org
+per-file bisect.py=prasadv@chromium.org
+per-file chromeproxy.py=bengr@chromium.org
+per-file chromeproxy.py=bustamante@chromium.org
+per-file chromium.py=set noparent
+per-file chromium.py=akuegel@chromium.org
+per-file chromium.py=phajdan.jr@chromium.org
+per-file chromium.py=sergeyberezin@chromium.org
+per-file chromium.py=sergiyb@chromium.org
+per-file chromium.py=tandrii@chromium.org
+per-file chromium_trybot.py=set noparent
+per-file chromium_trybot.py=akuegel@chromium.org
+per-file chromium_trybot.py=phajdan.jr@chromium.org
+per-file chromium_trybot.py=sergeyberezin@chromium.org
+per-file chromium_trybot.py=sergiyb@chromium.org
+per-file chromium_trybot.py=tandrii@chromium.org
+per-file catapult.py=sullivan@chromium.org
+per-file catapult_cron.py=sullivan@chromium.org

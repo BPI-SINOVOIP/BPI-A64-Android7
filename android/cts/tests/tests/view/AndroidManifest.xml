@@ -19,6 +19,8 @@
     package="android.view.cts">
 
     <uses-permission android:name="android.permission.DISABLE_KEYGUARD" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
     <application android:label="Android TestCase"
                 android:icon="@drawable/size_48x48"
                 android:maxRecents="1"
@@ -239,6 +241,23 @@
             </intent-filter>
         </activity>
 
+        <activity android:name="android.view.cts.DragDropActivity"
+                  android:label="DragDropActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.FRAMEWORK_INSTRUMENTATION_TEST" />
+            </intent-filter>
+        </activity>
+
+        <activity android:name="android.view.cts.surfacevalidator.CapturedActivity"
+            android:configChanges="orientation|screenSize"
+            android:screenOrientation="portrait"
+            android:theme="@style/WhiteBackgroundTheme">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
     </application>
 
     <instrumentation android:name="android.support.test.runner.AndroidJUnitRunner"

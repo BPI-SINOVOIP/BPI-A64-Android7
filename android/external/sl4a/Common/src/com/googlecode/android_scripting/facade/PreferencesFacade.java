@@ -44,7 +44,6 @@ import java.util.Map;
  * <a href=http://developer.android.com/guide/topics/data/data-storage.html#pref>Shared
  * Preferences</a> in the android documentation on how preferences work.
  *
- * @author Robbie Matthews (rjmatthews62@gmail.com)
  */
 
 public class PreferencesFacade extends RpcReceiver {

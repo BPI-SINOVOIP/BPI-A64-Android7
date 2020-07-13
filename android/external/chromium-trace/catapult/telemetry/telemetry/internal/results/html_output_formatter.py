@@ -8,7 +8,7 @@ import logging
 import os
 import re
 
-from catapult_base import cloud_storage  # pylint: disable=import-error
+from py_utils import cloud_storage  # pylint: disable=import-error
 
 from telemetry.core import util
 from telemetry.internal.results import chart_json_output_formatter
@@ -90,7 +90,7 @@ class HtmlOutputFormatter(output_formatter.OutputFormatter):
 
   def _SaveResults(self, results):
     self._output_stream.seek(0)
-    self._output_stream.write(results)
+    self._output_stream.write(unicode(results, 'utf-8'))
     self._output_stream.truncate()
 
   def _PrintPerfResult(self, measurement, trace, values, units,

@@ -31,7 +31,8 @@ import com.android.mms.service.exception.MmsNetworkException;
  */
 public class MmsNetworkManager {
     // Timeout used to call ConnectivityManager.requestNetwork
-    private static final int NETWORK_REQUEST_TIMEOUT_MILLIS = 60 * 1000;
+    // Given that the telephony layer will retry on failures, this timeout should be high enough.
+    private static final int NETWORK_REQUEST_TIMEOUT_MILLIS = 30 * 60 * 1000;
     // Wait timeout for this class, a little bit longer than the above timeout
     // to make sure we don't bail prematurely
     private static final int NETWORK_ACQUIRE_TIMEOUT_MILLIS =

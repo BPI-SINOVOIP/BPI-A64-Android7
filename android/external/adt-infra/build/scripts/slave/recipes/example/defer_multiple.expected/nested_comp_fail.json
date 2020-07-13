@@ -1,0 +1,67 @@
+[
+  {
+    "cmd": [
+      "true"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "prelude"
+  },
+  {
+    "cmd": [
+      "true"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "aggregated start"
+  },
+  {
+    "cmd": [
+      "true"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "aggregated finish"
+  },
+  {
+    "cmd": [
+      "true"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "normal start"
+  },
+  {
+    "cmd": [
+      "true"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "normal finish"
+  },
+  {
+    "cmd": [
+      "true"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "composite start",
+    "~followup_annotations": [
+      "step returned non-zero exit code: 1",
+      "@@@STEP_FAILURE@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "true"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "bogus"
+  },
+  {
+    "cmd": [
+      "true"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "steps"
+  },
+  {
+    "name": "$result",
+    "reason": "Step('composite start') failed with return_code 1",
+    "status_code": 1
+  }
+]

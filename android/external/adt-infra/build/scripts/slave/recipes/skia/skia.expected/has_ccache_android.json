@@ -1,0 +1,140 @@
+[
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[DEPOT_TOOLS]/gclient.py",
+      "config",
+      "--spec",
+      "cache_dir = None\nsolutions = [{'deps_file': 'DEPS', 'managed': True, 'name': 'skia', 'url': 'https://skia.googlesource.com/skia.git'}]"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "gclient setup"
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[DEPOT_TOOLS]/gclient.py",
+      "sync",
+      "--nohooks",
+      "--force",
+      "--verbose",
+      "--delete_unversioned_trees",
+      "--output-json",
+      "/path/to/tmp/json"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "name": "gclient sync",
+    "~followup_annotations": [
+      "@@@STEP_LOG_LINE@json.output@{@@@",
+      "@@@STEP_LOG_LINE@json.output@  \"solutions\": {@@@",
+      "@@@STEP_LOG_LINE@json.output@    \"skia/\": {@@@",
+      "@@@STEP_LOG_LINE@json.output@      \"revision\": 164710@@@",
+      "@@@STEP_LOG_LINE@json.output@    }@@@",
+      "@@@STEP_LOG_LINE@json.output@  }@@@",
+      "@@@STEP_LOG_LINE@json.output@}@@@",
+      "@@@STEP_LOG_END@json.output@@@",
+      "@@@SET_BUILD_PROPERTY@got_revision@164710@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "[SLAVE_BUILD]/skia/tools/buildbot_spec.py",
+      "/path/to/tmp/json",
+      "Build-Ubuntu-GCC-Arm7-Debug-Android"
+    ],
+    "cwd": "[SLAVE_BUILD]/skia",
+    "name": "exec buildbot_spec.py",
+    "~followup_annotations": [
+      "@@@STEP_LOG_LINE@json.output@{@@@",
+      "@@@STEP_LOG_LINE@json.output@  \"build_targets\": [@@@",
+      "@@@STEP_LOG_LINE@json.output@    \"most\"@@@",
+      "@@@STEP_LOG_LINE@json.output@  ], @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"builder_cfg\": {@@@",
+      "@@@STEP_LOG_LINE@json.output@    \"compiler\": \"GCC\", @@@",
+      "@@@STEP_LOG_LINE@json.output@    \"configuration\": \"Debug\", @@@",
+      "@@@STEP_LOG_LINE@json.output@    \"extra_config\": \"Android\", @@@",
+      "@@@STEP_LOG_LINE@json.output@    \"is_trybot\": false, @@@",
+      "@@@STEP_LOG_LINE@json.output@    \"os\": \"Ubuntu\", @@@",
+      "@@@STEP_LOG_LINE@json.output@    \"role\": \"Build\", @@@",
+      "@@@STEP_LOG_LINE@json.output@    \"target_arch\": \"Arm7\"@@@",
+      "@@@STEP_LOG_LINE@json.output@  }, @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"configuration\": \"Debug\", @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"device_cfg\": \"arm_v7_neon\", @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"dm_flags\": [@@@",
+      "@@@STEP_LOG_LINE@json.output@    \"--dummy-flags\"@@@",
+      "@@@STEP_LOG_LINE@json.output@  ], @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"do_perf_steps\": false, @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"do_test_steps\": false, @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"env\": {@@@",
+      "@@@STEP_LOG_LINE@json.output@    \"GYP_DEFINES\": \"skia_arch_type=arm skia_warnings_as_errors=1\"@@@",
+      "@@@STEP_LOG_LINE@json.output@  }, @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"nanobench_flags\": [@@@",
+      "@@@STEP_LOG_LINE@json.output@    \"--dummy-flags\"@@@",
+      "@@@STEP_LOG_LINE@json.output@  ], @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"upload_dm_results\": true, @@@",
+      "@@@STEP_LOG_LINE@json.output@  \"upload_perf_results\": false@@@",
+      "@@@STEP_LOG_LINE@json.output@}@@@",
+      "@@@STEP_LOG_END@json.output@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "python",
+      "-u",
+      "import json\nimport subprocess\nimport sys\n\nccache = None\ntry:\n  ccache = subprocess.check_output(['which', 'ccache']).rstrip()\nexcept:\n  pass\nprint json.dumps({'ccache': ccache})\n"
+    ],
+    "cwd": "[SLAVE_BUILD]",
+    "env": {
+      "BUILDTYPE": "Debug",
+      "GYP_DEFINES": "skia_arch_type=arm skia_warnings_as_errors=1",
+      "SKIA_OUT": "[SLAVE_BUILD]/skia/out/Build-Ubuntu-GCC-Arm7-Debug-Android"
+    },
+    "name": "has ccache?",
+    "stdout": "/path/to/tmp/json",
+    "~followup_annotations": [
+      "@@@STEP_LOG_LINE@json.output@{@@@",
+      "@@@STEP_LOG_LINE@json.output@  \"ccache\": \"/usr/bin/ccache\"@@@",
+      "@@@STEP_LOG_LINE@json.output@}@@@",
+      "@@@STEP_LOG_END@json.output@@@",
+      "@@@STEP_LOG_LINE@python.inline@import json@@@",
+      "@@@STEP_LOG_LINE@python.inline@import subprocess@@@",
+      "@@@STEP_LOG_LINE@python.inline@import sys@@@",
+      "@@@STEP_LOG_LINE@python.inline@@@@",
+      "@@@STEP_LOG_LINE@python.inline@ccache = None@@@",
+      "@@@STEP_LOG_LINE@python.inline@try:@@@",
+      "@@@STEP_LOG_LINE@python.inline@  ccache = subprocess.check_output(['which', 'ccache']).rstrip()@@@",
+      "@@@STEP_LOG_LINE@python.inline@except:@@@",
+      "@@@STEP_LOG_LINE@python.inline@  pass@@@",
+      "@@@STEP_LOG_LINE@python.inline@print json.dumps({'ccache': ccache})@@@",
+      "@@@STEP_LOG_END@python.inline@@@"
+    ]
+  },
+  {
+    "cmd": [
+      "[SLAVE_BUILD]/skia/platform_tools/android/bin/android_ninja",
+      "most",
+      "-d",
+      "arm_v7_neon"
+    ],
+    "cwd": "[SLAVE_BUILD]/skia",
+    "env": {
+      "ANDROID_HOME": "/home/chrome-bot/android-sdk-linux",
+      "ANDROID_MAKE_CCACHE": "/usr/bin/ccache",
+      "ANDROID_SDK_ROOT": "/home/chrome-bot/android-sdk-linux",
+      "BUILDTYPE": "Debug",
+      "GYP_DEFINES": "skia_arch_type=arm skia_warnings_as_errors=1",
+      "SKIA_ANDROID_VERBOSE_SETUP": "1",
+      "SKIA_OUT": "[SLAVE_BUILD]/skia/out/Build-Ubuntu-GCC-Arm7-Debug-Android"
+    },
+    "name": "build most"
+  },
+  {
+    "name": "$result",
+    "recipe_result": null,
+    "status_code": 0
+  }
+]

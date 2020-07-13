@@ -35,14 +35,6 @@ class AppCompatTextHelper {
         return new AppCompatTextHelper(textView);
     }
 
-    private static final int[] VIEW_ATTRS = {
-            android.R.attr.textAppearance,
-            android.R.attr.drawableLeft,
-            android.R.attr.drawableTop,
-            android.R.attr.drawableRight,
-            android.R.attr.drawableBottom
-    };
-
     final TextView mView;
 
     private TintInfo mDrawableLeftTint;
@@ -60,20 +52,24 @@ class AppCompatTextHelper {
 
         // First read the TextAppearance style id
         TintTypedArray a = TintTypedArray.obtainStyledAttributes(context, attrs,
-                VIEW_ATTRS, defStyleAttr, 0);
-        final int ap = a.getResourceId(0, -1);
+                R.styleable.AppCompatTextHelper, defStyleAttr, 0);
+        final int ap = a.getResourceId(R.styleable.AppCompatTextHelper_android_textAppearance, -1);
         // Now read the compound drawable and grab any tints
-        if (a.hasValue(1)) {
-            mDrawableLeftTint = createTintInfo(context, drawableManager, a.getResourceId(1, 0));
+        if (a.hasValue(R.styleable.AppCompatTextHelper_android_drawableLeft)) {
+            mDrawableLeftTint = createTintInfo(context, drawableManager,
+                    a.getResourceId(R.styleable.AppCompatTextHelper_android_drawableLeft, 0));
         }
-        if (a.hasValue(2)) {
-            mDrawableTopTint = createTintInfo(context, drawableManager, a.getResourceId(2, 0));
+        if (a.hasValue(R.styleable.AppCompatTextHelper_android_drawableTop)) {
+            mDrawableTopTint = createTintInfo(context, drawableManager,
+                    a.getResourceId(R.styleable.AppCompatTextHelper_android_drawableTop, 0));
         }
-        if (a.hasValue(3)) {
-            mDrawableRightTint = createTintInfo(context, drawableManager, a.getResourceId(3, 0));
+        if (a.hasValue(R.styleable.AppCompatTextHelper_android_drawableRight)) {
+            mDrawableRightTint = createTintInfo(context, drawableManager,
+                    a.getResourceId(R.styleable.AppCompatTextHelper_android_drawableRight, 0));
         }
-        if (a.hasValue(4)) {
-            mDrawableBottomTint = createTintInfo(context, drawableManager, a.getResourceId(4, 0));
+        if (a.hasValue(R.styleable.AppCompatTextHelper_android_drawableBottom)) {
+            mDrawableBottomTint = createTintInfo(context, drawableManager,
+                    a.getResourceId(R.styleable.AppCompatTextHelper_android_drawableBottom, 0));
         }
         a.recycle();
 
@@ -85,6 +81,7 @@ class AppCompatTextHelper {
         boolean allCaps = false;
         boolean allCapsSet = false;
         ColorStateList textColor = null;
+        ColorStateList textColorHint = null;
 
         // First check TextAppearance's textAllCaps value
         if (ap != -1) {
@@ -93,11 +90,16 @@ class AppCompatTextHelper {
                 allCapsSet = true;
                 allCaps = a.getBoolean(R.styleable.TextAppearance_textAllCaps, false);
             }
-            if (Build.VERSION.SDK_INT < 23
-                    && a.hasValue(R.styleable.TextAppearance_android_textColor)) {
+            if (Build.VERSION.SDK_INT < 23) {
                 // If we're running on < API 23, the text color may contain theme references
                 // so let's re-set using our own inflater
-                textColor = a.getColorStateList(R.styleable.TextAppearance_android_textColor);
+                if (a.hasValue(R.styleable.TextAppearance_android_textColor)) {
+                    textColor = a.getColorStateList(R.styleable.TextAppearance_android_textColor);
+                }
+                if (a.hasValue(R.styleable.TextAppearance_android_textColorHint)) {
+                    textColorHint = a.getColorStateList(
+                            R.styleable.TextAppearance_android_textColorHint);
+                }
             }
             a.recycle();
         }
@@ -109,18 +111,25 @@ class AppCompatTextHelper {
             allCapsSet = true;
             allCaps = a.getBoolean(R.styleable.TextAppearance_textAllCaps, false);
         }
-        if (Build.VERSION.SDK_INT < 23
-                && a.hasValue(R.styleable.TextAppearance_android_textColor)) {
+        if (Build.VERSION.SDK_INT < 23) {
             // If we're running on < API 23, the text color may contain theme references
             // so let's re-set using our own inflater
-            textColor = a.getColorStateList(R.styleable.TextAppearance_android_textColor);
+            if (a.hasValue(R.styleable.TextAppearance_android_textColor)) {
+                textColor = a.getColorStateList(R.styleable.TextAppearance_android_textColor);
+            }
+            if (a.hasValue(R.styleable.TextAppearance_android_textColorHint)) {
+                textColorHint = a.getColorStateList(
+                        R.styleable.TextAppearance_android_textColorHint);
+            }
         }
         a.recycle();
 
         if (textColor != null) {
             mView.setTextColor(textColor);
         }
-
+        if (textColorHint != null) {
+            mView.setHintTextColor(textColorHint);
+        }
         if (!hasPwdTm && allCapsSet) {
             setAllCaps(allCaps);
         }

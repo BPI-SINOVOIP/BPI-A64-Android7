@@ -47,6 +47,11 @@
     <string name="callFailed_unobtainable_number" msgid="124621797631734731">"Жарамсыз нөмір"</string>
     <string name="incall_error_missing_voicemail_number" msgid="3651090591812220874">"Дауыстық пошта нөмірі белгісіз."</string>
     <string name="callFailed_video_call_tty_enabled" msgid="186585701668604271">"TTY қосулы кезде бейне қоңыраулар шалу мүмкін емес."</string>
+    <string name="callEnded_pulled" msgid="437630601519502587">"Қоңырау басқа құрылғыға тасымалданды."</string>
     <string name="ringtone_silent" msgid="249805466934178869">"Ешқандай"</string>
     <string name="ringtone_unknown" msgid="2303463713486734520">"Белгісіз қоңырау әуені"</string>
+    <string name="callFailed_maximum_reached" msgid="4823790040422765056">"Желілер бос емес. Қоңырау шалу үшін, осы немесе басқа құрылғыдағы қоңыраулардың бірін тоқтатыңыз."</string>
+    <string name="callFailed_data_disabled" msgid="3885826754435317856">"Қоңырау аяқталды, себебі ұялы деректер ажыратылды."</string>
+    <string name="callFailed_data_limit_reached_description" msgid="1439284832802552582">"Қоңырау аяқталды, себебі ұялы деректер шегіне жетті."</string>
+    <string name="callFailed_data_limit_reached" msgid="7045770594965160282">"Ұялы деректер шегіне жетті. Қоңырау аяқталды."</string>
 </resources>

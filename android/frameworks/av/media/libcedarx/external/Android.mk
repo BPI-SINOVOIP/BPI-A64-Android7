@@ -16,6 +16,8 @@ else ifeq ($(CONF_ANDROID_VERSION), 6.0)
 MY_SDK=amm60
 else ifeq ($(CONF_ANDROID_VERSION), 7.0)
 MY_SDK=anougat70
+else ifeq ($(CONF_ANDROID_VERSION), 7.1)
+MY_SDK=anougat70
 endif
 
 ###################### audio midware and libs begin ##########################

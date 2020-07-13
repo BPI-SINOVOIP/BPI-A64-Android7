@@ -54,9 +54,6 @@ import java.util.concurrent.TimeUnit;
  * and uses the composition matrix (embedded in the video file) to correct for image rotation. Many
  * PC based media players ignore this matrix. Standard video sizes may be specified.
  *
- * @author Felix Arends (felix.arends@gmail.com)
- * @author Damon Kohler (damonkohler@gmail.com)
- * @author John Karwatzki (jokar49@gmail.com)
  */
 public class MediaRecorderFacade extends RpcReceiver {
 

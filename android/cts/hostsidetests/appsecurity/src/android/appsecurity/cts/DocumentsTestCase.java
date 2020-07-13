@@ -51,10 +51,7 @@ abstract  class DocumentsTestCase extends DeviceTestCase implements IAbiReceiver
         assertNotNull(mAbi);
         assertNotNull(mCtsBuild);
 
-        getDevice().uninstallPackage(CLIENT_PKG);
-
-        assertNull(getDevice().installPackage(
-                MigrationHelper.getTestFile(mCtsBuild, CLIENT_APK), false));
+        reinstallClientPackage();
     }
 
     @Override
@@ -67,5 +64,12 @@ abstract  class DocumentsTestCase extends DeviceTestCase implements IAbiReceiver
     public void runDeviceTests(String packageName, String testClassName, String testMethodName)
             throws DeviceNotAvailableException {
         Utils.runDeviceTests(getDevice(), packageName, testClassName, testMethodName);
+    }
+
+    protected void reinstallClientPackage() throws Exception {
+        getDevice().uninstallPackage(CLIENT_PKG);
+
+        assertNull(getDevice().installPackage(
+                MigrationHelper.getTestFile(mCtsBuild, CLIENT_APK), false));
     }
 }

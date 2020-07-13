@@ -304,8 +304,11 @@ void VirtualDisplaySurface::dumpAsString(String8& /* result */) const {
 
 void VirtualDisplaySurface::resizeBuffers(const uint32_t w, const uint32_t h) {
     uint32_t tmpW, tmpH, transformHint, numPendingBuffers;
-    mQueueBufferOutput.deflate(&tmpW, &tmpH, &transformHint, &numPendingBuffers);
-    mQueueBufferOutput.inflate(w, h, transformHint, numPendingBuffers);
+    uint64_t nextFrameNumber;
+    mQueueBufferOutput.deflate(&tmpW, &tmpH, &transformHint, &numPendingBuffers,
+            &nextFrameNumber);
+    mQueueBufferOutput.inflate(w, h, transformHint, numPendingBuffers,
+            nextFrameNumber);
 
     mSinkBufferWidth = w;
     mSinkBufferHeight = h;
@@ -560,8 +563,8 @@ status_t VirtualDisplaySurface::connect(const sp<IProducerListener>& listener,
     return result;
 }
 
-status_t VirtualDisplaySurface::disconnect(int api) {
-    return mSource[SOURCE_SINK]->disconnect(api);
+status_t VirtualDisplaySurface::disconnect(int api, DisconnectMode mode) {
+    return mSource[SOURCE_SINK]->disconnect(api, mode);
 }
 
 status_t VirtualDisplaySurface::setSidebandStream(const sp<NativeHandle>& /*stream*/) {
@@ -584,10 +587,6 @@ status_t VirtualDisplaySurface::setGenerationNumber(uint32_t /* generation */) {
 
 String8 VirtualDisplaySurface::getConsumerName() const {
     return String8("VirtualDisplaySurface");
-}
-
-uint64_t VirtualDisplaySurface::getNextFrameNumber() const {
-    return 0;
 }
 
 status_t VirtualDisplaySurface::setSharedBufferMode(bool /*sharedBufferMode*/) {
@@ -620,8 +619,9 @@ status_t VirtualDisplaySurface::getUniqueId(uint64_t* /*outId*/) const {
 void VirtualDisplaySurface::updateQueueBufferOutput(
         const QueueBufferOutput& qbo) {
     uint32_t w, h, transformHint, numPendingBuffers;
-    qbo.deflate(&w, &h, &transformHint, &numPendingBuffers);
-    mQueueBufferOutput.inflate(w, h, 0, numPendingBuffers);
+    uint64_t nextFrameNumber;
+    qbo.deflate(&w, &h, &transformHint, &numPendingBuffers, &nextFrameNumber);
+    mQueueBufferOutput.inflate(w, h, 0, numPendingBuffers, nextFrameNumber);
 }
 
 void VirtualDisplaySurface::resetPerFrameState() {

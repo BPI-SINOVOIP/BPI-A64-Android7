@@ -77,8 +77,6 @@ import java.util.Map.Entry;
  * u'admin_area': u'Some City', u'feature_name': u'House Numbers', u'country_code': u'GB',
  * u'country_name': u'United Kingdom', u'postal_code': u'ST1 1'}]
  *
- * @author Damon Kohler (damonkohler@gmail.com)
- * @author Felix Arends (felix.arends@gmail.com)
  */
 public class LocationFacade extends RpcReceiver {
   private final EventFacade mEventFacade;

@@ -6,6 +6,12 @@ lib_LTLIBRARIES = libcdx_parser.la
 libcdx_parser_la_SOURCES =  CdxParser.c \
 			VideoSpecificData.c
 
+libcdx_parser_la_SOURCES += \
+    ./id3base/Id3Base.c \
+    ./id3base/StringContainer.c \
+    ./id3base/CdxUtfCode.c \
+    ./id3base/CdxMetaData.c
+    
 libcdx_parser_la_CFLAGS = $(CFLAGS_CDXG)
 LOCAL_INCLUDE = -I../include \
 		-I../../include \
@@ -13,7 +19,8 @@ LOCAL_INCLUDE = -I../include \
 		-I../../stream/include \
 		-I$(top_srcdir)/external/include/adecoder \
 		-I$(top_srcdir)/../libcedarc/include \
-		-I$(top_srcdir)/
+		-I$(top_srcdir)/ \
+		-I./id3base/
 
 libcdx_parser_la_CFLAGS += $(LOCAL_INCLUDE)
 
@@ -32,11 +39,12 @@ libcdx_parser_la_LIBADD = $(top_srcdir)/libcore/parser/asf/libcdx_asf_parser.la 
 			$(top_srcdir)/libcore/parser/mpg/libcdx_mpg_parser.la \
 			$(top_srcdir)/libcore/parser/ape/libcdx_ape_parser.la \
 			$(top_srcdir)/libcore/parser/flac/libcdx_flac_parser.la \
+			$(top_srcdir)/libcore/parser/AwRawStream/libcdx_rawstream_parser.la \
 			$(top_srcdir)/libcore/parser/amr/libcdx_amr_parser.la \
 			$(top_srcdir)/libcore/parser/mp3/libcdx_mp3_parser.la \
 			$(top_srcdir)/libcore/parser/aac/libcdx_aac_parser.la \
 			$(top_srcdir)/libcore/parser/wav/libcdx_wav_parser.la \
-			$(top_srcdir)/libcore/parser/id3/libcdx_id3_parser.la \
+			$(top_srcdir)/libcore/parser/id3/libcdx_id3v2_parser.la \
 			$(top_srcdir)/libcore/stream/base/libcdx_stream.la \
 			$(top_srcdir)/libcore/base/libcdx_base.la
 
